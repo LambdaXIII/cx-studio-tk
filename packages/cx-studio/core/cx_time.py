@@ -1,3 +1,6 @@
+import math
+
+
 class CxTime:
 
     def __init__(self, milliseconds: int):
@@ -44,21 +47,29 @@ class CxTime:
         return self.__milliseconds // 1000 // 60 // 60 // 24
 
     def __eq__(self, other):
+        if other == 0:
+            return self.total_milliseconds == 0
         if not isinstance(other, CxTime):
             raise NotImplementedError("Cannot compare Time with other types")
         return self.total_milliseconds == other.total_milliseconds
 
     def __ne__(self, other):
+        if other == 0:
+            return self.total_milliseconds != 0
         if not isinstance(other, CxTime):
             raise NotImplementedError("Cannot compare Time with other types")
         return self.total_milliseconds != other.total_milliseconds
 
     def __lt__(self, other):
+        if other == 0:
+            return self.total_milliseconds < 0
         if not isinstance(other, CxTime):
             raise NotImplementedError("Cannot compare Time with other types")
         return self.total_milliseconds < other.total_milliseconds
 
     def __le__(self, other):
+        if other == 0:
+            return self.total_milliseconds <= 0
         if not isinstance(other, CxTime):
             raise NotImplementedError("Cannot compare Time with other types")
         return self.total_milliseconds <= other.total_milliseconds
@@ -95,3 +106,41 @@ class CxTime:
         if not isinstance(other, CxTime):
             raise NotImplementedError("Cannot subtract Time with other types")
         return CxTime(self.total_milliseconds - other.total_milliseconds)
+
+    def __mul__(self, other):
+        if not isinstance(other, (int, float)):
+            raise NotImplementedError("Cannot multiply Time with other types")
+        return CxTime(self.total_milliseconds * other)
+
+    def __truediv__(self, other):
+        if not isinstance(other, (int, float)):
+            raise NotImplementedError("Cannot divide Time with other types")
+        return CxTime(self.total_milliseconds / other)
+
+    @classmethod
+    def from_milliseconds(cls, milliseconds: int):
+        return cls(milliseconds)
+
+    @classmethod
+    def from_seconds(cls, seconds: float):
+        return cls(round(seconds * 1000))
+
+    @classmethod
+    def from_minutes(cls, minutes: float):
+        return cls(round(minutes * 60 * 1000))
+
+    @classmethod
+    def from_hours(cls, hours: float):
+        return cls(round(hours * 60 * 60 * 1000))
+
+    @classmethod
+    def from_days(cls, days: float):
+        return cls(round(days * 24 * 60 * 60 * 1000))
+
+    @classmethod
+    def zero(cls):
+        return cls(0)
+
+    @classmethod
+    def one_second(cls):
+        return cls.from_seconds(1)

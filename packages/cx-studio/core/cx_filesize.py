@@ -1,0 +1,126 @@
+class FileSize:
+    standard = "binary"  # "binary" or "international"
+
+    @classmethod
+    def __unit_factor(cls) -> int:
+        return 1024 if cls.standard == "binary" else 1000
+
+    def __init__(self, bytes):
+        self.__bytes = int(0 if bytes < 0 else bytes)
+
+    @classmethod
+    def from_bytes(cls, bytes):
+        return cls(bytes)
+
+    @classmethod
+    def from_kilobytes(cls, kilobytes):
+        return cls(kilobytes * cls.__unit_factor())
+
+    @classmethod
+    def from_megabytes(cls, megabytes):
+        return cls(megabytes * cls.__unit_factor() ** 2)
+
+    @classmethod
+    def from_gigabytes(cls, gigabytes):
+        return cls(gigabytes * cls.__unit_factor() ** 3)
+
+    @classmethod
+    def from_terabytes(cls, terabytes):
+        return cls(terabytes * cls.__unit_factor() ** 4)
+
+    @classmethod
+    def from_petabytes(cls, petabytes):
+        return cls(petabytes * cls.__unit_factor() ** 5)
+
+    @classmethod
+    def from_exabytes(cls, exabytes):
+        return cls(exabytes * cls.__unit_factor() ** 6)
+
+    @property
+    def total_bytes(self) -> int:
+        return self.__bytes
+
+    @property
+    def total_kilobytes(self) -> float:
+        return self.__bytes / self.__unit_factor()
+
+    @property
+    def total_megabytes(self) -> float:
+        return self.__bytes / self.__unit_factor() ** 2
+
+    @property
+    def total_gigabytes(self) -> float:
+        return self.__bytes / self.__unit_factor() ** 3
+
+    @property
+    def total_terabytes(self) -> float:
+        return self.__bytes / self.__unit_factor() ** 4
+
+    @property
+    def total_petabytes(self) -> float:
+        return self.__bytes / self.__unit_factor() ** 5
+
+    @property
+    def total_exabytes(self) -> float:
+        return self.__bytes / self.__unit_factor() ** 6
+
+    @property
+    def pretty_string(self) -> str:
+        if self.total_exabytes >= 1:
+            return f"{self.total_exabytes:.2f} EB"
+        elif self.total_petabytes >= 1:
+            return f"{self.total_petabytes:.2f} PB"
+        elif self.total_terabytes >= 1:
+            return f"{self.total_terabytes:.2f} TB"
+        elif self.total_gigabytes >= 1:
+            return f"{self.total_gigabytes:.2f} GB"
+        elif self.total_megabytes >= 1:
+            return f"{self.total_megabytes:.2f} MB"
+        elif self.total_kilobytes >= 1:
+            return f"{self.total_kilobytes:.2f} KB"
+        else:
+            return f"{self.total_bytes} B"
+
+    def __eq__(self, other):
+        if other == 0:
+            return self.total_bytes == 0
+        if not isinstance(other, FileSize):
+            raise NotImplementedError("Cannot compare FileSize with other types")
+        return self.total_bytes == other.total_bytes
+
+    def __ne__(self, other):
+        if other == 0:
+            return self.total_bytes != 0
+        if not isinstance(other, FileSize):
+            raise NotImplementedError("Cannot compare FileSize with other types")
+        return self.total_bytes != other.total_bytes
+
+    def __lt__(self, other):
+        if not isinstance(other, FileSize):
+            raise NotImplementedError("Cannot compare FileSize with other types")
+        return self.total_bytes < other.total_bytes
+
+    def __le__(self, other):
+        if not isinstance(other, FileSize):
+            raise NotImplementedError("Cannot compare FileSize with other types")
+        return self.total_bytes <= other.total_bytes
+
+    def __add__(self, other):
+        if not isinstance(other, FileSize):
+            raise NotImplementedError("Cannot add FileSize with other types")
+        return FileSize(self.total_bytes + other.total_bytes)
+
+    def __sub__(self, other):
+        if not isinstance(other, FileSize):
+            raise NotImplementedError("Cannot subtract FileSize with other types")
+        return FileSize(self.total_bytes - other.total_bytes)
+
+    def __mul__(self, other):
+        if not isinstance(other, (int, float)):
+            raise NotImplementedError("Cannot multiply FileSize with other types")
+        return FileSize(self.total_bytes * other)
+
+    def __truediv__(self, other):
+        if not isinstance(other, (int, float)):
+            raise NotImplementedError("Cannot divide FileSize with other types")
+        return FileSize(self.total_bytes / other)
