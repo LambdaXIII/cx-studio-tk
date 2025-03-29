@@ -1,4 +1,9 @@
+import gettext
 import math
+
+
+__t = gettext.translation("cx_time", localedir="locale", fallback=True)
+_ = __t.gettext
 
 
 class CxTime:
@@ -87,15 +92,15 @@ class CxTime:
     def pretty_string(self):
         parts = []
         if self.days > 0:
-            parts.append(f"{self.days}日")
+            parts.append(f"{self.days}{_("日")}")
         if self.hours > 0:
-            parts.append(f"{self.hours}小时")
+            parts.append(f"{self.hours}{_("小时")}")
         if self.minutes > 0:
-            parts.append(f"{self.minutes}分")
+            parts.append(f"{self.minutes}{_("分")}")
         if self.seconds > 0:
-            parts.append(f"{self.seconds}秒")
+            parts.append(f"{self.seconds}{_("秒")}")
         if self.milliseconds > 0 and self.total_minutes < 0:
-            parts.append(f"{self.milliseconds}毫秒")
+            parts.append(f"{self.milliseconds}{_("毫秒")}")
 
     def __add__(self, other):
         if not isinstance(other, CxTime):

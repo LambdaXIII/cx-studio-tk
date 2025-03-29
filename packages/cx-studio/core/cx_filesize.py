@@ -5,6 +5,13 @@ class FileSize:
     def __unit_factor(cls) -> int:
         return 1024 if cls.standard == "binary" else 1000
 
+    @classmethod
+    def __unit_string(cls, unit: str) -> str:
+        upper = unit.upper()
+        if upper == "B":
+            return "B"
+        return f"{upper}{"B" if cls.standard == "binary" else "iB"}"
+
     def __init__(self, bytes):
         self.__bytes = int(0 if bytes < 0 else bytes)
 
@@ -67,19 +74,19 @@ class FileSize:
     @property
     def pretty_string(self) -> str:
         if self.total_exabytes >= 1:
-            return f"{self.total_exabytes:.2f} EB"
+            return f"{self.total_exabytes:.2f} {self.__unit_string('E')}"
         elif self.total_petabytes >= 1:
-            return f"{self.total_petabytes:.2f} PB"
+            return f"{self.total_petabytes:.2f} {self.__unit_string('P')}"
         elif self.total_terabytes >= 1:
-            return f"{self.total_terabytes:.2f} TB"
+            return f"{self.total_terabytes:.2f} {self.__unit_string('T')}"
         elif self.total_gigabytes >= 1:
-            return f"{self.total_gigabytes:.2f} GB"
+            return f"{self.total_gigabytes:.2f} {self.__unit_string('G')}"
         elif self.total_megabytes >= 1:
-            return f"{self.total_megabytes:.2f} MB"
+            return f"{self.total_megabytes:.2f} {self.__unit_string('M')}"
         elif self.total_kilobytes >= 1:
-            return f"{self.total_kilobytes:.2f} KB"
+            return f"{self.total_kilobytes:.2f} {self.__unit_string('K')}"
         else:
-            return f"{self.total_bytes} B"
+            return f"{self.total_bytes} {self.__unit_string('B')}"
 
     def __eq__(self, other):
         if other == 0:
