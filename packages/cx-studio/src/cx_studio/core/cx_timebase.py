@@ -1,6 +1,5 @@
 from dataclasses import dataclass
-from typing import Number
-from .cx_time import CxTime
+from numbers import Number
 
 
 class Timebase:
