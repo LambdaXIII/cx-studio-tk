@@ -1,4 +1,4 @@
-from typing import Number
+from numbers import Number
 
 
 def limit_number(x, min: Number = None, max: Number = None, cls=None):

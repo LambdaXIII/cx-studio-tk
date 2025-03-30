@@ -27,6 +27,7 @@ class DataPackage:
         result = cls()
         for k, v in data.items():
             result.__data[k] = DataPackage.__check_value(v)
+        return result
 
     @staticmethod
     def __check_value(value):
@@ -38,31 +39,34 @@ class DataPackage:
             return value
 
     def __getattr__(self, key):
-        return self._data[key]
+        return self.__data[key]
 
     def __setattr__(self, key, value):
-        self._data[key] = DataPackage.__check_value(value)
+        if key == "_DataPackage__data":
+            super().__setattr__(key, value)
+        else:
+            self.__data[key] = DataPackage.__check_value(value)
 
     def __getitem__(self, key):
         if isinstance(key, str) and ("." in key):
             keys = key.split(".")
-            value = self._data[keys[0]]
+            value = self.__data[keys[0]]
             for k in keys[1:]:
                 value = value[k]
             return value
-        return self._data[key]
+        return self.__data[key]
 
     def __setitem__(self, key, value):
         if isinstance(key, str) and ("." in key):
             keys = key.split(".")
-            d = self._data[keys[0]]
+            d = self.__data[keys[0]]
             for k in keys[1:-1]:
                 d = d[k]
             d[keys[-1]] = DataPackage.__check_value(value)
         else:
-            self._data[key] = DataPackage.__check_value(value)
+            self.__data[key] = DataPackage.__check_value(value)
 
     def __rich_repr__(self):
         yield "DataPackage"
-        for k, v in self._data.items():
+        for k, v in self.__data.items():
             yield k, v

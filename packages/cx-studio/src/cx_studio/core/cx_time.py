@@ -102,6 +102,7 @@ class CxTime:
             parts.append(f"{self.seconds}{_("秒")}")
         if self.milliseconds > 0 and self.total_minutes < 0:
             parts.append(f"{self.milliseconds}{_("毫秒")}")
+        return "".join(parts)
 
     def __add__(self, other):
         if not isinstance(other, CxTime):
@@ -162,7 +163,7 @@ class CxTime:
         return f"{self.hours:02d}:{self.minutes:02d}:{self.seconds:02d}{sep}{ff_str}"
 
     @classmethod
-    def from_timestamp(ts: str):
+    def from_timestamp(cls, ts: str):
         match = re.match(CxTime.__TC_PATTERN, ts)
         if not match:
             raise ValueError(f"Invalid timestamp format: {ts}")
@@ -170,12 +171,10 @@ class CxTime:
         minutes = int(match.group(2))
         seconds = int(match.group(3))
         milliseconds = int(match.group(4))
-        return CxTime.from_milliseconds(
-            hours * 3600000 + minutes * 60000 + seconds * 1000 + milliseconds
-        )
+        return cls(hours * 3600000 + minutes * 60000 + seconds * 1000 + milliseconds)
 
     @classmethod
-    def from_timecode(tc: str, timebase: Timebase):
+    def from_timecode(cls, tc: str, timebase: Timebase):
         match = re.match(CxTime.__TC_PATTERN, tc)
         if not match:
             raise ValueError(f"Invalid timecode format: {tc}")
@@ -184,6 +183,4 @@ class CxTime:
         seconds = int(match.group(3))
         frames = int(match.group(4))
         milliseconds = int(round(frames / timebase.fps * 1000))
-        return CxTime.from_milliseconds(
-            hours * 3600000 + minutes * 60000 + seconds * 1000 + milliseconds
-        )
+        return cls(hours * 3600000 + minutes * 60000 + seconds * 1000 + milliseconds)

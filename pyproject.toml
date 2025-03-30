@@ -13,9 +13,7 @@ cx-studio = {workspace = true}
 members = ["packages/cx-studio"]
 
 [dependency-groups]
-dev = [
-    "pytest>=8.3.5",
-]
+dev = []
 
 [tool.pytest.ini_options]
 pythonpath = [".","packages/cx-studio/src"]
