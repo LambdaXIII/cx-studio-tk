@@ -1,12 +1,13 @@
 import gettext
-import math
-
+import re
+from .cx_timebase import Timebase
 
 __t = gettext.translation("cx_time", localedir="locale", fallback=True)
 _ = __t.gettext
 
 
 class CxTime:
+    __TC_PATTERN = r"(\d{2}):(\d{2}):(\d{2})[:;.,](\d+)"
 
     def __init__(self, milliseconds: int):
         self.__milliseconds = int(milliseconds)
@@ -149,3 +150,40 @@ class CxTime:
     @classmethod
     def one_second(cls):
         return cls.from_seconds(1)
+
+    def to_timestamp(self) -> str:
+        return f"{self.hours:02d}:{self.minutes:02d}:{self.seconds:02d}.{self.milliseconds:03d}"
+
+    def to_timecode(self, timebase: Timebase) -> str:
+        sep = ";" if timebase.drop_frame else ":"
+        ff = self.milliseconds / 1000.0 * timebase.fps
+        ff_digits = len(str(timebase.fps))
+        ff_str = f"{round(ff):0{ff_digits}d}"
+        return f"{self.hours:02d}:{self.minutes:02d}:{self.seconds:02d}{sep}{ff_str}"
+
+    @classmethod
+    def from_timestamp(ts: str):
+        match = re.match(CxTime.__TC_PATTERN, ts)
+        if not match:
+            raise ValueError(f"Invalid timestamp format: {ts}")
+        hours = int(match.group(1))
+        minutes = int(match.group(2))
+        seconds = int(match.group(3))
+        milliseconds = int(match.group(4))
+        return CxTime.from_milliseconds(
+            hours * 3600000 + minutes * 60000 + seconds * 1000 + milliseconds
+        )
+
+    @classmethod
+    def from_timecode(tc: str, timebase: Timebase):
+        match = re.match(CxTime.__TC_PATTERN, tc)
+        if not match:
+            raise ValueError(f"Invalid timecode format: {tc}")
+        hours = int(match.group(1))
+        minutes = int(match.group(2))
+        seconds = int(match.group(3))
+        frames = int(match.group(4))
+        milliseconds = int(round(frames / timebase.fps * 1000))
+        return CxTime.from_milliseconds(
+            hours * 3600000 + minutes * 60000 + seconds * 1000 + milliseconds
+        )
