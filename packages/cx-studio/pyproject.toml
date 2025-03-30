@@ -1,10 +1,12 @@
 [project]
 name = "cx-studio"
 version = "0.1.0"
-description = "Add your description here"
+description = "A Python library for interacting with the CX Studio API"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "chardet>=5.2.0",
+]
 
 [build-system]
 requires = ["hatchling"]
