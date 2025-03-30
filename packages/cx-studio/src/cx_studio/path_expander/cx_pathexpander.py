@@ -12,8 +12,8 @@ class PathExpanderStartInfo:
     accept_dirs: bool = True
     accept_others: bool = False
     existed_only: bool = True
-    file_validators: IPathValidator = ChainValidator()
-    dir_validators: IPathValidator = file_validators
+    file_validator: IPathValidator = ChainValidator()
+    dir_validator: IPathValidator = file_validator
     follow_symlinks: bool = True
 
 
@@ -47,12 +47,12 @@ class PathExpander:
         if path.is_file():
             if not self.start_info.accept_files:
                 return False
-            return self.start_info.file_validators.validate(path)
+            return self.start_info.file_validator.validate(path)
 
         if path.is_dir():
             if not self.start_info.accept_dirs:
                 return False
-            return self.start_info.dir_validators.validate(path)
+            return self.start_info.dir_validator.validate(path)
 
         return self.start_info.accept_others
 

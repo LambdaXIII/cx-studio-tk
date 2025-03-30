@@ -1,0 +1,66 @@
+from pathlib import Path
+from typing import Generator
+from cx_studio.path_expander.cx_executablevalidator import ExecutableValidator
+from cx_studio.path_expander.cx_pathexpander import PathExpander, PathExpanderStartInfo
+from cx_studio.utils import PathUtils
+import os
+
+
+class CmdFinder:
+
+    @staticmethod
+    def defualt_folders():
+        paths = os.environ.get("PATH").split(os.pathsep)
+        yield from paths
+        yield Path.home()
+        yield Path.home() / ".bin"
+        yield Path.home() / ".local/bin"
+
+    def __init__(
+        self, *folders, include_cwd: bool = True, include_default_folders: bool = True
+    ):
+        self._folders = [Path(x) for x in folders]
+        self._include_cwd = include_cwd
+        self._include_default_folders = include_default_folders
+
+    def add_folder(self, folder: str | Path) -> "CmdFinder":
+        self._folders.add(folder)
+        return self
+
+    def remove_folder(self, folder: str | Path) -> "CmdFinder":
+        self._folders.remove(folder)
+        return self
+
+    def folders(self) -> Generator[str | Path, None, None]:
+        if self._include_cwd:
+            yield Path.cwd()
+
+        if self._include_default_folders:
+            yield from CmdFinder.defualt_folders()
+
+        yield from self._folders
+
+    def find(self, cmd: str) -> str:
+        cmd = str(cmd)
+        targets = {cmd}
+        if os.name == "nt":
+            targets.add(str(PathUtils.force_suffix(cmd, "exe")))
+            targets.add(str(PathUtils.force_suffix(cmd, "com")))
+
+        expander_info = PathExpanderStartInfo(
+            accept_dirs=False,
+            accept_others=False,
+            follow_symlinks=True,
+            file_validator=ExecutableValidator(),
+        )
+
+        expander = PathExpander(expander_info)
+        for folder in self.folders():
+            dir = PathUtils.take_dir(PathUtils.normalize_path(folder))
+            for x in expander.expand(dir):
+                d = Path(x)
+                for name in targets:
+                    if d.name == name:
+                        return d / name
+
+        return None
