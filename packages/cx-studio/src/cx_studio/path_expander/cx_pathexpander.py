@@ -1,13 +1,13 @@
 from dataclasses import dataclass
-from gc import is_finalized
 from pathlib import Path
+
 from .cx_pathvalidator import IPathValidator, ChainValidator
 
 
 @dataclass
 class PathExpanderStartInfo:
     anchor_point: Path | None = None
-    expand_subdirs: bool = True
+    expand_subdir: bool = True
     accept_files: bool = True
     accept_dirs: bool = True
     accept_others: bool = False
@@ -34,8 +34,8 @@ class PathExpander:
         path = self.__make_path(path)
         yield path
         if (
-            path.is_dir(follow_symlinks=self.start_info.follow_symlinks)
-            and self.start_info.expand_subdirs
+                path.is_dir(follow_symlinks=self.start_info.follow_symlinks)
+                and self.start_info.expand_subdir
         ):
             for p in path.iterdir():
                 yield from self.__pure_expand(p)

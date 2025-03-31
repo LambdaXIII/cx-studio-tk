@@ -1,8 +1,5 @@
-from numbers import Number
-
-
 def limit_number(
-    x, bottom: float | int | None = None, top: float | int | None = None, cls=None
+        x, bottom: float | int | None = None, top: float | int | None = None, cls=None
 ):
     """
     Limits a number to a given range.

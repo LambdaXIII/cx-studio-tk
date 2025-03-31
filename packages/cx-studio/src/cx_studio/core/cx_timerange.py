@@ -1,5 +1,6 @@
-from .cx_time import CxTime
 from abc import ABC, abstractmethod
+
+from .cx_time import CxTime
 
 
 class ITimeRange(ABC):

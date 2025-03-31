@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from cx_studio.utils import NumberUtils
 
 
@@ -19,9 +20,9 @@ class PathInfoProvider:
 
         match key:
             case "full":
-                return self.__path.resolve()
+                return str(self.__path.resolve())
             case "fullpath":
-                return self.__path.resolve()
+                return str(self.__path.resolve())
             case "filename":
                 return self.__path.name
             case "complete_basename":

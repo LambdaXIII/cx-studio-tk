@@ -3,12 +3,12 @@ from pathlib import Path
 
 
 def normalize_path(
-    path: Path, anchor: Path | None = None, follow_symlinks: bool = True
+        path: Path, anchor: Path | None = None, follow_symlinks: bool = True
 ) -> Path:
     path = Path(path)
-    andchor = Path(anchor) if anchor else Path.cwd()
+    anchor = Path(anchor) if anchor else Path.cwd()
     if not path.is_absolute():
-        path = andchor.joinpath(path)
+        path = anchor.joinpath(path)
     return path.resolve() if follow_symlinks else path.absolute()
 
 
@@ -17,12 +17,12 @@ def normalize_suffix(suffix: str, with_dot=True) -> str:
     return "." + s if with_dot else s
 
 
-def force_suffix(source: Path, suffix: str) -> Path:
+def force_suffix(source: Path, suffix: str) -> str:
     if not source:
-        return None
+        return ""
     source = Path(source)
     suffix = normalize_suffix(suffix)
-    return source if source.suffix == suffix else source.with_suffix(suffix)
+    return str(source if source.suffix == suffix else source.with_suffix(suffix))
 
 
 def take_dir(source: Path) -> Path:
@@ -30,7 +30,7 @@ def take_dir(source: Path) -> Path:
     return source if source.is_dir() else source.parent
 
 
-def is_excutable(cmd: Path) -> bool:
+def is_executable(cmd: Path) -> bool:
     cmd = normalize_path(cmd)
     return cmd.exists() and os.access(cmd, os.X_OK)
 

@@ -1,15 +1,16 @@
-from pathlib import Path
+import os
 from collections.abc import Generator
+from pathlib import Path
+
 from cx_studio.path_expander.cx_executablevalidator import ExecutableValidator
 from cx_studio.path_expander.cx_pathexpander import PathExpander, PathExpanderStartInfo
 from cx_studio.utils import PathUtils
-import os
 
 
 class CmdFinder:
 
     @staticmethod
-    def defualt_folders():
+    def default_folders():
         paths = os.environ.get("PATH").split(os.pathsep)
         yield from paths
         yield Path.home()
@@ -17,7 +18,7 @@ class CmdFinder:
         yield Path.home() / ".local/bin"
 
     def __init__(
-        self, *folders, include_cwd: bool = True, include_default_folders: bool = True
+            self, *folders, include_cwd: bool = True, include_default_folders: bool = True
     ):
         self._folders = [Path(x) for x in folders]
         self._include_cwd = include_cwd
@@ -36,7 +37,7 @@ class CmdFinder:
             yield Path.cwd()
 
         if self._include_default_folders:
-            yield from CmdFinder.defualt_folders()
+            yield from CmdFinder.default_folders()
 
         yield from self._folders
 

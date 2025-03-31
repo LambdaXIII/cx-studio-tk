@@ -1,5 +1,5 @@
-from pathlib import Path
 import tempfile
+from pathlib import Path
 
 
 class StandardFolderProvider:
@@ -20,4 +20,4 @@ class StandardFolderProvider:
 
         if len(subfolders) > 0:
             result = Path(result, *subfolders)
-        return result.resolve()
+        return str(result.resolve())

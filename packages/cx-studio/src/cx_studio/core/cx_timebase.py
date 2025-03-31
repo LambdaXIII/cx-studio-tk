@@ -1,9 +1,5 @@
-from dataclasses import dataclass
-from numbers import Number
-
-
 class Timebase:
-    def __init__(self, fps: Number = 24, drop_frame: bool = None):
+    def __init__(self, fps: int | float = 24, drop_frame: bool = None):
         self.fps = int(round(fps))
         self.drop_frame = drop_frame
 

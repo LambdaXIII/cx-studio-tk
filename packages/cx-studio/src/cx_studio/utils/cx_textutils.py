@@ -1,9 +1,8 @@
 from collections.abc import Callable
 
 
-def auto_quote(
-    text: str, needs_quote: str | list[str] | Callable[[str], bool] = [" "]
-) -> str:
+def auto_quote(text: str, needs_quote=None) -> str:
+    needs_quote = needs_quote or [" "]
     quote = False
     if isinstance(needs_quote, Callable):
         quote = needs_quote(text)

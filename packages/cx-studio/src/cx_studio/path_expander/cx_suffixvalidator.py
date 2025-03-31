@@ -1,5 +1,6 @@
-from .cx_pathvalidator import *
 from pathlib import Path
+
+from .cx_pathvalidator import *
 
 
 class SuffixValidator(IPathValidator):

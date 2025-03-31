@@ -1,5 +1,6 @@
 import gettext
 import re
+
 from .cx_timebase import Timebase
 
 __t = gettext.translation("cx_time", localedir="locale", fallback=True)
@@ -100,7 +101,7 @@ class CxTime:
             parts.append(f"{self.minutes}{_("分")}")
         if self.seconds > 0:
             parts.append(f"{self.seconds}{_("秒")}")
-        if self.milliseconds > 0 and self.total_minutes < 0:
+        if self.milliseconds > 0 > self.total_minutes:
             parts.append(f"{self.milliseconds}{_("毫秒")}")
         return "".join(parts)
 
@@ -122,7 +123,7 @@ class CxTime:
     def __truediv__(self, other):
         if not isinstance(other, (int, float)):
             raise NotImplementedError("Cannot divide Time with other types")
-        return CxTime(self.total_milliseconds / other)
+        return CxTime(int(round(self.total_milliseconds / other)))
 
     @classmethod
     def from_milliseconds(cls, milliseconds: int):

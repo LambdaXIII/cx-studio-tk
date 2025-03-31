@@ -1,6 +1,7 @@
-from typing import Callable
-from .cx_tagpattern import TagPattern
 import re
+from typing import Callable
+
+from .cx_tagpattern import TagPattern
 
 
 class TagReplacer:
