@@ -13,8 +13,11 @@ cxalio-studio-tools = {workspace = true}
 [tool.uv.workspace]
 members = ["packages/cx-studio", "packages/cxalio-studio-tools"]
 
-[dependency-groups]
-dev = []
+# [dependency-groups]
+# dev = []
 
-[tool.pytest.ini_options]
-pythonpath = [".","packages/cx-studio/src"]
+# [tool.pytest.ini_options]
+# pythonpath = [".","packages/cx-studio/src"]
+
+# [project.scripts]
+# hello = "hello:h"
