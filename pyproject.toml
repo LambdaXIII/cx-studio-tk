@@ -4,10 +4,11 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = ["cx-studio"]
+dependencies = ["cx-studio", "cxalio-studio-tools"]
 
 [tool.uv.sources]
 cx-studio = {workspace = true}
+cxalio-studio-tools = {workspace = true}
 
 [tool.uv.workspace]
 members = ["packages/cx-studio", "packages/cxalio-studio-tools"]
