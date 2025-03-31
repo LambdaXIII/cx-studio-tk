@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Generator
+from collections.abc import Generator
 from cx_studio.path_expander.cx_executablevalidator import ExecutableValidator
 from cx_studio.path_expander.cx_pathexpander import PathExpander, PathExpanderStartInfo
 from cx_studio.utils import PathUtils

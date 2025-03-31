@@ -2,16 +2,14 @@ import os
 from pathlib import Path
 
 
-def normalize_path(path: Path, anchor: Path = None, follow_symlinks=True) -> Path:
+def normalize_path(
+    path: Path, anchor: Path | None = None, follow_symlinks: bool = True
+) -> Path:
     path = Path(path)
     andchor = Path(anchor) if anchor else Path.cwd()
     if not path.is_absolute():
         path = andchor.joinpath(path)
-    return (
-        path.resolve(follow_symlinks=follow_symlinks)
-        if follow_symlinks
-        else path.absolute()
-    )
+    return path.resolve() if follow_symlinks else path.absolute()
 
 
 def normalize_suffix(suffix: str, with_dot=True) -> str:
