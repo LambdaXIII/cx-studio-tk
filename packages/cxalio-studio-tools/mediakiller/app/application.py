@@ -1,6 +1,6 @@
 import logging
 from dataclasses import dataclass
-
+from rich.console import Console
 from rich.logging import RichHandler
 
 from common.ConfigManager import ConfigManager
@@ -45,6 +45,7 @@ class Application:
             format="%(message)s",
             datefmt="[%X]",
         )
+        self.console = Console()
 
     @property
     def app_name(self):
@@ -54,11 +55,36 @@ class Application:
     def logger(self):
         return logging.getLogger(self.app_name)
 
+    def say(self, *args):
+        self.console.print(*args)
+        for arg in args:
+            self.logger.info(arg)
+
+    def whisper(self, *args):
+        if self.context.debug:
+            self.console.log(*args)
+        for arg in args:
+            self.logger.info(arg)
+
     def start_app(self):
         if self.context.debug:
             self.logger.addHandler(
                 RichHandler(level=logging.DEBUG, markup=True, rich_tracebacks=True)
             )
+        self.whisper("运行参数：", self.context)
+        self.whisper("初始化完毕")
+
+    def end_app(self):
+        self.config_manager.remove_old_log_files()
+        self.whisper("应用程序退出")
+
+    def __enter__(self):
+        self.start_app()
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.end_app()
+        return False
 
 
 app = Application()

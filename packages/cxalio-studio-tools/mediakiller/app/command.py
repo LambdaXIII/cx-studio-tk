@@ -139,5 +139,3 @@ def setup_sort_mode(ctx, param, value):
 )
 def command():
     app.start_app()
-    app.logger.info("Application started.")
-    app.logger.info(f"Context: {app.context}")
