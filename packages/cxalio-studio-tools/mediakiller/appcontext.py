@@ -13,6 +13,8 @@ class AppContext:
     debug = False
     sort_mode = "x"
     continue_mode = False
+    generate = None
+    tutorial = False
 
     def __rich_repr__(self):
         yield "Presets", self.presets
