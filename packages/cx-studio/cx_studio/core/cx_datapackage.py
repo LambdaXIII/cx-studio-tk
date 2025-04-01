@@ -81,3 +81,12 @@ class DataPackage:
         yield "DataPackage"
         for k, v in self.__data.items():
             yield k, v
+
+    def to_dict(self)->dict:
+        result = {}
+        for k,v in self.__data.items():
+            value = v.to_dict() if isinstance(v,DataPackage) else v
+            result[k] = value
+        return result
+
+

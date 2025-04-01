@@ -21,7 +21,7 @@ class AppContextParser:
         parser.add_argument("--save-script", "-s", help="Generate script file")
         parser.add_argument(
             "--sort",
-            choices=["source", "preset", "target", "x"],
+            choices=["source", "components", "target", "x"],
             default="x",
             help="Set sorting mode",
         )

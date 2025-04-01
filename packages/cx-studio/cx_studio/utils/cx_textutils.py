@@ -22,3 +22,10 @@ def random_string(length=5):
     import string
 
     return "".join(random.choices(_random_string_letters + string.digits, k=length))
+
+def auto_list(input:str|list[str]|None,sep=None)->list[str]:
+    if input is None:
+        return []
+    if isinstance(input,str):
+        return input.split(sep or " ")
+    return input
