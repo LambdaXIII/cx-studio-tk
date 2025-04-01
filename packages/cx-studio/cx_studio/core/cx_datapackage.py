@@ -39,30 +39,41 @@ class DataPackage:
             return value
 
     def __getattr__(self, key):
-        return self.__data[key]
+        return self.__data.get(key, None)
 
     def __setattr__(self, key, value):
         if key == "_DataPackage__data":
-            super().__setattr__(key, value)
+            object.__setattr__(self,key,value)
         else:
             self.__data[key] = DataPackage.__check_value(value)
+
+    def __locate_item(self,address:str|list[str]):
+        if isinstance(address,str):
+            address = address.split(".")
+        item = self.__data.get(address[0],None)
+        for k in address[1:]:
+            if item is None:
+                break
+            item = item.__getattr__(k)
+        return item
+
 
     def __getitem__(self, key):
         if isinstance(key, str) and ("." in key):
             keys = key.split(".")
-            value = self.__data[keys[0]]
+            item = self.__data.get(keys[0], None)
             for k in keys[1:]:
-                value = value[k]
-            return value
+                if item is None:
+                    break
+                item = item.__getattr__(k)
+            return item
         return self.__data[key]
 
     def __setitem__(self, key, value):
         if isinstance(key, str) and ("." in key):
             keys = key.split(".")
-            d = self.__data[keys[0]]
-            for k in keys[1:-1]:
-                d = d[k]
-            d[keys[-1]] = DataPackage.__check_value(value)
+            next_keys = '.'.join(keys[1:])
+            self.__data[keys[0]].__setitem__(next_keys, value)
         else:
             self.__data[key] = DataPackage.__check_value(value)
 
