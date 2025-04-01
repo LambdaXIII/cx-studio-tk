@@ -1,8 +1,10 @@
 import logging
-from common import ConfigManager
-from rich.progress import Progress
-from mediakiller.appcontext import AppContext
 from argparse import ArgumentParser
+
+from rich.progress import Progress
+
+from common import ConfigManager
+from mediakiller.appcontext import AppContext
 
 
 class AppServer:

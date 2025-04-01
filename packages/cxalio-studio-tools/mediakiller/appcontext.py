@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from argparse import ArgumentParser
 
 APP_NAME = "MediaKiller"
 APP_VERSION = "0.5.0"
