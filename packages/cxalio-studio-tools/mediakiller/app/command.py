@@ -1,7 +1,7 @@
 import click
 from cx_studio.utils.cx_pathutils import is_file_in_dir
 import rich
-from .server import app
+from .application import app
 from cx_studio.utils import PathUtils
 from pathlib import Path
 
@@ -30,8 +30,8 @@ def _is_preset(p: Path) -> bool:
     if p.suffix.lower() == ".toml":
         return True
     if p.suffix == "":
-        ppreset = PathUtils.force_suffix(p, ".toml")
-        return Path(ppreset).exists()
+        preset = PathUtils.force_suffix(p, ".toml")
+        return Path(preset).exists()
 
 
 def setup_sources_and_presets(ctx, param, value):
@@ -132,7 +132,12 @@ def setup_sort_mode(ctx, param, value):
     default=False,
     callback=setup_debug_mode,
     expose_value=False,
+    is_eager=True,
 )
-@click.argument("inputs", nargs=-1, callback=setup_sources_and_presets)
-def command(inputs):
-    rich.print(app.context)
+@click.argument(
+    "inputs", nargs=-1, callback=setup_sources_and_presets, expose_value=False
+)
+def command():
+    app.start_app()
+    app.logger.info("Application started.")
+    app.logger.info(f"Context: {app.context}")

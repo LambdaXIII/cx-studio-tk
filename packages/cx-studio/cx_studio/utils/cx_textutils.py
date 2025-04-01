@@ -12,3 +12,13 @@ def auto_quote(text: str, needs_quote=None) -> str:
                 quote = True
                 break
     return f'"{text}"' if quote else text
+
+
+_random_string_letters = "abcdefghjkmnpqrstuwxyz0123456789"
+
+
+def random_string(length=5):
+    import random
+    import string
+
+    return "".join(random.choices(_random_string_letters + string.digits, k=length))
