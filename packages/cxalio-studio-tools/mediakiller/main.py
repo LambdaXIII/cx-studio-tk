@@ -1,5 +1,10 @@
-from .command import command
+from mediakiller.application import Application
 
 
 def main():
-    command()
+    with Application() as app:
+        app.run()
+
+
+if __name__ == "__main__":
+    main()
