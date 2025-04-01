@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from rich.console import Console
 from rich.logging import RichHandler
 
-from common.ConfigManager import ConfigManager
+from common import ConfigManager
 from cx_studio.core import DataPackage
 import click
 

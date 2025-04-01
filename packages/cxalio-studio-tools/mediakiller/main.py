@@ -1,4 +1,4 @@
-from .app.command import command
+from .command import command
 
 
 def main():
