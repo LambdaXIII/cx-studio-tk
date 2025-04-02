@@ -16,7 +16,7 @@ DefaultSuffixes = (
     ".ape .dsd .pcm .ac3 .dts .eac3 .mp2 "
     ".mpa .opus .mka .mkv .webm .flv .ts .m2ts "
     ".m2t .mts .m2v .m4v .vob .wav .m4a .aac "
-    ".ogg .wma .flac .alac .aiff .ape .dsd .pcm "
+    ".ogg .wma .flac .aiff .ape .dsd .pcm "
     ".ac3 .dts .eac3 .mp2 .mpa .opus .mka .mxf_op1a"
 )
 
