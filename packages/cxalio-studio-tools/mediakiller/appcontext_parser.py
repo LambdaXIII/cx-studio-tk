@@ -24,6 +24,23 @@ class AppContextParser:
             default="x",
             help="Set sorting mode",
         )
+        parser.add_argument(
+            "--overwrite",
+            "-y",
+            help="Force overwrite outputs",
+            action="store_true",
+            default=False,
+            dest="force_overwrite",
+        )
+
+        parser.add_argument(
+            "--no-overwrite",
+            "-n",
+            help="Force no overwrite on outputs",
+            action="store_true",
+            default=False,
+            dest="force_no_overwrite",
+        )
 
         parser.add_argument(
             "-c",
@@ -70,4 +87,6 @@ class AppContextParser:
         result.debug = args.debug
         result.sort_mode = args.sort
         result.continue_mode = args.continue_mode
+        result.force_overwrite = args.force_overwrite
+        result.force_no_overwrite = args.force_no_overwrite
         return result
