@@ -1,41 +1,38 @@
+import csv
 from io import TextIOBase
+from pathlib import PurePath
 from typing import Generator
 
 from .path_prober import IPathProber
-from pathlib import Path,PurePath
-from cx_studio.utils import EncodingUtils
-import csv
 
 
 class ResolveMetadataCSVProber(IPathProber):
     @staticmethod
-    def _get_headers(fp:TextIOBase)->list[str]:
+    def _get_headers(fp: TextIOBase) -> list[str]:
         with IPathProber.ProbeGuard(fp) as guard:
             guard.seek()
             for line in fp:
-                if line.strip()!= "":
+                if line.strip() != "":
                     return line.split(',')
         return []
 
-    def is_acceptable(self,fp:TextIOBase) ->bool:
+    def is_acceptable(self, fp: TextIOBase) -> bool:
         suffix = self._get_suffix(fp)
         if suffix is not None and suffix != ".csv":
             return False
         headers = self._get_headers(fp)
         return "File Name" in headers and "Clip Directory" in headers
 
-    def probe(self,fp:TextIOBase) ->Generator[PurePath]:
+    def probe(self, fp: TextIOBase) -> Generator[PurePath]:
         headers = self._get_headers(fp)
         with IPathProber.ProbeGuard(fp) as guard:
             guard.seek()
-            reader = csv.DictReader(fp,fieldnames=headers)
+            reader = csv.DictReader(fp, fieldnames=headers)
             for row in reader:
                 name = row["File Name"]
                 folder = row["Clip Directory"]
-                if name=="File Name" or folder == "Clip Directory":
+                if name == "File Name" or folder == "Clip Directory":
                     continue
-                result =  PurePath(folder,name)
+                result = PurePath(folder, name)
                 if guard.is_new(result):
                     yield result
-
-

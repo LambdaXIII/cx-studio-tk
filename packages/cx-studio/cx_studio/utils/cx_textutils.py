@@ -13,6 +13,12 @@ def auto_quote(text: str, needs_quote=None) -> str:
                 break
     return f'"{text}"' if quote else text
 
+def auto_unquote(text: str, quotes = '\'\"') -> str:
+    for q in quotes:
+        if text.startswith(q) and text.endswith(q):
+            text = text[1:-1]
+    return text
+
 
 _random_string_letters = "abcdefghjkmnpqrstuwxyz0123456789"
 
