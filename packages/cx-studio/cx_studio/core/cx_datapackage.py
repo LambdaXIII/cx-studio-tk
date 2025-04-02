@@ -1,5 +1,6 @@
 from collections import defaultdict
-from typing import Union
+from collections.abc import Generator
+from typing import Union, Any
 
 
 class DataPackage:
@@ -87,3 +88,21 @@ class DataPackage:
             value = v.to_dict() if isinstance(v, DataPackage) else v
             result[k] = value
         return result
+
+    def _simple_search(self,key:Any) -> Generator[Any]:
+        for k,v in self.__data.items():
+            if v == key:
+                yield k
+            elif isinstance(v,DataPackage):
+                yield from v.search(key)
+            elif hasattr(v,str(key)):
+                yield v.__getattribute__(str(key))
+
+    def search(self,key:Any) -> Generator[Any]:
+        if '.' not in str(key):
+            yield from self._simple_search(key)
+        else:
+            keys = str(key).split('.')
+            for v in self._simple_search(keys[0]):
+                if isinstance(v,DataPackage):
+                    yield from v.search('.'.join(keys[1:]))

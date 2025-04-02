@@ -19,7 +19,7 @@ class IPathProber(ABC):
             self.reset()
             return False
         def is_new(self,x:PurePath|str) ->bool:
-            s = PurePath(x)
+            s = str(x)
             contains = x in self.__cache
             self.__cache.add(x)
             return not contains
