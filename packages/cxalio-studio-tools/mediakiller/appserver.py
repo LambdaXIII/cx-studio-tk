@@ -31,6 +31,14 @@ class AppServer:
 
         self.context = AppContextParser.make_context()
         self.whisper("Parsed Context:", self.context)
+        if self.context.force_no_overwrite:
+            self.say(
+                "[green]已启用全局安全模式，输出时将[bold]不会[/bold]覆盖任何文件[/green]"
+            )
+        elif self.context.force_overwrite:
+            self.say(
+                "[red]已启用全局强制覆盖模式，输出时将[bold]忽略配置文件设置[/bold]，并[bold]覆盖[/bold]任何文件[/red]"
+            )
 
         self.progress.start()
         self.whisper(f"{self.APP_NAME} started.")
