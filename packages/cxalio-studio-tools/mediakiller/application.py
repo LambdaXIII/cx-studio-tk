@@ -2,7 +2,7 @@ from .appserver import server
 from .components import Preset
 from pathlib import Path
 import importlib.resources
-from cx_studio.utils import path_utils
+from cx_studio.utils import PathUtils
 
 
 class Application:
@@ -19,7 +19,7 @@ class Application:
 
     @staticmethod
     def export_example_preset(filename: Path):
-        filename = Path(path_utils.force_suffix(filename, ".toml"))
+        filename = Path(PathUtils.force_suffix(filename, ".toml"))
         if filename.exists():
             if server.context.force_overwrite and not server.context.force_no_overwrite:
                 server.say("文件已存在，[red]将覆盖目标文件！[/red]")
@@ -45,7 +45,7 @@ class Application:
         server.whisper("Scanning preset files")
         presets = []
         for preset_path in server.context.presets:
-            preset_path = Path(path_utils.force_suffix(preset_path, ".toml"))
+            preset_path = Path(PathUtils.force_suffix(preset_path, ".toml"))
             server.whisper(f"Reading preset file: {preset_path}")
             preset = Preset.load(preset_path)
             server.whisper(preset)

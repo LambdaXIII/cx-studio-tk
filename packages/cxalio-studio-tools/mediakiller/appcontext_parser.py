@@ -2,7 +2,7 @@ from argparse import ArgumentParser
 from collections.abc import Sequence
 from pathlib import Path
 
-from cx_studio.utils import path_utils
+from cx_studio.utils import PathUtils
 from .appcontext import AppContext
 
 
@@ -62,7 +62,7 @@ class AppContextParser:
     def _is_preset(p: Path) -> bool:
         p = Path(p)
         if p.suffix == "":
-            pp = Path(path_utils.force_suffix(p, ".toml"))
+            pp = Path(PathUtils.force_suffix(p, ".toml"))
             return pp.exists()
         return p.suffix == ".toml"
 

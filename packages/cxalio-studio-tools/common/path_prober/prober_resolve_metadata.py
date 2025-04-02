@@ -3,7 +3,7 @@ from typing import Generator
 
 from .path_prober import IPathProber
 from pathlib import Path,PurePath
-from cx_studio.utils import encoding_utils
+from cx_studio.utils import EncodingUtils
 import csv
 
 

@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from cx_studio.utils import path_utils
+from cx_studio.utils import PathUtils
 from .argument_group import ArgumentGroup
 from .preset import Preset
 
@@ -19,4 +19,4 @@ class Mission:
 
     @property
     def name(self):
-        return path_utils.get_basename(self.source)
+        return PathUtils.get_basename(self.source)

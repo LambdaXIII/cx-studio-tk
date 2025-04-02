@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from cx_studio.utils import number_utils
+from cx_studio.utils import NumberUtils
 
 
 class PathInfoProvider:
@@ -17,7 +17,7 @@ class PathInfoProvider:
         key = params[0] if len(params) > 0 else "fullpath"
         param = params[1] if len(params) > 1 else None
         parent_level = (
-            number_utils.limit_number(param, bottom=1, cls=int) if param else 1
+            NumberUtils.limit_number(param, bottom=1, cls=int) if param else 1
         )
 
         match key:

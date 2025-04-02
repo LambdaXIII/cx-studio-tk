@@ -1,5 +1,5 @@
-from . import cx_encoding as encoding_utils
-from . import cx_functionalutils as functional
-from . import cx_numberutils as number_utils
-from . import cx_pathutils as path_utils
-from . import cx_textutils as text_utils
+from . import cx_encoding as EncodingUtils
+from . import cx_functionalutils as FunctionalUtils
+from . import cx_numberutils as NumberUtils
+from . import cx_pathutils as PathUtils
+from . import cx_textutils as TextUtils

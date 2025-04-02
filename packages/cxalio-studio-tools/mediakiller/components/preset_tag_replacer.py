@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from cx_studio.tag_replacer import TagReplacer, PathInfoProvider
-from cx_studio.utils import path_utils
+from cx_studio.utils import PathUtils
 from .preset import Preset
 
 
@@ -21,9 +21,9 @@ class PresetTagReplacer:
             output_dir = target_folder
         else:
             output_dir = Path(output_dir, target_folder)
-        parent_dirs = path_utils.get_parents(source, self._preset.keep_parent_level)
-        target_name = path_utils.force_suffix(
-            path_utils.get_basename(source), self._preset.target_suffix
+        parent_dirs = PathUtils.get_parents(source, self._preset.keep_parent_level)
+        target_name = PathUtils.force_suffix(
+            PathUtils.get_basename(source), self._preset.target_suffix
         )
         self._target = Path(output_dir, *parent_dirs, target_name).resolve()
         self.replacer.install_provider("target", PathInfoProvider(self._target))

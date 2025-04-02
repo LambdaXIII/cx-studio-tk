@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from cx_studio.utils import functional
+from cx_studio.utils import FunctionalUtils
 
 
 @dataclass()
@@ -15,7 +15,7 @@ class ArgumentGroup:
 
     @staticmethod
     def _iter_sequence(*args):
-        for arg in functional.flatten_list(*args):
+        for arg in FunctionalUtils.flatten_list(*args):
             a = str(arg)
             if " " in a:
                 yield from a.split(" ")
