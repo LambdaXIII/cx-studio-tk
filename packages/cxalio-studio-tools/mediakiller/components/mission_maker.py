@@ -33,7 +33,7 @@ class MissionMaker:
         return Mission(
             preset=self._preset,
             source=source,
-            standard_target=replacer.standard_target(),
+            standard_target=replacer.standard_target,
             overwrite=self._preset.overwrite,
             hardware_accelerate=self._preset.hardware_accelerate,
             options=general,
