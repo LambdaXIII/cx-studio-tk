@@ -43,20 +43,19 @@ class DataPackage:
 
     def __setattr__(self, key, value):
         if key == "_DataPackage__data":
-            object.__setattr__(self,key,value)
+            object.__setattr__(self, key, value)
         else:
             self.__data[key] = DataPackage.__check_value(value)
 
-    def __locate_item(self,address:str|list[str]):
-        if isinstance(address,str):
+    def __locate_item(self, address: str | list[str]):
+        if isinstance(address, str):
             address = address.split(".")
-        item = self.__data.get(address[0],None)
+        item = self.__data.get(address[0], None)
         for k in address[1:]:
             if item is None:
                 break
             item = item.__getattr__(k)
         return item
-
 
     def __getitem__(self, key):
         if isinstance(key, str) and ("." in key):
@@ -72,7 +71,7 @@ class DataPackage:
     def __setitem__(self, key, value):
         if isinstance(key, str) and ("." in key):
             keys = key.split(".")
-            next_keys = '.'.join(keys[1:])
+            next_keys = ".".join(keys[1:])
             self.__data[keys[0]].__setitem__(next_keys, value)
         else:
             self.__data[key] = DataPackage.__check_value(value)
@@ -82,11 +81,9 @@ class DataPackage:
         for k, v in self.__data.items():
             yield k, v
 
-    def to_dict(self)->dict:
+    def to_dict(self) -> dict:
         result = {}
-        for k,v in self.__data.items():
-            value = v.to_dict() if isinstance(v,DataPackage) else v
+        for k, v in self.__data.items():
+            value = v.to_dict() if isinstance(v, DataPackage) else v
             result[k] = value
         return result
-
-

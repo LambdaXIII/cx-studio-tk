@@ -10,7 +10,7 @@ dependencies = [
 ]
 
 [project.scripts]
-mediakiller = "mediakiller:main"
+mediakiller = "media_killer:main"
 
 [build-system]
 requires = ["hatchling"]

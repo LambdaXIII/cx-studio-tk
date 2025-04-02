@@ -1,8 +1,5 @@
 from dataclasses import dataclass
 
-APP_NAME = "MediaKiller"
-APP_VERSION = "0.5.0"
-
 
 @dataclass
 class AppContext:
@@ -27,11 +24,3 @@ class AppContext:
             yield "Debug Mode"
         if self.continue_mode:
             yield "Continue last task"
-
-    @property
-    def app_name(self):
-        return APP_NAME
-
-    @property
-    def app_version(self):
-        return APP_VERSION

@@ -18,7 +18,7 @@ class CmdFinder:
         yield Path.home() / ".local/bin"
 
     def __init__(
-            self, *folders, include_cwd: bool = True, include_default_folders: bool = True
+        self, *folders, include_cwd: bool = True, include_default_folders: bool = True
     ):
         self._folders = [Path(x) for x in folders]
         self._include_cwd = include_cwd

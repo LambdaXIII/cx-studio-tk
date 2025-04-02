@@ -34,8 +34,8 @@ class PathExpander:
         path = self.__make_path(path)
         yield path
         if (
-                path.is_dir(follow_symlinks=self.start_info.follow_symlinks)
-                and self.start_info.expand_subdir
+            path.is_dir(follow_symlinks=self.start_info.follow_symlinks)
+            and self.start_info.expand_subdir
         ):
             for p in path.iterdir():
                 yield from self.__pure_expand(p)

@@ -1,14 +1,15 @@
 import logging
-from argparse import ArgumentParser
 
 from rich.progress import Progress
 
 from common import ConfigManager
-from mediakiller.appcontext import AppContext
 from .appcontext_parser import AppContextParser
 
 
 class AppServer:
+    APP_NAME = "MediaKiller"
+    APP_VERSION = "0.5.0"
+
     def __init__(self):
         self.context = None
         self.progress = Progress()
@@ -17,8 +18,7 @@ class AppServer:
         self.config_manager = None
 
     def start_environment(self):
-        self.context = AppContextParser.make_context()
-        self.config_manager = ConfigManager(self.context.app_name)
+        self.config_manager = ConfigManager(self.APP_NAME)
 
         logging.basicConfig(
             filename=self.config_manager.new_log_file(),
@@ -27,16 +27,20 @@ class AppServer:
             format="%(message)s",
             datefmt="[%X]",
         )
-        self.logger = logging.getLogger(self.context.app_name)
+        self.logger = logging.getLogger(self.APP_NAME)
+
+        self.context = AppContextParser.make_context()
+        self.whisper("Parsed Context:", self.context)
 
         self.progress.start()
-        self.whisper(f"{self.context.app_name} started.")
+        self.whisper(f"{self.APP_NAME} started.")
+
         return self
 
     def stop_environment(self):
         self.progress.stop()
         self.config_manager.remove_old_log_files()
-        self.whisper(f"{self.context.app_name} stopped.")
+        self.whisper(f"{self.APP_NAME} stopped.")
         return self
 
     def __enter__(self):

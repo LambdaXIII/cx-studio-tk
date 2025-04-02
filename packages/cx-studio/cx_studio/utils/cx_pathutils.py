@@ -3,7 +3,7 @@ from pathlib import Path
 
 
 def normalize_path(
-        path: Path, anchor: Path | None = None, follow_symlinks: bool = True
+    path: Path, anchor: Path | None = None, follow_symlinks: bool = True
 ) -> Path:
     path = Path(path)
     anchor = Path(anchor) if anchor else Path.cwd()
@@ -17,7 +17,7 @@ def normalize_suffix(suffix: str, with_dot=True) -> str:
     return "." + s if with_dot else s
 
 
-def force_suffix(source: Path, suffix: str) -> str:
+def force_suffix(source: Path | str, suffix: str) -> str:
     if not source:
         return ""
     source = Path(source)
@@ -40,3 +40,17 @@ def is_file_in_dir(file: Path, dir: Path) -> bool:
     d = str(normalize_path(dir).resolve().absolute())
     # TODO: 考虑使用pathlib的relative_to方法，避免使用字符串比较
     return f in d
+
+
+def get_basename(source: Path | str) -> str:
+    return Path(source).stem.split(".")[0]
+
+
+def get_parents(source: Path | str, level: int = 1, resolve_path: bool = True):
+    if level < 1:
+        return []
+    path = Path(source).resolve() if resolve_path else Path(source)
+    parts = path.parts
+    begin_index = max(0, len(parts) - level)
+    end_index = len(parts) - 1
+    return parts[begin_index:end_index]

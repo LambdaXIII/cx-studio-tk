@@ -1,10 +1,9 @@
 from argparse import ArgumentParser
-
-
-from .appcontext import AppContext
 from collections import Sequence
 from pathlib import Path
+
 from cx_studio.utils import PathUtils
+from .appcontext import AppContext
 
 
 class AppContextParser:
@@ -54,14 +53,14 @@ class AppContextParser:
     def make_context(arguments: Sequence[str] | None = None) -> AppContext:
         result = AppContext()
 
-        parser = self.make_parser()
+        parser = AppContextParser.make_parser()
         args = parser.parse_args(arguments)
 
         result.tutorial = args.tutorial
         result.generate = args.generate
 
         for source in args.sources:
-            if self._is_preset(source):
+            if AppContextParser._is_preset(source):
                 result.presets.append(source)
             else:
                 result.sources.append(source)
