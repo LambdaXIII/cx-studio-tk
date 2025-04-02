@@ -1,6 +1,6 @@
 from .application import Application
 
 
-def main():
+def run():
     with Application() as app:
         app.run()

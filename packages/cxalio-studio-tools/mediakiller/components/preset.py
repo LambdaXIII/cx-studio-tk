@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from cx_studio.core import DataPackage
-from cx_studio.utils import PathUtils, TextUtils
+from cx_studio.utils import path_utils, text_utils
 
 DefaultSuffixes = (
     ".mov .mp4 .mkv .avi .wmv .flv .webm "
@@ -48,12 +48,12 @@ class Preset:
             else set()
         )
         includes = {
-            PathUtils.normalize_suffix(s)
-            for s in TextUtils.auto_list(data.source.suffix_includes)
+            path_utils.normalize_suffix(s)
+            for s in text_utils.auto_list(data.source.suffix_includes)
         }
         excludes = {
-            PathUtils.normalize_suffix(s)
-            for s in TextUtils.auto_list(data.source.suffix_excludes)
+            path_utils.normalize_suffix(s)
+            for s in text_utils.auto_list(data.source.suffix_excludes)
         }
         return default_suffixes | includes - excludes
 
@@ -77,8 +77,8 @@ class Preset:
             target_suffix=data.target.suffix,
             target_folder=data.target.folder,
             keep_parent_level=data.target.keep_parent_level,
-            inputs=data.inputs,
-            outputs=data.outputs,
+            inputs=data.input,
+            outputs=data.output,
             custom=data.custom.to_dict(),
             raw=data,
         )

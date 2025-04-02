@@ -20,9 +20,9 @@ class Application:
     def export_example_preset(filename: Path):
         filename = Path(filename)
         with importlib.resources.open_text(
-            "media_killer", "example_preset.toml"
+            "mediakiller", "example_preset.toml"
         ) as example:
-            with open(filename, "w") as f:
+            with open(filename, "w", encoding="utf-8") as f:
                 f.write(example.read())
 
     def run(self):
