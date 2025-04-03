@@ -23,11 +23,15 @@ class TestDataPackage(unittest.TestCase):
         self.assertEqual(dp1.c.d, 3)
 
     def test_nested_key_access(self):
-        dp = DataPackage(a={"b": {"c": 1}})
-        self.assertEqual(dp["a.b.c"], 1)
-        self.assertEqual(dp["a.b"]["c"], 1)
-        self.assertEqual(dp["a"]["b"]["c"], 1)
-        self.assertEqual(dp.a.b.c, 1)
+        dp = DataPackage()
+        dp.a = 12
+        self.assertEqual(dp["a"], 12)
+        dp["a.b"] = 33
+        self.assertEqual(dp["a.b"], 33)
+        self.assertIsInstance(dp.a, DataPackage)
+        dp["a.b.c"] = 10
+        self.assertEqual(dp.a.b.c, 10)
+        self.assertEqual(dp["a.b"].c, 10)
 
     def test_nested_key_assignment(self):
         dp = DataPackage()
@@ -44,17 +48,19 @@ class TestDataPackage(unittest.TestCase):
             dp.update(123)
 
     def test_nested_search(self):
-        dp = DataPackage(a={"b": {"c": 1, "d": 2}}, e=3)
-        results = list(dp.search("a.b.c"))
-        self.assertEqual(results, ["c"])
-        results = list(dp.search("a.b"))
-        self.assertEqual(results, ["b"])
-        results = list(dp.search("a"))
-        self.assertEqual(results, ["a"])
-        results = list(dp.search("e"))
-        self.assertEqual(results, ["e"])
-        results = list(dp.search("nonexistent"))
-        self.assertEqual(results, [])
+        data = {
+            "a": 1,
+            "b": {
+                "c": 2,
+                "d": 3,
+            },
+            "e": {"c": 3, "d": 4},
+        }
+        dp = DataPackage(**data)
+        result = list(dp.search("c"))
+        self.assertListEqual(result, [2, 3])
+        result = list(dp.search("d"))
+        self.assertListEqual(result, [3, 4])
 
 
 if __name__ == "__main__":

@@ -1,97 +1,97 @@
 from collections import defaultdict
-from collections.abc import Generator
-from typing import Any
 
 
 class DataPackage:
-    """_summary_
-    数据包装类，用于包装数据，支持字典和属性访问
-    """
-
     def __init__(self, **kwargs):
-        self.__data: dict[Any, Any] = defaultdict(DataPackage)
-        for k, v in kwargs.items():
-            self.__data[k] = DataPackage.__check_value(v)
-
-    def update(self, other: "dict| DataPackage"):
-        if not isinstance(other, (dict, DataPackage)):
-            raise TypeError("other must be dict or DataPackage")
-        data = other if isinstance(other, DataPackage) else DataPackage(**other)
-        self.__data.update(data.__data)
-
-    @staticmethod
-    def __check_value(value):
-        if isinstance(value, list):
-            return [DataPackage.__check_value(v) for v in value]
-        elif isinstance(value, dict):
-            return DataPackage(**value)
-        else:
-            return value
-
-    def __getattr__(self, key):
-        return self.__data.get(key, None)
-
-    def __setattr__(self, key, value):
-        if key == "_DataPackage__data":
-            object.__setattr__(self, key, value)
-        else:
-            self.__data[key] = DataPackage.__check_value(value)
-
-    def __locate_item(self, address: str | list[str]):
-        if isinstance(address, str):
-            address = address.split(".")
-        item = self.__data.get(address[0], None)
-        for k in address[1:]:
-            if item is None:
-                break
-            item = item.__getattr__(k)
-        return item
+        self._data = defaultdict(DataPackage)
+        for key, value in kwargs.items():
+            if isinstance(value, dict):
+                self._data[key] = DataPackage(**value)
+            else:
+                self._data[key] = value
 
     def __getitem__(self, key):
-        if isinstance(key, str) and ("." in key):
+        if isinstance(key, str) and "." in key:
             keys = key.split(".")
-            item = self.__data.get(keys[0], None)
-            for k in keys[1:]:
-                if item is None:
-                    break
-                item = item.__getattr__(k)
-            return item
-        return self.__data[key]
+            current = self._data
+            for k in keys:
+                current = current[k]
+            return current
+        else:
+            return self._data.get(key, None)  # 返回 None 如果键不存在
 
     def __setitem__(self, key, value):
-        if isinstance(key, str) and ("." in key):
+        if isinstance(key, str) and "." in key:
             keys = key.split(".")
-            next_keys = ".".join(keys[1:])
-            self.__data[keys[0]].__setitem__(next_keys, value)
+            current = self._data
+            for k in keys[:-1]:
+                if not isinstance(current[k], DataPackage):
+                    current[k] = DataPackage()
+                current = current[k]
+            current[keys[-1]] = value
         else:
-            self.__data[key] = DataPackage.__check_value(value)
+            self._data[key] = value
 
-    def __rich_repr__(self):
-        yield "DataPackage"
-        for k, v in self.__data.items():
-            yield k, v
+    def __delitem__(self, key):
+        if isinstance(key, str) and "." in key:
+            keys = key.split(".")
+            current = self._data
+            for k in keys[:-1]:
+                if not isinstance(current[k], DataPackage):
+                    raise KeyError(f"No such key: {'.'.join(keys)}")
+                current = current[k]
+            del current[keys[-1]]
+        else:
+            if key in self._data:
+                del self._data[key]
+            else:
+                raise KeyError(f"No such key: {key}")
 
-    def to_dict(self) -> dict:
+    def __getattr__(self, key):
+        if key in self._data:
+            return self._data[key]
+        return None  # 返回 None 如果属性不存在
+
+    def __setattr__(self, key, value):
+        if key == "_data":
+            super().__setattr__(key, value)
+        else:
+            if isinstance(value, dict):
+                value = DataPackage(**value)
+            self._data[key] = value
+
+    def search(self, key):
+        """递归搜索指定键并返回对应的值（支持嵌套结构）"""
+        for k, value in self._data.items():
+            if k == key:
+                yield value
+            if isinstance(value, DataPackage):
+                yield from value.search(key)  # 递归搜索子元素
+
+    def deep_search(self, key):
+        """递归搜索指定键并返回对应的值（支持嵌套结构和非DataPackage对象）"""
+        for k, value in self._data.items():
+            if k == key:
+                yield value
+            if isinstance(value, DataPackage):
+                yield from value.deep_search(key)  # 递归搜索子元素
+            elif hasattr(value, key):  # 检查非DataPackage对象是否包含key属性
+                yield getattr(value, key)
+
+    def to_dict(self):
         result = {}
-        for k, v in self.__data.items():
-            value = v.to_dict() if isinstance(v, DataPackage) else v
-            result[k] = value
+        for key, value in self._data.items():
+            if isinstance(value, DataPackage):
+                result[key] = value.to_dict()  # 递归处理嵌套 DataPackage
+            else:
+                result[key] = value
         return result
 
-    def _simple_search(self, key: Any) -> Generator[Any]:
-        for k, v in self.__data.items():
-            if v == key:
-                yield k
-            elif isinstance(v, DataPackage):
-                yield from v.search(key)
-            elif hasattr(v, str(key)):
-                yield v.__getattribute__(str(key))
+    def update(self, other: "DataPackage|dict"):
+        if not isinstance(other, (DataPackage, dict)):
+            raise TypeError("other must be DataPackage or dict")
+        other = DataPackage(**other) if isinstance(other, dict) else other
+        self._data.update(other._data)
 
-    def search(self, key: Any) -> Generator[Any]:
-        if "." not in str(key):
-            yield from self._simple_search(key)
-        else:
-            keys = str(key).split(".")
-            for v in self._simple_search(keys[0]):
-                if isinstance(v, DataPackage):
-                    yield from v.search(".".join(keys[1:]))
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self._data})"
