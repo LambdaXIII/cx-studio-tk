@@ -18,7 +18,7 @@ class PathExpanderStartInfo:
 
 
 class PathExpander:
-    def __init__(self, start_info: PathExpanderStartInfo = None):
+    def __init__(self, start_info: PathExpanderStartInfo | None = None):
         self.start_info = start_info or PathExpanderStartInfo()
 
     def __make_path(self, path: str | Path) -> Path:
@@ -28,7 +28,7 @@ class PathExpander:
                 path = self.start_info.anchor_point / path
             else:
                 path = Path.cwd() / path
-        return path.resoleve() if self.start_info.follow_symlinks else path
+        return path.resolve() if self.start_info.follow_symlinks else path
 
     def __pure_expand(self, path: str | Path):
         path = self.__make_path(path)
@@ -47,16 +47,16 @@ class PathExpander:
         if path.is_file():
             if not self.start_info.accept_files:
                 return False
-            return self.start_info.file_validator.validate(path)
+            return self.start_info.file_validator.validate(str(path))
 
         if path.is_dir():
             if not self.start_info.accept_dirs:
                 return False
-            return self.start_info.dir_validator.validate(path)
+            return self.start_info.dir_validator.validate(str(path))
 
         return self.start_info.accept_others
 
-    def expand(self, paths: list[str | Path]):
+    def expand(self, *paths: str | Path):
         for p in paths:
             for res in self.__pure_expand(p):
                 if self.__validate_path(res):

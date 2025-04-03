@@ -1,10 +1,16 @@
-class Timebase:
-    def __init__(self, fps: int | float = 24, drop_frame: bool = None):
-        self.fps = int(round(fps))
-        self.drop_frame = drop_frame
+from dataclasses import dataclass
 
-        if self.fps != fps and drop_frame is None:
-            self.drop_frame = True
+
+@dataclass
+class Timebase:
+    fps: int = 24
+    drop_frame: bool = False
+
+    @classmethod
+    def from_fps(cls, x: int | float):
+        fps = int(round(x))
+        drop_frame = fps != x
+        return cls(fps=fps, drop_frame=drop_frame)
 
     @property
     def milliseconds_per_frame(self) -> int:

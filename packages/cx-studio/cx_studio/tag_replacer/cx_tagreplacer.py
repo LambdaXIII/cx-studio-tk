@@ -1,20 +1,20 @@
 import re
-from typing import Callable
+from collections.abc import Callable
 
 from .cx_tagpattern import TagPattern
 
 
 class TagReplacer:
 
-    def __init__(self, tag_pattern: TagPattern = None):
-        self.__tag_providers = {}
+    def __init__(self, tag_pattern: TagPattern | None = None):
+        self.__tag_providers: dict[str, Callable | str] = {}
         self.__tag_pattern = tag_pattern or TagPattern()
 
     def install_provider(self, key: str, provider: Callable | str):
         self.__tag_providers[key] = provider
         return self
 
-    def get_provider(self, key: str) -> Callable | str:
+    def get_provider(self, key: str) -> Callable | str | None:
         return self.__tag_providers.get(key)
 
     def remove_provider(self, key: str):

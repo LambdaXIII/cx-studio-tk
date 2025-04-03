@@ -11,7 +11,8 @@ class CmdFinder:
 
     @staticmethod
     def default_folders():
-        paths = os.environ.get("PATH").split(os.pathsep)
+        os_path = os.environ.get("PATH")
+        paths = (os_path if os_path else "").split(os.pathsep)
         yield from paths
         yield Path.home()
         yield Path.home() / ".bin"
@@ -20,12 +21,12 @@ class CmdFinder:
     def __init__(
         self, *folders, include_cwd: bool = True, include_default_folders: bool = True
     ):
-        self._folders = [Path(x) for x in folders]
+        self._folders: list[str | Path] = [Path(x) for x in folders]
         self._include_cwd = include_cwd
         self._include_default_folders = include_default_folders
 
     def add_folder(self, folder: str | Path) -> "CmdFinder":
-        self._folders.add(folder)
+        self._folders.append(folder)
         return self
 
     def remove_folder(self, folder: str | Path) -> "CmdFinder":
@@ -41,7 +42,7 @@ class CmdFinder:
 
         yield from self._folders
 
-    def find(self, cmd: str) -> str:
+    def find(self, cmd: str) -> str | None:
         cmd = str(cmd)
         targets = {cmd}
         if os.name == "nt":
@@ -62,6 +63,6 @@ class CmdFinder:
                 d = Path(x)
                 for name in targets:
                     if d.name == name:
-                        return d / name
+                        return str(d)
 
         return None

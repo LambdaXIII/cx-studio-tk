@@ -3,7 +3,7 @@ from pathlib import Path
 
 
 def normalize_path(
-    path: Path, anchor: Path | None = None, follow_symlinks: bool = True
+    path: Path | str, anchor: Path | str | None = None, follow_symlinks: bool = True
 ) -> Path:
     path = Path(path)
     anchor = Path(anchor) if anchor else Path.cwd()

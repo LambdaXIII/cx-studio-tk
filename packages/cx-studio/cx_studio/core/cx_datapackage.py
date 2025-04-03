@@ -1,6 +1,6 @@
 from collections import defaultdict
 from collections.abc import Generator
-from typing import Union, Any
+from typing import Any
 
 
 class DataPackage:
@@ -9,18 +9,14 @@ class DataPackage:
     """
 
     def __init__(self, **kwargs):
-        self.__data = defaultdict(DataPackage)
+        self.__data: dict[Any, Any] = defaultdict(DataPackage)
         for k, v in kwargs.items():
             self.__data[k] = DataPackage.__check_value(v)
 
-    def update(self, other: Union[dict, "DataPackage"]):
+    def update(self, other: "dict| DataPackage"):
         if not isinstance(other, (dict, DataPackage)):
             raise TypeError("other must be dict or DataPackage")
-        data = (
-            other
-            if isinstance(other, DataPackage)
-            else DataPackage.__check_value(other)
-        )
+        data = other if isinstance(other, DataPackage) else DataPackage(**other)
         self.__data.update(data.__data)
 
     @classmethod
@@ -89,20 +85,20 @@ class DataPackage:
             result[k] = value
         return result
 
-    def _simple_search(self,key:Any) -> Generator[Any]:
-        for k,v in self.__data.items():
+    def _simple_search(self, key: Any) -> Generator[Any]:
+        for k, v in self.__data.items():
             if v == key:
                 yield k
-            elif isinstance(v,DataPackage):
+            elif isinstance(v, DataPackage):
                 yield from v.search(key)
-            elif hasattr(v,str(key)):
+            elif hasattr(v, str(key)):
                 yield v.__getattribute__(str(key))
 
-    def search(self,key:Any) -> Generator[Any]:
-        if '.' not in str(key):
+    def search(self, key: Any) -> Generator[Any]:
+        if "." not in str(key):
             yield from self._simple_search(key)
         else:
-            keys = str(key).split('.')
+            keys = str(key).split(".")
             for v in self._simple_search(keys[0]):
-                if isinstance(v,DataPackage):
-                    yield from v.search('.'.join(keys[1:]))
+                if isinstance(v, DataPackage):
+                    yield from v.search(".".join(keys[1:]))

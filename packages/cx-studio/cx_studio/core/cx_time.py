@@ -118,7 +118,7 @@ class CxTime:
     def __mul__(self, other):
         if not isinstance(other, (int, float)):
             raise NotImplementedError("Cannot multiply Time with other types")
-        return CxTime(self.total_milliseconds * other)
+        return CxTime(int(self.total_milliseconds * other))
 
     def __truediv__(self, other):
         if not isinstance(other, (int, float)):

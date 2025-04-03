@@ -8,7 +8,7 @@ class IPathValidator(ABC):
 
 
 class ChainValidator(IPathValidator):
-    def __init__(self, validators: list[IPathValidator] = None):
+    def __init__(self, validators: list[IPathValidator] | None = None):
         self.__validators = validators or []
 
     def install(self, validator: IPathValidator):
