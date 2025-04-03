@@ -8,7 +8,7 @@ from rich.console import Console
 
 
 class Application:
-    APP_NAME = "FootageHunter"
+    APP_NAME = "MediaScout"
     APP_VERSION = "0.1.0"
     @staticmethod
     def get_appcontext() -> DataPackage:
