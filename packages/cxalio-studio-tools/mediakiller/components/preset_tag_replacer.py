@@ -6,7 +6,7 @@ from .preset import Preset
 
 
 class PresetTagReplacer:
-    def __init__(self, preset: Preset, source: Path, output_dir: Path = None):
+    def __init__(self, preset: Preset, source: Path, output_dir: Path | None = None):
         self._preset = preset
         self._source = Path(source)
         self.replacer = TagReplacer()

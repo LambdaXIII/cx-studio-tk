@@ -1,3 +1,5 @@
+# type: ignore-file
+
 import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -26,14 +28,14 @@ class Preset:
     id: str = ""
     name: str = ""
     description: str = ""
-    path: Path | None = None
+    path: Path = Path("")
     ffmpeg: str = "ffmpeg"
     overwrite: bool = False
     hardware_accelerate: str | None = "auto"
     options: str | list = ""
     source_suffixes: set = field(default_factory=set)
     target_suffix: str = ""
-    target_folder: Path = "."
+    target_folder: Path = Path(".")
     keep_parent_level: int = 0
     inputs: list = field(default_factory=list)
     outputs: list = field(default_factory=list)
@@ -44,16 +46,16 @@ class Preset:
     def _get_source_suffixes(data: DataPackage) -> set[str]:
         default_suffixes = (
             set(DefaultSuffixes.split())
-            if not data.source.ignore_default_suffixes
+            if not data.source.ignore_default_suffixes  # type:ignore
             else set()
         )
         includes = {
             PathUtils.normalize_suffix(s)
-            for s in TextUtils.auto_list(data.source.suffix_includes)
+            for s in TextUtils.auto_list(data.source.suffix_includes)  # type:ignore
         }
         excludes = {
             PathUtils.normalize_suffix(s)
-            for s in TextUtils.auto_list(data.source.suffix_excludes)
+            for s in TextUtils.auto_list(data.source.suffix_excludes)  # type:ignore
         }
         return default_suffixes | includes - excludes
 
@@ -65,21 +67,21 @@ class Preset:
         data = DataPackage(**toml)
 
         return cls(
-            id=data.general.preset_id,
-            name=data.general.name,
-            description=data.general.description,
+            id=data.general.preset_id,  # type:ignore
+            name=data.general.name,  # type:ignore
+            description=data.general.description,  # type:ignore
             path=Path(filename).resolve(),
-            ffmpeg=data.general.ffmpeg,
-            overwrite=data.general.overwrite,
-            hardware_accelerate=data.general.hardware_accelerate,
-            options=data.general.options,
+            ffmpeg=data.general.ffmpeg,  # type:ignore
+            overwrite=data.general.overwrite,  # type:ignore
+            hardware_accelerate=data.general.hardware_accelerate,  # type:ignore
+            options=data.general.options,  # type:ignore
             source_suffixes=Preset._get_source_suffixes(data),
-            target_suffix=data.target.suffix,
-            target_folder=data.target.folder,
-            keep_parent_level=data.target.keep_parent_level,
-            inputs=data.input,
-            outputs=data.output,
-            custom=data.custom.to_dict(),
+            target_suffix=data.target.suffix,  # type:ignore
+            target_folder=data.target.folder,  # type:ignore
+            keep_parent_level=data.target.keep_parent_level,  # type:ignore
+            inputs=data.input,  # type:ignore
+            outputs=data.output,  # type:ignore
+            custom=data.custom.to_dict(),  # type:ignore
             raw=data,
         )
 

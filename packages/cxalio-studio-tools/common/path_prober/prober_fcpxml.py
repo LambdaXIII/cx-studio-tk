@@ -23,6 +23,8 @@ class FcpXMLProber(IPathProber):
                 if self._DOCTYPE_PATTERN.search(line):
                     return True
 
+        return False
+
     def probe(self, fp: TextIOBase) -> Generator[PurePath]:
         with self.ProbeGuard(fp) as guard:
             guard.seek()
@@ -30,7 +32,7 @@ class FcpXMLProber(IPathProber):
             for node in root.iter("media-rep"):
                 kind = node.get("kind")
                 if kind == "original-media":
-                    url = unquote(node.get("src"))
+                    url = unquote(node.get("src") or "")
                     if self._URL_HEAD.match(url):
                         p = self._URL_HEAD.sub("", url)
                         if guard.is_new(p):

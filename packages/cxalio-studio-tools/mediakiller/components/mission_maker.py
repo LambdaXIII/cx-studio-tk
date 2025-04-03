@@ -35,7 +35,7 @@ class MissionMaker:
             source=source,
             standard_target=replacer.standard_target,
             overwrite=self._preset.overwrite,
-            hardware_accelerate=self._preset.hardware_accelerate,
+            hardware_accelerate=self._preset.hardware_accelerate or "auto",
             options=general,
             inputs=inputs,
             outputs=outputs,

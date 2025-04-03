@@ -4,6 +4,7 @@ from rich.progress import Progress
 
 from common import ConfigManager
 from .appcontext_parser import AppContextParser
+from .appcontext import AppContext
 
 
 class AppServer:
@@ -11,15 +12,16 @@ class AppServer:
     APP_VERSION = "0.5.0"
 
     def __init__(self):
-        self.context = None
+        self.context = AppContext()
         self.progress = Progress()
         self.console = self.progress.console
-        self.logger = None
-        self.config_manager = None
-
-    def start_environment(self):
         self.config_manager = ConfigManager(self.APP_NAME)
 
+    @property
+    def logger(self):
+        return logging.getLogger(self.APP_NAME)
+
+    def start_environment(self):
         logging.basicConfig(
             filename=self.config_manager.new_log_file(),
             filemode="w",
@@ -27,7 +29,6 @@ class AppServer:
             format="%(message)s",
             datefmt="[%X]",
         )
-        self.logger = logging.getLogger(self.APP_NAME)
 
         self.context = AppContextParser.make_context()
         self.whisper("Parsed Context:", self.context)

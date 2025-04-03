@@ -22,6 +22,7 @@ class Fcp7XMLProber(IPathProber):
             for line in self._get_lines(fp, 10):
                 if self._DOCTYPE_PATTERN.search(line):
                     return True
+        return False
 
     def probe(self, fp: TextIOBase) -> Generator[PurePath]:
         with self.ProbeGuard(fp) as guard:
@@ -29,7 +30,7 @@ class Fcp7XMLProber(IPathProber):
             root = ET.fromstring(fp.read())
 
             for node in root.iter("pathurl"):
-                url = unquote(node.text)
+                url = unquote(node.text or "")
                 if self._URL_HEAD.match(url):
                     path = self._URL_HEAD.sub("", url)
                     if guard.is_new(path) and len(path) > 0:

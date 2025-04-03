@@ -42,7 +42,7 @@ class IPathProber(ABC):
     @staticmethod
     def _get_suffix(fp: TextIOBase) -> str | None:
         if hasattr(fp, "name"):
-            name = Path(fp.name)
+            name = Path(getattr(fp, "name"))
             return name.suffix
         return None
 
