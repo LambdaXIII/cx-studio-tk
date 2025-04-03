@@ -19,19 +19,12 @@ class DataPackage:
         data = other if isinstance(other, DataPackage) else DataPackage(**other)
         self.__data.update(data.__data)
 
-    @classmethod
-    def from_dict(cls, data: dict):
-        result = cls()
-        for k, v in data.items():
-            result.__data[k] = DataPackage.__check_value(v)
-        return result
-
     @staticmethod
     def __check_value(value):
         if isinstance(value, list):
             return [DataPackage.__check_value(v) for v in value]
         elif isinstance(value, dict):
-            return DataPackage.from_dict(value)
+            return DataPackage(**value)
         else:
             return value
 
