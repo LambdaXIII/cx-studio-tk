@@ -10,7 +10,7 @@ from .path_prober import IPathProber
 
 class FcpXMLProber(IPathProber):
     _DOCTYPE_PATTERN = re.compile(r"<!DOCTYPE\s+fcpxml>")
-    _URL_HEAD = re.compile(r"^file://.*/")
+    _URL_HEAD = re.compile(r"^file://.*?/")
 
     def is_acceptable(self, fp: TextIOBase) -> bool:
         suffix = self._get_suffix(fp)
@@ -28,7 +28,7 @@ class FcpXMLProber(IPathProber):
     def probe(self, fp: TextIOBase) -> Generator[PurePath]:
         with self.ProbeGuard(fp) as guard:
             guard.seek()
-            root = ET.parse(fp.read())
+            root = ET.fromstringlist(fp.readlines())
             for node in root.iter("media-rep"):
                 kind = node.get("kind")
                 if kind == "original-media":

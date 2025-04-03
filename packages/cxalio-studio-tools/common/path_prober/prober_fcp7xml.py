@@ -10,7 +10,7 @@ from .path_prober import IPathProber
 
 class Fcp7XMLProber(IPathProber):
     _DOCTYPE_PATTERN = re.compile(r"<!DOCTYPE\s+xmeml>")
-    _URL_HEAD = re.compile(r"^file://.*/")
+    _URL_HEAD = re.compile(r"^file://.*?/")
 
     def is_acceptable(self, fp: TextIOBase) -> bool:
         suffix = self._get_suffix(fp)

@@ -1,11 +1,11 @@
 import re
-from collections.abc import Generator
+from collections.abc import Generator, Collection
 from io import TextIOBase
 from pathlib import PurePath
 from urllib.parse import unquote
 
 from .path_prober import IPathProber
-
+from cx_studio.utils import PathUtils
 
 class TextProber(IPathProber):
     _PATH_PATTERN = re.compile(
@@ -28,8 +28,18 @@ class TextProber(IPathProber):
 
     _URL_PATTERN = re.compile(r"file://.*/(\S+)")
 
+    def __init__(self,*acceptable_suffixes:str|None):
+        self._acceptable_suffixes = set()
+        for s in acceptable_suffixes:
+            suffix = PathUtils.normalize_suffix(str(s))
+            self._acceptable_suffixes.add(suffix) if suffix else None
+        # 如果没有制定扩展名，则默认接受任何文件
+
     def is_acceptable(self, fp: TextIOBase) -> bool:
-        return True
+        if len(self._acceptable_suffixes):
+            return True
+        suffix = self._get_suffix(fp)
+        return suffix is None or suffix in self._acceptable_suffixes
 
     def _parse_url(self, line: str) -> str | None:
         line = unquote(line)
