@@ -10,8 +10,8 @@ class Prober:
         self._fp = None
 
         self._existed_only = existed_only
-        self._include_folders = {Path(filename).resolve().parent}
-        self._include_folders.union(include_folders) if include_folders else None
+        self._include_folders = [Path(x) for x in include_folders]
+        self._include_folders.append(Path(filename).resolve().parent)
 
         self._probers: list[IPathProber] = [
             FcpXMLProber(),
@@ -36,9 +36,8 @@ class Prober:
         return False
 
     def _check_relative_paths(self, p: Path):
-        if p.is_absolute():
-            yield p
-        else:
+        yield p
+        if not p.is_absolute():
             for folder in self._include_folders:
                 if folder.is_absolute():
                     yield folder.joinpath(p).resolve()

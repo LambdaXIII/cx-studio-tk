@@ -8,6 +8,7 @@ from .path_prober import IPathProber
 
 
 class OTIOProber(IPathProber):
+    # TODO: bug fix
     def is_acceptable(self, fp: TextIOBase) -> bool:
         suffix = self._get_suffix(fp)
         return suffix is None or suffix != ".otio"
@@ -15,7 +16,7 @@ class OTIOProber(IPathProber):
     def probe(self, fp: TextIOBase) -> Generator[PurePath]:
         with IPathProber.ProbeGuard(fp) as guard:
             guard.seek()
-            d = json.load(fp)
+            d = json.loads(fp.read())
             data = DataPackage(**d)
             for item in data.search("target_url"):
                 if guard.is_new(item):
