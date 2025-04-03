@@ -1,11 +1,11 @@
-from common.path_prober import *
-from pathlib import Path
 from cx_studio.utils import EncodingUtils
+from cx_tools_common.path_prober import *
+from collections.abc import Collection
 
 class Prober:
-    def __init__(self,filename:Path,force_mode:bool = False,
-                 existed_only:bool=False,
-                 include_folders:Collection[str|Path]|None=None):
+    def __init__(self, filename: Path, force_mode: bool = False,
+                 existed_only: bool = False,
+                 include_folders: Collection[str | Path] | None = None):
         self._filename = filename
         self._fp = None
 
@@ -13,7 +13,7 @@ class Prober:
         self._include_folders = {Path(filename).resolve().parent}
         self._include_folders.union(include_folders) if include_folders else None
 
-        self._probers:list[IPathProber] = [
+        self._probers: list[IPathProber] = [
             FcpXMLProber(),
             Fcp7XMLProber(),
             # OTIOProber(),
@@ -24,6 +24,7 @@ class Prober:
             self._probers.append(TextProber())
         else:
             self._probers.append(TextProber(".txt", ".list"))
+
     def __enter__(self):
         encoding = EncodingUtils.detect_encoding(self._filename)
         self._fp = open(self._filename, "r", encoding=encoding)
@@ -34,7 +35,7 @@ class Prober:
         self._fp = None
         return False
 
-    def _check_relative_paths(self,p:Path):
+    def _check_relative_paths(self, p: Path):
         if p.is_absolute():
             yield p
         else:
@@ -54,4 +55,3 @@ class Prober:
                             continue
                         yield px
                 break
-

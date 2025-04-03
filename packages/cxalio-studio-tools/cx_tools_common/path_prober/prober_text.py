@@ -1,11 +1,12 @@
 import re
-from collections.abc import Generator, Collection
+from collections.abc import Generator
 from io import TextIOBase
 from pathlib import PurePath
 from urllib.parse import unquote
 
-from .path_prober import IPathProber
 from cx_studio.utils import PathUtils
+from .path_prober import IPathProber
+
 
 class TextProber(IPathProber):
     _PATH_PATTERN = re.compile(
@@ -28,7 +29,7 @@ class TextProber(IPathProber):
 
     _URL_PATTERN = re.compile(r"file://.*/(\S+)")
 
-    def __init__(self,*acceptable_suffixes:str|None):
+    def __init__(self, *acceptable_suffixes: str | None):
         self._acceptable_suffixes = set()
         for s in acceptable_suffixes:
             suffix = PathUtils.normalize_suffix(str(s))

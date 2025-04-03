@@ -1,8 +1,9 @@
+import importlib.resources
+from pathlib import Path
+
+from cx_studio.utils import PathUtils
 from .appserver import server
 from .components import Preset
-from pathlib import Path
-import importlib.resources
-from cx_studio.utils import PathUtils
 
 
 class Application:
@@ -22,8 +23,8 @@ class Application:
         filename = Path(PathUtils.force_suffix(filename, ".toml"))
         if filename.exists():
             if (
-                server.context.force_overwrite  # type:ignore
-                and not server.context.force_no_overwrite  # type:ignore
+                    server.context.force_overwrite  # type:ignore
+                    and not server.context.force_no_overwrite  # type:ignore
             ):
                 server.say("文件已存在，[red]将覆盖目标文件！[/red]")
             else:
@@ -31,7 +32,7 @@ class Application:
                 return
 
         with importlib.resources.open_text(
-            "mediakiller", "example_preset.toml"
+                "media_killer", "example_preset.toml"
         ) as example:
             with open(filename, "w", encoding="utf-8") as f:
                 f.write(example.read())

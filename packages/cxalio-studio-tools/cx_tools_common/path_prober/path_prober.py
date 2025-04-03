@@ -24,8 +24,8 @@ class IPathProber(ABC):
 
         def is_new(self, x: PurePath | str) -> bool:
             s = str(x)
-            contains = x in self.__cache
-            self.__cache.add(x)
+            contains = s in self.__cache
+            self.__cache.add(s)
             return not contains
 
         def seek(self, x: int = 0):
