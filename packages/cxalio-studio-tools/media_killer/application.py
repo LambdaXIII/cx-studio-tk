@@ -1,34 +1,38 @@
 import importlib.resources
+import logging
+import sys
+from collections.abc import Sequence
 from pathlib import Path
 
 from cx_studio.utils import PathUtils
-from .appserver import server
+from cx_tools_common.app_interface import IApplication
+from .appenv import appenv
 from .components import Preset
 
 
-class Application:
-    def __init__(self):
-        pass
+class Application(IApplication):
+    def __init__(self, arguments: Sequence[str] | None=None):
+        super().__init__(arguments or sys.argv[1:])
 
-    def __enter__(self):
-        server.start_environment()
+    def start(self):
+        appenv.load_arguments(self.sys_arguments)
+        appenv.start()
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        server.stop_environment()
-        return False
+    def stop(self):
+        appenv.stop()
 
     @staticmethod
     def export_example_preset(filename: Path):
         filename = Path(PathUtils.force_suffix(filename, ".toml"))
         if filename.exists():
             if (
-                    server.context.force_overwrite  # type:ignore
-                    and not server.context.force_no_overwrite  # type:ignore
+                    appenv.context.force_overwrite 
+                    and not appenv.context.force_no_overwrite 
             ):
-                server.say("文件已存在，[red]将覆盖目标文件！[/red]")
+                appenv.say("文件已存在，[red]将覆盖目标文件！[/red]")
             else:
-                server.say("[red]文件已存在[/red]，请指定其它文件名！")
+                appenv.say("[red]文件已存在[/red]，请指定其它文件名！")
                 return
 
         with importlib.resources.open_text(
@@ -37,22 +41,14 @@ class Application:
             with open(filename, "w", encoding="utf-8") as f:
                 f.write(example.read())
 
-        server.say(
+        appenv.say(
             f"已生成示例配置文件：[yellow]{filename}[yellow]。[red]请在修改后使用！[/red]"
         )
 
     def run(self):
-        if server.context.generate:  # type:ignore
-            self.export_example_preset(server.context.generate)  # type:ignore
+        if appenv.context.generate:
+            for s in appenv.context.sources:
+                self.export_example_preset(s)
             return
 
-        server.whisper("Scanning preset files")
-        presets = []
-        for preset_path in server.context.presets:  # type:ignore
-            preset_path = Path(PathUtils.force_suffix(preset_path, ".toml"))
-            server.whisper(f"Reading preset file: {preset_path}")
-            preset = Preset.load(preset_path)
-            server.whisper(preset)
-            presets.append(preset)
-
-        server.whisper("Making missions from sources...")
+        appenv.whisper("Making missions from sources...")

@@ -8,8 +8,10 @@ class IAppEnvironment(ABC):
         self.app_name = ""
         self.app_version = ""
         self.console = Console(stderr=True)
-        self.debug_console = Console(stderr=True,style="bright black")
-        self.debug_mode = False
+
+    @abstractmethod
+    def is_debug_mode_on(self):
+        return False
 
     @abstractmethod
     def start(self):
@@ -27,12 +29,14 @@ class IAppEnvironment(ABC):
         self.stop()
         return False
 
-    def print(self,*args,**kwargs):
+    def say(self, *args, **kwargs):
         self.console.print(*args,**kwargs)
 
-    def debug(self,*args,**kwargs):
-        if self.debug_mode:
-            self.debug_console.print(*args,**kwargs)
+    def whisper(self, *args, **kwargs):
+        if self.is_debug_mode_on():
+            kwargs["style"] = "bright_black"
+            kwargs["highlight"] = False
+            self.console.print(*args,**kwargs)
 
 
 

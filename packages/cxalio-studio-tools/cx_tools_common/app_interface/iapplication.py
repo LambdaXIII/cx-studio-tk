@@ -1,3 +1,5 @@
+from collections.abc import Sequence
+
 from .iappenv import IAppEnvironment
 
 
@@ -5,6 +7,8 @@ from abc import ABC,abstractmethod
 
 
 class IApplication(ABC):
+    def __init__(self,arguments:Sequence[str]|None):
+        self.sys_arguments = arguments
 
     @abstractmethod
     def start(self):
