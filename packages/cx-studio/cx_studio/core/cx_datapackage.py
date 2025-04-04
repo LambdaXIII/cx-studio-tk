@@ -171,3 +171,19 @@ class DataPackage:
                 yield from v.search(key)
             elif isinstance(v, dict) and k in v:
                 yield v[k]
+
+    def to_dict(self) -> dict:
+        result = {}
+        for k, v in self.__dict__.items():
+            if not k.startswith("_"):
+                result[k] = v
+
+        for k, v in self.__data.items():
+            value = v
+            if isinstance(v, DataPackage):
+                value = v.to_dict()
+            elif isinstance(v, list):
+                value = [x.to_dict() if isinstance(x, DataPackage) else x for x in v]
+            result[k] = value
+
+        return result

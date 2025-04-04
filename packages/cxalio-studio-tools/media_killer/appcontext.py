@@ -1,12 +1,13 @@
 from argparse import ArgumentParser
 from collections.abc import Sequence
-from dataclasses import dataclass, field,fields
-
+from dataclasses import dataclass, field, fields
+from pathlib import Path
+from cx_studio.utils import PathUtils
 
 
 class AppContext:
-    def __init__(self,**kwargs):
-        self.sources: list[str] = []
+    def __init__(self, **kwargs):
+        self.inputs: list[str] = []
         self.script_output: str | None = None
         self.pretending_mode: bool = False
         self.debug_mode: bool = False
@@ -17,7 +18,8 @@ class AppContext:
         self.show_full_help: bool = False
         self.force_overwrite: bool = False
         self.force_no_overwrite: bool = False
-        for k,v in kwargs.items():
+
+        for k, v in kwargs.items():
             if k in self.__dict__:
                 self.__dict__[k] = v
 
@@ -28,18 +30,28 @@ class AppContext:
     def __make_parser() -> ArgumentParser:
         parser = ArgumentParser()
         parser.add_argument(
-            "--tutorial", "--full-help", action="store_true", help="Show full tutorial."
-            , dest="show_full_help"
+            "--tutorial",
+            "--full-help",
+            action="store_true",
+            help="Show full tutorial.",
+            dest="show_full_help",
         )
         parser.add_argument(
-            "-g", "--generate", help="Generate script file.",
-            action="store_true", default=False, dest="generate"
+            "-g",
+            "--generate",
+            help="Generate script file.",
+            action="store_true",
+            default=False,
+            dest="generate",
         )
         parser.add_argument("--save-script", "-s", help="Generate script file")
-        parser.add_argument("--sort", help="Set sorting mode",
-                            choices=["source", "components", "target", "x"],
-                            default="x", dest="sort_mode"
-                            )
+        parser.add_argument(
+            "--sort",
+            help="Set sorting mode",
+            choices=["source", "components", "target", "x"],
+            default="x",
+            dest="sort_mode",
+        )
         parser.add_argument(
             "--overwrite",
             "-y",
@@ -66,19 +78,24 @@ class AppContext:
             dest="continue_mode",
         )
         parser.add_argument(
-            "-p", "--pretend", help="Pretend to execute task.",
-            action="store_true", dest="pretending_mode"
+            "-p",
+            "--pretend",
+            help="Pretend to execute task.",
+            action="store_true",
+            dest="pretending_mode",
         )
         parser.add_argument(
-            "-d", "--debug", help="Start debug mode.",
-            action="store_true", dest="debug_mode"
+            "-d",
+            "--debug",
+            help="Start debug mode.",
+            action="store_true",
+            dest="debug_mode",
         )
-        parser.add_argument("sources", help="Sources to process",
-                            nargs="*")
+        parser.add_argument("inputs", help="Sources to process", nargs="*")
         return parser
 
     @classmethod
-    def from_arguments(cls, arguments: Sequence[str] | None=None):
+    def from_arguments(cls, arguments: Sequence[str] | None = None):
         parser = cls.__make_parser()
         args = parser.parse_args(arguments)
         return cls(**vars(args))
