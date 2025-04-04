@@ -5,10 +5,11 @@ class DataPackage:
     def __init__(self, **kwargs):
         self._data = defaultdict(DataPackage)
         for key, value in kwargs.items():
-            if isinstance(value, dict):
-                self._data[key] = DataPackage(**value)
+            if key in self.__dict__:
+                self.__dict__[key] = value
             else:
-                self._data[key] = value
+                package = DataPackage(**value) if isinstance(value, dict) else value
+                self._data[key] = package
 
     def __getitem__(self, key):
         if isinstance(key, str) and "." in key:
