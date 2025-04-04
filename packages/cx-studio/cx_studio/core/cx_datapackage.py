@@ -1,98 +1,178 @@
 from collections import defaultdict
-
+from collections.abc import Generator, Sequence
+from typing import Any
+from cx_studio.utils import NumberUtils
 
 class DataPackage:
-    def __init__(self, **kwargs):
-        self._data = defaultdict(DataPackage)
-        for key, value in kwargs.items():
-            if key in self.__dict__:
-                self.__dict__[key] = value
+    def __init__(self, *args, **kwargs):
+        self.__data = {}
+        for k,v in kwargs.items():
+            if k in self.__dict__:
+                object.__setattr__(self,k,v)
             else:
-                package = DataPackage(**value) if isinstance(value, dict) else value
-                self._data[key] = package
+                self.__data[k] = self._check_value(v)
 
-    def __getitem__(self, key):
-        if isinstance(key, str) and "." in key:
-            keys = key.split(".")
-            current = self._data
-            for k in keys:
-                current = current[k]
-            return current
-        else:
-            return self._data.get(key, None)  # 返回 None 如果键不存在
 
-    def __setitem__(self, key, value):
-        if isinstance(key, str) and "." in key:
-            keys = key.split(".")
-            current = self._data
-            for k in keys[:-1]:
-                if not isinstance(current[k], DataPackage):
-                    current[k] = DataPackage()
-                current = current[k]
-            current[keys[-1]] = value
-        else:
-            self._data[key] = value
+    @classmethod
+    def _check_value(cls,value):
+        if isinstance(value,cls):
+            pass
+        elif isinstance(value,list|tuple|set):
+            return [cls._check_value(x) for x in value]
+        elif isinstance(value,dict):
+            return cls(**value)
+        return value
 
-    def __delitem__(self, key):
-        if isinstance(key, str) and "." in key:
-            keys = key.split(".")
-            current = self._data
-            for k in keys[:-1]:
-                if not isinstance(current[k], DataPackage):
-                    raise KeyError(f"No such key: {'.'.join(keys)}")
-                current = current[k]
-            del current[keys[-1]]
-        else:
-            if key in self._data:
-                del self._data[key]
+    @staticmethod
+    def __get_value(obj,key):
+        if isinstance(obj,DataPackage):
+            return object.__getattribute__(obj,key) if key in obj.__dict__ else obj.__data.get(key)
+        elif isinstance(key,int) and isinstance(obj,list):
+            return obj[key] if 0<=key<=len(obj) else None
+        elif isinstance(obj,dict):
+            return obj.get(key)
+        return None
+
+    @staticmethod
+    def __contains_key(obj,key)->bool:
+        return DataPackage.__get_value(obj,key) is not None
+
+    @staticmethod
+    def __set_value(obj,key,value):
+        if isinstance(obj,DataPackage):
+            if key in obj.__dict__:
+                object.__setattr__(obj,key,value)
             else:
-                raise KeyError(f"No such key: {key}")
+                obj.__data[key] = value
+        elif isinstance(key,int) and isinstance(obj,list):
+            index = NumberUtils.limit_number(key,bottom=0,top=len(obj)-1,cls=int)
+            obj[index] = value
+        elif isinstance(obj,dict):
+            obj[key] = value
+        else:
+            raise TypeError("Cannot set value for object of type {}".format(type(obj)))
 
-    def __getattr__(self, key):
-        if key in self._data:
-            return self._data[key]
-        return None  # 返回 None 如果属性不存在
+    def __getattr__(self, item):
+        return self.__data.get(item)
 
     def __setattr__(self, key, value):
-        if key == "_data":
-            super().__setattr__(key, value)
+        if key in self.__dict__ or key.startswith('_'):
+            object.__setattr__(self,key,value)
         else:
-            if isinstance(value, dict):
-                value = DataPackage(**value)
-            self._data[key] = value
+            self.__data[key] = self._check_value(value)
 
-    def search(self, key):
-        """递归搜索指定键并返回对应的值（支持嵌套结构）"""
-        for k, value in self._data.items():
+    def __getitem__(self, item):
+        if isinstance(item,str) and '.' in item:
+            key,*sub_keys,final_key = item.split('.')
+            current = DataPackage.__get_value(self,key)
+            for k in sub_keys:
+                current = DataPackage.__get_value(current,k)
+                if current is None:
+                    return None
+            return DataPackage.__get_value(current,final_key)
+        return DataPackage.__get_value(self,item)
+
+    def __setitem__(self, key, value):
+        if key in self.__dict__:
+            object.__setattr__(self,key,value)
+        elif isinstance(key,str) and '.' in key:
+            *keys,final_key = key.split('.')
+            current=self
+            for k in keys:
+                x = DataPackage.__get_value(current,k)
+                if not isinstance(x,DataPackage|dict):
+                    DataPackage.__set_value(current,k,DataPackage())
+                current = DataPackage.__get_value(current,k)
+            current[final_key] = value
+        else:
+            self.__data[key] = self._check_value(value)
+
+    def __delitem__(self, key):
+        if key in self.__dict__:
+            raise TypeError("'{}' is an attribute, not a data key.".format(key))
+        if isinstance(key,str) and '.' in key:
+            *keys,final_key = key.split('.')
+            current=self
+            for k in keys:
+                current = DataPackage.__get_value(current,k)
+                if current is None:
+                    raise KeyError("Key '{}' not found.".format(key))
+            del current[final_key]
+        else:
+            del self.__data[key]
+
+    def __contains__(self, item):
+        if isinstance(item,str) and '.' in item:
+            *keys,final_key = item.split('.')
+            current=self
+            for k in keys:
+                current = DataPackage.__get_value(current,k)
+                if current is None:
+                    return False
+            return DataPackage.__contains_key(current,final_key)
+        else:
+            return DataPackage.__contains_key(self,item)
+
+    def keys(self) -> list:
+        safe_keys = [k for k in self.__dict__ if not str(k).startswith('_')]
+        data_keys = self.__data.keys()
+        return safe_keys + list(data_keys)
+
+    def __iter__(self):
+        for k in self.__dict__:
+            if not k.startswith('_'):
+                yield k
+        yield from self.__data
+
+    def __len__(self):
+        return sum(1 for k in self.__iter__())
+
+    def items(self) -> Generator[(Any,Any),None,None]:
+        for k,v in self.__dict__.items():
+            if not k.startswith('_'):
+                yield k,v
+        yield from self.__data.items()
+
+    def get(self,key):
+        return self.__getitem__(key)
+
+    def values(self):
+        for k in self.keys():
+            yield self.__getitem__(k)
+
+    def update(self,other:"DataPackage|dict|None"=None,**kwargs):
+        if isinstance(other,(DataPackage,dict)):
+            for k,v in other.items():
+                self[k] = self._check_value(v)
+        elif other is None:
+            pass
+        else:
+            raise TypeError("Cannot update DataPackage with object of type {}. "
+                            "Maybe try to unpack it or make it a dict.".format(type(other)))
+
+        for k,v in kwargs.items():
+            self[k] = self._check_value(v)
+
+    def clear(self):
+        self.__data.clear()
+
+    def search(self, key)->Generator:
+        # TODO: support '.' keys
+        for k,v in self.items():
             if k == key:
-                yield value
-            if isinstance(value, DataPackage):
-                yield from value.search(key)  # 递归搜索子元素
+                yield v
+            if isinstance(v,DataPackage):
+                yield from v.search(key)
+            elif isinstance(v,dict) and k in v:
+                yield v[k]
 
-    def deep_search(self, key):
-        """递归搜索指定键并返回对应的值（支持嵌套结构和非DataPackage对象）"""
-        for k, value in self._data.items():
-            if k == key:
-                yield value
-            if isinstance(value, DataPackage):
-                yield from value.deep_search(key)  # 递归搜索子元素
-            elif hasattr(value, key):  # 检查非DataPackage对象是否包含key属性
-                yield getattr(value, key)
 
-    def to_dict(self):
-        result = {}
-        for key, value in self._data.items():
-            if isinstance(value, DataPackage):
-                result[key] = value.to_dict()  # 递归处理嵌套 DataPackage
-            else:
-                result[key] = value
-        return result
 
-    def update(self, other: "DataPackage|dict"):
-        if not isinstance(other, (DataPackage, dict)):
-            raise TypeError("other must be DataPackage or dict")
-        other = DataPackage(**other) if isinstance(other, dict) else other
-        self._data.update(other._data)
 
-    def __repr__(self):
-        return f"{self.__class__.__name__}({self._data})"
+
+
+
+
+
+
+
