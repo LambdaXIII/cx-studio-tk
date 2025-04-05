@@ -8,8 +8,12 @@ from urllib.parse import ParseResultBytes
 
 from cx_studio.utils import PathUtils
 from cx_tools_common.app_interface import IApplication
+from .components.input_scanner import InputScanner
 from .appenv import appenv
 from .components import Preset, MissionMaker
+from cx_tools_common.exception import SafeError
+from rich.table import Table
+from cx_tools_common import tui
 
 
 class Application(IApplication):
@@ -45,25 +49,26 @@ class Application(IApplication):
 
         appenv.say(f"已生成示例配置文件：{filename}。[red]请在修改后使用！[/red]")
 
-    def add_input_path(self, path: str | Path):
-        filename = Path(path)
-        suffix = filename.suffix
-        if suffix == ".toml" or suffix == "":
-            preset_path = Path(PathUtils.force_suffix(filename, ".toml"))
-            if preset_path.exists():
-                preset = Preset.load(preset_path)
-                appenv.whisper(" {filename} 识别为配置文件。".format(filename=filename))
-                appenv.whisper(preset)
-                self.presets.append(preset)
-            else:
-                appenv.whisper(
-                    "配置文件 {filename} 不存在。".format(filename=preset_path)
-                )
-        else:
-            appenv.whisper(
-                "{filename} 并非配置文件，作为源文件导入。".format(filename=filename)
+    def _check_presets_and_sources(self):
+        preset_count = len(self.presets)
+        if preset_count == 0:
+            raise SafeError("未发现任何配置文件，无法进行任何处理。")
+
+        source_count = len(self.sources)
+        if source_count == 0:
+            raise SafeError("用户未指定任何来源，无需进行任何处理。")
+
+        appenv.whisper(
+            "已发现{preset_count}个配置文件和{source_count}个来源路径。".format(
+                preset_count=preset_count, source_count=source_count
             )
-            self.sources.append(filename)
+        )
+
+        # appenv.whisper("来源文件如下：")
+        for p in self.presets:
+            appenv.whisper(p)
+
+        appenv.whisper(tui.indexed_list_panel(self.sources, "来源路径列表"))
 
     def run(self):
         if appenv.context.generate:
@@ -78,26 +83,7 @@ class Application(IApplication):
                     )
             return
 
-        for p in appenv.context.inputs:
-            self.add_input_path(p)
+        with InputScanner(appenv.context.inputs) as input_scanner:
+            self.presets, self.sources = input_scanner.scan()
 
-        preset_count = len(self.presets)
-        source_count = len(self.sources)
-        appenv.whisper(
-            "已导入 {preset_count} 个配置文件和 {source_count} 个源文件路径。".format(
-                preset_count=preset_count, source_count=source_count
-            )
-        )
-
-        if preset_count == 0:
-            raise ArgumentError("未发现任何配置文件，无法进行任何处理。")
-        if source_count == 0:
-            raise ArgumentError("未发现任何源文件，无法进行任何处理。")
-
-        missions = []
-        for preset in self.presets:
-            maker = MissionMaker(preset)
-            for s in self.sources:
-                mission = maker.make_mission(s)
-                appenv.whisper(mission)
-                missions.append(mission)
+        self._check_presets_and_sources()

@@ -64,7 +64,7 @@ class Preset:
 
     @classmethod
     def load(cls, filename: Path | str):
-        filename = Path(filename)
+        filename = PathUtils.force_suffix(filename, ".toml")
         with open(filename, "rb") as f:
             toml = tomllib.load(f)
         data = DataPackage(**toml)

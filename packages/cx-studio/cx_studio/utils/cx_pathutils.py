@@ -17,12 +17,12 @@ def normalize_suffix(suffix: str, with_dot=True) -> str:
     return "." + s if with_dot else s
 
 
-def force_suffix(source: Path | str, suffix: str) -> str:
+def force_suffix(source: Path | str, suffix: str) -> Path:
     if not source:
-        return ""
+        return Path()
     source = Path(source)
     suffix = normalize_suffix(suffix)
-    return str(source if source.suffix == suffix else source.with_suffix(suffix))
+    return Path(source if source.suffix == suffix else source.with_suffix(suffix))
 
 
 def take_dir(source: Path) -> Path:
