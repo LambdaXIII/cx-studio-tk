@@ -16,7 +16,7 @@ class PresetTagReplacer:
         self.replacer.install_provider("source", PathInfoProvider(self._source))
 
         output_dir = output_dir or Path.cwd()
-        target_folder = self._preset.target_folder
+        target_folder = Path(self._preset.target_folder)
         if target_folder.is_absolute():
             output_dir = target_folder
         else:

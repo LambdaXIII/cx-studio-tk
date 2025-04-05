@@ -7,6 +7,9 @@ from pathlib import Path
 from cx_studio.core import DataPackage
 from cx_studio.utils import PathUtils, TextUtils
 
+from rich.table import Table
+from rich.panel import Panel
+
 DefaultSuffixes = (
     ".mov .mp4 .mkv .avi .wmv .flv .webm "
     ".m4v .ts .m2ts .m2t .mts .m2v .m4v "
@@ -85,5 +88,39 @@ class Preset:
             raw=data,
         )
 
-    def __rich_repr__(self):
-        yield from self.__dict__.items()
+    def __rich_console__(self, console, options):
+        table = Table(show_header=False, show_footer=False, box=None)
+        table.add_column(justify="left")
+        table.add_column()
+        table.add_column(justify="left", overflow="fold", style="dim blue")
+
+        # table.add_row("预设ID", ":", self.id)
+        table.add_row("预设名称", ":", self.name)
+        table.add_row("预设描述", ":", self.description)
+        table.add_row("预设文件路径", ":", str(self.path))
+        table.add_row("FFmpeg路径", ":", self.ffmpeg)
+        table.add_row("是否覆盖", ":", str(self.overwrite))
+        table.add_row("硬件加速模式", ":", self.hardware_accelerate)
+        table.add_row(
+            "额外参数",
+            ":",
+            " ".join(self.options) if isinstance(self.options, list) else self.options,
+        )
+        table.add_row("源文件后缀", ":", " ".join(self.source_suffixes))
+        table.add_row("目标文件后缀", ":", self.target_suffix)
+        table.add_row("目标文件夹", ":", str(self.target_folder))
+        table.add_row("保留父级层级", ":", str(self.keep_parent_level))
+        table.add_row("输入参数", ":", f"{len(self.inputs)} 组")
+        table.add_row("输出参数", ":", f"{len(self.outputs)} 组")
+        table.add_row("自定义参数", ":", f"{len(self.custom)} 个")
+
+        rawdata_count = len(self.raw.keys())
+        if rawdata_count > 0:
+            table.add_row("原始数据", ":", "包含")
+
+        yield Panel(
+            table,
+            title="[bold]预设ID:[dim red]{}[/dim red]".format(self.id),
+            title_align="left",
+            width=min(console.width * 0.8, 80),
+        )

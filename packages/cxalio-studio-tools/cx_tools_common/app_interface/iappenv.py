@@ -1,7 +1,8 @@
-from abc import ABC,abstractmethod
+from abc import ABC, abstractmethod
 from enum import Enum
 
 from rich.console import Console
+
 
 class IAppEnvironment(ABC):
     def __init__(self):
@@ -30,14 +31,10 @@ class IAppEnvironment(ABC):
         return False
 
     def say(self, *args, **kwargs):
-        self.console.print(*args,**kwargs)
+        self.console.print(*args, **kwargs)
 
     def whisper(self, *args, **kwargs):
         if self.is_debug_mode_on():
-            kwargs["style"] = "bright_black"
+            kwargs["style"] = "dim"
             kwargs["highlight"] = False
-            self.console.print(*args,**kwargs)
-
-
-
-
+            self.console.print(*args, **kwargs)

@@ -9,7 +9,7 @@ from urllib.parse import ParseResultBytes
 from cx_studio.utils import PathUtils
 from cx_tools_common.app_interface import IApplication
 from .appenv import appenv
-from .components import Preset
+from .components import Preset, MissionMaker
 
 
 class Application(IApplication):
@@ -21,6 +21,7 @@ class Application(IApplication):
     def start(self):
         appenv.load_arguments(self.sys_arguments)
         appenv.start()
+        appenv.show_banner()
         return self
 
     def stop(self):
@@ -92,3 +93,11 @@ class Application(IApplication):
             raise ArgumentError("未发现任何配置文件，无法进行任何处理。")
         if source_count == 0:
             raise ArgumentError("未发现任何源文件，无法进行任何处理。")
+
+        missions = []
+        for preset in self.presets:
+            maker = MissionMaker(preset)
+            for s in self.sources:
+                mission = maker.make_mission(s)
+                appenv.whisper(mission)
+                missions.append(mission)
