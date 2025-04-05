@@ -1,19 +1,15 @@
-from ctypes import ArgumentError
 import importlib.resources
-import logging
 import sys
 from collections.abc import Sequence
 from pathlib import Path
-from urllib.parse import ParseResultBytes
 
 from cx_studio.utils import PathUtils
 from cx_tools_common.app_interface import IApplication
-from .components.input_scanner import InputScanner
-from .appenv import appenv
-from .components import Preset, MissionMaker
 from cx_tools_common.exception import SafeError
-from rich.table import Table
-from cx_tools_common import tui
+from cx_tools_common.rich_gadgets import IndexedListPanel
+from .appenv import appenv
+from .components import Preset
+from .components.input_scanner import InputScanner
 
 
 class Application(IApplication):
@@ -42,7 +38,7 @@ class Application(IApplication):
                 return
 
         with importlib.resources.open_text(
-            "media_killer", "example_preset.toml"
+                "media_killer", "example_preset.toml"
         ) as example:
             with open(filename, "w", encoding="utf-8") as f:
                 f.write(example.read())
@@ -68,7 +64,7 @@ class Application(IApplication):
         for p in self.presets:
             appenv.whisper(p)
 
-        appenv.whisper(tui.indexed_list_panel(self.sources, "来源路径列表"))
+        appenv.whisper(IndexedListPanel(self.sources, "来源路径列表", max_lines=3))
 
     def run(self):
         if appenv.context.generate:

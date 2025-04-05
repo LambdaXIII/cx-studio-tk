@@ -37,7 +37,7 @@ class AppEnv(IAppEnvironment):
 
     def show_banner(self, console=None):
         with importlib.resources.open_text("media_killer", "banner.txt") as banner:
-            bannerText = Text(banner.read(), style="bold red")
+            banner_text = Text(banner.read(), style="bold red")
         version_info = Text.from_markup(
             f"[bold blue]{self.app_name}[/] [yellow]v{self.app_version}[/]"
         )
@@ -47,7 +47,7 @@ class AppEnv(IAppEnvironment):
 
         table.add_column(justify="center", overflow="ellipsis")
 
-        table.add_row(bannerText)
+        table.add_row(banner_text)
         table.add_row(version_info)
         table.add_row(description)
         console = console or self.console
