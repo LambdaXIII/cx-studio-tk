@@ -14,17 +14,18 @@ from rich.text import Text
 class InputScanner:
     def __init__(self, inputs: Collection[str | Path]):
         self._inputs: list[str | Path] = list(inputs)
-        self._taskID = None
+        self._task_id = None
 
     def __enter__(self):
-        self._taskID = appenv.progress.add_task("预处理待处理项…")
+        self._task_id = appenv.progress.add_task("预处理待处理项…")
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        if self._taskID:
+        if self._task_id:
             if not appenv.context.debug_mode:
-                appenv.progress.update(self._taskID, visible=False)
-            appenv.progress.remove_task(self._taskID)
+                appenv.progress.update(self._task_id, visible=False)
+            appenv.progress.stop_task(self._task_id)
+            appenv.progress.remove_task(self._task_id)
         return False
 
     @staticmethod
@@ -58,7 +59,7 @@ class InputScanner:
         sources: list[Path] = []
 
         appenv.whisper("检索待处理路径并从中解析配置文件...")
-        for input in appenv.progress.track(self._inputs, task_id=self._taskID):
+        for input in appenv.progress.track(self._inputs, task_id=self._task_id):
             if self.is_preset(input):
                 preset = Preset.load(input)
                 presets.append(preset)

@@ -2,6 +2,7 @@ import importlib.resources
 import sys
 from collections.abc import Sequence
 from pathlib import Path
+from typing import override
 
 from cx_studio.utils import PathUtils
 from cx_tools_common.app_interface import IApplication
@@ -25,7 +26,18 @@ class Application(IApplication):
         return self
 
     def stop(self):
+        appenv.whisper("Bye ~")
         appenv.stop()
+
+    @override
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        result = super().__exit__(exc_type, exc_val, exc_tb)
+        if exc_type is None:
+            appenv.whisper("程序正常退出。")
+        elif exc_type is SafeError:
+            appenv.say(exc_val)
+            result = True
+        return result
 
     @staticmethod
     def export_example_preset(filename: Path):
