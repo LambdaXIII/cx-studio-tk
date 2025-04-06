@@ -7,6 +7,7 @@ from pathlib import Path
 from rich.columns import Columns
 from rich.panel import Panel
 from rich.table import Table
+from rich.text import Text
 
 from cx_studio.core import DataPackage
 from cx_studio.utils import PathUtils, TextUtils
@@ -105,7 +106,11 @@ class Preset:
         table.add_row(
             "额外参数",
             ":",
-            " ".join(self.options) if isinstance(self.options, list) else self.options,
+            Text(
+                " ".join(self.options)
+                if isinstance(self.options, list)
+                else str(self.options)
+            ),
         )
         table.add_row("源文件扩展名", ":", Columns(self.source_suffixes))
         table.add_row("目标文件扩展名", ":", self.target_suffix)
@@ -125,3 +130,10 @@ class Preset:
             title_align="left",
             # width=min(int(console.width * 0.5), 55),
         )
+
+    def __rich_label__(self):
+        yield "[bold bright_black]P[/]"
+        yield f"[green][{len(self.inputs)}->{len(self.outputs)}][/green]"
+        yield f"[cyan]{self.name}[/cyan]"
+        yield f"[italic yellow]{self.description}[/italic yellow]"
+        yield f"[bright_black]({self.path})[/bright_black]"

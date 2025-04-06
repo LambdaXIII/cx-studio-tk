@@ -11,7 +11,7 @@ from cx_tools_common.exception import SafeError
 from cx_tools_common.rich_gadgets import IndexedListPanel
 from cx_tools_common.rich_gadgets.dynamic_columns import DynamicColumns
 from .appenv import appenv
-from .components import InputScanner, SourceExpander
+from .components import InputScanner, SourceExpander, MissionMaker
 from .components import Preset
 
 
@@ -100,3 +100,9 @@ class Application(IApplication):
             self.presets, self.sources = input_scanner.scan()
 
         self._check_presets_and_sources()
+
+        missions = []
+        for preset in self.presets:
+            with MissionMaker(preset) as mission_maker:
+                for m in mission_maker.auto_make_missions(self.sources):
+                    missions.append(m)

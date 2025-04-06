@@ -1,3 +1,4 @@
+import time
 from collections.abc import Collection
 from pathlib import Path
 
@@ -15,17 +16,19 @@ class InputScanner:
         self._task_id = None
 
     def __enter__(self):
-        self._task_id = appenv.progress.add_task("预处理待处理项…")
+        self._task_id = appenv.progress.add_task("预处理输入项…", visible=False)
+        appenv.progress.update(self._task_id, visible=True)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        if self._task_id:
-            if not appenv.context.debug_mode:
-                appenv.progress.update(self._task_id, visible=False)
-            appenv.progress.stop_task(self._task_id)
+        appenv.progress.stop_task(self._task_id)
+        if not appenv.context.debug_mode:
+            # appenv.progress.update(self._task_id, visible=False)
             appenv.progress.remove_task(self._task_id)
-            appenv.progress.refresh()
         return False
+
+    # def __del__(self):
+    #     appenv.progress.remove_task(self._task_id)
 
     @staticmethod
     def is_preset(path: str | Path) -> bool:
@@ -58,6 +61,7 @@ class InputScanner:
         sources: list[Path] = []
 
         appenv.whisper("检索待处理路径并从中解析配置文件...")
+
         for input_path in appenv.progress.track(self._inputs, task_id=self._task_id):
             if self.is_preset(input_path):
                 preset = Preset.load(input_path)
@@ -66,6 +70,7 @@ class InputScanner:
             else:
                 sources.append(Path(input_path))
                 self._print_result(input_path, False)
-            # time.sleep(0.1)
+
+            # time.sleep(0.5)
 
         return presets, sources
