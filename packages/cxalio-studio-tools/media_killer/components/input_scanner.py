@@ -13,22 +13,20 @@ from .preset import Preset
 class InputScanner:
     def __init__(self, inputs: Collection[str | Path]):
         self._inputs: list[str | Path] = list(inputs)
-        self._task_id = None
+        self._task_id = appenv.progress.add_task("预处理输入项…", visible=False)
 
     def __enter__(self):
-        self._task_id = appenv.progress.add_task("预处理输入项…", visible=False)
         appenv.progress.update(self._task_id, visible=True)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         appenv.progress.stop_task(self._task_id)
-        if not appenv.context.debug_mode:
-            # appenv.progress.update(self._task_id, visible=False)
-            appenv.progress.remove_task(self._task_id)
+        appenv.progress.update(self._task_id, visible=False)
+
         return False
 
-    # def __del__(self):
-    #     appenv.progress.remove_task(self._task_id)
+    def __del__(self):
+        appenv.progress.remove_task(self._task_id)
 
     @staticmethod
     def is_preset(path: str | Path) -> bool:

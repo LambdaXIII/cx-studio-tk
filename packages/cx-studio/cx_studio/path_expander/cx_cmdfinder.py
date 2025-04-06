@@ -3,7 +3,7 @@ from collections.abc import Generator
 from pathlib import Path
 
 from cx_studio.path_expander.cx_executablevalidator import ExecutableValidator
-from cx_studio.path_expander.cx_pathexpander import PathExpander, PathExpanderStartInfo
+from cx_studio.path_expander.cx_pathexpander import PathExpander
 from cx_studio.utils import PathUtils
 
 
@@ -49,7 +49,7 @@ class CmdFinder:
             targets.add(str(PathUtils.force_suffix(cmd, "exe")))
             targets.add(str(PathUtils.force_suffix(cmd, "com")))
 
-        expander_info = PathExpanderStartInfo(
+        expander_info = PathExpander.StartInfo(
             accept_dirs=False,
             accept_others=False,
             follow_symlinks=True,

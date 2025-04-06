@@ -21,8 +21,8 @@ class RichLabel:
         self._markup = markup
         self._tab_size = tab_size
         self._sep = sep
-        self._overflow = overflow
-        self._justify = justify
+        self._overflow: Literal["ignore", "crop", "ellipsis", "fold"] = overflow
+        self._justify: Literal["left", "center", "right"] = justify
 
     def _get_func(self, obj: object):
         cls_name = self._obj.__class__.__name__
