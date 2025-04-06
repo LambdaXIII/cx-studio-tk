@@ -100,9 +100,3 @@ class Application(IApplication):
             self.presets, self.sources = input_scanner.scan()
 
         self._check_presets_and_sources()
-
-        for preset in self.presets:
-            with SourceExpander(preset) as expander:
-                for source in expander.expand(*self.sources):
-                    time.sleep(0.5)
-                    appenv.whisper(source)

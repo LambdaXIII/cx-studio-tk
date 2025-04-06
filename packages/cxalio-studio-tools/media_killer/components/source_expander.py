@@ -19,12 +19,6 @@ class SourceExpander:
             TextProber(".txt"),
         ]
 
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        return False
-
     def _pre_expand(self, *paths):
         for path in paths:
             path = Path(path)
