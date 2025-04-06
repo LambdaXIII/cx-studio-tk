@@ -9,6 +9,7 @@ from cx_studio.utils import PathUtils, TextUtils
 
 from rich.table import Table
 from rich.panel import Panel
+from rich.columns import Columns
 
 DefaultSuffixes = (
     ".mov .mp4 .mkv .avi .wmv .flv .webm "
@@ -106,8 +107,8 @@ class Preset:
             ":",
             " ".join(self.options) if isinstance(self.options, list) else self.options,
         )
-        table.add_row("源文件后缀", ":", " ".join(self.source_suffixes))
-        table.add_row("目标文件后缀", ":", self.target_suffix)
+        table.add_row("源文件扩展名", ":", Columns(self.source_suffixes))
+        table.add_row("目标文件扩展名", ":", self.target_suffix)
         table.add_row("目标文件夹", ":", str(self.target_folder))
         table.add_row("保留父级层级", ":", str(self.keep_parent_level))
         table.add_row("输入参数", ":", f"{len(self.inputs)} 组")
@@ -122,5 +123,5 @@ class Preset:
             table,
             title="[bold]预设ID:[dim red]{}[/dim red]".format(self.id),
             title_align="left",
-            width=min(console.width * 0.8, 80),
+            # width=min(int(console.width * 0.5), 55),
         )

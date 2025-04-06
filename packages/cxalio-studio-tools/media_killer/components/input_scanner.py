@@ -26,6 +26,7 @@ class InputScanner:
                 appenv.progress.update(self._task_id, visible=False)
             appenv.progress.stop_task(self._task_id)
             appenv.progress.remove_task(self._task_id)
+            appenv.progress.refresh()
         return False
 
     @staticmethod

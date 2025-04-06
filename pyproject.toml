@@ -16,6 +16,7 @@ members = ["packages/cx-studio", "packages/cxalio-studio-tools"]
 [dependency-groups]
 dev = [
     "black>=25.1.0",
+    "ipython>=9.0.2",
 ]
 
 # [dependency-groups]

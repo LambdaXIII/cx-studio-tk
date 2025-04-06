@@ -11,6 +11,7 @@ from cx_tools_common.rich_gadgets import IndexedListPanel
 from .appenv import appenv
 from .components import Preset
 from .components.input_scanner import InputScanner
+from rich.columns import Columns
 
 
 class Application(IApplication):
@@ -50,7 +51,7 @@ class Application(IApplication):
                 return
 
         with importlib.resources.open_text(
-                "media_killer", "example_preset.toml"
+            "media_killer", "example_preset.toml"
         ) as example:
             with open(filename, "w", encoding="utf-8") as f:
                 f.write(example.read())
@@ -62,9 +63,13 @@ class Application(IApplication):
         if preset_count == 0:
             raise SafeError("未发现任何配置文件，无法进行任何处理。")
 
+        appenv.whisper(Columns(self.presets, equal=True))
+
         source_count = len(self.sources)
         if source_count == 0:
             raise SafeError("用户未指定任何来源，无需进行任何处理。")
+
+        appenv.whisper(IndexedListPanel(self.sources, "来源路径列表", max_lines=3))
 
         appenv.whisper(
             "已发现{preset_count}个配置文件和{source_count}个来源路径。".format(
@@ -73,10 +78,8 @@ class Application(IApplication):
         )
 
         # appenv.whisper("来源文件如下：")
-        for p in self.presets:
-            appenv.whisper(p)
-
-        appenv.whisper(IndexedListPanel(self.sources, "来源路径列表", max_lines=3))
+        # for p in self.presets:
+        #     appenv.whisper(p)
 
     def run(self):
         if appenv.context.generate:
