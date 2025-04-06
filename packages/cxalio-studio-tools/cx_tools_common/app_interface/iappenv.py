@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
-from enum import Enum
 
 from rich.console import Console
+
 from cx_studio.utils import DoubleTrigger
 
 

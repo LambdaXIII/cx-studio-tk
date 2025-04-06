@@ -1,13 +1,9 @@
+from abc import ABC, abstractmethod
 from collections.abc import Sequence
-
-from .iappenv import IAppEnvironment
-
-
-from abc import ABC,abstractmethod
 
 
 class IApplication(ABC):
-    def __init__(self,arguments:Sequence[str]|None):
+    def __init__(self, arguments: Sequence[str] | None):
         self.sys_arguments = arguments
 
     @abstractmethod
@@ -29,4 +25,3 @@ class IApplication(ABC):
     @abstractmethod
     def run(self):
         pass
-

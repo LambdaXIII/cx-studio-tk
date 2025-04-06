@@ -12,8 +12,7 @@ class Fcp7XMLProber(IPathProber):
     _DOCTYPE_PATTERN = re.compile(r"<!DOCTYPE\s+xmeml>")
     _URL_HEAD = re.compile(r"^file://.*?/")
 
-
-    def pre_check(self, filename: str | Path) ->bool:
+    def pre_check(self, filename: str | Path) -> bool:
         return Path(filename).suffix.lower() == ".xml"
 
     def _is_acceptable(self, fp: TextIOBase) -> bool:

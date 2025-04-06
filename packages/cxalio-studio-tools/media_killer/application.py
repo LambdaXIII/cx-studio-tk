@@ -11,9 +11,8 @@ from cx_tools_common.exception import SafeError
 from cx_tools_common.rich_gadgets import IndexedListPanel
 from cx_tools_common.rich_gadgets.dynamic_columns import DynamicColumns
 from .appenv import appenv
-from .components import Preset
 from .components import InputScanner, SourceExpander
-from rich.columns import Columns
+from .components import Preset
 
 
 class Application(IApplication):

@@ -4,12 +4,12 @@ import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from rich.columns import Columns
+from rich.panel import Panel
+from rich.table import Table
+
 from cx_studio.core import DataPackage
 from cx_studio.utils import PathUtils, TextUtils
-
-from rich.table import Table
-from rich.panel import Panel
-from rich.columns import Columns
 
 DefaultSuffixes = (
     ".mov .mp4 .mkv .avi .wmv .flv .webm "

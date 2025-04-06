@@ -1,16 +1,24 @@
-from cx_studio.utils import EncodingUtils
-from cx_tools_common.path_prober import *
 from collections.abc import Collection
 
+from cx_studio.utils import EncodingUtils
+from cx_tools_common.path_prober import *
+
+
 class Prober:
-    def __init__(self, filename: Path, force_mode: bool = False,
-                 existed_only: bool = False,
-                 include_folders: Collection[str | Path] | None = None):
+    def __init__(
+        self,
+        filename: Path,
+        force_mode: bool = False,
+        existed_only: bool = False,
+        include_folders: Collection[str | Path] | None = None,
+    ):
         self._filename = filename
         self._fp = None
 
         self._existed_only = existed_only
-        self._include_folders = [Path(x) for x in include_folders] if include_folders else []
+        self._include_folders = (
+            [Path(x) for x in include_folders] if include_folders else []
+        )
         self._include_folders.append(Path(filename).resolve().parent)
 
         self._probers: list[IPathProber] = [

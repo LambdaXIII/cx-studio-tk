@@ -51,7 +51,7 @@ class IPathProber(ABC):
         except UnicodeDecodeError:
             pass
 
-    def pre_check(self, filename: str | Path)->bool:
+    def pre_check(self, filename: str | Path) -> bool:
         _ = self
         return True
 

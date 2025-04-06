@@ -13,10 +13,10 @@ class ResolveMetadataCSVProber(IPathProber):
             guard.seek()
             for line in fp:
                 if line.strip() != "":
-                    return line.split(',')
+                    return line.split(",")
         return []
 
-    def pre_check(self, filename: str | Path) ->bool:
+    def pre_check(self, filename: str | Path) -> bool:
         return Path(filename).suffix.lower() == ".fcpxml"
 
     def _is_acceptable(self, fp: TextIOBase) -> bool:

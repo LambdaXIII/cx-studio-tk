@@ -1,16 +1,14 @@
-import logging
+import importlib.resources
+import signal
 import time
 from collections.abc import Sequence
 
-from rich.logging import RichHandler
 from rich.progress import Progress
+from rich.table import Table
+from rich.text import Text
 
 from cx_tools_common.app_interface import IAppEnvironment, ConfigManager
 from .appcontext import AppContext
-import importlib.resources
-from rich.text import Text
-from rich.table import Table
-import signal
 
 
 class AppEnv(IAppEnvironment):

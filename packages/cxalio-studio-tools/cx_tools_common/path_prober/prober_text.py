@@ -24,7 +24,7 @@ class TextProber(IPathProber):
         [^\\/:*?"<>|\r\n]*          # 最后的目录或文件名
         $                           # 路径结束
         """,
-        re.VERBOSE
+        re.VERBOSE,
     )
 
     _URL_PATTERN = re.compile(r"file://.*/(\S+)")
@@ -36,8 +36,12 @@ class TextProber(IPathProber):
             self._acceptable_suffixes.add(suffix) if suffix else None
         # 如果没有制定扩展名，则默认接受任何文件
 
-    def pre_check(self, filename: str | Path) ->bool:
-        return Path(filename).suffix.lower() in self._acceptable_suffixes if len(self._acceptable_suffixes) > 0 else True
+    def pre_check(self, filename: str | Path) -> bool:
+        return (
+            Path(filename).suffix.lower() in self._acceptable_suffixes
+            if len(self._acceptable_suffixes) > 0
+            else True
+        )
 
     def _is_acceptable(self, fp: TextIOBase) -> bool:
         if len(self._acceptable_suffixes):

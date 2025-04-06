@@ -1,7 +1,7 @@
 import threading
-from rich.progress import Progress, TaskID
-from rich.text import Text
 from dataclasses import dataclass, field
+
+from rich.progress import Progress, TaskID
 
 
 class TaskAgent:

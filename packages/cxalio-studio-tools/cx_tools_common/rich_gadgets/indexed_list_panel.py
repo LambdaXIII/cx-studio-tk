@@ -1,10 +1,10 @@
-from typing import Iterable
-from rich.table import Table
-from rich.panel import Panel
+from collections.abc import Callable
 from collections.abc import Sequence
+from typing import Iterable
 
 from rich.console import Console
-from collections.abc import Callable
+from rich.panel import Panel
+from rich.table import Table
 
 
 class IndexedListPanel:

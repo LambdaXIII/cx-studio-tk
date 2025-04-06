@@ -1,14 +1,12 @@
-import time
-from media_killer.appenv import appenv
-
-from pathlib import Path
 from collections.abc import Collection
-from rich.progress import Progress
-from cx_tools_common.app_interface import TaskAgent
-from cx_studio.utils import PathUtils, FunctionalUtils
-from .preset import Preset
+from pathlib import Path
+
 from rich.columns import Columns
 from rich.text import Text
+
+from cx_studio.utils import PathUtils, FunctionalUtils
+from media_killer.appenv import appenv
+from .preset import Preset
 
 
 class InputScanner:
@@ -60,14 +58,14 @@ class InputScanner:
         sources: list[Path] = []
 
         appenv.whisper("检索待处理路径并从中解析配置文件...")
-        for input in appenv.progress.track(self._inputs, task_id=self._task_id):
-            if self.is_preset(input):
-                preset = Preset.load(input)
+        for input_path in appenv.progress.track(self._inputs, task_id=self._task_id):
+            if self.is_preset(input_path):
+                preset = Preset.load(input_path)
                 presets.append(preset)
-                self._print_result(input, True)
+                self._print_result(input_path, True)
             else:
-                sources.append(Path(input))
-                self._print_result(input, False)
+                sources.append(Path(input_path))
+                self._print_result(input_path, False)
             # time.sleep(0.1)
 
         return presets, sources
