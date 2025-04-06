@@ -24,20 +24,11 @@ class Mission:
     def name(self):
         return PathUtils.get_basename(self.source)
 
-    def __rich_console__(self, console, _options):
-        title = Text("M")
-        name = Text(self.name, style="bold yellow", justify="left")
-        io_count = Text(
-            "[{}->{}]".format(len(self.inputs), len(self.outputs)),
-            style="green",
-            justify="left",
-        )
-        folder = Text(
-            f"({self.source.resolve().parent})",
-            style="italic",
-            justify="right",
-            no_wrap=True,
-            overflow="fold",
-        )
-        empty = Text("\t", tab_size=100, overflow="crop")
-        yield Columns([title, io_count, name, folder])
+    def __rich__(self):
+        return Columns([Text.from_markup(x) for x in self.__rich_label__()])
+
+    def __rich_label__(self):
+        yield "[bold bright_black]M[/]"
+        yield f"[yellow]{self.name}[/]"
+        yield f"[italic dim blue]({self.source.resolve().parent})[/]"
+        yield f"[green][[cyan]{self.preset.name}[/cyan]:{len(self.inputs)}->{len(self.outputs)}][/green]"

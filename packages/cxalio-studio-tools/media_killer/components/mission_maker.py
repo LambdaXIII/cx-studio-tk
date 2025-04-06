@@ -65,12 +65,22 @@ class MissionMaker:
     def __del__(self):
         appenv.progress.remove_task(self._task_id)
 
-    def __make_report(self, n: int):
-        preset_label = RichLabel(self._preset, justify="left", overflow="crop")
-        missions = Text(f"{n}个任务", style="italic", justify="right")
-        return Columns([preset_label, missions], expand=True)
+    def __report(self, missions: list):
+        appenv.whisper(
+            IndexedListPanel(
+                [RichLabel(m) for m in missions],
+                title="预设 [red]{}[/red] 生成的任务列表".format(self._preset.name),
+            )
+        )
 
-    def auto_make_missions(self, sources: Sequence[str | Path]) -> Generator[Mission]:
+        count = len(missions)
+        preset_label = RichLabel(self._preset, justify="left", overflow="crop")
+        missions_label = Text(f"{count}个任务", style="italic", justify="right")
+        appenv.say(Columns([preset_label, missions_label], expand=True))
+
+    def expand_and_make_missions(
+        self, sources: Sequence[str | Path]
+    ) -> Generator[Mission]:
         missions = []
         appenv.whisper("开始为预设<{}>扫描源文件并创建任务…".format(self._preset.name))
         for source in appenv.progress.track(sources, task_id=self._task_id):
@@ -78,15 +88,16 @@ class MissionMaker:
             for ss in self._source_expander.expand(source):
                 if appenv.wanna_quit:
                     break
+                appenv.whisper(ss)
                 m = self.make_mission(ss)
-                appenv.whisper(m)
                 missions.append(m)
                 time.sleep(0.2)
                 yield m
-        appenv.say(self.__make_report(len(missions)))
-        appenv.whisper(
-            IndexedListPanel(
-                missions,
-                title="预设 [red]{}[/red] 生成的任务列表".format(self._preset.name),
-            )
-        )
+        self.__report(missions)
+
+    @staticmethod
+    def quick_make_missions(
+        preset: Preset, sources: Sequence[str | Path]
+    ) -> list[Mission]:
+        with MissionMaker(preset) as maker:
+            return list(maker.expand_and_make_missions(sources))

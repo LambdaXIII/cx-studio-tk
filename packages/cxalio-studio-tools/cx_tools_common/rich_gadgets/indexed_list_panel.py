@@ -5,6 +5,7 @@ from typing import Iterable
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
+import rich.protocol
 
 
 class IndexedListPanel:
@@ -27,6 +28,12 @@ class IndexedListPanel:
     def default_width_calculator(console: Console) -> int:
         return int(console.width * 0.8)
 
+    @staticmethod
+    def __check_item(item):
+        if rich.protocol.is_renderable(item):
+            return item
+        return str(item)
+
     def get_table(self) -> Table:
         table = Table(box=None, show_header=False)
         table.add_column("index", justify="right", style="green", ratio=1)
@@ -40,12 +47,12 @@ class IndexedListPanel:
         for i, item in enumerate(self._items, start=self._start_index):
             if self._max_lines and i > self._max_lines:
                 table.add_row(
-                    f"[red]{'-' * (total_digits + 2)}[/]",
+                    f"[red][{'.' * total_digits}][/]",
                     f"[italic red]skipped {total - i - 1} items...[/]",
                 )
-                table.add_row(f"[{total}]", str(self._items[-1]))
+                table.add_row(f"[{total}]", self.__check_item(self._items[-1]))
                 break
-            table.add_row(f"[{i:>{total_digits}}]", str(item))
+            table.add_row(f"[{i:>{total_digits}}]", self.__check_item(item))
 
         return table
 
