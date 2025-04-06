@@ -1,3 +1,4 @@
+from concurrent.futures import ProcessPoolExecutor
 import importlib.resources
 import sys
 import time
@@ -106,3 +107,13 @@ class Application(IApplication):
             with MissionMaker(preset) as mission_maker:
                 for m in mission_maker.expand_and_make_missions(self.sources):
                     missions.append(m)
+
+        # with ProcessPoolExecutor() as executor:
+        #     missions = list(
+        #         executor.map(
+        #             lambda preset: MissionMaker.quick_make_missions(
+        #                 preset, self.sources
+        #             ),
+        #             self.presets,
+        #         )
+        #     )
