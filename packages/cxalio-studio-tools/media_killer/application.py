@@ -64,8 +64,8 @@ class Application(IApplication):
         if preset_count == 0:
             raise SafeError("未发现任何配置文件，无法进行任何处理。")
 
-        appenv.whisper(Columns(self.presets,width=int(appenv.console.width*0.5)-1, equal=True))
-        # appenv.whisper(DynamicColumns(self.presets))
+        # appenv.whisper(Columns(self.presets,width=int(appenv.console.width*0.5)-1, equal=True))
+        appenv.whisper(DynamicColumns(self.presets))
 
         source_count = len(self.sources)
         if source_count == 0:

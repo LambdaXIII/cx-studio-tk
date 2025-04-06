@@ -1,4 +1,5 @@
 import logging
+import time
 from collections.abc import Sequence
 
 from rich.logging import RichHandler
@@ -32,6 +33,8 @@ class AppEnv(IAppEnvironment):
         self.progress.start()
 
     def stop(self):
+        self.progress.refresh()
+        time.sleep(0.1)
         self.progress.stop()
         self.config_manager.remove_old_log_files()
 
