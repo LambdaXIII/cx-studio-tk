@@ -8,6 +8,7 @@ from cx_studio.utils import PathUtils
 from cx_tools_common.app_interface import IApplication
 from cx_tools_common.exception import SafeError
 from cx_tools_common.rich_gadgets import IndexedListPanel
+from cx_tools_common.rich_gadgets.dynamic_columns import DynamicColumns
 from .appenv import appenv
 from .components import Preset
 from .components.input_scanner import InputScanner
@@ -63,13 +64,14 @@ class Application(IApplication):
         if preset_count == 0:
             raise SafeError("未发现任何配置文件，无法进行任何处理。")
 
-        appenv.whisper(Columns(self.presets, equal=True))
+        appenv.whisper(Columns(self.presets,width=int(appenv.console.width*0.5)-1, equal=True))
+        # appenv.whisper(DynamicColumns(self.presets))
 
         source_count = len(self.sources)
         if source_count == 0:
             raise SafeError("用户未指定任何来源，无需进行任何处理。")
 
-        appenv.whisper(IndexedListPanel(self.sources, "来源路径列表", max_lines=3))
+        appenv.whisper(IndexedListPanel(self.sources, "来源路径列表"))
 
         appenv.whisper(
             "已发现{preset_count}个配置文件和{source_count}个来源路径。".format(
