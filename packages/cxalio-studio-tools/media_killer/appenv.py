@@ -10,6 +10,7 @@ from .appcontext import AppContext
 import importlib.resources
 from rich.text import Text
 from rich.table import Table
+import signal
 
 
 class AppEnv(IAppEnvironment):
@@ -58,3 +59,6 @@ class AppEnv(IAppEnvironment):
 
 
 appenv = AppEnv()
+
+
+signal.signal(signal.SIGINT, appenv.handle_interrupt)

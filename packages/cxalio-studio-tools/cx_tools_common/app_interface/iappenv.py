@@ -2,13 +2,33 @@ from abc import ABC, abstractmethod
 from enum import Enum
 
 from rich.console import Console
+from cx_studio.utils import DoubleTrigger
 
 
 class IAppEnvironment(ABC):
+
     def __init__(self):
         self.app_name = ""
         self.app_version = ""
         self.console = Console(stderr=True)
+
+        self.wanna_quit = False
+        self.really_wanna_quit = False
+
+        self._interrupt_trigger = DoubleTrigger()
+
+        @self._interrupt_trigger.on("first_triggered")
+        def __when_wanna_quit():
+            self.whisper("[red]检测到中断信号…[/]")
+            self.wanna_quit = True
+
+        @self._interrupt_trigger.on("second_triggered")
+        def __when_really_wanna_quit():
+            self.whisper("[red]检测到强制中断信号…[/]")
+            self.really_wanna_quit = True
+
+    def handle_interrupt(self, sig, frame):
+        self._interrupt_trigger.trigger()
 
     @abstractmethod
     def is_debug_mode_on(self):

@@ -1,5 +1,6 @@
 import importlib.resources
 import sys
+import time
 from collections.abc import Sequence
 from pathlib import Path
 from typing import override
@@ -11,7 +12,7 @@ from cx_tools_common.rich_gadgets import IndexedListPanel
 from cx_tools_common.rich_gadgets.dynamic_columns import DynamicColumns
 from .appenv import appenv
 from .components import Preset
-from .components import InputScanner,SourceExpander
+from .components import InputScanner, SourceExpander
 from rich.columns import Columns
 
 
@@ -104,6 +105,5 @@ class Application(IApplication):
         for preset in self.presets:
             with SourceExpander(preset) as expander:
                 for source in expander.expand(*self.sources):
+                    time.sleep(0.5)
                     appenv.whisper(source)
-
-
