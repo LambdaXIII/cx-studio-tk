@@ -22,6 +22,6 @@ class ChainValidator(IPathValidator):
     def validate(self, path: str) -> bool:
         return (
             True
-            if len(self.__validators) > 0
+            if len(self.__validators) == 0
             else all(v.validate(path) for v in self.__validators)
         )

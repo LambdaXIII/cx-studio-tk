@@ -11,7 +11,7 @@ from cx_tools_common.rich_gadgets import IndexedListPanel
 from cx_tools_common.rich_gadgets.dynamic_columns import DynamicColumns
 from .appenv import appenv
 from .components import Preset
-from .components.input_scanner import InputScanner
+from .components import InputScanner,SourceExpander
 from rich.columns import Columns
 
 
@@ -100,3 +100,10 @@ class Application(IApplication):
             self.presets, self.sources = input_scanner.scan()
 
         self._check_presets_and_sources()
+
+        for preset in self.presets:
+            with SourceExpander(preset) as expander:
+                for source in expander.expand(*self.sources):
+                    appenv.whisper(source)
+
+

@@ -9,11 +9,11 @@ from .path_prober import IPathProber
 
 class OTIOProber(IPathProber):
     # TODO: bug fix
-    def is_acceptable(self, fp: TextIOBase) -> bool:
+    def _is_acceptable(self, fp: TextIOBase) -> bool:
         suffix = self._get_suffix(fp)
         return suffix is None or suffix != ".otio"
 
-    def probe(self, fp: TextIOBase) -> Generator[PurePath]:
+    def _probe(self, fp: TextIOBase) -> Generator[PurePath]:
         with IPathProber.ProbeGuard(fp) as guard:
             guard.seek()
             d = json.loads(fp.read())

@@ -1,7 +1,7 @@
 import re
 import xml.etree.ElementTree as ET
 from io import TextIOBase
-from pathlib import PurePath
+from pathlib import PurePath, Path
 from typing import Generator
 from urllib.parse import unquote
 
@@ -12,7 +12,10 @@ class FcpXMLProber(IPathProber):
     _DOCTYPE_PATTERN = re.compile(r"<!DOCTYPE\s+fcpxml>")
     _URL_HEAD = re.compile(r"^file://.*?/")
 
-    def is_acceptable(self, fp: TextIOBase) -> bool:
+    def pre_check(self, filename: str | Path) ->bool:
+        return Path(filename).suffix.lower() == ".fcpxml"
+
+    def _is_acceptable(self, fp: TextIOBase) -> bool:
         suffix = self._get_suffix(fp)
         if suffix is not None and suffix != ".fcpxml":
             return False
@@ -25,7 +28,7 @@ class FcpXMLProber(IPathProber):
 
         return False
 
-    def probe(self, fp: TextIOBase) -> Generator[PurePath]:
+    def _probe(self, fp: TextIOBase) -> Generator[PurePath]:
         with self.ProbeGuard(fp) as guard:
             guard.seek()
             root = ET.fromstringlist(fp.readlines())

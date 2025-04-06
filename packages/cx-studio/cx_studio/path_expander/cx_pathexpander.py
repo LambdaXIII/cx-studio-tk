@@ -4,22 +4,24 @@ from pathlib import Path
 from .cx_pathvalidator import IPathValidator, ChainValidator
 
 
-@dataclass
-class PathExpanderStartInfo:
-    anchor_point: Path | None = None
-    expand_subdir: bool = True
-    accept_files: bool = True
-    accept_dirs: bool = True
-    accept_others: bool = False
-    existed_only: bool = True
-    file_validator: IPathValidator = ChainValidator()
-    dir_validator: IPathValidator = file_validator
-    follow_symlinks: bool = True
+
 
 
 class PathExpander:
-    def __init__(self, start_info: PathExpanderStartInfo | None = None):
-        self.start_info = start_info or PathExpanderStartInfo()
+    @dataclass
+    class StartInfo:
+        anchor_point: Path | None = None
+        expand_subdir: bool = True
+        accept_files: bool = True
+        accept_dirs: bool = True
+        accept_others: bool = False
+        existed_only: bool = True
+        file_validator: IPathValidator = ChainValidator()
+        dir_validator: IPathValidator = file_validator
+        follow_symlinks: bool = True
+
+    def __init__(self, start_info: "PathExpander.StartInfo | None" = None):
+        self.start_info = start_info or PathExpander.StartInfo()
 
     def __make_path(self, path: str | Path) -> Path:
         path = Path(path)

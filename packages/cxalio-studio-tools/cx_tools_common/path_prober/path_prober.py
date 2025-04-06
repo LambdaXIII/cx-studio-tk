@@ -32,12 +32,28 @@ class IPathProber(ABC):
             self.__fp.seek(x)
 
     @abstractmethod
-    def is_acceptable(self, fp: TextIOBase) -> bool:
+    def _is_acceptable(self, fp: TextIOBase) -> bool:
         pass
 
     @abstractmethod
-    def probe(self, fp: TextIOBase) -> Generator[PurePath]:
+    def _probe(self, fp: TextIOBase) -> Generator[PurePath]:
         pass
+
+    def is_acceptable(self, fp: TextIOBase) -> bool:
+        try:
+            return self._is_acceptable(fp)
+        except UnicodeDecodeError:
+            return False
+
+    def probe(self, fp: TextIOBase) -> Generator[PurePath]:
+        try:
+            yield from self._probe(fp)
+        except UnicodeDecodeError:
+            pass
+
+    def pre_check(self, filename: str | Path)->bool:
+        _ = self
+        return True
 
     @staticmethod
     def _get_suffix(fp: TextIOBase) -> str | None:

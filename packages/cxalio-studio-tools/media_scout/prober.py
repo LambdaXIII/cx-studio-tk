@@ -10,7 +10,7 @@ class Prober:
         self._fp = None
 
         self._existed_only = existed_only
-        self._include_folders = [Path(x) for x in include_folders]
+        self._include_folders = [Path(x) for x in include_folders] if include_folders else []
         self._include_folders.append(Path(filename).resolve().parent)
 
         self._probers: list[IPathProber] = [
@@ -46,8 +46,8 @@ class Prober:
 
     def probe(self):
         for prober in self._probers:
-            if prober.is_acceptable(self._fp):
-                for p in prober.probe(self._fp):
+            if prober._is_acceptable(self._fp):
+                for p in prober._probe(self._fp):
                     path = Path(p)
                     for px in self._check_relative_paths(path):
                         if self._existed_only and not px.exists():

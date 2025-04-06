@@ -1,7 +1,7 @@
 import re
 from collections.abc import Generator
 from io import TextIOBase
-from pathlib import PurePath
+from pathlib import PurePath, Path
 from urllib.parse import unquote
 
 from cx_studio.utils import PathUtils
@@ -36,7 +36,10 @@ class TextProber(IPathProber):
             self._acceptable_suffixes.add(suffix) if suffix else None
         # 如果没有制定扩展名，则默认接受任何文件
 
-    def is_acceptable(self, fp: TextIOBase) -> bool:
+    def pre_check(self, filename: str | Path) ->bool:
+        return Path(filename).suffix.lower() in self._acceptable_suffixes if len(self._acceptable_suffixes) > 0 else True
+
+    def _is_acceptable(self, fp: TextIOBase) -> bool:
         if len(self._acceptable_suffixes):
             return True
         suffix = self._get_suffix(fp)
@@ -51,7 +54,7 @@ class TextProber(IPathProber):
         match = self._PATH_PATTERN.search(line)
         return match.group(0) if match else None
 
-    def probe(self, fp: TextIOBase) -> Generator[PurePath]:
+    def _probe(self, fp: TextIOBase) -> Generator[PurePath]:
         with IPathProber.ProbeGuard(fp) as guard:
             guard.seek()
             for line in fp:

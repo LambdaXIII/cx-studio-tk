@@ -1,7 +1,7 @@
 import re
 from io import TextIOBase
-from pathlib import PurePath
-from typing import Generator
+from pathlib import PurePath, Path
+from typing import Generator, override
 
 from .path_prober import IPathProber
 
@@ -9,13 +9,17 @@ from .path_prober import IPathProber
 class EDLProber(IPathProber):
     FILENAME_PATTERN = r"CLIP NAME: (.+)"
 
-    def is_acceptable(self, fp: TextIOBase) -> bool:
+
+    def pre_check(self, filename: str | Path) ->bool:
+        return Path(filename).suffix.lower() == ".edl"
+
+    def _is_acceptable(self, fp: TextIOBase) -> bool:
         suffix = self._get_suffix(fp)
         if suffix is not None and suffix != ".edl":
             return False
         return True
 
-    def probe(self, fp: TextIOBase) -> Generator[PurePath]:
+    def _probe(self, fp: TextIOBase) -> Generator[PurePath]:
         with self.ProbeGuard(fp) as guard:
             for line in fp:
                 match = re.search(self.FILENAME_PATTERN, line)
