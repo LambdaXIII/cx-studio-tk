@@ -63,30 +63,28 @@ class Application(IApplication):
 
         appenv.say(f"已生成示例配置文件：{filename}。[red]请在修改后使用！[/red]")
 
-    def _check_presets_and_sources(self):
-        preset_count = len(self.presets)
+    def _set_presets_and_sources(self, presets, sources):
+        preset_count = len(presets)
         if preset_count == 0:
             raise SafeError("未发现任何配置文件，无法进行任何处理。")
 
         # 去除重复的配置文件
         preset_ids = set()
-        presets = []
-        for p in self.presets:
+        for p in presets:
             if p.id in preset_ids:
                 appenv.say(
                     "[red]发现重复的配置文件: [/red][bright_black]{}[/]".format(p.path)
                 )
                 continue
             preset_ids.add(p.id)
-            presets.append(p)
-        self.presets = presets
+            self.presets.append(p)
 
         appenv.whisper(DynamicColumns(self.presets))
 
-        source_count = len(self.sources)
+        source_count = len(sources)
         if source_count == 0:
             raise SafeError("用户未指定任何来源，无需进行任何处理。")
-
+        self.sources += list(sources)
         appenv.whisper(IndexedListPanel(self.sources, "来源路径列表"))
 
         appenv.say(
@@ -94,6 +92,18 @@ class Application(IApplication):
                 preset_count=preset_count, source_count=source_count
             )
         )
+
+    def _sort_and_set_missions(self, missions):
+        self.missions = list(MissionArranger(missions, appenv.context.sort_mode))
+        old_count, new_count = len(missions), len(self.missions)
+        if old_count != new_count:
+            appenv.say(
+                "[red]已自动过滤掉{}个重复任务，共{}个任务需要执行。[/red]".format(
+                    old_count - new_count, new_count
+                )
+            )
+        else:
+            appenv.say("全部任务整理完毕，已按照设定方式排序。")
 
     def run(self):
         if appenv.context.generate:
@@ -109,18 +119,9 @@ class Application(IApplication):
             return
 
         with InputScanner(appenv.context.inputs) as input_scanner:
-            self.presets, self.sources = input_scanner.scan()
+            presets, sources = input_scanner.scan()
 
-        self._check_presets_and_sources()
+        self._set_presets_and_sources(presets, sources)
 
         missions = MissionMaker.auto_make_missions_multitask(self.presets, self.sources)
-        self.missions = list(MissionArranger(missions, appenv.context.sort_mode))
-        old_count, new_count = len(missions), len(self.missions)
-        if old_count != new_count:
-            appenv.say(
-                "[red]已自动过滤掉{}个重复任务，共{}个任务需要执行。[/red]".format(
-                    old_count - new_count, new_count
-                )
-            )
-        else:
-            appenv.say("全部任务整理完毕，已按照设定方式排序。")
+        self._sort_and_set_missions(missions)
