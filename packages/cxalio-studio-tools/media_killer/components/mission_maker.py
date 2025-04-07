@@ -7,7 +7,11 @@ from pathlib import Path
 from rich.columns import Columns
 from rich.text import Text
 
-from cx_tools_common.rich_gadgets import RichLabel, IndexedListPanel
+from cx_tools_common.rich_gadgets import (
+    RichLabel,
+    IndexedListPanel,
+    MultiProgressManager,
+)
 from .source_expander import SourceExpander
 from .argument_group import ArgumentGroup
 from .mission import Mission
@@ -56,6 +60,9 @@ class MissionMaker:
             outputs=outputs,
         )
 
+    def expand_sources(self, sources: Sequence[str | Path]) -> Generator[Path]:
+        yield from self._source_expander.expand(*sources)
+
     def report(self, missions: list):
         with self._lock:
             appenv.whisper(
@@ -91,47 +98,72 @@ class MissionMaker:
         max_workers: int | None = None,
     ) -> list[Mission]:
         missions = []
-        progresses: dict[str, tuple[int, int | None]] = defaultdict(lambda: (0, None))
-        bars: dict[str, TaskID] = {}
+        progressMgr = MultiProgressManager()
         workers = []
 
         def work(preset: Preset, sources: Sequence[str | Path]) -> list[Mission]:
-            missions = []
-            total = len(sources)
-            maker = MissionMaker(preset)
+            task_key = preset.id
             appenv.whisper("开始为预设<{}>扫描源文件并创建任务…".format(preset.name))
-            for i, s in enumerate(sources, start=1):
-                for ss in maker.expand_and_make_missions([s]):
-                    missions.append(ss)
-                    appenv.pretending_sleep(0.05)
-                progresses[preset.name] = (i, total)
+            progressMgr.update_task(
+                task_key,
+                visible=True,
+                description="[cyan]<{}>[/cyan]".format(preset.name),
+            )
+
+            missions = []
+            maker = MissionMaker(preset)
+            expanded_sources = list(maker.expand_sources(sources))
+            total = len(expanded_sources)
+            progressMgr.update_task(task_key, total=total)
+
+            for s in expanded_sources:
+                if appenv.really_wanna_quit:
+                    appenv.say(
+                        "用户中断，[red]未为预设[cyan]{}[/]生成全部任务[/red]".format(
+                            preset.name
+                        )
+                    )
+                    break
+                m = maker.make_mission(Path(s))
+                missions.append(m)
+                progressMgr.advance(task_key)
+                appenv.pretending_sleep(0.02)
             maker.report(missions)
+            progressMgr.update_task(task_key, visible=False)
             return missions
 
+        total_task = appenv.progress.add_task(
+            "为{}个预设生成任务…".format(len(presets)), total=None
+        )
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             for preset in presets:
                 worker = executor.submit(work, preset, sources)
                 workers.append(worker)
-                bars[preset.name] = appenv.progress.add_task(
-                    f"为[yellow]<{preset.name}>[/yellow]生成任务…",
-                    total=None,
-                    start=True,
-                )
+                progressMgr.add_task(preset.id, appenv.progress.add_task(preset.name))
             while not all([w.done() for w in workers]):
                 time.sleep(0.1)
-                if appenv.really_wanna_quit:
+                if appenv.wanna_quit:
                     for w in workers:
                         w.cancel()
-                    break
-                for p_name, p in progresses.items():
-                    i, total = p
-                    appenv.progress.update(bars[p_name], total=total, completed=i)
-                    # appenv.say(p_name, i, total)
+                    # break
+                for task_key in progressMgr.keys():
+                    tid, tstatus = progressMgr.get(task_key)
+                    if tid:
+                        appenv.progress.update(
+                            tid,
+                            description=tstatus.description,
+                            completed=tstatus.completed,
+                            total=tstatus.total,
+                            visible=tstatus.visible,
+                        )
+                    current, total = progressMgr.get_total_progress()
+                    appenv.progress.update(total_task, completed=current, total=total)
 
             for w in workers:
                 missions.extend(w.result())
 
-            for b in bars.values():
-                appenv.progress.remove_task(b)
+            for task_id in progressMgr.task_ids():
+                appenv.progress.remove_task(task_id)
 
+        appenv.progress.remove_task(total_task)
         return missions
