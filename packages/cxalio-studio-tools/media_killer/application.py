@@ -1,4 +1,4 @@
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 import importlib.resources
 import sys
 import time
@@ -74,15 +74,11 @@ class Application(IApplication):
 
         appenv.whisper(IndexedListPanel(self.sources, "来源路径列表"))
 
-        appenv.whisper(
+        appenv.say(
             "已发现{preset_count}个配置文件和{source_count}个来源路径。".format(
                 preset_count=preset_count, source_count=source_count
             )
         )
-
-        # appenv.whisper("来源文件如下：")
-        # for p in self.presets:
-        #     appenv.whisper(p)
 
     def run(self):
         if appenv.context.generate:
@@ -102,18 +98,4 @@ class Application(IApplication):
 
         self._check_presets_and_sources()
 
-        missions = []
-        for preset in self.presets:
-            with MissionMaker(preset) as mission_maker:
-                for m in mission_maker.expand_and_make_missions(self.sources):
-                    missions.append(m)
-
-        # with ProcessPoolExecutor() as executor:
-        #     missions = list(
-        #         executor.map(
-        #             lambda preset: MissionMaker.quick_make_missions(
-        #                 preset, self.sources
-        #             ),
-        #             self.presets,
-        #         )
-        #     )
+        missions = MissionMaker.auto_make_missions_multitask(self.presets, self.sources)

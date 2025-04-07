@@ -1,3 +1,5 @@
+from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor
 import time
 from collections.abc import Sequence, Generator
 from pathlib import Path
@@ -12,16 +14,15 @@ from .mission import Mission
 from .preset import Preset
 from .preset_tag_replacer import PresetTagReplacer
 from ..appenv import appenv
+from rich.progress import TaskID
+import threading
 
 
 class MissionMaker:
+    _lock = threading.Lock()
+
     def __init__(self, preset: Preset):
         self._preset = preset
-        self._task_id = appenv.progress.add_task(
-            "为[yellow]<{}>[/yellow]生成任务…".format(self._preset.name),
-            visible=False,
-            total=None,
-        )
         self._source_expander = SourceExpander(self._preset)
 
     def make_mission(self, source: Path) -> Mission:
@@ -55,49 +56,82 @@ class MissionMaker:
             outputs=outputs,
         )
 
-    def __enter__(self):
-        appenv.progress.update(self._task_id, visible=True)
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        appenv.progress.stop_task(self._task_id)
-
-    def __del__(self):
-        appenv.progress.remove_task(self._task_id)
-
-    def __report(self, missions: list):
-        appenv.whisper(
-            IndexedListPanel(
-                missions,
-                title="预设 [red]{}[/red] 生成的任务列表".format(self._preset.name),
+    def report(self, missions: list):
+        with self._lock:
+            appenv.whisper(
+                IndexedListPanel(
+                    missions,
+                    title="预设 [red]{}[/red] 生成的任务列表".format(self._preset.name),
+                )
             )
-        )
 
-        count = len(missions)
-        preset_label = RichLabel(self._preset, justify="left", overflow="crop")
-        missions_label = Text(f"{count}个任务", style="italic", justify="right")
-        appenv.say(Columns([preset_label, missions_label], expand=True))
+            count = len(missions)
+            preset_label = RichLabel(self._preset, justify="left", overflow="crop")
+            missions_label = Text(f"{count}个任务", style="italic", justify="right")
+            appenv.say(Columns([preset_label, missions_label], expand=True))
 
     def expand_and_make_missions(
         self, sources: Sequence[str | Path]
     ) -> Generator[Mission]:
-        missions = []
-        appenv.whisper("开始为预设<{}>扫描源文件并创建任务…".format(self._preset.name))
-        for source in appenv.progress.track(sources, task_id=self._task_id):
+        # appenv.whisper("开始为预设<{}>扫描源文件并创建任务…".format(self._preset.name))
+        for source in sources:
             source = Path(source)
             for ss in self._source_expander.expand(source):
                 if appenv.wanna_quit:
                     break
-                appenv.whisper(f"\t{ss}")
+                # appenv.whisper(f"\t{ss}")
                 m = self.make_mission(ss)
-                missions.append(m)
                 appenv.pretending_sleep(0.05)
                 yield m
-        self.__report(missions)
 
     @staticmethod
-    def quick_make_missions(
-        preset: Preset, sources: Sequence[str | Path]
+    def auto_make_missions_multitask(
+        presets: Sequence[Preset],
+        sources: Sequence[str | Path],
+        max_workers: int | None = None,
     ) -> list[Mission]:
-        with MissionMaker(preset) as maker:
-            return list(maker.expand_and_make_missions(sources))
+        missions = []
+        progresses: dict[str, tuple[int, int | None]] = defaultdict(lambda: (0, None))
+        bars: dict[str, TaskID] = {}
+        workers = []
+
+        def work(preset: Preset, sources: Sequence[str | Path]) -> list[Mission]:
+            missions = []
+            total = len(sources)
+            maker = MissionMaker(preset)
+            appenv.whisper("开始为预设<{}>扫描源文件并创建任务…".format(preset.name))
+            for i, s in enumerate(sources, start=1):
+                for ss in maker.expand_and_make_missions([s]):
+                    missions.append(ss)
+                    appenv.pretending_sleep(0.05)
+                progresses[preset.name] = (i, total)
+            maker.report(missions)
+            return missions
+
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            for preset in presets:
+                worker = executor.submit(work, preset, sources)
+                workers.append(worker)
+                bars[preset.name] = appenv.progress.add_task(
+                    f"为[yellow]<{preset.name}>[/yellow]生成任务…",
+                    total=None,
+                    start=True,
+                )
+            while not all([w.done() for w in workers]):
+                time.sleep(0.1)
+                if appenv.really_wanna_quit:
+                    for w in workers:
+                        w.cancel()
+                    break
+                for p_name, p in progresses.items():
+                    i, total = p
+                    appenv.progress.update(bars[p_name], total=total, completed=i)
+                    # appenv.say(p_name, i, total)
+
+            for w in workers:
+                missions.extend(w.result())
+
+            for b in bars.values():
+                appenv.progress.remove_task(b)
+
+        return missions
