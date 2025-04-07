@@ -20,43 +20,34 @@ class TaskAgent:
 
     def __init__(
         self,
-        task_name: str,
+        task_id: TaskID | None = None,
+        task_name: str = "",
         total: float | None = None,
         refresh_interval: float = 0.01,
         progress: Progress | None = None,
+        auto_update: bool = True,
     ):
         self._refresh_interval = refresh_interval
         self._progress = progress
-        self._task_id: TaskID | None = None
-        self._data = self.Data(
+        self._task_id: TaskID | None = task_id
+        self.data = self.Data(
             task_name=task_name,
             total=total,
         )
+        self._auto_update = auto_update
         self._lock = threading.Lock()
-        self._timer = None
-
-    def __del__(self):
-        if self._timer:
-            self._timer.cancel()
 
     def _update_progress(self):
         if self._progress and self._task_id:
             with self._lock:
                 self._progress.update(
                     self._task_id,
-                    total=self._data.total,
-                    completed=self._data.completed,
-                    description=self._data.description,
-                    visible=self._data.visible,
-                    **self._data.fields,
+                    total=self.data.total,
+                    completed=self.data.completed,
+                    description=self.data.description,
+                    visible=self.data.visible,
+                    **self.data.fields,
                 )
-                self._timer = None
-
-    def _start_timer(self):
-        if self._refresh_interval <= 0:
-            self._update_progress()
-        elif self._timer is None:
-            self._timer = threading.Timer(self._refresh_interval, self._update_progress)
 
     def update(
         self,
@@ -65,26 +56,31 @@ class TaskAgent:
         completed: float | None = None,
         total: float | None = None,
         visible: bool | None = None,
+        auto_update: bool | None = None,
         **fields,
     ):
         with self._lock:
             if task_name is not None:
-                self._data.task_name = task_name
+                self.data.task_name = task_name
             if description is not None:
-                self._data.description = description
+                self.data.description = description
             if completed is not None:
-                self._data.completed = completed
+                self.data.completed = completed
             if total is not None:
-                self._data.total = total
+                self.data.total = total
             if visible is not None:
-                self._data.visible = visible
+                self.data.visible = visible
             if fields:
-                self._data.fields.update(fields)
-        self._start_timer()
+                self.data.fields.update(fields)
+            if auto_update is not None:
+                self._auto_update = auto_update
+
+            if self._auto_update:
+                self._update_progress()
 
     @property
     def task_name(self) -> str:
-        return self._data.task_name
+        return self.data.task_name
 
     @task_name.setter
     def task_name(self, value: str):
@@ -92,7 +88,7 @@ class TaskAgent:
 
     @property
     def description(self) -> str:
-        return self._data.description
+        return self.data.description
 
     @description.setter
     def description(self, value: str):
@@ -100,7 +96,7 @@ class TaskAgent:
 
     @property
     def completed(self) -> float | None:
-        return self._data.completed
+        return self.data.completed
 
     @completed.setter
     def completed(self, value: float | None):
@@ -108,7 +104,7 @@ class TaskAgent:
 
     @property
     def total(self) -> float | None:
-        return self._data.total
+        return self.data.total
 
     @total.setter
     def total(self, value: float | None):
@@ -116,25 +112,25 @@ class TaskAgent:
 
     @property
     def visible(self) -> bool:
-        return self._data.visible
+        return self.data.visible
 
     @visible.setter
     def visible(self, value: bool):
         self.update(visible=value)
 
     def __getitem__(self, key):
-        if hasattr(self._data, key):
-            return getattr(self._data, key)
+        if hasattr(self.data, key):
+            return getattr(self.data, key)
         else:
-            return self._data.fields.get(key)
+            return self.data.fields.get(key)
 
     def __setitem__(self, key, value):
         with self._lock:
-            if hasattr(self._data, key):
-                setattr(self._data, key, value)
+            if hasattr(self.data, key):
+                setattr(self.data, key, value)
             else:
-                self._data.fields[key] = value
-            self._start_timer()
+                self.data.fields[key] = value
+            self._update_progress()
 
     def start(self):
         if self._progress is None:
@@ -142,10 +138,10 @@ class TaskAgent:
 
         if self._task_id is None:
             self._task_id = self._progress.add_task(
-                self._data.description,
-                total=self._data.total,
-                visible=self._data.visible,
-                **self._data.fields,
+                self.data.description,
+                total=self.data.total,
+                visible=self.data.visible,
+                **self.data.fields,
             )
 
         self._progress.start_task(self._task_id)
@@ -159,20 +155,20 @@ class TaskAgent:
 
     def show(self):
         with self._lock:
-            self._data.visible = True
+            self.data.visible = True
             if self._progress and self._task_id:
                 self._progress.update(self._task_id, visible=True)
 
     def hide(self):
         with self._lock:
-            self._data.visible = False
+            self.data.visible = False
             if self._progress and self._task_id:
                 self._progress.update(self._task_id, visible=False)
 
     def reset(self, start: bool = True):
         with self._lock:
-            self._data.completed = 0
-            self._data.description = self._data.task_name
+            self.data.completed = 0
+            self.data.description = self.data.task_name
             if self._progress and self._task_id:
                 if self._timer:
                     self._timer.cancel()
@@ -180,17 +176,17 @@ class TaskAgent:
                 self._progress.reset(
                     self._task_id,
                     start=start,
-                    total=self._data.total,
-                    completed=self._data.completed,
-                    visible=self._data.visible,
-                    description=self._data.description,
-                    **self._data.fields,
+                    total=self.data.total,
+                    completed=self.data.completed,
+                    visible=self.data.visible,
+                    description=self.data.description,
+                    **self.data.fields,
                 )
 
     def advance(self, value: float = 1):
         with self._lock:
-            self._data.completed = (self._data.completed or 0) + value
-        self._start_timer()
+            self.data.completed = (self.data.completed or 0) + value
+            self._update_progress()
 
     def __enter__(self):
         self.start()
