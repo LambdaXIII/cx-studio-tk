@@ -43,7 +43,7 @@ def is_file_in_dir(file: Path, dir: Path) -> bool:
 
 
 def get_basename(source: Path | str) -> str:
-    return Path(source).stem.split(".")[0]
+    return Path(source).stem
 
 
 def get_parents(source: Path | str, level: int = 1, resolve_path: bool = True):
