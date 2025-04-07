@@ -1,3 +1,8 @@
+from numbers import Number
+import re
+from typing import SupportsInt
+
+
 class FileSize:
     standard = "binary"  # "binary" or "international"
 
@@ -12,7 +17,7 @@ class FileSize:
             return "B"
         return f"{upper}{"B" if cls.standard == "binary" else "iB"}"
 
-    def __init__(self, bytes):
+    def __init__(self, bytes: int | float):
         self.__bytes = int(0 if bytes < 0 else bytes)
 
     @classmethod
@@ -87,6 +92,31 @@ class FileSize:
             return f"{self.total_kilobytes:.2f} {self.__unit_string('K')}"
         else:
             return f"{self.total_bytes} {self.__unit_string('B')}"
+
+    @classmethod
+    def from_string(cls, string: str):
+        pattern = re.compile(
+            r"(?<number>\d+(\.\d+)?)\s*(?<unit>[kmgtpe])b?", re.IGNORECASE
+        )
+        match = pattern.match(string)
+        if not match:
+            raise ValueError(f'Invalid string format: "{string}"')
+        number = float(match.group("number"))
+        unit = match.group("unit").upper()
+        if unit == "K":
+            return cls.from_kilobytes(number)
+        elif unit == "M":
+            return cls.from_megabytes(number)
+        elif unit == "G":
+            return cls.from_gigabytes(number)
+        elif unit == "T":
+            return cls.from_terabytes(number)
+        elif unit == "P":
+            return cls.from_petabytes(number)
+        elif unit == "E":
+            return cls.from_exabytes(number)
+        else:
+            return cls.from_bytes(number)
 
     def __eq__(self, other):
         if other == 0:
