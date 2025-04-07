@@ -4,3 +4,4 @@ from .mission_maker import MissionMaker
 from .mission_maker import MissionMaker
 from .preset import Preset
 from .source_expander import SourceExpander
+from .mission_arranger import MissionArranger

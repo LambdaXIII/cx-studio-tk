@@ -39,3 +39,11 @@ class Mission:
         yield f"[dim green][[cyan]{self.preset.name}[/cyan]:{len(self.inputs)}->{len(self.outputs)}][/dim green]"
         yield f"[yellow]{self.name}[/]"
         yield f"[italic dim blue]({self.source.resolve().parent})[/]"
+
+    def __eq__(self, value: object) -> bool:
+        if not isinstance(value, Mission):
+            return False
+        return self.source == value.source and self.preset.id == value.preset.id
+
+    def __hash__(self) -> int:
+        return hash(str(self.source)) ^ hash(self.preset) ^ hash("mission")

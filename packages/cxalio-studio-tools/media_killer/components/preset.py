@@ -90,6 +90,14 @@ class Preset:
             raw=data,
         )
 
+    def __eq__(self, value: object) -> bool:
+        if not isinstance(value, Preset):
+            return False
+        return self.id == value.id and self.path == value.path
+
+    def __hash__(self) -> int:
+        return hash(self.id) ^ hash(self.path) ^ hash("preset")
+
     def __rich_console__(self, console, options):
         table = Table(show_header=False, show_footer=False, box=None)
         table.add_column(justify="left")

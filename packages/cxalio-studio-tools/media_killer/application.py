@@ -11,9 +11,11 @@ from cx_tools_common.app_interface import IApplication
 from cx_tools_common.exception import SafeError
 from cx_tools_common.rich_gadgets import IndexedListPanel
 from cx_tools_common.rich_gadgets.dynamic_columns import DynamicColumns
+from .components.mission_arranger import MissionArranger
 from .appenv import appenv
 from .components import InputScanner, SourceExpander, MissionMaker
 from .components import Preset
+from .components import Mission
 
 
 class Application(IApplication):
@@ -21,6 +23,7 @@ class Application(IApplication):
         super().__init__(arguments or sys.argv[1:])
         self.presets: list[Preset] = []
         self.sources: list[Path] = []
+        self.missions: list[Mission] = []
 
     def start(self):
         appenv.load_arguments(self.sys_arguments)
@@ -70,12 +73,14 @@ class Application(IApplication):
         presets = []
         for p in self.presets:
             if p.id in preset_ids:
-                appenv.say("[red]发现重复的配置文件，已忽略。[/red][bright_black]({})[/]".format(p.path))
+                appenv.say(
+                    "[red]发现重复的配置文件: [/red][bright_black]{}[/]".format(p.path)
+                )
                 continue
             preset_ids.add(p.id)
             presets.append(p)
         self.presets = presets
-        
+
         appenv.whisper(DynamicColumns(self.presets))
 
         source_count = len(self.sources)
@@ -109,3 +114,13 @@ class Application(IApplication):
         self._check_presets_and_sources()
 
         missions = MissionMaker.auto_make_missions_multitask(self.presets, self.sources)
+        self.missions = list(MissionArranger(missions, appenv.context.sort_mode))
+        old_count, new_count = len(missions), len(self.missions)
+        if old_count != new_count:
+            appenv.say(
+                "[red]已自动过滤掉{}个重复任务，共{}个任务需要执行。[/red]".format(
+                    old_count - new_count, new_count
+                )
+            )
+        else:
+            appenv.say("全部任务整理完毕，已按照设定方式排序。")

@@ -1,5 +1,6 @@
 from argparse import ArgumentParser
 from collections.abc import Sequence
+from typing import Literal
 
 
 class AppContext:
@@ -8,7 +9,7 @@ class AppContext:
         self.script_output: str | None = None
         self.pretending_mode: bool = False
         self.debug_mode: bool = False
-        self.sort_mode: str = "x"
+        self.sort_mode: Literal["source", "preset", "target", "x"] = "x"
         self.continue_mode: bool = False
         self.generate: bool = False
         self.save_script: str | None = None
@@ -45,7 +46,7 @@ class AppContext:
         parser.add_argument(
             "--sort",
             help="Set sorting mode",
-            choices=["source", "components", "target", "x"],
+            choices=["source", "preset", "target", "x"],
             default="x",
             dest="sort_mode",
         )
