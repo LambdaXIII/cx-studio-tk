@@ -65,7 +65,17 @@ class Application(IApplication):
         if preset_count == 0:
             raise SafeError("未发现任何配置文件，无法进行任何处理。")
 
-        # appenv.whisper(Columns(self.presets,width=int(appenv.console.width*0.5)-1, equal=True))
+        # 去除重复的配置文件
+        preset_ids = set()
+        presets = []
+        for p in self.presets:
+            if p.id in preset_ids:
+                appenv.say("[red]发现重复的配置文件，已忽略。[/red][bright_black]({})[/]".format(p.path))
+                continue
+            preset_ids.add(p.id)
+            presets.append(p)
+        self.presets = presets
+        
         appenv.whisper(DynamicColumns(self.presets))
 
         source_count = len(self.sources)
