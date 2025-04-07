@@ -6,6 +6,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 import rich.protocol
+from rich.text import Text
 
 
 class IndexedListPanel:
@@ -57,13 +58,15 @@ class IndexedListPanel:
         return table
 
     def __rich_console__(self, console, _options):
-        table = self.get_table()
+        content = (
+            self.get_table() if len(self._items) > 0 else Text("(empty)", style="dim")
+        )
         total = len(self._items)
         panel_width = (
             self._width if isinstance(self._width, int | None) else self._width(console)
         )
         yield Panel(
-            table,
+            content,
             title=self._title,
             title_align="left",
             subtitle=f"{total} items",

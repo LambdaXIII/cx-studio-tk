@@ -37,6 +37,10 @@ class AppEnv(IAppEnvironment):
         self.progress.stop()
         self.config_manager.remove_old_log_files()
 
+    def pretending_sleep(self, interval: float = 0.2):
+        if self.context.pretending_mode:
+            time.sleep(interval)
+
     def show_banner(self, console=None):
         with importlib.resources.open_text("media_killer", "banner.txt") as banner:
             banner_text = Text(banner.read(), style="bold red")

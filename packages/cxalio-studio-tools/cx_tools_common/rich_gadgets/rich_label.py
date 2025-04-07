@@ -1,10 +1,12 @@
 from abc import ABC
 from collections.abc import Iterable
+from pyclbr import Function
 from typing import Literal
 
 from rich.segment import Segment
 from rich.text import Text
 import rich.markup
+from cx_studio.utils import FunctionalUtils
 
 
 class RichLabel:
@@ -12,7 +14,7 @@ class RichLabel:
         self,
         obj: object,
         markup=True,
-        sep: str = "\t",
+        sep: str = " ",
         tab_size: int = 1,
         overflow: Literal["ignore", "crop", "ellipsis", "fold"] = "crop",
         justify: Literal["left", "center", "right"] = "left",
@@ -34,27 +36,31 @@ class RichLabel:
             return getattr(self._obj, func_name)
         return None
 
+    def __check_element(self, element):
+        if isinstance(element, str):
+            return (
+                Text.from_markup(element)
+                if self._markup
+                else rich.markup.escape(element)
+            )
+        if isinstance(element, Text):
+            return element
+        if isinstance(element, Segment):
+            return (element.text, element.style) if element.style else element.text
+        return str(element)
+
     def __rich__(self):
         cls_name = self._obj.__class__.__name__
         func = self._get_func(self._obj)
         if func:
-            text = Text(
-                tab_size=self._tab_size, overflow=self._overflow, justify=self._justify
+            text = Text.assemble(
+                *[
+                    self.__check_element(x)
+                    for x in FunctionalUtils.iter_with_separator(func(), self._sep)
+                ],
+                tab_size=self._tab_size,
+                overflow=self._overflow,
+                justify=self._justify,
             )
-            for s in func():
-                if isinstance(s, Segment):
-                    text.append_tokens([(s.text, s.style)])
-                elif isinstance(s, str):
-                    t = (
-                        Text.from_markup(s)
-                        if self._markup
-                        else Text(rich.markup.escape(s))
-                    )
-                    text.append_text(t)
-                else:
-                    text.append_text(Text(str(s)))
-                text.append_text(Text(self._sep))
-            text.remove_suffix(self._sep)
-            text.rstrip()
             return text
         return Text(f"[{cls_name}]")

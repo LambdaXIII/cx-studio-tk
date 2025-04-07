@@ -4,9 +4,10 @@ from pathlib import Path
 from rich.columns import Columns
 from rich.text import Text
 
-from cx_studio.utils import PathUtils
+from cx_studio.utils import PathUtils, FunctionalUtils
 from .argument_group import ArgumentGroup
 from .preset import Preset
+import itertools
 
 
 @dataclass(frozen=True)
@@ -25,10 +26,16 @@ class Mission:
         return PathUtils.get_basename(self.source)
 
     def __rich__(self):
-        return Columns([Text.from_markup(x) for x in self.__rich_label__()])
+        return Text.assemble(
+            *[
+                Text.from_markup(x)
+                for x in FunctionalUtils.iter_with_separator(self.__rich_label__(), " ")
+            ],
+            overflow="crop",
+        )
 
     def __rich_label__(self):
         yield "[bold bright_black]M[/]"
+        yield f"[dim green][[cyan]{self.preset.name}[/cyan]:{len(self.inputs)}->{len(self.outputs)}][/dim green]"
         yield f"[yellow]{self.name}[/]"
         yield f"[italic dim blue]({self.source.resolve().parent})[/]"
-        yield f"[green][[cyan]{self.preset.name}[/cyan]:{len(self.inputs)}->{len(self.outputs)}][/green]"

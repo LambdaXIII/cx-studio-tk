@@ -68,7 +68,7 @@ class MissionMaker:
     def __report(self, missions: list):
         appenv.whisper(
             IndexedListPanel(
-                [RichLabel(m) for m in missions],
+                missions,
                 title="预设 [red]{}[/red] 生成的任务列表".format(self._preset.name),
             )
         )
@@ -88,10 +88,10 @@ class MissionMaker:
             for ss in self._source_expander.expand(source):
                 if appenv.wanna_quit:
                     break
-                appenv.whisper(ss)
+                appenv.whisper(f"\t{ss}")
                 m = self.make_mission(ss)
                 missions.append(m)
-                time.sleep(0.2)
+                appenv.pretending_sleep(0.05)
                 yield m
         self.__report(missions)
 
