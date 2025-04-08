@@ -1,52 +1,62 @@
+from ast import TypeAlias
 from numbers import Number
 import re
-from typing import SupportsInt
+from typing import Literal, SupportsInt
+import enum
 
 
 class FileSize:
-    standard = "binary"  # "binary" or "international"
+    Standard = Literal["binary", "international"]
 
-    @classmethod
-    def __unit_factor(cls) -> int:
-        return 1024 if cls.standard == "binary" else 1000
+    @staticmethod
+    def __unit_factor(standard: Standard) -> int:
+        return 1024 if standard == "binary" else 1000
 
-    @classmethod
-    def __unit_string(cls, unit: str) -> str:
+    def __unit_string(self, unit: str) -> str:
         upper = unit.upper()
         if upper == "B":
             return "B"
-        return f"{upper}{"B" if cls.standard == "binary" else "iB"}"
+        return f"{upper}{"B" if self.__standard == "binary" else "iB"}"
 
-    def __init__(self, bytes: int | float):
+    def __init__(
+        self,
+        bytes: int | float,
+        standard: Standard = "binary",
+    ):
         self.__bytes = int(0 if bytes < 0 else bytes)
+        self.__standard: FileSize.Standard = standard
 
     @classmethod
-    def from_bytes(cls, bytes):
-        return cls(bytes)
+    def from_bytes(cls, bytes, standard: Standard = "binary"):
+        return cls(bytes, standard)
 
     @classmethod
-    def from_kilobytes(cls, kilobytes):
-        return cls(kilobytes * cls.__unit_factor())
+    def from_kilobytes(cls, kilobytes, standard: Standard = "binary"):
+        return cls(kilobytes * cls.__unit_factor(standard), standard)
 
     @classmethod
-    def from_megabytes(cls, megabytes):
-        return cls(megabytes * cls.__unit_factor() ** 2)
+    def from_megabytes(cls, megabytes, standard: Standard = "binary"):
+        return cls(megabytes * cls.__unit_factor(standard) ** 2, standard)
 
     @classmethod
-    def from_gigabytes(cls, gigabytes):
-        return cls(gigabytes * cls.__unit_factor() ** 3)
+    def from_gigabytes(cls, gigabytes, standard: Standard = "binary"):
+        return cls(gigabytes * cls.__unit_factor(standard) ** 3, standard)
 
     @classmethod
-    def from_terabytes(cls, terabytes):
-        return cls(terabytes * cls.__unit_factor() ** 4)
+    def from_terabytes(cls, terabytes, standard: Standard = "binary"):
+        return cls(terabytes * cls.__unit_factor(standard) ** 4, standard)
 
     @classmethod
-    def from_petabytes(cls, petabytes):
-        return cls(petabytes * cls.__unit_factor() ** 5)
+    def from_petabytes(cls, petabytes, standard: Standard = "binary"):
+        return cls(petabytes * cls.__unit_factor(standard) ** 5, standard)
 
     @classmethod
-    def from_exabytes(cls, exabytes):
-        return cls(exabytes * cls.__unit_factor() ** 6)
+    def from_exabytes(cls, exabytes, standard: Standard = "binary"):
+        return cls(exabytes * cls.__unit_factor(standard) ** 6, standard)
+
+    @property
+    def standard(self) -> str:
+        return self.__standard
 
     @property
     def total_bytes(self) -> int:
@@ -54,27 +64,27 @@ class FileSize:
 
     @property
     def total_kilobytes(self) -> float:
-        return self.__bytes / self.__unit_factor()
+        return self.__bytes / self.__unit_factor(self.__standard)
 
     @property
     def total_megabytes(self) -> float:
-        return self.__bytes / self.__unit_factor() ** 2
+        return self.__bytes / self.__unit_factor(self.__standard) ** 2
 
     @property
     def total_gigabytes(self) -> float:
-        return self.__bytes / self.__unit_factor() ** 3
+        return self.__bytes / self.__unit_factor(self.__standard) ** 3
 
     @property
     def total_terabytes(self) -> float:
-        return self.__bytes / self.__unit_factor() ** 4
+        return self.__bytes / self.__unit_factor(self.__standard) ** 4
 
     @property
     def total_petabytes(self) -> float:
-        return self.__bytes / self.__unit_factor() ** 5
+        return self.__bytes / self.__unit_factor(self.__standard) ** 5
 
     @property
     def total_exabytes(self) -> float:
-        return self.__bytes / self.__unit_factor() ** 6
+        return self.__bytes / self.__unit_factor(self.__standard) ** 6
 
     @property
     def pretty_string(self) -> str:
@@ -96,24 +106,24 @@ class FileSize:
     @classmethod
     def from_string(cls, string: str):
         pattern = re.compile(
-            r"(?<number>\d+(\.\d+)?)\s*(?<unit>[kmgtpe])b?", re.IGNORECASE
+            r"(?<number>\d+(\.\d+)?)\s*(?<unit>[kmgtpebits]+)?", re.IGNORECASE
         )
         match = pattern.match(string)
         if not match:
             raise ValueError(f'Invalid string format: "{string}"')
         number = float(match.group("number"))
         unit = match.group("unit").upper()
-        if unit == "K":
+        if unit.startswith("K"):
             return cls.from_kilobytes(number)
-        elif unit == "M":
+        elif unit.startswith("M"):
             return cls.from_megabytes(number)
-        elif unit == "G":
+        elif unit.startswith("G"):
             return cls.from_gigabytes(number)
-        elif unit == "T":
+        elif unit.startswith("T"):
             return cls.from_terabytes(number)
-        elif unit == "P":
+        elif unit.startswith("P"):
             return cls.from_petabytes(number)
-        elif unit == "E":
+        elif unit.startswith("E"):
             return cls.from_exabytes(number)
         else:
             return cls.from_bytes(number)
@@ -161,3 +171,12 @@ class FileSize:
         if not isinstance(other, (int, float)):
             raise NotImplementedError("Cannot divide FileSize with other types")
         return FileSize(self.total_bytes / other)
+
+    def __replace__(self, /, **changes):
+        # supports python 3.13+
+        bytes = changes.get("bytes", self.__bytes)
+        standard = changes.get("standard", self.__standard)
+        return FileSize(bytes, standard)
+
+    def __rich__(self):
+        return self.pretty_string
