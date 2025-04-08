@@ -42,4 +42,5 @@ class MissionRunner:
             )
 
         result = ffmpeg.run(self._mission.iter_arguments())
+        # TODO: needs fix
         return result

@@ -1,5 +1,5 @@
 from abc import ABC
-from collections.abc import Iterable
+from collections.abc import Generator, Iterable
 from pyclbr import Function
 from typing import Literal
 
@@ -7,12 +7,20 @@ from rich.segment import Segment
 from rich.text import Text
 import rich.markup
 from cx_studio.utils import FunctionalUtils
+from typing import Protocol, runtime_checkable
+from rich.console import RenderableType
+from rich.pretty import Pretty
+
+
+@runtime_checkable
+class RichLabelMixin(Protocol):
+    def __rich_label__(self) -> Iterable | Generator: ...
 
 
 class RichLabel:
     def __init__(
         self,
-        obj: object,
+        obj: RichLabelMixin | RenderableType | object,
         markup=True,
         sep: str = " ",
         tab_size: int = 1,
@@ -25,16 +33,6 @@ class RichLabel:
         self._sep = sep
         self._overflow: Literal["ignore", "crop", "ellipsis", "fold"] = overflow
         self._justify: Literal["left", "center", "right"] = justify
-
-    def _get_func(self, obj: object):
-        cls_name = self._obj.__class__.__name__
-        mangled_name = f"_{cls_name}__rich_label__"
-        if hasattr(self._obj, mangled_name):
-            return getattr(self._obj, mangled_name)
-        func_name = "__rich_label__"
-        if hasattr(self._obj, func_name):
-            return getattr(self._obj, func_name)
-        return None
 
     def __check_element(self, element):
         if isinstance(element, str):
@@ -50,17 +48,25 @@ class RichLabel:
         return str(element)
 
     def __rich__(self):
-        cls_name = self._obj.__class__.__name__
-        func = self._get_func(self._obj)
-        if func:
+        if isinstance(self._obj, RichLabel):
+            return self._obj
+
+        if isinstance(self._obj, RichLabelMixin):
             text = Text.assemble(
                 *[
                     self.__check_element(x)
-                    for x in FunctionalUtils.iter_with_separator(func(), self._sep)
+                    for x in FunctionalUtils.iter_with_separator(
+                        self._obj.__rich_label__(), self._sep
+                    )
                 ],
                 tab_size=self._tab_size,
                 overflow=self._overflow,
                 justify=self._justify,
             )
             return text
-        return Text(f"[{cls_name}]")
+
+        if isinstance(self._obj, RenderableType):
+            return self._obj
+
+        cls_name = self._obj.__class__.__name__
+        return Pretty(f"[{cls_name}] (instance)")

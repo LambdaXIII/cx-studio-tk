@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from cx_studio.utils import FunctionalUtils
+from rich.columns import Columns
 
 
 @dataclass()
@@ -48,3 +49,8 @@ class ArgumentGroup:
             yield self._format_key(k)
             if v is not None:
                 yield str(v)
+
+    def __rich_repr__(self):
+        if self.filename is not None:
+            yield "filename", self.filename
+        yield " ".join(x for x in self.iter_arguments())

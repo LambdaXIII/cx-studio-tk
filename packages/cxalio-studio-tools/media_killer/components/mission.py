@@ -9,6 +9,7 @@ from cx_studio.utils import PathUtils, FunctionalUtils
 from .argument_group import ArgumentGroup
 from .preset import Preset
 import itertools
+from cx_tools_common.rich_gadgets import RichLabel
 
 
 @dataclass(frozen=True)
@@ -49,12 +50,15 @@ class Mission:
     def __hash__(self) -> int:
         return hash(str(self.source)) ^ hash(self.preset) ^ hash("mission")
 
-    def iter_arguments(self) -> Generator[str]:
-        yield from self.options.iter_arguments()
-        for x in self.inputs:
-            yield "-i"
-            yield str(x.filename)
-            yield from x.iter_arguments()
-        for x in self.outputs:
-            yield from x.iter_arguments()
-            yield str(x.filename)
+    def __rich_detail__(self):
+        yield "name", self.name
+        yield "preset", RichLabel(self.preset)
+        yield "source", self.source
+        yield "standard_target", self.standard_target
+        yield "overwrite", self.overwrite
+        yield "hardware_accelerate", self.hardware_accelerate
+        yield "options", self.options
+        for n, i in enumerate(self.inputs):
+            yield f"inputs[{n}]", i
+        for n, o in enumerate(self.outputs):
+            yield f"outputs[{n}]", o

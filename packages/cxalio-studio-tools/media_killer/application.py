@@ -11,7 +11,9 @@ from cx_studio.utils import PathUtils
 from cx_tools_common.app_interface import IApplication
 from cx_tools_common.exception import SafeError
 from cx_tools_common.rich_gadgets import IndexedListPanel
-from cx_tools_common.rich_gadgets.dynamic_columns import DynamicColumns
+from cx_tools_common.rich_gadgets import DynamicColumns
+from cx_tools_common.rich_gadgets import RichDetail
+from cx_tools_common.rich_gadgets import RichDetailPanel
 
 from .appenv import appenv
 from .components import (
@@ -138,4 +140,4 @@ class Application(IApplication):
             # runner = MissionRunner(m)
             # result = runner.run()
             # appenv.say(result)
-            appenv.say(list(m.iter_arguments()))
+            appenv.say(RichDetailPanel(m))
