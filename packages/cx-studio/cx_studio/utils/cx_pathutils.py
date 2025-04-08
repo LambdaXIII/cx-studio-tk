@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+import re
 
 
 def normalize_path(
@@ -54,3 +55,11 @@ def get_parents(source: Path | str, level: int = 1, resolve_path: bool = True):
     begin_index = max(0, len(parts) - level)
     end_index = len(parts) - 1
     return parts[begin_index:end_index]
+
+
+def get_posix_path(path: Path | str) -> str:
+    path = str(path)
+    path = re.sub(r"\\{2,}", r"\\", path)
+    path = re.sub(r"/{2,}", r"/", path)
+    path = re.sub(r"\\", r"/", path)
+    return path

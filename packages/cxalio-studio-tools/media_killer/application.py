@@ -6,6 +6,7 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import override
 
+from cx_studio.ffmpeg.cx_ffprobe import FFprobe
 from cx_studio.utils import PathUtils
 from cx_tools_common.app_interface import IApplication
 from cx_tools_common.exception import SafeError
@@ -128,6 +129,8 @@ class Application(IApplication):
         self._sort_and_set_missions(missions)
 
         ff = FFmpeg()
+        ffp = FFprobe()
         for m in self.missions:
-            info = ff.get_basic_info(m.source)
-            appenv.console.print(info)
+            # info = ff.get_basic_info(m.source)
+            info = ffp.get_format_info(m.source)
+            appenv.say(info)

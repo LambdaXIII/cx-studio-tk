@@ -35,7 +35,7 @@ class FFmpegFormatInfo:
             size=FileSize.from_bytes(int(data["size"])),
             bit_rate=FileSize.from_bytes(int(data["bit_rate"])),
             probe_score=int(data["probe_score"]),
-            tags=data["tags"],
+            tags=data.get("tags", {}),
         )
 
 

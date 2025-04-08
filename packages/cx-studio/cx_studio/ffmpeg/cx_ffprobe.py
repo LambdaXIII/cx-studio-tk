@@ -1,29 +1,46 @@
-from pathlib import Path
+from pathlib import Path, PosixPath
 from .cx_ffmpeg_infos import FFmpegFormatInfo
 from cx_studio.core import CxTime, FileSize
 import subprocess
-from .cx_ffmpeg_exceptions import FFmpegOutputParseError
+from .cx_ffmpeg_exceptions import FFmpegOutputParseError, NoFFmpegExecutableError
 import json
+import shutil
+from cx_studio.path_expander import CmdFinder
+from cx_studio.utils import TextUtils, PathUtils
 
 
 class FFprobe:
-    def __init__(self, ffprobe_bin: str | None) -> None:
-        self._ffprobe_bin = ffprobe_bin or "ffprobe"
+    def __init__(self, ffprobe_executable: str | Path | None = None) -> None:
+        self._executable = CmdFinder.which(ffprobe_executable or "ffprobe")
 
     def get_format_info(self, source: str | Path) -> FFmpegFormatInfo:
-        cmd = "-v quiet -print_format json -show_format"
-        source = Path(source).resolve()
+        if not self._executable:
+            raise NoFFmpegExecutableError("No ffprobe executable found.")
 
-        process = subprocess.Popen(
-            [cmd, str(source)],
-            executable=self._ffprobe_bin,
+        source = PathUtils.get_posix_path(Path(source).resolve())
+
+        args = [
+            self._executable,
+            "-v",
+            "quiet",
+            "-print_format",
+            "json",
+            "-show_format",
+            str(source),
+        ]
+
+        with subprocess.Popen(
+            args,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-        )
-        process.wait()
-        output_str = process.stdout.read().decode("utf-8") if process.stdout else None
-        if output_str is None:
-            raise FFmpegOutputParseError("No output", output_str)
+            text=True,
+            encoding="utf-8",
+        ) as process:
+            process.wait()
+            output_str = process.stdout.read() if process.stdout else ""
+
+            if not output_str:
+                raise FFmpegOutputParseError("No output", output_str)
 
         data = json.loads(output_str).get("format", {})
         return FFmpegFormatInfo.from_format_dict(data)
