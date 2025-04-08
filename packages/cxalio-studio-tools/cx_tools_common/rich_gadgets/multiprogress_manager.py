@@ -15,7 +15,7 @@ class MultiProgressManager:
         visible: bool = False
 
     def __init__(self):
-        self.lock = threading.Lock()
+        self.lock = threading.RLock()
         self.tasks: dict[Hashable, TaskID] = {}
         self.datas: dict[Hashable, MultiProgressManager.Status] = defaultdict(
             lambda: MultiProgressManager.Status()
