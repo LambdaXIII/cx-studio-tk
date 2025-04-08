@@ -98,46 +98,30 @@ class Preset:
     def __hash__(self) -> int:
         return hash(self.id) ^ hash(self.path) ^ hash("preset")
 
-    def __rich_console__(self, console, options):
-        table = Table(show_header=False, show_footer=False, box=None)
-        table.add_column(justify="left")
-        table.add_column()
-        table.add_column(justify="left", overflow="fold", style="dim blue")
-
-        # table.add_row("预设ID", ":", self.id)
-        table.add_row("预设名称", ":", self.name)
-        table.add_row("预设描述", ":", self.description)
-        table.add_row("预设文件路径", ":", str(self.path))
-        table.add_row("FFmpeg路径", ":", self.ffmpeg)
-        table.add_row("是否覆盖", ":", str(self.overwrite))
-        table.add_row("硬件加速模式", ":", self.hardware_accelerate)
-        table.add_row(
-            "额外参数",
-            ":",
-            Text(
-                " ".join(self.options)
-                if isinstance(self.options, list)
-                else str(self.options)
-            ),
+    def __rich_detail__(self):
+        yield "ID", self.id
+        yield "预设名称", self.name
+        yield "预设描述", self.description
+        yield "预设文件路径", str(self.path)
+        yield "FFmpeg路径", self.ffmpeg
+        yield "是否覆盖", str(self.overwrite)
+        yield "硬件加速模式", self.hardware_accelerate
+        yield "额外参数", Text(
+            " ".join(self.options)
+            if isinstance(self.options, list)
+            else str(self.options)
         )
-        table.add_row("源文件扩展名", ":", Columns(self.source_suffixes))
-        table.add_row("目标文件扩展名", ":", self.target_suffix)
-        table.add_row("目标文件夹", ":", str(self.target_folder))
-        table.add_row("保留父级层级", ":", str(self.keep_parent_level))
-        table.add_row("输入参数", ":", f"{len(self.inputs)} 组")
-        table.add_row("输出参数", ":", f"{len(self.outputs)} 组")
-        table.add_row("自定义参数", ":", f"{len(self.custom)} 个")
+        yield "源文件扩展名", Columns(self.source_suffixes)
+        yield "目标文件扩展名", self.target_suffix
+        yield "目标文件夹", str(self.target_folder)
+        yield "保留父级层级", str(self.keep_parent_level)
+        yield "输入参数", f"{len(self.inputs)} 组"
+        yield "输出参数", f"{len(self.outputs)} 组"
+        yield "自定义参数", f"{len(self.custom)} 个"
 
         rawdata_count = len(self.raw.keys())
         if rawdata_count > 0:
-            table.add_row("原始数据", ":", "包含")
-
-        yield Panel(
-            table,
-            title="[bold]预设ID:[dim red]{}[/dim red]".format(self.id),
-            title_align="left",
-            # width=min(int(console.width * 0.5), 55),
-        )
+            yield "原始数据", "包含"
 
     def __rich_label__(self):
         yield "[bold bright_black]P[/]"

@@ -96,7 +96,9 @@ class Application(IApplication):
             preset_ids.add(p.id)
             self.presets.append(p)
 
-        appenv.whisper(DynamicColumns(self.presets))
+        appenv.whisper(
+            DynamicColumns(RichDetailPanel(x, title=x.id) for x in self.presets)
+        )
 
         source_count = len(sources)
         if source_count == 0:
@@ -143,14 +145,7 @@ class Application(IApplication):
         missions = MissionMaker.auto_make_missions_multitask(self.presets, self.sources)
         self._sort_and_set_missions(missions)
 
-        for m in self.missions:
-            appenv.say(isinstance(m, RichLabelMixin))
-            appenv.say(isinstance(m, RichDetailMixin))
-            appenv.say(isinstance(RichLabel(m), RenderableType))
-            #     # runner = MissionRunner(m)
-            #     # result = runner.run()
-            #     # appenv.say(result)
-            appenv.say(hasattr(m, "__rich_repr__"))
+        for m in self.presets:
             appenv.say(RichDetailPanel(m))
 
         appenv.say()
