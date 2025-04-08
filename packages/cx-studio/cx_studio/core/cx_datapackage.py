@@ -1,6 +1,5 @@
-from collections import defaultdict
-from collections.abc import Generator, Sequence
-from typing import Any
+from collections.abc import Generator
+
 from cx_studio.utils import NumberUtils
 
 

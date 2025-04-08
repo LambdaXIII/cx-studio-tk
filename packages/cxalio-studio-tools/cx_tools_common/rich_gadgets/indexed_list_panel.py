@@ -2,10 +2,10 @@ from collections.abc import Callable
 from collections.abc import Sequence
 from typing import Iterable
 
+import rich.protocol
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
-import rich.protocol
 from rich.text import Text
 
 

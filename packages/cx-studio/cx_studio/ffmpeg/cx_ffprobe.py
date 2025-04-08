@@ -1,12 +1,11 @@
-from pathlib import Path, PosixPath
-from .cx_ffmpeg_infos import FFmpegFormatInfo
-from cx_studio.core import CxTime, FileSize
-import subprocess
-from .cx_ffmpeg_exceptions import FFmpegOutputParseError, NoFFmpegExecutableError
 import json
-import shutil
+import subprocess
+from pathlib import Path
+
 from cx_studio.path_expander import CmdFinder
-from cx_studio.utils import TextUtils, PathUtils
+from cx_studio.utils import PathUtils
+from .cx_ffmpeg_exceptions import FFmpegOutputParseError, NoFFmpegExecutableError
+from .cx_ffmpeg_infos import FFmpegFormatInfo
 
 
 class FFprobe:

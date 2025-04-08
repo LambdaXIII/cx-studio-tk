@@ -1,20 +1,20 @@
-from codecs import ignore_errors
 from collections.abc import Iterable
 import datetime
-from .cx_ffmpeg_exceptions import FFmpegOutputParseError, NoFFmpegExecutableError
-from .cx_ffmpeg_infos import FFmpegCodingInfo, FFmpegFormatInfo, FFmpegProcessInfo
-
-from pathlib import Path
-from cx_studio.core import FileSize, CxTime
-from collections import defaultdict
-import subprocess
+import datetime
 import re
-from functools import wraps
-
-from datetime import datetime
-from dataclasses import replace
+import subprocess
 import threading
+from collections import defaultdict
+from collections.abc import Iterable
+from dataclasses import replace
+from datetime import datetime
+from functools import wraps
+from pathlib import Path
+
+from cx_studio.core import FileSize, CxTime
 from cx_studio.path_expander import CmdFinder
+from .cx_ffmpeg_exceptions import NoFFmpegExecutableError
+from .cx_ffmpeg_infos import FFmpegCodingInfo, FFmpegProcessInfo
 
 
 class FFmpeg:

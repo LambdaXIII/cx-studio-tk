@@ -1,7 +1,7 @@
+from cx_studio.ffmpeg import FFmpeg, FFmpegProcessInfo, FFmpegCodingInfo
+from media_killer.appenv import appenv
 from .mission import Mission
 from .preset import Preset
-from media_killer.appenv import appenv
-from cx_studio.ffmpeg import FFmpeg, FFmpegProcessInfo, FFmpegCodingInfo
 
 
 class MissionRunner:

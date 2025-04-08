@@ -1,15 +1,12 @@
-from collections.abc import Generator
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from rich.columns import Columns
 from rich.text import Text
 
 from cx_studio.utils import PathUtils, FunctionalUtils
+from cx_tools_common.rich_gadgets import RichLabel
 from .argument_group import ArgumentGroup
 from .preset import Preset
-import itertools
-from cx_tools_common.rich_gadgets import RichLabel
 
 
 @dataclass(frozen=True)

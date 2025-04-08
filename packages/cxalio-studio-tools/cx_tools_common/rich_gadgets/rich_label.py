@@ -1,15 +1,13 @@
-from abc import ABC
-from collections.abc import Generator, Iterable
-from pyclbr import Function
+from collections.abc import Generator
 from typing import Literal
+from typing import Protocol, runtime_checkable
 
+import rich.markup
+from rich.pretty import Pretty
 from rich.segment import Segment
 from rich.text import Text
-import rich.markup
+
 from cx_studio.utils import FunctionalUtils
-from typing import Protocol, runtime_checkable
-from rich.console import RenderableType
-from rich.pretty import Pretty
 
 
 @runtime_checkable

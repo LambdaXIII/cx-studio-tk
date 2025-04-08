@@ -1,7 +1,7 @@
-from collections import defaultdict
-from concurrent.futures import ThreadPoolExecutor
+import threading
 import time
 from collections.abc import Sequence, Generator
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from rich.columns import Columns
@@ -12,14 +12,12 @@ from cx_tools_common.rich_gadgets import (
     IndexedListPanel,
     MultiProgressManager,
 )
-from .source_expander import SourceExpander
 from .argument_group import ArgumentGroup
 from .mission import Mission
 from .preset import Preset
 from .preset_tag_replacer import PresetTagReplacer
+from .source_expander import SourceExpander
 from ..appenv import appenv
-from rich.progress import TaskID
-import threading
 
 
 class MissionMaker:

@@ -1,12 +1,9 @@
+from operator import attrgetter
 from typing import Generator, Literal
 
 from cx_tools_common.rich_gadgets.rich_label import RichLabel
-
-
-from .mission import Mission
-from operator import attrgetter
-
 from media_killer.appenv import appenv
+from .mission import Mission
 
 
 class MissionArranger:

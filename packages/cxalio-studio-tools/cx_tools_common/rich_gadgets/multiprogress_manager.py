@@ -1,9 +1,9 @@
-from dataclasses import dataclass
-from typing import Any, Hashable
-from rich.progress import TaskID
 import threading
 from collections import defaultdict
 from copy import copy
+from typing import Hashable
+
+from rich.progress import TaskID
 
 
 class MultiProgressManager:

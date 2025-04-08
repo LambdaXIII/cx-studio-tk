@@ -2,7 +2,6 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from cx_studio.utils import FunctionalUtils
-from rich.columns import Columns
 
 
 @dataclass()

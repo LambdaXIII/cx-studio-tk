@@ -1,8 +1,5 @@
-from ast import TypeAlias
-from numbers import Number
 import re
-from typing import Literal, SupportsInt
-import enum
+from typing import Literal
 
 
 class FileSize:

@@ -4,9 +4,6 @@ from pathlib import Path
 from .cx_pathvalidator import IPathValidator, ChainValidator
 
 
-
-
-
 class PathExpander:
     @dataclass
     class StartInfo:

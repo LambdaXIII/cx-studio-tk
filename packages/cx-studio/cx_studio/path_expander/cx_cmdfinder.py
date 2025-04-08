@@ -1,12 +1,10 @@
-import os, shutil
-from collections.abc import Generator, Sequence, Collection, Iterable, Mapping
+import itertools
+import os
+import shutil
+from collections.abc import Generator, Collection, Iterable
 from pathlib import Path, PurePath
 
-
-from cx_studio.path_expander.cx_executablevalidator import ExecutableValidator
 from cx_studio.path_expander.cx_pathexpander import PathExpander
-from cx_studio.utils import PathUtils
-import itertools
 
 
 class CmdFinder:

@@ -1,17 +1,12 @@
 from collections.abc import Generator
-from inspect import isclass
-from re import sub
-from typing import Any, Iterable, Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable
+
 from rich.console import (
-    Console,
-    ConsoleOptions,
-    ConsoleRenderable,
-    RichCast,
     RenderableType,
 )
 from rich.panel import Panel
-from rich.table import Table
 from rich.pretty import Pretty
+from rich.table import Table
 
 from .rich_label import RichLabel, RichLabelMixin
 
