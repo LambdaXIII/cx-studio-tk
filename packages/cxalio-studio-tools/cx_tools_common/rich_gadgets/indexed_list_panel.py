@@ -57,19 +57,15 @@ class IndexedListPanel:
 
         return table
 
-    def __rich_console__(self, console, _options):
+    def __rich__(self):
         content = (
             self.get_table() if len(self._items) > 0 else Text("(empty)", style="dim")
         )
         total = len(self._items)
-        panel_width = (
-            self._width if isinstance(self._width, int | None) else self._width(console)
-        )
-        yield Panel(
+        return Panel(
             content,
             title=self._title,
             title_align="left",
             subtitle=f"{total} items",
             subtitle_align="right",
-            width=panel_width,
         )

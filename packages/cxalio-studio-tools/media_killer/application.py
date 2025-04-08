@@ -6,11 +6,18 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import override
 
+from rich.console import RenderableType
+
 from cx_studio.ffmpeg.cx_ffprobe import FFprobe
 from cx_studio.utils import PathUtils
 from cx_tools_common.app_interface import IApplication
 from cx_tools_common.exception import SafeError
-from cx_tools_common.rich_gadgets import IndexedListPanel
+from cx_tools_common.rich_gadgets import (
+    IndexedListPanel,
+    RichLabelMixin,
+    RichDetailMixin,
+    RichLabel,
+)
 from cx_tools_common.rich_gadgets import DynamicColumns
 from cx_tools_common.rich_gadgets import RichDetail
 from cx_tools_common.rich_gadgets import RichDetailPanel
@@ -137,7 +144,13 @@ class Application(IApplication):
         self._sort_and_set_missions(missions)
 
         for m in self.missions:
-            # runner = MissionRunner(m)
-            # result = runner.run()
-            # appenv.say(result)
+            appenv.say(isinstance(m, RichLabelMixin))
+            appenv.say(isinstance(m, RichDetailMixin))
+            appenv.say(isinstance(RichLabel(m), RenderableType))
+            #     # runner = MissionRunner(m)
+            #     # result = runner.run()
+            #     # appenv.say(result)
+            appenv.say(hasattr(m, "__rich_repr__"))
             appenv.say(RichDetailPanel(m))
+
+        appenv.say()

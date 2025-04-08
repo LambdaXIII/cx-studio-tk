@@ -14,13 +14,13 @@ from rich.pretty import Pretty
 
 @runtime_checkable
 class RichLabelMixin(Protocol):
-    def __rich_label__(self) -> Iterable | Generator: ...
+    def __rich_label__(self) -> Generator: ...
 
 
 class RichLabel:
     def __init__(
         self,
-        obj: RichLabelMixin | RenderableType | object,
+        obj: RichLabelMixin,
         markup=True,
         sep: str = " ",
         tab_size: int = 1,
@@ -34,39 +34,36 @@ class RichLabel:
         self._overflow: Literal["ignore", "crop", "ellipsis", "fold"] = overflow
         self._justify: Literal["left", "center", "right"] = justify
 
-    def __check_element(self, element):
-        if isinstance(element, str):
-            return (
-                Text.from_markup(element)
-                if self._markup
-                else rich.markup.escape(element)
-            )
-        if isinstance(element, Text):
-            return element
-        if isinstance(element, Segment):
-            return (element.text, element.style) if element.style else element.text
-        return str(element)
+    def __unpack_item(self, item):
+        if isinstance(item, RichLabelMixin):
+            for x in item.__rich_label__():
+                yield from self.__unpack_item(x)
+        elif isinstance(item, RichLabel):
+            yield from self.__unpack_item(item._obj)
+        elif isinstance(item, str):
+            yield Text.from_markup(item) if self._markup else rich.markup.escape(item)
+        elif isinstance(item, Text):
+            yield item
+        elif isinstance(item, Segment):
+            yield item.text
+            if item.style:
+                yield item.style
+        else:
+            yield str(item)
 
     def __rich__(self):
-        if isinstance(self._obj, RichLabel):
-            return self._obj
+        if not isinstance(self._obj, RichLabelMixin):
+            cls_name = self._obj.__class__.__name__
+            return Pretty(f"[{cls_name}] (instance)")
 
-        if isinstance(self._obj, RichLabelMixin):
-            text = Text.assemble(
-                *[
-                    self.__check_element(x)
-                    for x in FunctionalUtils.iter_with_separator(
-                        self._obj.__rich_label__(), self._sep
-                    )
-                ],
-                tab_size=self._tab_size,
-                overflow=self._overflow,
-                justify=self._justify,
-            )
-            return text
-
-        if isinstance(self._obj, RenderableType):
-            return self._obj
-
-        cls_name = self._obj.__class__.__name__
-        return Pretty(f"[{cls_name}] (instance)")
+        elements = self.__unpack_item(self._obj)
+        elements_with_sep = list(
+            FunctionalUtils.iter_with_separator(elements, self._sep)
+        )
+        text = Text.assemble(
+            *elements_with_sep,
+            tab_size=self._tab_size,
+            overflow=self._overflow,
+            justify=self._justify,
+        )
+        return text

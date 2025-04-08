@@ -18,7 +18,7 @@ from .rich_label import RichLabel, RichLabelMixin
 
 @runtime_checkable
 class RichDetailMixin(Protocol):
-    def __rich_detail__(self) -> Generator | Iterable: ...
+    def __rich_detail__(self) -> Generator: ...
 
 
 class RichDetail:
@@ -39,24 +39,38 @@ class RichDetailPanel:
         if isinstance(item, RichDetailMixin):
             item = RichDetail(item)
 
-        if hasattr(item, "__rich_repr__") and not isclass(item):
+        if hasattr(item, "__rich_repr__"):
             table = Table(box=None, show_header=False)
             table.add_column("key", justify="right", style="bold yellow")
             table.add_column("value", justify="left", overflow="fold")
-            for tup in getattr(item, "__rich_repr__")():
-                if not isinstance(tup, tuple) or not len(tup) >= 2:
-                    continue
-                key, value, *_ = tup
-                v = RichLabel(value) if isinstance(value, RichLabelMixin) else value
-                table.add_row(key, RichDetailPanel._make_content(v))
+            for tup in item.__rich_repr__():
+                key, value = "", ""
+                if isinstance(tup, tuple):
+                    match len(tup):
+                        case 0:
+                            continue
+                        case 1:
+                            value = tup[0]
+                        case 2:
+                            key, value = tup
+                        case _:
+                            key, *values = tup
+                            value = list(values)
+                else:
+                    value = tup
+                table.add_row(key, RichDetailPanel._check_value(value))
             return table
+        return item
 
+    @staticmethod
+    def _check_value(item):
+        if isinstance(item, RichLabelMixin):
+            return RichLabel(item)
+        if isinstance(item, RichDetailMixin):
+            return RichDetail(item)
         if isinstance(item, RenderableType):
             return item
-
         return Pretty(item)
-
-    # TODO: needs improvement
 
     def __rich__(self):
         content = self._make_content(self._item)
