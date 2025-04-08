@@ -4,8 +4,7 @@ from .cx_ffmpeg_infos import FFmpegFormatInfo
 
 from pathlib import Path
 from cx_studio.core import FileSize, CxTime
-
-
+from collections import defaultdict
 import subprocess
 import re
 
@@ -13,6 +12,7 @@ import re
 class FFmpeg:
     def __init__(self, ffmpeg_bin: str | None) -> None:
         self._ffmpeg_bin = ffmpeg_bin or "ffmpeg"
+        self._event_handlers = defaultdict(list)
 
     def get_basic_info(self, source: str | Path) -> dict:
         result = {}
