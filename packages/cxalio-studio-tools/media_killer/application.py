@@ -12,9 +12,15 @@ from cx_tools_common.app_interface import IApplication
 from cx_tools_common.exception import SafeError
 from cx_tools_common.rich_gadgets import IndexedListPanel
 from cx_tools_common.rich_gadgets.dynamic_columns import DynamicColumns
-from .components.mission_arranger import MissionArranger
+
 from .appenv import appenv
-from .components import InputScanner, SourceExpander, MissionMaker
+from .components import (
+    InputScanner,
+    SourceExpander,
+    MissionMaker,
+    MissionRunner,
+    MissionArranger,
+)
 from .components import Preset
 from .components import Mission
 from cx_studio.ffmpeg import FFmpeg
@@ -128,7 +134,8 @@ class Application(IApplication):
         missions = MissionMaker.auto_make_missions_multitask(self.presets, self.sources)
         self._sort_and_set_missions(missions)
 
-        ff = FFmpeg()
         for m in self.missions:
-            info = ff.get_basic_info(m.source)
-            appenv.say(info)
+            # runner = MissionRunner(m)
+            # result = runner.run()
+            # appenv.say(result)
+            appenv.say(list(m.iter_arguments()))

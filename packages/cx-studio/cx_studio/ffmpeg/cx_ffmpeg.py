@@ -145,7 +145,7 @@ class FFmpeg:
                     if line.startswith("frame="):
                         coding_status = FFmpegCodingInfo.parse_status_line(line)
                         self.__emit_signal(
-                            "status_updated", basic_process_info, coding_status
+                            "progress_updated", basic_process_info, coding_status
                         )
 
                     if self._cancel_event.is_set():

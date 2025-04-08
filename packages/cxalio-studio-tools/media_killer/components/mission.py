@@ -1,3 +1,4 @@
+from collections.abc import Generator
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -47,3 +48,13 @@ class Mission:
 
     def __hash__(self) -> int:
         return hash(str(self.source)) ^ hash(self.preset) ^ hash("mission")
+
+    def iter_arguments(self) -> Generator[str]:
+        yield from self.options.iter_arguments()
+        for x in self.inputs:
+            yield "-i"
+            yield str(x.filename)
+            yield from x.iter_arguments()
+        for x in self.outputs:
+            yield from x.iter_arguments()
+            yield str(x.filename)
