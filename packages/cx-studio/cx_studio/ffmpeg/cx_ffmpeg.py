@@ -16,7 +16,7 @@ import threading
 
 
 class FFmpeg:
-    def __init__(self, ffmpeg_bin: str | None) -> None:
+    def __init__(self, ffmpeg_bin: str | None = None) -> None:
         self._ffmpeg_bin = ffmpeg_bin or "ffmpeg"
         self._signal_handlers = defaultdict(list)
         self._signal_lock = threading.RLock()

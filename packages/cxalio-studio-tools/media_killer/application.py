@@ -16,6 +16,7 @@ from .appenv import appenv
 from .components import InputScanner, SourceExpander, MissionMaker
 from .components import Preset
 from .components import Mission
+from cx_studio.ffmpeg import FFmpeg
 
 
 class Application(IApplication):
@@ -125,3 +126,8 @@ class Application(IApplication):
 
         missions = MissionMaker.auto_make_missions_multitask(self.presets, self.sources)
         self._sort_and_set_missions(missions)
+
+        ff = FFmpeg()
+        for m in self.missions:
+            info = ff.get_basic_info(m.source)
+            appenv.console.print(info)

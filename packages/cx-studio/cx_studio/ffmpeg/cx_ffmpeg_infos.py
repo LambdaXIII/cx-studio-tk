@@ -69,9 +69,9 @@ class FFmpegCodingInfo:
     current_frame: int = 0
     current_fps: float = 0
     current_q: int = -1
-    current_size: FileSize = FileSize(0)
-    current_time: CxTime = CxTime(0)
-    current_bitrate: FileSize = FileSize(0)
+    current_size: FileSize = field(default_factory=lambda: FileSize(0))
+    current_time: CxTime = field(default_factory=lambda: CxTime(0))
+    current_bitrate: FileSize = field(default_factory=lambda: FileSize(0))
     current_speed: float = 0.0
     status_line: str = ""
 
