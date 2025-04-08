@@ -42,7 +42,7 @@ class FFmpegFormatInfo:
 @dataclass(frozen=True)
 class FFmpegProcessInfo:
     bin: str
-    args: str
+    args: list[str]
     start_time: datetime | None = None
     end_time: datetime | None = None
     media_duration: CxTime | None = None
