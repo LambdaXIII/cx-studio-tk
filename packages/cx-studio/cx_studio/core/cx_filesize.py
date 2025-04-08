@@ -106,11 +106,11 @@ class FileSize:
     @classmethod
     def from_string(cls, string: str):
         pattern = re.compile(
-            r"(?<number>\d+(\.\d+)?)\s*(?<unit>[kmgtpebits]+)?", re.IGNORECASE
+            r"(?P<number>\d+\.?\d*)\s*(?P<unit>[kmgtpebits]+)?", re.IGNORECASE
         )
-        match = pattern.match(string)
+        match = pattern.search(string)
         if not match:
-            raise ValueError(f'Invalid string format: "{string}"')
+            raise ValueError(f'Invalid string format: "{string}".')
         number = float(match.group("number"))
         unit = match.group("unit").upper()
         if unit.startswith("K"):

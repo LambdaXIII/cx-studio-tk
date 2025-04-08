@@ -129,8 +129,6 @@ class Application(IApplication):
         self._sort_and_set_missions(missions)
 
         ff = FFmpeg()
-        ffp = FFprobe()
         for m in self.missions:
-            # info = ff.get_basic_info(m.source)
-            info = ffp.get_format_info(m.source)
+            info = ff.get_basic_info(m.source)
             appenv.say(info)
