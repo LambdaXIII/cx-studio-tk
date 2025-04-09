@@ -133,7 +133,7 @@ class Application(IApplication):
         missions = MissionMaker.auto_make_missions_multitask(self.presets, self.sources)
         self._sort_and_set_missions(missions)
 
-        for m in self.presets:
+        for m in self.missions:
             appenv.say(RichDetailPanel(m))
 
         appenv.say()

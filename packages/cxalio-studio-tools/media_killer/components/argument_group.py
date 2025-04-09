@@ -52,4 +52,4 @@ class ArgumentGroup:
     def __rich_repr__(self):
         if self.filename is not None:
             yield "filename", self.filename
-        yield " ".join(x for x in self.iter_arguments())
+        yield "arguments", list(self.iter_arguments())

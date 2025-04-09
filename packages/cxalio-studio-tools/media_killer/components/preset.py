@@ -104,22 +104,15 @@ class Preset:
         yield "FFmpeg路径", self.ffmpeg
         yield "是否覆盖", str(self.overwrite)
         yield "硬件加速模式", self.hardware_accelerate
-        yield "额外参数", Text(
-            " ".join(self.options)
-            if isinstance(self.options, list)
-            else str(self.options)
-        )
+        yield "额外参数", self.options
         yield "源文件扩展名", Columns(self.source_suffixes)
         yield "目标文件扩展名", self.target_suffix
         yield "目标文件夹", str(self.target_folder)
         yield "保留父级层级", str(self.keep_parent_level)
-        yield "输入参数", f"{len(self.inputs)} 组"
-        yield "输出参数", f"{len(self.outputs)} 组"
-        yield "自定义参数", f"{len(self.custom)} 个"
-
-        rawdata_count = len(self.raw.keys())
-        if rawdata_count > 0:
-            yield "原始数据", "包含"
+        yield "输入参数", self.inputs
+        yield "输出参数", self.outputs
+        yield "自定义参数", self.custom
+        yield "原始数据", self.raw
 
     def __rich_label__(self):
         yield "[bold bright_black]P[/]"

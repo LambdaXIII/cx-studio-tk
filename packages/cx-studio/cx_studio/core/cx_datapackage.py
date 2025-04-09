@@ -186,3 +186,6 @@ class DataPackage:
             result[k] = value
 
         return result
+
+    def __rich_repr__(self):
+        yield from self.items()

@@ -44,6 +44,27 @@ class TestTagReplacer(unittest.TestCase):
         result = self.replacer.replace(source)
         self.assertEqual(result, "Unknown {{missing}} tag.")
 
+    def test_replace_with_multiple_tags(self):
+        self.replacer.install_provider("greet", lambda name: f"Hello {name}")
+        self.replacer.install_provider("site", "example.com")
+        source = "Welcome {{greet:John}}! Visit {{site}} for more info."
+        self.mock_pattern.parse = Mock(side_effect=[("greet", "John"), ("site", None)])
+        result = self.replacer.replace(source)
+        self.assertEqual(result, "Welcome Hello John! Visit example.com for more info.")
+
+    def test_replace_with_different_tag_pattern(self):
+        different_pattern = Mock(spec=TagPattern)
+        different_pattern.regex_pattern = r"\[\[(\w+)(?::(.*?))?\]\]"
+        different_pattern.parse = Mock(
+            side_effect=lambda match: (match.group(1), match.group(2))
+        )
+        self.replacer = TagReplacer(tag_pattern=different_pattern)
+        self.replacer.install_provider("greet", lambda name: f"Hello {name}")
+        source = "Welcome [[greet:John]]!"
+        different_pattern.parse = Mock(return_value=("greet", "John"))
+        result = self.replacer.replace(source)
+        self.assertEqual(result, "Welcome Hello John!")
+
 
 if __name__ == "__main__":
     unittest.main()

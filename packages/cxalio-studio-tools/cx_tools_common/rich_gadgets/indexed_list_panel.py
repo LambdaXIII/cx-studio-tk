@@ -7,6 +7,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
+from rich.style import StyleType
 
 
 class IndexedListPanel:
@@ -16,14 +17,15 @@ class IndexedListPanel:
         title: str | None = None,
         start_index=1,
         max_lines=20,
-        width: int | Callable[[Console], int] | None = None,
+        border_style: StyleType | None = None,
     ):
         self._items = list(items)
         self._title = title
         self._start_index = start_index
         self._max_lines = max_lines
+        self._border_style = border_style or "none"
         # self._width = width or self.default_width_calculator
-        self._width = width
+        # self._width = width
 
     @staticmethod
     def default_width_calculator(console: Console) -> int:
@@ -68,4 +70,5 @@ class IndexedListPanel:
             title_align="left",
             subtitle=f"{total} items",
             subtitle_align="right",
+            border_style=self._border_style,
         )

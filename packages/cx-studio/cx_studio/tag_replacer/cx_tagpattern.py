@@ -14,8 +14,12 @@ class TagPattern:
             Parses a regex match object and extracts the key and parameter from the tag.
     """
 
-    def __init__(self, pattern=None):
-        self.__pattern = pattern or r"\$\{(?P<key>\w+):?(?P<param>\w+)?\}"
+    def __init__(self, pattern: str | None | re.Pattern = None):
+        self.__pattern = (
+            re.compile(pattern)
+            if pattern
+            else re.compile(r"\$\{(?P<key>\w+):?(?P<param>\w+)?\}")
+        )
 
     @property
     def regex_pattern(self):

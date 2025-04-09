@@ -28,6 +28,7 @@ class MissionMaker:
         self._source_expander = SourceExpander(self._preset)
 
     def make_mission(self, source: Path) -> Mission:
+        # TODO: add support for cusomizing output dir
         replacer = PresetTagReplacer(self._preset, source)
 
         general = ArgumentGroup()

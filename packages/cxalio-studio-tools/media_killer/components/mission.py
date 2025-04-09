@@ -48,14 +48,12 @@ class Mission:
         return hash(str(self.source)) ^ hash(self.preset) ^ hash("mission")
 
     def __rich_detail__(self):
-        yield "name", self.name
-        yield "preset", RichLabel(self.preset)
-        yield "source", self.source
-        yield "standard_target", self.standard_target
-        yield "overwrite", self.overwrite
-        yield "hardware_accelerate", self.hardware_accelerate
-        yield "options", self.options
-        for n, i in enumerate(self.inputs):
-            yield f"inputs[{n}]", i
-        for n, o in enumerate(self.outputs):
-            yield f"outputs[{n}]", o
+        yield "名称", self.name
+        yield "来源预设", RichLabel(self.preset)
+        yield "来源文件路径", self.source
+        yield "标准目标路径", self.standard_target
+        yield "覆盖已存在的目标", "是" if self.overwrite else "否"
+        yield "硬件加速模式", self.hardware_accelerate
+        yield "额外通用执行参数", self.options
+        yield "媒体输入组", self.inputs
+        yield "媒体输出组", self.outputs
