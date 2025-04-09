@@ -17,6 +17,14 @@ class MissionRunner:
         return self._mission.preset
 
     def run(self) -> bool:
+
+        for o_group in self._mission.outputs:
+            if o_group.filename is None:
+                continue
+            dir = o_group.filename.parent
+            if not dir.exists():
+                dir.mkdir(parents=True)
+
         ffmpeg = FFmpeg()
 
         @ffmpeg.on("started")
@@ -40,6 +48,10 @@ class MissionRunner:
             appenv.say(
                 f"Finished: {process_info.bin} {process_info.args}, took time: {process_info.time_took}"
             )
+
+        @ffmpeg.on("verbose")
+        def on_verbose(message: str) -> None:
+            appenv.whisper(message)
 
         result = ffmpeg.run(self._mission.iter_arguments())
         # TODO: needs fix

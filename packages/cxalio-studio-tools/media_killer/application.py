@@ -14,6 +14,7 @@ from cx_tools_common.rich_gadgets import (
     IndexedListPanel,
 )
 from cx_tools_common.rich_gadgets import RichDetailPanel
+from .components.mission_runner import MissionRunner
 from .appenv import appenv
 from .components import (
     InputScanner,
@@ -137,8 +138,6 @@ class Application(IApplication):
         )
         self._sort_and_set_missions(missions)
 
-        appenv.say(
-            DynamicColumns((RichDetailPanel(x) for x in self.missions), max_columns=2)
-        )
-
-        appenv.say()
+        for m in self.missions:
+            runner = MissionRunner(m)
+            runner.run()

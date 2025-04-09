@@ -13,7 +13,9 @@ from cx_studio.path_expander import CmdFinder
 from .cx_ffmpeg_exceptions import NoFFmpegExecutableError
 from .cx_ffmpeg_infos import FFmpegCodingInfo, FFmpegProcessInfo
 
-FFmpegEventLiteral = Literal["started", "finished", "cancelled", "progress_updated"]
+FFmpegEventLiteral = Literal[
+    "started", "finished", "cancelled", "progress_updated", "verbose"
+]
 
 
 class FFmpeg:
@@ -136,6 +138,8 @@ class FFmpeg:
                         )
 
                 line = line.strip()
+                self.__emit("verbose", line)
+
                 if line.startswith("frame="):
                     coding_status = FFmpegCodingInfo.parse_status_line(line)
                     self.__emit("progress_updated", basic_process_info, coding_status)
