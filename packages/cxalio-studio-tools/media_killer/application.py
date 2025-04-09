@@ -1,3 +1,4 @@
+import asyncio
 import importlib.resources
 import importlib.resources
 import sys
@@ -130,7 +131,10 @@ class Application(IApplication):
 
         self._set_presets_and_sources(presets, sources)
 
-        missions = MissionMaker.auto_make_missions_multitask(self.presets, self.sources)
+        # missions = MissionMaker.auto_make_missions_multitask(self.presets, self.sources)
+        missions = asyncio.run(
+            MissionMaker.auto_make_missions(self.presets, self.sources)
+        )
         self._sort_and_set_missions(missions)
 
         appenv.say(

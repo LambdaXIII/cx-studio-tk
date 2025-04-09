@@ -9,6 +9,7 @@ from rich.text import Text
 
 from cx_tools_common.app_interface import IAppEnvironment, ConfigManager
 from .appcontext import AppContext
+import asyncio
 
 
 class AppEnv(IAppEnvironment):
@@ -40,6 +41,10 @@ class AppEnv(IAppEnvironment):
     def pretending_sleep(self, interval: float = 0.2):
         if self.context.pretending_mode:
             time.sleep(interval)
+
+    async def pretendint_asleep(self, interval: float = 0.2):
+        if self.context.pretending_mode:
+            await asyncio.sleep(interval)
 
     def show_banner(self, console=None):
         with importlib.resources.open_text("media_killer", "banner.txt") as banner:

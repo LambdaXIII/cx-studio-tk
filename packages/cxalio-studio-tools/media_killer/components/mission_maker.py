@@ -1,6 +1,7 @@
+import re
 import threading
 import time
-from collections.abc import Sequence, Generator
+from collections.abc import Sequence, Generator, Iterable
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
@@ -11,6 +12,7 @@ from cx_tools_common.rich_gadgets import (
     RichLabel,
     IndexedListPanel,
     MultiProgressManager,
+    ProgressTaskAgent,
 )
 from .argument_group import ArgumentGroup
 from .mission import Mission
@@ -18,6 +20,8 @@ from .preset import Preset
 from .preset_tag_replacer import PresetTagReplacer
 from .source_expander import SourceExpander
 from ..appenv import appenv
+import asyncio
+import itertools
 
 
 class MissionMaker:
@@ -59,7 +63,7 @@ class MissionMaker:
             outputs=outputs,
         )
 
-    def expand_sources(self, sources: Sequence[str | Path]) -> Generator[Path]:
+    def expand_sources(self, sources: Iterable[str | Path]) -> Generator[Path]:
         yield from self._source_expander.expand(*sources)
 
     def report(self, missions: list):
@@ -90,6 +94,7 @@ class MissionMaker:
                 appenv.pretending_sleep(0.05)
                 yield m
 
+    """
     @staticmethod
     def auto_make_missions_multitask(
         presets: Sequence[Preset],
@@ -165,4 +170,47 @@ class MissionMaker:
                 appenv.progress.remove_task(task_id)
 
         appenv.progress.remove_task(total_task)
+        return missions
+    """
+
+    @staticmethod
+    async def auto_make_missions(
+        presets: Iterable[Preset], sources: Iterable[str | Path]
+    ) -> list[Mission]:
+        missions = []
+
+        async def work(preset: Preset, sources: Iterable[str | Path]) -> list[Mission]:
+            result = []
+            appenv.whisper("开始为预设<{}>扫描源文件并创建任务…".format(preset.name))
+            async with ProgressTaskAgent(
+                appenv.progress, task_name=preset.name
+            ) as task_agent:
+                maker = MissionMaker(preset)
+                expanded_sources = list(maker.expand_sources(sources))
+                task_agent.set_total(len(expanded_sources))
+                task_agent.start()
+                for s in expanded_sources:
+                    if appenv.really_wanna_quit:
+                        appenv.say(
+                            "用户中断，[red]未为预设[cyan]{}[/]生成全部任务[/red]".format(
+                                preset.name
+                            )
+                        )
+                        break
+                    m = maker.make_mission(Path(s))
+                    result.append(m)
+                    task_agent.advance()
+                    await appenv.pretendint_asleep(0.05)
+                await asyncio.sleep(2)
+                return result
+
+        tasks = []
+        for preset in presets:
+            task = asyncio.create_task(work(preset, sources))
+            tasks.append(task)
+            await appenv.pretendint_asleep(0.2)
+
+        results = await asyncio.gather(*tasks)
+        missions = list(itertools.chain(*results))
+
         return missions
