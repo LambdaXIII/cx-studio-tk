@@ -59,7 +59,7 @@ class RichLabel:
             FunctionalUtils.iter_with_separator(elements, self._sep)
         )
         text = Text.assemble(
-            *elements_with_sep,
+            *elements_with_sep,  # type:ignore
             tab_size=self._tab_size,
             overflow=self._overflow,
             justify=self._justify,

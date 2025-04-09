@@ -80,6 +80,8 @@ class RichDetailTable:
                     value = list(values)
             table.add_row(key, self.__check_value(value))
 
+        if table.row_count == 0:
+            return Text("(empty)", style="dim yellow")
         return table
 
     def __check_value(

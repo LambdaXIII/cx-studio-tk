@@ -133,7 +133,8 @@ class Application(IApplication):
         missions = MissionMaker.auto_make_missions_multitask(self.presets, self.sources)
         self._sort_and_set_missions(missions)
 
-        for m in self.missions:
-            appenv.say(RichDetailPanel(m))
+        appenv.say(
+            DynamicColumns((RichDetailPanel(x) for x in self.missions), max_columns=2)
+        )
 
         appenv.say()
