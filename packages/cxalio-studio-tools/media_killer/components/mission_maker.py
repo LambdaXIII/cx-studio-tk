@@ -32,20 +32,20 @@ class MissionMaker:
         replacer = PresetTagReplacer(self._preset, source)
 
         general = ArgumentGroup()
-        general.add_options(replacer.read_value_as_list(self._preset.options))
+        general.add_options(list(replacer.read_value_as_list(self._preset.options)))
 
         inputs = []
         for g in self._preset.inputs:
             x = ArgumentGroup()
             x.filename = Path(replacer.read_value(g.filename))
-            x.add_options(*replacer.read_value_as_list(g.options))
+            x.add_options(list(replacer.read_value_as_list(g.options)))
             inputs.append(x)
 
         outputs = []
         for g in self._preset.outputs:
             x = ArgumentGroup()
             x.filename = Path(replacer.read_value(g.filename))
-            x.add_options(*replacer.read_value_as_list(g.options))
+            x.add_options(list(replacer.read_value_as_list(g.options)))
             outputs.append(x)
 
         return Mission(

@@ -2,6 +2,8 @@ import os
 import re
 from pathlib import Path
 
+from typing import Literal
+
 
 def normalize_path(
     path: Path | str, anchor: Path | str | None = None, follow_symlinks: bool = True
@@ -62,4 +64,20 @@ def get_posix_path(path: Path | str) -> str:
     path = re.sub(r"\\{2,}", r"\\", path)
     path = re.sub(r"/{2,}", r"/", path)
     path = re.sub(r"\\", r"/", path)
+    return path
+
+
+PathQuoteMode = Literal["force", "auto", "none"]
+
+
+def quoted(path: str | Path | None, quote_mode: PathQuoteMode = "auto") -> str:
+    if path is None:
+        return ""
+
+    path = str(path)
+    if quote_mode == "force":
+        return f'"{path}"'
+    if quote_mode == "auto":
+        return f'"{path}"' if " " in path else path
+
     return path

@@ -1,57 +1,129 @@
 from dataclasses import dataclass, field
 from pathlib import Path
+import stat
+from typing import Literal
 
 from cx_studio.utils import FunctionalUtils
+from collections.abc import Generator, Iterable
+from collections import defaultdict
+from rich.columns import Columns
+import threading
 
 
-@dataclass()
 class ArgumentGroup:
-    filename: Path | None = None
-    options: dict[str, str] = field(default_factory=dict)
+    def __init__(
+        self,
+        options: dict | str | list | None = None,
+        filename: Path | None = None,
+        **kwargs,
+    ):
+        self.filename: Path | None = filename
+        self._options: dict[str, list[str]] = defaultdict(list)
+        self._position_arguments: list[str] = []
+        if options:
+            self.add_options(options)
+        self.add_options(**kwargs)
 
     @staticmethod
-    def _format_key(key: str):
+    def __iter_pairs_from_list(args: list) -> Generator[tuple[str | None, str | None]]:
+        prev = None
+        for x in args:
+            x = str(x)
+            if x.startswith("-"):
+                # if prev:
+                yield x, None
+                prev = x
+            else:
+                yield prev, x
+                prev = None
+
+    def __add_options_from_pairs(self, pairs: Iterable[tuple[str | None, str | None]]):
+        for k, v in pairs:
+            # print(k, v)
+            k = self._deformat_key(k)
+            v = str(v) if v else None
+            if k and v:
+                self._options[k].append(v)
+                continue
+
+            if k and not v and k not in self._options:
+                self._options[k] = []
+                continue
+
+            if not k and v:
+                self._position_arguments.append(v)
+
+    def __make_pairs(
+        self, options: str | list | dict
+    ) -> Iterable[tuple[str | None, str | None]]:
+        pairs = []
+        if isinstance(options, dict):
+            pairs = options.items()
+        elif isinstance(options, list):
+            pairs = self.__iter_pairs_from_list(options)
+        elif isinstance(options, str):
+            pairs = self.__iter_pairs_from_list(options.split(" "))
+        return pairs
+
+    def add_options(
+        self, options: str | list | dict | None = None, *args, **kwargs
+    ) -> "ArgumentGroup":
+        pair_iterators = []
+        if options:
+            pair_iterators.append(self.__make_pairs(options))
+
+        if args:
+            pair_iterators.append(self.__make_pairs(list(args)))
+
+        if kwargs:
+            pair_iterators.append(self.__make_pairs(kwargs))
+
+        for pairs in pair_iterators:
+            self.__add_options_from_pairs(pairs)
+        return self
+
+    @staticmethod
+    def _format_key(key: str) -> str:
         return key if key.startswith("-") else f"-{key}"
 
     @staticmethod
-    def _iter_sequence(*args):
-        for arg in FunctionalUtils.flatten_list(*args):
-            a = str(arg)
-            if " " in a:
-                yield from a.split(" ")
+    def _deformat_key(key: object | None) -> str | None:
+        if key is None:
+            return None
+        key = str(key)
+        result = key[1:] if key.startswith("-") else key
+        return result if len(result) > 0 else None
+
+    def items(self) -> Generator[tuple[str, list]]:
+        for k, v in self._options.items():
+            yield self._format_key(k), v
+
+    def iter_arguments(
+        self,
+        position_for_position_arguments: Literal[
+            "front", "back", "nowhere"
+        ] = "nowhere",
+    ) -> Generator[str]:
+        if position_for_position_arguments == "front":
+            yield from self._position_arguments
+
+        for k, v in self._options.items():
+            key = self._format_key(k)
+            if not v:
+                yield key
             else:
-                yield a
+                for value in v:
+                    yield key
+                    yield value
 
-    def _set_option(self, k, v):
-        key = k[1:] if k.startswith("-") else k
-        self.options[key] = v
-
-    def add_options(self, *args, **kwargs):
-        prev_key = None
-        for a in self._iter_sequence(*args):
-            if a.startswith("-"):
-                if prev_key is not None:
-                    self._set_option(prev_key, None)
-                prev_key = a
-            else:
-                if prev_key is not None:
-                    self._set_option(prev_key, a)
-                    prev_key = None
-        if prev_key is not None:
-            self._set_option(prev_key, None)
-
-        for k, v in kwargs.items():
-            self._set_option(k, v)
-
-    def iter_arguments(self):
-        for k, v in self.options.items():
-            yield self._format_key(k)
-            if v is not None:
-                yield str(v)
+        if position_for_position_arguments == "back":
+            yield from self._position_arguments
 
     def __rich_repr__(self):
-        if self.filename is not None:
-            yield "filename", self.filename
-        args = list(self.iter_arguments())
-        if len(args) > 0:
-            yield "arguments", args
+        if self._position_arguments:
+            yield "位置参数", Columns(self._position_arguments)
+        if self._options:
+            for k, v in self.items():
+                yield k, Columns(v)
+        if self.filename:
+            yield "文件名", self.filename

@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Literal
 
 from rich.text import Text
 
@@ -7,8 +8,9 @@ from cx_studio.utils import PathUtils, FunctionalUtils
 from cx_tools_common.rich_gadgets import RichLabel
 from .argument_group import ArgumentGroup
 from .preset import Preset
-from cx_studio.utils import TextUtils
+from cx_studio.utils import PathUtils
 from rich.columns import Columns
+from collections.abc import Generator
 
 
 @dataclass(frozen=True)
@@ -49,6 +51,25 @@ class Mission:
     def __hash__(self) -> int:
         return hash(str(self.source)) ^ hash(self.preset) ^ hash("mission")
 
+    def iter_arguments(
+        self,
+        force_overwrite: bool | None = None,
+        quote_mode: PathUtils.PathQuoteMode = "none",
+    ) -> Generator[str]:
+        if self.hardware_accelerate:
+            yield "-hwaccel"
+            yield self.hardware_accelerate
+        overwrite = self.overwrite if force_overwrite is None else force_overwrite
+        yield "-y" if overwrite else "-n"
+        yield from self.options.iter_arguments()
+        for input_group in self.inputs:
+            yield from input_group.iter_arguments()
+            yield "-i"
+            yield PathUtils.quoted(input_group.filename, quote_mode)
+        for output_group in self.outputs:
+            yield from output_group.iter_arguments()
+            yield PathUtils.quoted(output_group.filename, quote_mode)
+
     def __rich_detail__(self):
         yield "名称", self.name
         yield "来源预设", RichLabel(self.preset)
@@ -56,19 +77,13 @@ class Mission:
         yield "标准目标路径", self.standard_target
         yield "覆盖已存在的目标", "是" if self.overwrite else "否"
         yield "硬件加速模式", self.hardware_accelerate
-        yield "额外通用执行参数", self.options
+        if self.options:
+            yield "通用参数（自定义）", Columns(
+                self.options.iter_arguments(position_for_position_arguments="front")
+            )
         yield "媒体输入组", self.inputs
         yield "媒体输出组", self.outputs
 
-        cmd_preview = ["(ffmpeg)"]
-        cmd_preview.extend(self.options.iter_arguments())
-        cmd_preview.append("-hdacel")
-        cmd_preview.append(self.hardware_accelerate)
-        for input_group in self.inputs:
-            cmd_preview.append("-i")
-            cmd_preview.append(TextUtils.auto_quote(str(input_group.filename)))
-            cmd_preview.extend(input_group.iter_arguments())
-        for output_group in self.outputs:
-            cmd_preview.extend(output_group.iter_arguments())
-            cmd_preview.append(TextUtils.auto_quote(str(output_group.filename)))
-        yield "命令参数预览", " ".join(cmd_preview)
+        yield "命令参数预览", " ".join(
+            ["(ffmpeg)"] + list(self.iter_arguments(quote_mode="force"))
+        )

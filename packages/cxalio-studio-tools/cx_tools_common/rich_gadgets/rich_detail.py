@@ -107,6 +107,7 @@ class RichDetailTable:
                 list(self.__check_value(v, disable_sub_box=True) for v in value),
                 title=value.__class__.__name__,
                 border_style=self._SUB_BOX_BORDER_STYLE,
+                start_index=0,
             )
             if self._sub_box and not disable_sub_box:
                 return list_panel

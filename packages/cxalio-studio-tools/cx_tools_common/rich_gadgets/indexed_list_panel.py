@@ -41,7 +41,7 @@ class IndexedListPanel:
         table = Table(box=None, show_header=False)
         table.add_column("index", justify="right", style="green", ratio=1)
         table.add_column(
-            "content", justify="left", style="yellow", overflow="fold", ratio=200
+            "content", justify="left", highlight=True, overflow="fold", ratio=200
         )
 
         total = len(self._items)
