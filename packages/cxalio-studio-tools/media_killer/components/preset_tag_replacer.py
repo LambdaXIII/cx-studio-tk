@@ -1,8 +1,11 @@
+import os
 from pathlib import Path
 
 from cx_studio.tag_replacer import TagReplacer, PathInfoProvider
 from cx_studio.utils import PathUtils
 from .preset import Preset
+from collections.abc import Generator
+from media_killer.appenv import appenv
 
 
 class PresetTagReplacer:
@@ -14,6 +17,7 @@ class PresetTagReplacer:
         self.replacer.install_provider("profile", self._provide_preset_info)
         self.replacer.install_provider("custom", self._provide_custom_values)
         self.replacer.install_provider("source", PathInfoProvider(self._source))
+        self.replacer.install_provider("sep", os.sep)
 
         output_dir = output_dir or Path.cwd()
         target_folder = Path(self._preset.target_folder)
@@ -26,14 +30,14 @@ class PresetTagReplacer:
             PathUtils.get_basename(source), self._preset.target_suffix
         )
         self._target = Path(output_dir, *parent_dirs, target_name).resolve()
-        self.replacer.install_provider("target", PathInfoProvider(self._target))
+        self.replacer.install_provider("target", PathInfoProvider(self.standard_target))
 
     @property
-    def standard_target(self):
-        return self._target
+    def standard_target(self) -> Path:
+        return Path(self.read_value(str(self._target)))
 
-    def _provide_preset_info(self, param: str):
-        param = str(param).split(" ")[0].lower()
+    def _provide_preset_info(self, param: str) -> str | None:
+        param = str(param).lower()
         match param:
             case "id":
                 return self._preset.id
@@ -42,28 +46,29 @@ class PresetTagReplacer:
             case "description":
                 return self._preset.description
             case "folder":
-                return self._preset.path.parent
+                return str(self._preset.path.parent)
             case "folder_name":
                 return self._preset.path.parent.name
             case "input_count":
-                return len(self._preset.inputs)
+                return str(len(self._preset.inputs))
             case "output_count":
-                return len(self._preset.outputs)
+                return str(len(self._preset.outputs))
         return None
 
-    def _provide_custom_values(self, param: str):
+    def _provide_custom_values(self, param: str) -> str | None:
         param = str(param).split(" ")[0].lower()
-        return self._preset.custom.get(param, None)
+        result = self._preset.custom.get(param)
+        return str(result) if result else None
 
     def read_value(self, value: str) -> str:
         return self.replacer.replace(value)
 
-    def read_value_as_list(self, value: str | list):
+    def read_value_as_list(self, value: str | list) -> Generator[str]:
         if isinstance(value, list):
             for v in value:
                 yield from self.read_value_as_list(v)
         else:
-            value = str(value)
+            value = self.read_value(value)
             if " " in value:
                 yield from self.read_value_as_list(value.split(" "))
             else:

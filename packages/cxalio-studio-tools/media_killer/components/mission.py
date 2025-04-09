@@ -7,6 +7,8 @@ from cx_studio.utils import PathUtils, FunctionalUtils
 from cx_tools_common.rich_gadgets import RichLabel
 from .argument_group import ArgumentGroup
 from .preset import Preset
+from cx_studio.utils import TextUtils
+from rich.columns import Columns
 
 
 @dataclass(frozen=True)
@@ -57,3 +59,16 @@ class Mission:
         yield "额外通用执行参数", self.options
         yield "媒体输入组", self.inputs
         yield "媒体输出组", self.outputs
+
+        cmd_preview = ["(ffmpeg)"]
+        cmd_preview.extend(self.options.iter_arguments())
+        cmd_preview.append("-hdacel")
+        cmd_preview.append(self.hardware_accelerate)
+        for input_group in self.inputs:
+            cmd_preview.append("-i")
+            cmd_preview.append(TextUtils.auto_quote(str(input_group.filename)))
+            cmd_preview.extend(input_group.iter_arguments())
+        for output_group in self.outputs:
+            cmd_preview.extend(output_group.iter_arguments())
+            cmd_preview.append(TextUtils.auto_quote(str(output_group.filename)))
+        yield "命令参数预览", " ".join(cmd_preview)
