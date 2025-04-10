@@ -3,7 +3,7 @@ name = "cxalio-studio-tools"
 version = "0.5.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.12"
 dependencies = [
     "cx-studio",
     "rich>=14.0.0",
