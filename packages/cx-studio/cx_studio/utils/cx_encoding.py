@@ -1,6 +1,8 @@
+from lazy_object_proxy import Proxy
+
 from chardet import UniversalDetector
 
-__char_detector = UniversalDetector()
+__char_detector = Proxy(UniversalDetector)
 
 
 def detect_encoding(filename):
