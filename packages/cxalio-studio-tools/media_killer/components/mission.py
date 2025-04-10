@@ -87,3 +87,13 @@ class Mission:
         yield "命令参数预览", " ".join(
             ["(ffmpeg)"] + list(self.iter_arguments(quote_mode="force"))
         )
+
+    def iter_output_filenames(self) -> Generator[Path]:
+        for output_group in self.outputs:
+            if output_group.filename is not None:
+                yield output_group.filename
+
+    def iter_input_filenames(self) -> Generator[Path]:
+        for input_group in self.inputs:
+            if input_group.filename is not None:
+                yield input_group.filename

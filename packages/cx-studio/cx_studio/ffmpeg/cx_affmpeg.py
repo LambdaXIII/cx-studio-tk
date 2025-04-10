@@ -88,6 +88,7 @@ class FFmpegAsync:
 
         async for line in process.stderr:  # type:ignore
             emitters = []
+            cancel_loop = False
 
             line = line.decode("utf-8")
             coding_info = FFmpegCodingInfo.parse_status_line(line)
@@ -115,14 +116,18 @@ class FFmpegAsync:
                 )
 
             if self._wanna_cancel.is_set():
-                await asyncio.wait_for(process.communicate("q".encode("utf-8")), 3)
-                if process.returncode is not None:
-                    process.terminate()
+                await asyncio.wait_for(process.communicate("q".encode("utf-8")), 5)
+                if process.returncode is None:
+                    process.kill()
                 await self.__emit("canceled", coding_info, basic_process_info)
-                break
+                cancel_loop = True
 
-            await asyncio.gather(*emitters)
-            await asyncio.sleep(0.1)
+            await asyncio.gather(*emitters, return_exceptions=False)
+            await asyncio.sleep(delay=0.1)
+
+            if cancel_loop:
+                break
+        # async for
 
         await process.wait()
         basic_process_info = dataclasses.replace(

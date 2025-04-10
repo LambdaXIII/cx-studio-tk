@@ -134,26 +134,13 @@ class Application(IApplication):
 
         self._set_presets_and_sources(presets, sources)
 
-        # missions = MissionMaker.auto_make_missions_multitask(self.presets, self.sources)
         missions = asyncio.run(
             MissionMaker.auto_make_missions(self.presets, self.sources)
         )
         self._sort_and_set_missions(missions)
 
-        m = self.missions[0]
-        appenv.say(RichDetailPanel(m, m.name))
-        ffmpeg = FFmpegAsync(m.preset.ffmpeg)
+        async def work():
+            async with MissionRunner(self.missions[0]) as m:
+                await m.run()
 
-        @ffmpeg.on("progress_updated")
-        def handle_progress(
-            coding_info: FFmpegCodingInfo, process_info: FFmpegProcessInfo
-        ):
-            appenv.say(
-                f"处理进度{coding_info.current_time} / {process_info.media_duration or "N/A"}"
-            )
-
-        @ffmpeg.on("finished")
-        def handle_finished(a, process_info: FFmpegProcessInfo):
-            appenv.say("处理完成！")
-
-        asyncio.run(ffmpeg.run(m.iter_arguments()))
+        asyncio.run(work())
