@@ -7,4 +7,4 @@ FFmpegEventLiteral = Literal[
     "started", "finished", "canceled", "progress_updated", "verbose"
 ]
 
-FFmpegEventHandler: type = Callable[[FFmpegCodingInfo | None, FFmpegProcessInfo], None]
+FFmpegEventHandler = Callable[[FFmpegCodingInfo | None, FFmpegProcessInfo], None]

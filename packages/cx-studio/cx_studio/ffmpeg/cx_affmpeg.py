@@ -2,7 +2,7 @@ import asyncio
 import dataclasses
 import re
 from collections import defaultdict
-from collections.abc import Iterable
+from collections.abc import Iterable, Callable
 from datetime import datetime
 from pathlib import Path
 
@@ -16,9 +16,10 @@ from .cx_ffmpeg_infos import FFmpegCodingInfo, FFmpegProcessInfo
 class FFmpegAsync:
     def __init__(self, ffmpeg_executable: str | None = None) -> None:
         self._executable = CmdFinder.which(ffmpeg_executable or "ffmpeg")
-        self._event_handlers: dict[FFmpegEventLiteral, list[FFmpegEventHandler]] = (
-            defaultdict(list)
-        )
+        self._event_handlers: dict[
+            FFmpegEventLiteral,
+            list[Callable[[FFmpegCodingInfo | None, FFmpegProcessInfo], None]],
+        ] = defaultdict(list)
         self._wanna_cancel = asyncio.Event()
         self._is_not_running = asyncio.Condition()
 
@@ -44,18 +45,18 @@ class FFmpegAsync:
         return decorator
 
     def install_event_handler(
-            self, event: FFmpegEventLiteral, handler: FFmpegEventHandler
+        self, event: FFmpegEventLiteral, handler: FFmpegEventHandler
     ):
         self._event_handlers[event].append(handler)
         return self
 
     async def __emit(
-            self,
-            event: FFmpegEventLiteral,
-            coding_info: FFmpegCodingInfo | None,
-            process_info: FFmpegProcessInfo,
-            *args,
-            **kwargs,
+        self,
+        event: FFmpegEventLiteral,
+        coding_info: FFmpegCodingInfo | None,
+        process_info: FFmpegProcessInfo,
+        *args,
+        **kwargs,
     ):
         for handler in self._event_handlers[event]:
             handler(coding_info, process_info, *args, **kwargs)
@@ -85,7 +86,7 @@ class FFmpegAsync:
 
         await self.__emit("started", None, basic_process_info)
 
-        async for line in process.stderr:
+        async for line in process.stderr:  # type:ignore
             emitters = []
 
             line = line.decode("utf-8")

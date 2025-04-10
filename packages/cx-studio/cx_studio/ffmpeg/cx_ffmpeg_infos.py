@@ -2,6 +2,7 @@ import re
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Any
 
 from ..core.cx_filesize import FileSize
 from ..core.cx_time import CxTime
@@ -75,7 +76,7 @@ class FFmpegCodingInfo:
 
     @classmethod
     def parse_status_line(cls, line: str):
-        datas: dict[str, object] = {"raw_input": line.strip()}
+        datas: dict[str, Any] = {"raw_input": line.strip()}
 
         frames_match = re.search(r"frame=\s*(?P<frames>\d+)", line)
         if frames_match:
