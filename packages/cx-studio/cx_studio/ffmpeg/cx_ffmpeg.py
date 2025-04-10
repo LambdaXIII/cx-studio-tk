@@ -1,11 +1,12 @@
+import asyncio
+import dataclasses
+import re
+import subprocess
+import time
+from collections import defaultdict
 from collections.abc import Iterable
 from datetime import datetime
-import subprocess
-import asyncio
-from collections import defaultdict
-from functools import wraps
 from pathlib import Path
-import re, dataclasses
 from typing import Literal
 
 from cx_studio.core import FileSize, CxTime
@@ -60,6 +61,7 @@ class FFmpeg:
             universal_newlines=True,
             encoding="utf-8",
         ) as process:
+            time.sleep(0.1)
             for line in process.stderr or []:
                 input_match = re.match(r"Input #0, (.+), from '(.+)':", line)
                 if input_match:
@@ -83,6 +85,7 @@ class FFmpeg:
                 if streams_match:
                     streams.append(line.strip())
                     continue
+                # time.sleep(0.1)
 
             process.wait()
         # process
@@ -104,62 +107,63 @@ class FFmpeg:
             handler(*args, **kwargs)
 
     def run(self, arguments: str | list | Iterable) -> bool:
-        if not self._executable:
-            raise NoFFmpegExecutableError("No ffmpeg executable found.")
+        # if not self._executable:
+        #     raise NoFFmpegExecutableError("No ffmpeg executable found.")
 
-        args = [
-            str(x)
-            for x in (arguments.split(" ") if isinstance(arguments, str) else arguments)
-        ]
-        args.insert(0, str(self._executable))
+        # args = [
+        #     str(x)
+        #     for x in (arguments.split(" ") if isinstance(arguments, str) else arguments)
+        # ]
+        # args.insert(0, str(self._executable))
 
-        with subprocess.Popen(
-            args,
-            stderr=subprocess.PIPE,
-            text=True,
-            bufsize=1,
-            encoding="utf-8",
-            errors="ignore",
-            universal_newlines=True,
-        ) as process:
+        # with subprocess.Popen(
+        #     args,
+        #     stderr=subprocess.PIPE,
+        #     text=True,
+        #     bufsize=1,
+        #     encoding="utf-8",
+        #     errors="ignore",
+        #     universal_newlines=True,
+        # ) as process:
 
-            basic_process_info = FFmpegProcessInfo(
-                bin=str(self._executable), args=args, start_time=datetime.now()
-            )
-            self.__emit("started", basic_process_info)
+        #     basic_process_info = FFmpegProcessInfo(
+        #         bin=str(self._executable), args=args, start_time=datetime.now()
+        #     )
+        #     self.__emit("started", basic_process_info)
 
-            for line in process.stderr or []:
-                if basic_process_info.media_duration is None:
-                    match = re.match(r"Duration: (\d{2}:\d{2}:\d{2}\.\d{2})", line)
-                    if match:
-                        duration = CxTime.from_timestamp(match.group(1))
-                        basic_process_info = dataclasses.replace(
-                            basic_process_info, media_duration=duration
-                        )
+        #     for line in process.stderr or []:
+        #         if basic_process_info.media_duration is None:
+        #             match = re.match(r"Duration: (\d{2}:\d{2}:\d{2}\.\d{2})", line)
+        #             if match:
+        #                 duration = CxTime.from_timestamp(match.group(1))
+        #                 basic_process_info = dataclasses.replace(
+        #                     basic_process_info, media_duration=duration
+        #                 )
 
-                line = line.strip()
-                self.__emit("verbose", line)
+        #         line = line.strip()
+        #         self.__emit("verbose", line)
 
-                if line.startswith("frame="):
-                    coding_status = FFmpegCodingInfo.parse_status_line(line)
-                    self.__emit("progress_updated", basic_process_info, coding_status)
+        #         if line.startswith("frame="):
+        #             coding_status = FFmpegCodingInfo.parse_status_line(line)
+        #             self.__emit("progress_updated", basic_process_info, coding_status)
 
-                if self._wanna_cancel.is_set():
-                    process.communicate("q")
-                    process.wait(3)
-                    if process.returncode == 0:
-                        process.kill()
-                        self.__emit("cancelled", basic_process_info)
-                    break
-            # for
-            process.wait()
-        # process
+        #         if self._wanna_cancel.is_set():
+        #             process.communicate("q")
+        #             process.wait(3)
+        #             if process.returncode == 0:
+        #                 process.kill()
+        #                 self.__emit("cancelled", basic_process_info)
+        #             break
+        #     # for
+        #     process.wait()
+        # # process
 
-        basic_process_info = dataclasses.replace(
-            basic_process_info, end_time=datetime.now()
-        )
-        self.__emit("finished", basic_process_info)
-        return process.returncode == 0
+        # basic_process_info = dataclasses.replace(
+        #     basic_process_info, end_time=datetime.now()
+        # )
+        # self.__emit("finished", basic_process_info)
+        # return process.returncode == 0
+        return asyncio.run(self.arun(arguments))
 
     async def arun(self, arguments: str | list | Iterable) -> bool:
         if not self._executable:

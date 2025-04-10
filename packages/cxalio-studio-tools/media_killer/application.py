@@ -6,6 +6,7 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import override
 
+from cx_studio.ffmpeg import FFmpegAsync
 from cx_studio.utils import PathUtils
 from cx_tools_common.app_interface import IApplication
 from cx_tools_common.exception import SafeError
@@ -23,6 +24,7 @@ from .components import (
 )
 from .components import Mission
 from .components import Preset
+from cx_studio.ffmpeg import FFmpegCodingInfo, FFmpegProcessInfo
 
 
 class Application(IApplication):
@@ -138,6 +140,20 @@ class Application(IApplication):
         )
         self._sort_and_set_missions(missions)
 
-        for m in self.missions:
-            runner = MissionRunner(m)
-            runner.run()
+        m = self.missions[0]
+        appenv.say(RichDetailPanel(m, m.name))
+        ffmpeg = FFmpegAsync(m.preset.ffmpeg)
+
+        @ffmpeg.on("progress_updated")
+        def handle_progress(
+            coding_info: FFmpegCodingInfo, process_info: FFmpegProcessInfo
+        ):
+            appenv.say(
+                f"处理进度{coding_info.current_time} / {process_info.media_duration or "N/A"}"
+            )
+
+        @ffmpeg.on("finished")
+        def handle_finished(a, process_info: FFmpegProcessInfo):
+            appenv.say("处理完成！")
+
+        asyncio.run(ffmpeg.run(m.iter_arguments()))

@@ -65,45 +65,45 @@ class FFmpegProcessInfo:
 class FFmpegCodingInfo:
     current_frame: int = 0
     current_fps: float = 0
-    current_q: int = -1
+    current_q: float = -1
     current_size: FileSize = field(default_factory=lambda: FileSize(0))
     current_time: CxTime = field(default_factory=lambda: CxTime(0))
     current_bitrate: FileSize = field(default_factory=lambda: FileSize(0))
     current_speed: float = 0.0
-    status_line: str = ""
+    raw_input: str = ""
+    created: datetime = field(default_factory=lambda: datetime.now())
 
     @classmethod
     def parse_status_line(cls, line: str):
-        datas = {}
-        datas["status_line"] = line.strip()
+        datas: dict[str, object] = {"raw_input": line.strip()}
 
-        frames_match = re.search(r"frame=\s*(?<frames>\d+)", line)
+        frames_match = re.search(r"frame=\s*(?P<frames>\d+)", line)
         if frames_match:
             datas["current_frame"] = int(frames_match.group("frames"))
 
-        fps_match = re.search(r"fps=\s*(?<fps>\d+(\.\d+)?)", line)
+        fps_match = re.search(r"fps=\s*(?P<fps>\d+(\.\d+)?)", line)
         if fps_match:
             datas["current_fps"] = float(fps_match.group("fps"))
 
-        q_match = re.search(r"q=\s*(?<q>-?\d+(\.\d+)?)", line)
+        q_match = re.search(r"q=\s*(?P<q>-?\d+(\.\d+)?)", line)
         if q_match:
-            datas["current_q"] = int(q_match.group("q"))
+            datas["current_q"] = float(q_match.group("q"))
 
-        size_match = re.search(r"L?size=\s*(?<size>\d+(\.\d+)?\s*\w+)", line)
+        size_match = re.search(r"L?size=\s*(?P<size>\d+(\.\d+)?\s*\w+)", line)
         if size_match:
             datas["current_size"] = FileSize.from_string(size_match.group("size"))
 
-        time_match = re.search(r"time=\s*(?<time>\d+:\d+:\d+[:;.,]\d+)", line)
+        time_match = re.search(r"time=\s*(?P<time>\d+:\d+:\d+[:;.,]\d+)", line)
         if time_match:
             datas["current_time"] = CxTime.from_timestamp(time_match.group("time"))
 
-        bitrate_match = re.search(r"bitrate=\s*(?<bitrate>\d+(\.\d+)?\s*\w+)/s", line)
+        bitrate_match = re.search(r"bitrate=\s*(?P<bitrate>\d+(\.\d+)?\s*\w+)/s", line)
         if bitrate_match:
             datas["current_bitrate"] = FileSize.from_string(
                 bitrate_match.group("bitrate")
             )
 
-        speed_match = re.search(r"speed=\s*(?<speed>\d+(\.\d+)?)x", line)
+        speed_match = re.search(r"speed=\s*(?P<speed>\d+(\.\d+)?)x", line)
         if speed_match:
             datas["current_speed"] = float(speed_match.group("speed"))
 
