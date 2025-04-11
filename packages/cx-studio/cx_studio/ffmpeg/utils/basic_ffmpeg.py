@@ -2,7 +2,7 @@ from cx_studio.utils import TextUtils
 from collections.abc import Generator, Iterable
 
 
-class EmptyFFmpeg:
+class BasicFFmpeg:
     def __init__(self) -> None:
         self._executable = ""
         self._arguments: list[str] = []

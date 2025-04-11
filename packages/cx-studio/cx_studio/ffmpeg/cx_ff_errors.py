@@ -54,5 +54,5 @@ class FFmpegIsRunningError(FFmpegError):
     pass
 
 
-class FFmpegCanceledError(FFmpegError):
-    pass
+# class FFmpegCanceledError(FFmpegError):
+#     pass

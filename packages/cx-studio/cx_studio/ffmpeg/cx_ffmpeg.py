@@ -6,7 +6,7 @@ from .cx_ff_infos import FFmpegCodingInfo
 import threading
 from collections.abc import Iterable, Generator
 from cx_studio.utils import TextUtils, StreamUtils
-from .utils.empty_ffmpeg import EmptyFFmpeg
+from .utils.basic_ffmpeg import BasicFFmpeg
 from typing import IO
 from .cx_ff_errors import *
 import io, os
@@ -15,7 +15,7 @@ import concurrent.futures as con_futures
 import sys, signal
 
 
-class FFmpeg(EventEmitter, EmptyFFmpeg):
+class FFmpeg(EventEmitter, BasicFFmpeg):
     def __init__(
         self,
         ffmpeg_executable: str | Path | None = None,
@@ -61,6 +61,16 @@ class FFmpeg(EventEmitter, EmptyFFmpeg):
         input_stream: bytes | IO[bytes] | None = None,
         timeout: float | None = None,
     ):
+        """
+        Args:
+            stream: A stream to input to the standard input. Defaults to None.
+            timeout: The maximum number of seconds to wait before returning. Defaults to None.
+
+        Raises:
+            FFmpegAlreadyExecuted: If FFmpeg is already executed.
+            FFmpegError: If FFmpeg process returns non-zero exit status.
+            subprocess.TimeoutExpired: If FFmpeg process does not terminate after `timeout` seconds.
+        """
         args = list(self.iter_arguments(True))
 
         if self._is_running:
