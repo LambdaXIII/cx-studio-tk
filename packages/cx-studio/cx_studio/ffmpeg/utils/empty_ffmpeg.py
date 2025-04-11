@@ -11,6 +11,10 @@ class EmptyFFmpeg:
     def executable(self) -> str:
         return self._executable
 
+    @property
+    def arguments(self) -> list[str]:
+        return self._arguments
+
     def iter_arguments(
         self, include_executable: bool = False, auto_auote: bool = False
     ) -> Generator[str]:
@@ -31,7 +35,7 @@ class EmptyFFmpeg:
         return self
 
     def add_arguments(self, *args):
-        self._arguments.extend(TextUtils.auto_list(args))
+        self._arguments.extend(args)
 
     def iter_argument_pairs(self) -> Generator[tuple[str | None, str | None]]:
         prev = None
