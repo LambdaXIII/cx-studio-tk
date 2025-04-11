@@ -1,11 +1,8 @@
+from ast import Str
 import itertools
 from cx_studio.core.cx_time import CxTime
-from cx_studio.ffmpeg import (
-    FFmpegAsync,
-    FFmpegProcessInfo,
-    FFmpegCodingInfo,
-    FFmpegError,
-)
+from cx_studio.ffmpeg import FFmpeg
+from cx_studio.ffmpeg.cx_ff_infos import FFmpegCodingInfo
 from media_killer.appenv import appenv
 from .mission import Mission
 from .preset import Preset
@@ -13,115 +10,85 @@ import asyncio
 from cx_tools_common.rich_gadgets import ProgressTaskAgent
 
 from collections.abc import Iterable
+from cx_tools_common.rich_gadgets import RichLabel
+from rich.text import Text
+from rich.columns import Columns
+import itertools
 
 
-class IOConflictError(FFmpegError):
-    def __init__(self, message: str, output: str | None = None) -> None:
-        super().__init__(message, output)
-
-
-class MissionFailedError(FFmpegError):
+class IOConflictError(Exception):
     def __init__(self, message: str, output: str | None = None) -> None:
         super().__init__(message, output)
 
 
 class MissionRunner:
     def __init__(self, mission: Mission):
-        self._mission = mission
-        self._task_agent = ProgressTaskAgent(
-            task_name=f"{self._mission.name}", progress=appenv.progress
+        self.mission = mission
+        self._ffmpeg = FFmpeg(mission.preset.ffmpeg, mission.iter_arguments())
+        self._input_files = [self.mission.source] + list(
+            self.mission.iter_input_filenames()
+        )
+        self._output_files = [self.mission.standard_target] + list(
+            self.mission.iter_output_filenames()
         )
 
-        self._output_files = set(self._mission.iter_output_filenames())
-        self._input_files = set(self._mission.iter_input_filenames())
-        self._input_files.add(self._mission.source)
+        self._task_description: str = self.mission.name
+        self._task_completed: float = 0
+        self._task_total: float | None = None
 
-        self._well_done = None
+    def create_target_folders(self):
+        output_folders = set(map(lambda x: x.parent, self._output_files))
+        for folder in output_folders:
+            folder.mkdir(parents=True, exist_ok=True)
 
-    async def __aenter__(self):
-        self._task_agent.start()
-        return self
+    def cancel(self):
+        self._ffmpeg.cancel()
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        self._task_agent.stop()
-        result = False
+    @property
+    def task_description(self):
+        return self._task_description
 
-        if exc_type is None:
-            pass
-        elif exc_type is KeyboardInterrupt:
-            pass
-        elif exc_type is FFmpegError:
-            appenv.say(f"{exc_val}")
-            result = True
+    @property
+    def task_completed(self):
+        return self._task_completed
 
-        if not self._well_done:
-            await self.__clear_output_files()
+    @property
+    def task_total(self):
+        return self._task_total
 
-        return result
+    def run(self):
+        @self._ffmpeg.on("started")
+        def on_started(*args):
+            appenv.whisper("Mission Started:{}".format(self.mission.name))
 
-    async def __clear_output_files(self):
-        safe_output_files = self._output_files - self._input_files
-        for file in safe_output_files:
-            if file.exists():
-                file.unlink()
-                appenv.whisper(f"删除目标文件 {file}")
+        @self._ffmpeg.on("progress_updated")
+        def on_progress_updated(c: CxTime, t: CxTime | None):
+            c_seconds = c.total_seconds
+            t_seconds = t.total_seconds if t else None
+            self._task_completed = c_seconds
+            self._task_total = t_seconds
 
-    async def run(self):
-        self._task_agent.show()
-
-        conflicted_files = self._input_files & self._output_files
-        if conflicted_files:
-            raise IOConflictError(
-                f"输入输出文件冲突：{conflicted_files} （这些文件已存在）"
-            )
-
-        output_dirs = {x.parent for x in self._output_files}
-        for output_dir in itertools.filterfalse(lambda x: x.exists(), output_dirs):
-            appenv.whisper(f"创建目标目录 {output_dir}")
-            output_dir.mkdir(parents=True, exist_ok=True)
-
-        ffmpeg = FFmpegAsync(self._mission.preset.ffmpeg)
-
-        @ffmpeg.on("started")
-        def on_started(_coding_info, _process_info: FFmpegProcessInfo):
-            appenv.whisper(
-                "{} -> {} 转码开始…".format(
-                    _process_info.start_time, self._mission.name
+        @self._ffmpeg.on("finished")
+        def on_finished():
+            appenv.say(
+                Columns(
+                    [
+                        RichLabel(self.mission),
+                        Text("完成", style="green", justify="right"),
+                    ]
                 )
             )
 
-        @ffmpeg.on("progress_updated")
-        def on_progress_updated(
-            _coding_info: FFmpegCodingInfo, _process_info: FFmpegProcessInfo
-        ):
-            total_duration = _process_info.media_duration
-            total: float | None = (
-                total_duration.total_seconds if total_duration else None
-            )
-            current: float = _coding_info.current_time.total_seconds
-            self._task_agent.set_progress(current, total)
-
-        @ffmpeg.on("finished")
-        def on_finished(_coding_info, _process_info: FFmpegProcessInfo):
-            time_span = _process_info.time_took
-            cx_time = CxTime.from_seconds(time_span.total_seconds())
-            appenv.whisper(
-                "{} -> {} 转码完成，耗时 {}".format(
-                    _process_info.end_time, self._mission.name, cx_time.pretty_string
+        @self._ffmpeg.on("canceled")
+        def on_canceled():
+            appenv.say(
+                Columns(
+                    [
+                        RichLabel(self.mission),
+                        Text("取消", style="red", justify="right"),
+                    ]
                 )
             )
 
-        ffmpeg_task = asyncio.create_task(ffmpeg.run(self._mission.iter_arguments()))
-
-        while not ffmpeg_task.done():
-            await asyncio.sleep(0.1)
-            if appenv.wanna_quit:
-                ffmpeg.cancel()
-                break
-
-        result = (await asyncio.gather(ffmpeg_task))[0]
-        if not result:
-            self._well_done = False
-            raise MissionFailedError("{} 转码失败".format(self._mission.name))
-        else:
-            self._well_done = True
+        self.create_target_folders()
+        return self._ffmpeg.execute()

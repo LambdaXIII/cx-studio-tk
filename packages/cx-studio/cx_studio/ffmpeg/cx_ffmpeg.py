@@ -1,4 +1,5 @@
 from codecs import StreamReader
+from copy import copy
 from pyee import EventEmitter
 from cx_studio.path_expander import CmdFinder
 from pathlib import Path
@@ -14,7 +15,7 @@ import subprocess
 import concurrent.futures as con_futures
 import sys, signal
 
-
+import dataclasses
 class FFmpeg(EventEmitter, BasicFFmpeg):
     def __init__(
         self,
@@ -40,20 +41,24 @@ class FFmpeg(EventEmitter, BasicFFmpeg):
         self._canceled = True
         self._process.send_signal(sigterm)
 
-    def status(self):
+    @property
+    def coding_info(self):
         return self._coding_info
 
     def _handle_stderr(self):
         assert self._process.stderr is not None
         line = b""
         for line in StreamUtils.readlines_from_stream(self._process.stderr):
-            self._coding_info.update_from_status_line(line.decode())
-            self.emit("status_updated", self._coding_info)
-            self.emit(
-                "progress_updated",
-                self._coding_info.current_time,
-                self._coding_info.total_time,
-            )
+            decoded = line.decode()
+            self._coding_info.update_from_status_line(decoded)
+            self.emit("coding_info_updated", copy(self._coding_info))
+            self.emit("verbose",decoded)
+            if 'frame' in decoded:
+                self.emit(
+                    "progress_updated",
+                    self._coding_info.current_time,
+                    self._coding_info.total_time,
+                )
         return line.decode()
 
     def execute(
@@ -116,3 +121,11 @@ class FFmpeg(EventEmitter, BasicFFmpeg):
             else:
                 raise FFmpegError.create(message=futures[2].result(), arguments=args)
             return futures[1].result()
+        
+    def __enter__(self):
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self._process is not None:
+            self._process.terminate()
+            self._process.wait()

@@ -6,7 +6,8 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import override
 
-from cx_studio.ffmpeg import FFmpegAsync
+
+
 from cx_studio.utils import PathUtils
 from cx_tools_common.app_interface import IApplication
 from cx_tools_common.exception import SafeError
@@ -15,6 +16,7 @@ from cx_tools_common.rich_gadgets import (
     IndexedListPanel,
 )
 from cx_tools_common.rich_gadgets import RichDetailPanel
+from media_killer.components import mission
 from .components.mission_runner import MissionRunner
 from .appenv import appenv
 from .components import (
@@ -24,7 +26,7 @@ from .components import (
 )
 from .components import Mission
 from .components import Preset
-from cx_studio.ffmpeg import FFmpegCodingInfo, FFmpegProcessInfo
+from cx_studio.ffmpeg import FFmpegCodingInfo, FFmpegProcessInfo,FFmpeg
 
 
 class Application(IApplication):
@@ -139,8 +141,27 @@ class Application(IApplication):
         )
         self._sort_and_set_missions(missions)
 
-        async def work():
-            async with MissionRunner(self.missions[0]) as m:
-                await m.run()
+        # mission_runner = MissionRunner(self.missions[0])
+        # mission_runner.run()
 
-        asyncio.run(work())
+        m = self.missions[0]
+        # ffmpeg = FFmpeg(m.preset.ffmpeg, m.iter_arguments())
+        # @ffmpeg.on("started")
+        # def on_start(args):
+        #     appenv.say("开始执行任务：{}".format(m.name))
+        #     appenv.say(' '.join(args))
+
+        # @ffmpeg.on("status_updated")
+        # def on_status_updated(info: FFmpegCodingInfo):
+        #     appenv.say("任务状态：{}".format(info.raw_input))
+
+        # @ffmpeg.on("progress_updated")
+        # def on_progress_updated(c,t):
+        #     cc = c.total_seconds
+        #     tt = t.total_seconds if t else -1
+        #     appenv.say("任务进度：{}/{}".format(cc,tt))
+
+        # appenv.say(ffmpeg.execute())
+
+        runner = MissionRunner(m)
+        runner.run()
