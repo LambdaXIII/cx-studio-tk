@@ -5,7 +5,7 @@ from typing import Hashable
 
 from rich.progress import TaskID
 
-
+from datetime import datetime
 class MultiProgressManager:
 
     class Status:
@@ -13,6 +13,9 @@ class MultiProgressManager:
         total: float | None = None
         completed: float = 0
         visible: bool = False
+        start_time:datetime|None = None
+        end_time:datetime|None = None
+        canceled:bool = False
 
     def __init__(self):
         self.lock = threading.RLock()
@@ -32,6 +35,9 @@ class MultiProgressManager:
         total: float | None = None,
         completed: float | None = None,
         visible: bool | None = None,
+        start_time: datetime | None = None,
+        end_time: datetime | None = None,
+        canceled: bool | None = None,
     ):
         with self.lock:
             if description is not None:
@@ -42,6 +48,12 @@ class MultiProgressManager:
                 self.datas[key].completed = completed
             if visible is not None:
                 self.datas[key].visible = visible
+            if start_time is not None:
+                self.datas[key].start_time = start_time
+            if end_time is not None:
+                self.datas[key].end_time = end_time
+            if canceled is not None:
+                self.datas[key].canceled = canceled
 
     def get(self, key: Hashable) -> tuple[TaskID | None, "MultiProgressManager.Status"]:
         with self.lock:
@@ -49,7 +61,7 @@ class MultiProgressManager:
 
     def get_total_progress(self) -> tuple[float, float]:
         with self.lock:
-            total = sum(self.datas[x].total or 0 for x in self.tasks.keys())
+            total = sum(self.datas[x].total or 1 for x in self.tasks.keys())
             completed = sum(self.datas[x].completed or 0 for x in self.tasks.keys())
             return float(completed), float(total)
 
@@ -68,3 +80,9 @@ class MultiProgressManager:
     def task_ids(self):
         with self.lock:
             return self.tasks.values()
+        
+    def show(self,key:Hashable):
+        self.update_task(key,visible=True)
+
+    def hide(self,key:Hashable):
+        self.update_task(key,visible=False)

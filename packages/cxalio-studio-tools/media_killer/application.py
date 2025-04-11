@@ -16,7 +16,7 @@ from cx_tools_common.rich_gadgets import (
     IndexedListPanel,
 )
 from cx_tools_common.rich_gadgets import RichDetailPanel
-from media_killer.components import mission
+from media_killer.components import mission, mission_manager
 from .components.mission_runner import MissionRunner
 from .appenv import appenv
 from .components import (
@@ -25,7 +25,7 @@ from .components import (
     MissionArranger,
 )
 from .components import Mission
-from .components import Preset
+from .components import Preset,MissionManager
 from cx_studio.ffmpeg import FFmpegCodingInfo, FFmpegProcessInfo,FFmpeg
 
 
@@ -144,24 +144,5 @@ class Application(IApplication):
         # mission_runner = MissionRunner(self.missions[0])
         # mission_runner.run()
 
-        m = self.missions[0]
-        # ffmpeg = FFmpeg(m.preset.ffmpeg, m.iter_arguments())
-        # @ffmpeg.on("started")
-        # def on_start(args):
-        #     appenv.say("开始执行任务：{}".format(m.name))
-        #     appenv.say(' '.join(args))
-
-        # @ffmpeg.on("status_updated")
-        # def on_status_updated(info: FFmpegCodingInfo):
-        #     appenv.say("任务状态：{}".format(info.raw_input))
-
-        # @ffmpeg.on("progress_updated")
-        # def on_progress_updated(c,t):
-        #     cc = c.total_seconds
-        #     tt = t.total_seconds if t else -1
-        #     appenv.say("任务进度：{}/{}".format(cc,tt))
-
-        # appenv.say(ffmpeg.execute())
-
-        runner = MissionRunner(m)
-        runner.run()
+        mission_manager = MissionManager(self.missions,5)
+        mission_manager.execute()
