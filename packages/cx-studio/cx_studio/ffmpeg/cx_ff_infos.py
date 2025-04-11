@@ -1,5 +1,5 @@
 from dataclasses import dataclass,field
-from typing import Any
+from typing import Any, Self
 from cx_studio.core import CxTime,FileSize
 from pathlib import Path
 from datetime import datetime, timedelta
@@ -124,4 +124,10 @@ class FFmpegCodingInfo:
         for key,value in kwargs.items():
             if hasattr(self,key):
                 setattr(self,key,value)
+        return self
+    
+    def update_from(self,other:'FFmpegCodingInfo')->Self:
+        for key in self.__annotations__:
+            if hasattr(other,key):
+                setattr(self,key,getattr(other,key))
         return self

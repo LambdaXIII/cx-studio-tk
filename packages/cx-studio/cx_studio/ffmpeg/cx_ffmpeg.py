@@ -1,4 +1,4 @@
-from codecs import StreamReader
+
 from copy import copy
 from pyee import EventEmitter
 from cx_studio.path_expander import CmdFinder

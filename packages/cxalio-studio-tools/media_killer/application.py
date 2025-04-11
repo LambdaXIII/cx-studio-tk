@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import override
 
 
-
+from cx_studio.core.cx_time import CxTime
 from cx_studio.utils import PathUtils
 from cx_tools_common.app_interface import IApplication
 from cx_tools_common.exception import SafeError
@@ -25,8 +25,8 @@ from .components import (
     MissionArranger,
 )
 from .components import Mission
-from .components import Preset,MissionManager
-from cx_studio.ffmpeg import FFmpegCodingInfo, FFmpegProcessInfo,FFmpeg
+from .components import Preset, MissionManager
+from cx_studio.ffmpeg import FFmpegAsync, FFmpegCodingInfo
 
 
 class Application(IApplication):
@@ -144,5 +144,36 @@ class Application(IApplication):
         # mission_runner = MissionRunner(self.missions[0])
         # mission_runner.run()
 
-        mission_manager = MissionManager(self.missions,5)
-        mission_manager.execute()
+        # async def work():
+        #     m = self.missions[0]
+        #     ffmpeg = FFmpegAsync(m.preset.ffmpeg, m.iter_arguments())
+        #     task_id = appenv.progress.add_task(m.name)
+
+        #     @ffmpeg.on("progress_updated")
+        #     async def progress(c: CxTime, t: CxTime | None):
+        #         cc = c.total_seconds
+        #         tt = t.total_seconds if t else None
+        #         appenv.progress.update(task_id, completed=cc, total=tt)
+
+        #     @ffmpeg.on("verbose")
+        #     async def verbose(line: str):
+        #         appenv.whisper(line)
+
+        #     async def check():
+        #         while ffmpeg.is_running():
+        #             appenv.say(appenv.wanna_quit)
+        #             if appenv.wanna_quit:
+        #                 ffmpeg.cancel()
+        #                 appenv.say("222222222222222222")
+        #                 break
+        #             await asyncio.sleep(0.1)
+
+        #     await asyncio.gather(asyncio.create_task(ffmpeg.execute()), check())
+        #     # return p_task.result()
+
+        # asyncio.run(work())
+
+        for m in self.missions:
+            ffmpeg = FFmpegAsync(m.preset.ffmpeg, m.iter_arguments())
+            info = asyncio.run(ffmpeg.get_basic_info(m.source))
+            appenv.whisper(RichDetailPanel(info, title="源文件信息"))
