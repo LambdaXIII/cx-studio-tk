@@ -9,6 +9,7 @@ from cx_studio.utils import AsyncStreamUtils
 import signal,sys
 import re
 from cx_studio.core import CxTime, FileSize
+import dataclasses
 
 class FFmpegAsync(AsyncIOEventEmitter):
     def __init__(
@@ -22,7 +23,16 @@ class FFmpegAsync(AsyncIOEventEmitter):
 
         self._is_running = asyncio.Condition()
         self._cancel_event = asyncio.Event()
+        self._canceled = False
         self._process:asyncio.subprocess.Process
+
+    @property
+    def executable(self) -> str:
+        return self._executable
+    
+    @property
+    def coding_info(self) -> FFmpegCodingInfo:
+        return self._coding_info
 
     async def _handle_stderr(self):
         stream = AsyncStreamUtils.wrap_io(self._process.stderr)
@@ -30,13 +40,16 @@ class FFmpegAsync(AsyncIOEventEmitter):
             line_str = line.decode("utf-8", errors="ignore")
             self.emit("verbose",line_str)
 
-            coding_info = FFmpegCodingInfo.from_status_line(line_str)
-            self._coding_info.update_from(coding_info)
+            coding_info_dict = FFmpegCodingInfo.parse_status_line(line_str)
+            # self._coding_info.update_from(coding_info)
+            # self._coding_info.update_from_dict(dataclasses.asdict(coding_info))
+            self._coding_info.update(**coding_info_dict)
 
-            if coding_info.current_time or coding_info.total_time:
+            if "current_time" in coding_info_dict or "total_time" in coding_info_dict:
                 self.emit("progress_updated",self._coding_info.current_time,self._coding_info.total_time)
+                # print([self._coding_info.current_time,self._coding_info.total_time])
 
-            if coding_info.current_frame:
+            if "current_frame" in coding_info_dict:
                 self.emit("status_updated",self._coding_info)
         # for
 
@@ -55,6 +68,7 @@ class FFmpegAsync(AsyncIOEventEmitter):
         if not self._process.returncode:
             self._process.terminate()
             await self._process.wait()
+        self._canceled = True
         self._cancel_event.clear()
 
     async def execute(self,arguments: Iterable[str] | None = None, input_stream:asyncio.StreamReader|bytes|None = None) -> bool:
@@ -89,8 +103,10 @@ class FFmpegAsync(AsyncIOEventEmitter):
             finally:
                 await self._process.wait()
                 result = self._process.returncode==0
-                if result is False:
+                if self._canceled:
                     self.emit("canceled")
+                elif not result:
+                    self.emit("terminated")
                 else:
                     self.emit("finished")
                 return result

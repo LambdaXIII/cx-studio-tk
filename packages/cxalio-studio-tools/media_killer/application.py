@@ -5,6 +5,7 @@ import sys
 from collections.abc import Sequence
 from pathlib import Path
 from typing import override
+from unittest import runner
 
 
 from cx_studio.core.cx_time import CxTime
@@ -149,32 +150,19 @@ class Application(IApplication):
 
         async def work():
             m = self.missions[0]
-            ffmpeg = FFmpegAsync(m.preset.ffmpeg)
-            task_id = appenv.progress.add_task(m.name)
-
-            @ffmpeg.on("progress_updated")
-            async def progress(c: CxTime, t: CxTime | None):
-                cc = c.total_seconds
-                tt = t.total_seconds if t else None
-                appenv.progress.update(task_id, completed=cc, total=tt)
-
-            @ffmpeg.on("verbose")
-            async def verbose(line: str):
-                appenv.whisper(line)
+            runner = MissionRunner(m)
 
             async def check():
-                while ffmpeg.is_running():
-                    appenv.say(appenv.wanna_quit)
-                    if appenv.wanna_quit:
-                        ffmpeg.cancel()
-                        appenv.say("222222222222222222")
-                        break
+                while runner.is_running():
                     await asyncio.sleep(0.1)
-
-            p_task = asyncio.create_task(ffmpeg.execute(m.iter_arguments()))
-            await asyncio.gather(p_task,
-                                  check())
-            return p_task.result()
+                    appenv.say(runner.task_completed,runner.task_total,runner.task_description)
+                    if appenv.wanna_quit:
+                        runner.cancel()
+            
+            async with asyncio.TaskGroup() as tg:
+                r = tg.create_task(runner.execute())
+                tg.create_task(check())
+            return r.result()
 
         result = asyncio.run(work())
         appenv.say(result)

@@ -11,10 +11,12 @@ from .preset import Preset
 from cx_studio.utils import PathUtils
 from rich.columns import Columns
 from collections.abc import Generator
+import ulid
 
 
 @dataclass(frozen=True)
 class Mission:
+    mission_id:ulid.ULID = field(default_factory=ulid.new,kw_only=True)
     preset: Preset
     source: Path
     standard_target: Path

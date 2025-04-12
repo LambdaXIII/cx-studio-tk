@@ -60,7 +60,7 @@ class FFmpegCodingInfo:
     current_q: float = -1
     current_size: FileSize = field(default_factory=lambda: FileSize(0))
     current_time: CxTime = field(default_factory=lambda: CxTime(0))
-    total_time:CxTime|None = None
+    total_time:CxTime|None = field(default=None)
     current_bitrate: FileSize = field(default_factory=lambda: FileSize(0))
     current_speed: float = 0.0
     raw_input: str = ""
@@ -72,6 +72,7 @@ class FFmpegCodingInfo:
 
         duration_match = re.search(r"Duration:\s*(?P<duration>\d+:\d+:\d+[:;.,]\d+)", line)
         if duration_match:
+            # print("Duration match")
             datas["total_time"] = CxTime.from_timestamp(duration_match.group("duration"))
 
         frames_match = re.search(r"frame=\s*(?P<frames>\d+)", line)
@@ -111,23 +112,13 @@ class FFmpegCodingInfo:
         datas = cls.parse_status_line(line)
         return cls(**datas)
     
-    def update_from_dict(self,data:dict) -> 'FFmpegCodingInfo':
-        for key,value in data.items():
-            setattr(self,key,value)
-        return self
-    
     def update_from_status_line(self,line:str) -> 'FFmpegCodingInfo':
         datas = self.parse_status_line(line)
-        return self.update_from_dict(datas)
+        return self.update(**datas)
     
     def update(self,**kwargs) -> 'FFmpegCodingInfo':
         for key,value in kwargs.items():
             if hasattr(self,key):
                 setattr(self,key,value)
         return self
-    
-    def update_from(self,other:'FFmpegCodingInfo')->Self:
-        for key in self.__annotations__:
-            if hasattr(other,key):
-                setattr(self,key,getattr(other,key))
-        return self
+

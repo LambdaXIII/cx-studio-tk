@@ -10,7 +10,7 @@ from rich.text import Text
 from cx_tools_common.app_interface import IAppEnvironment, ConfigManager
 from .appcontext import AppContext
 import asyncio
-
+from pathlib import Path
 
 class AppEnv(IAppEnvironment):
     def __init__(self):
@@ -22,6 +22,7 @@ class AppEnv(IAppEnvironment):
         self.progress = Progress()
         self.console = self.progress.console
         self.config_manager = ConfigManager(self.app_name)
+        self._garbage_files = []
 
     def is_debug_mode_on(self):
         return self.context.debug_mode
@@ -45,6 +46,9 @@ class AppEnv(IAppEnvironment):
     async def pretendint_asleep(self, interval: float = 0.2):
         if self.context.pretending_mode:
             await asyncio.sleep(interval)
+
+    def add_garbage_files(self, *filenames: str|Path):
+        self._garbage_files.extend(map(Path,filenames))
 
     def show_banner(self, console=None):
         with importlib.resources.open_text("media_killer", "banner.txt") as banner:
