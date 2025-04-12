@@ -18,6 +18,7 @@ from cx_tools_common.rich_gadgets import (
 )
 from cx_tools_common.rich_gadgets import RichDetailPanel
 from media_killer.components import mission, mission_manager
+from media_killer.components.mission_master import MissionMaster
 from .components.mission_runner import MissionRunner
 from .appenv import appenv
 from .components import (
@@ -148,21 +149,5 @@ class Application(IApplication):
             info = asyncio.run(ffmpeg.get_basic_info(m.source))
             appenv.whisper(RichDetailPanel(info, title="源文件信息"))
 
-        async def work():
-            m = self.missions[0]
-            runner = MissionRunner(m)
-
-            async def check():
-                while runner.is_running():
-                    await asyncio.sleep(0.1)
-                    appenv.say(runner.task_completed,runner.task_total,runner.task_description)
-                    if appenv.wanna_quit:
-                        runner.cancel()
-            
-            async with asyncio.TaskGroup() as tg:
-                r = tg.create_task(runner.execute())
-                tg.create_task(check())
-            return r.result()
-
-        result = asyncio.run(work())
-        appenv.say(result)
+        mm = MissionMaster(self.missions,3)
+        asyncio.run(mm.run())

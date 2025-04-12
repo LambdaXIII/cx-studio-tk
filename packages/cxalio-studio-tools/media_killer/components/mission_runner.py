@@ -101,7 +101,7 @@ class MissionRunner:
         self._cancel_event.clear()
 
     async def _clean_up(self):
-        appenv.whisper(IndexedListPanel(self._ffmpeg_outputs),title="FFmpeg 输出")
+        appenv.whisper(IndexedListPanel(self._ffmpeg_outputs, title="FFmpeg 输出"))
         self._ffmpeg_outputs.clear()
         safe_outputs = set(self._output_files) - set(self._input_files)
         deleting_files = set(filter(lambda x: x.exists(), safe_outputs))
@@ -109,10 +109,8 @@ class MissionRunner:
             appenv.whisper(IndexedListPanel(deleting_files, title="未完成的目标文件"))
             appenv.add_garbage_files(*deleting_files)
 
-    async def _on_verbose(self,line:str):
+    async def _on_verbose(self, line: str):
         self._ffmpeg_outputs.append(line)
-
-        
 
     async def _holding_cancel(self):
         await self._cancel_event.wait()
@@ -164,7 +162,7 @@ class MissionRunner:
             self._ffmpeg.add_listener("finished", self._on_finished)
             self._ffmpeg.add_listener("canceled", self._on_canceled)
             self._ffmpeg.add_listener("terminated", self._on_terminated)
-            self._ffmpeg.add_listener("verbose",self._on_verbose)
+            self._ffmpeg.add_listener("verbose", self._on_verbose)
 
             ffmpeg_outputs = []
 
