@@ -1,27 +1,23 @@
-from operator import is_
-import re
+import asyncio
+import itertools
 import threading
-import time
 from collections.abc import Sequence, Generator, Iterable
-from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+
+from cx_wealth import (
+    RichLabel,
+    IndexedListPanel
+)
+from cx_tools_common.app_interface import ProgressTaskAgent
 from rich.columns import Columns
 from rich.text import Text
 
-from cx_tools_common.rich_gadgets import (
-    RichLabel,
-    IndexedListPanel,
-    MultiProgressManager,
-    ProgressTaskAgent,
-)
 from .argument_group import ArgumentGroup
 from .mission import Mission
 from .preset import Preset
 from .preset_tag_replacer import PresetTagReplacer
 from .source_expander import SourceExpander
 from ..appenv import appenv
-import asyncio
-import itertools
 
 
 class MissionMaker:
@@ -83,7 +79,6 @@ class MissionMaker:
     def expand_and_make_missions(
         self, sources: Sequence[str | Path]
     ) -> Generator[Mission]:
-        # appenv.whisper("开始为预设<{}>扫描源文件并创建任务…".format(self._preset.name))
         wanna_quit = False
         for source in sources:
             source = Path(source)
@@ -93,7 +88,7 @@ class MissionMaker:
                 if appenv.wanna_quit_event.is_set():
                     wanna_quit = True
                     appenv.wanna_quit_event.clear()
-                # appenv.whisper(f"\t{ss}")
+                
                 m = self.make_mission(ss)
                 appenv.pretending_sleep(0.05)
                 yield m
@@ -103,16 +98,16 @@ class MissionMaker:
     async def auto_make_missions(
         presets: Iterable[Preset], sources: Iterable[str | Path]
     ) -> list[Mission]:
-        missions = []
+        # missions = []
 
-        async def work(preset: Preset, sources: Iterable[str | Path]) -> list[Mission]:
+        async def work(_preset: Preset, _sources: Iterable[str | Path]) -> list[Mission]:
             result = []
-            appenv.whisper("开始为预设<{}>扫描源文件并创建任务…".format(preset.name))
+            appenv.whisper("开始为预设<{}>扫描源文件并创建任务…".format(_preset.name))
             async with ProgressTaskAgent(
-                appenv.progress, task_name=preset.name
+                appenv.progress, task_name=_preset.name
             ) as task_agent:
-                maker = MissionMaker(preset)
-                expanded_sources = list(maker.expand_sources(sources))
+                maker = MissionMaker(_preset)
+                expanded_sources = list(maker.expand_sources(_sources))
                 task_agent.set_total(len(expanded_sources))
                 task_agent.start()
                 for s in expanded_sources:
@@ -123,7 +118,7 @@ class MissionMaker:
                     if wanna_quit:
                         appenv.say(
                             "用户中断，[red]未为预设[cyan]{}[/]生成全部任务[/red]".format(
-                                preset.name
+                                _preset.name
                             )
                         )
                         break

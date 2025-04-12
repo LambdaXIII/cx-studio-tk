@@ -1,13 +1,12 @@
-from collections.abc import Callable
 from collections.abc import Sequence
 from typing import Iterable
 
 import rich.protocol
 from rich.console import Console
 from rich.panel import Panel
+from rich.style import StyleType
 from rich.table import Table
 from rich.text import Text
-from rich.style import StyleType
 
 
 class IndexedListPanel:

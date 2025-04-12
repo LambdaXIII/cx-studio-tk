@@ -1,22 +1,18 @@
 from collections.abc import Generator
-import enum
 from typing import Iterable, Mapping, Protocol, Sequence, runtime_checkable
 
-from .indexed_list_panel import IndexedListPanel
-from pygments import highlight
 from rich.console import (
     RenderableType,
 )
 from rich.panel import Panel
 from rich.pretty import Pretty
-from rich.table import Table
-
-from .rich_label import RichLabel, RichLabelMixin
-from .common import RichPrettyMixin
-from rich.columns import Columns
-from rich.text import Text
-from rich import box
 from rich.style import StyleType
+from rich.table import Table
+from rich.text import Text
+
+from .common import RichPrettyMixin
+from .indexed_list_panel import IndexedListPanel
+from .rich_label import RichLabel, RichLabelMixin
 
 
 @runtime_checkable

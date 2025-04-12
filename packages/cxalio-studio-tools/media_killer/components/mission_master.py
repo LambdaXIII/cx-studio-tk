@@ -1,21 +1,17 @@
-from tracemalloc import start
-from unittest import runner
-
-
-from .mission import Mission
-from cx_studio.core import CxTime, FileSize
-from cx_studio.utils import AsyncCanceller
-from cx_studio.ffmpeg import FFmpegAsync
 import asyncio
 from collections.abc import Iterable
-from ..appenv import appenv
-
 from dataclasses import dataclass
-from collections import defaultdict
+
+from cx_studio.utils.tools.job_counter import JobCounter
 import ulid
-from .mission_runner import MissionRunner
-from media_killer.components import mission
 from rich.progress import TaskID
+
+from cx_studio.ffmpeg import FFmpegAsync
+from cx_studio.utils.tools import AsyncCanceller
+from .mission import Mission
+from .mission_runner import MissionRunner
+from ..appenv import appenv
+from datetime import datetime
 
 
 class PoisonError(Exception):
@@ -25,126 +21,142 @@ class PoisonError(Exception):
 class MissionMaster:
     @dataclass
     class MInfo:
-        mission_id: ulid.ULID
+        mission: Mission
         task_id: TaskID
-        # completed:float=0
         total: float | None = None
-        # description:str = ""
         runner: MissionRunner | None = None
 
     def __init__(self, missions: Iterable[Mission], max_workers: int | None = None):
         self._missions = list(missions)
         self._max_workers = max_workers or 1
-        self._mission_infos: dict[ulid.ULID, MissionMaster.MInfo] = {}
+        self._mission_infos: dict[int, MissionMaster.MInfo] = {}
         self._semaphore = asyncio.Semaphore(self._max_workers)
         self._info_lock = asyncio.Lock()
         self._running_cond = asyncio.Condition()
         self._total_task = appenv.progress.add_task("总进度")
-        
+
         self._cancel_one = AsyncCanceller()
         self._cancel_all_event = asyncio.Event()
 
-    async def _build_mission_info(self, mission: Mission):
-        # async with self._semaphore:
-        
-        # mission_info.description = mission.name
+    async def _build_mission_info(self, index):
+        mission = self._missions[index]
         ffmpeg = FFmpegAsync(mission.preset.ffmpeg)
         basic_info = await ffmpeg.get_basic_info(mission.source)
         duration = basic_info.get("duration")
         mission_info = MissionMaster.MInfo(
-            mission_id=mission.mission_id,
+            mission=mission,
             task_id=appenv.progress.add_task(
                 mission.name, total=None, visible=False, start=False
             ),
-            total = duration.total_seconds if duration else None
+            total=duration.total_seconds if duration else None,
         )
 
         async with self._info_lock:
-            self._mission_infos[mission.mission_id] = mission_info
+            self._mission_infos[index + 1] = mission_info
 
         if appenv.context.pretending_mode:
             await asyncio.sleep(0.2)
 
-    async def _run_mission(self, mission: Mission):
-        appenv.say(f"开始执行任务{mission.name}")
+    async def _run_mission(self, index: int):
         async with self._semaphore:
-            wanna_quit = False
+            if self._cancel_all_event.is_set():
+                return
 
+            mission_info = self._mission_infos[index]
+            mission = mission_info.mission
             runner = MissionRunner(mission)
+
             async with self._info_lock:
-                self._mission_infos[mission.mission_id].runner = runner
+                self._mission_infos[index].runner = runner
+
             t = asyncio.create_task(runner.execute())
-            appenv.progress.start_task(self._mission_infos[mission.mission_id].task_id)
+
+            appenv.progress.start_task(mission_info.task_id)
+
             while not t.done():
                 wanna_quit = await self._cancel_one.is_cancelling_async()
                 if wanna_quit or self._cancel_all_event.is_set():
                     runner.cancel()
                     break
                 await asyncio.sleep(0.1)
-            await t
-            appenv.progress.stop_task(self._mission_infos[mission.mission_id].task_id)
+
+            # await t
+
+            appenv.progress.stop_task(mission_info.task_id)
+
             if appenv.context.pretending_mode:
-                await asyncio.sleep(2)
+                await asyncio.sleep(1)
 
     async def _scan_tasks(self) -> tuple[float, float, float, float]:
         t_total = t_completed = t_current = 0
-        total_count = done_count = 0
+        done_count = 0
 
         async with self._info_lock:
-            infos = self._mission_infos.values()
+            infos = self._mission_infos
 
-        for info in infos:
-            # appenv.say(info)
-            total_count += 1
+        infos_length = len(infos)
+        jobs = JobCounter(infos_length, start=0)
+        for index, info in infos.items():
+            jobs.current = index
+
             t_total += info.total or 1
+
             if not info.runner:
                 continue
+
             if info.runner.is_running():
+                desc_str = "[bright_black][{}] [{:.2f}x][/] [yellow]{}[/]".format(
+                    jobs.format(), info.runner.task_speed, info.runner.task_description
+                )
+
                 appenv.progress.update(
                     info.task_id,
                     visible=True,
-                    # start=True,
-                    description=info.runner.task_description,
+                    description=desc_str,
                     completed=info.runner.task_completed,
                     total=info.runner.task_total,
                 )
-                # appenv.say(info.runner.task_total)
+
                 if info.total is None:
                     info.total = info.runner.task_total
+
                 t_current += info.runner.task_completed
             else:
                 appenv.progress.update(info.task_id, visible=False)
                 if info.runner.done():
                     done_count += 1
                     t_completed += info.runner.task_completed
-        return t_completed + t_current, t_total, done_count, total_count
+        return t_completed + t_current, t_total, done_count, infos_length
 
     @staticmethod
     async def _poison_task():
         raise PoisonError()
 
-    async def run(
-        self,
-    ):
+    async def run(self):
         try:
             self._cancel_all_event.clear()
+            total_start_time = datetime.now()
             async with self._running_cond:
                 appenv.progress.update(
-                    self._total_task, start=True, visible=True, total=len(self._missions)
+                    self._total_task,
+                    start=True,
+                    visible=True,
+                    total=len(self._missions),
                 )
-                for mission in appenv.progress.track(
-                    self._missions, task_id=self._total_task
+
+                for index, mission in appenv.progress.track(
+                    enumerate(self._missions), task_id=self._total_task
                 ):
                     appenv.progress.update(self._total_task, description=mission.name)
-                    await self._build_mission_info(mission)
+                    await self._build_mission_info(index)
 
                 async with asyncio.TaskGroup() as task_group:
                     workers = [
-                        task_group.create_task(self._run_mission(x)) for x in self._missions
+                        task_group.create_task(self._run_mission(x))
+                        for x in self._mission_infos
                     ]
 
                     while not all(x.done() for x in workers):
-                        appenv.say(len(workers))
                         if appenv.wanna_quit_event.is_set():
                             self._cancel_one.cancel()
                             appenv.wanna_quit_event.clear()
@@ -153,17 +165,30 @@ class MissionMaster:
                             self._cancel_all_event.set()
 
                         if self._cancel_all_event.is_set():
+                            # for w in workers:
+                            #     w.cancel()
                             task_group.create_task(self._poison_task())
                             break
 
-                        t_completed, t_total, t_count, d_count = await self._scan_tasks()
-                        appenv.say(t_completed, t_total, t_count, d_count)
+                        t_completed, t_total, t_count, d_count = (
+                            await self._scan_tasks()
+                        )
+
+                        speed = (
+                            t_completed
+                            / (datetime.now() - total_start_time).total_seconds()
+                        )
+                        desc_str = (
+                            "[bright_black][{:.2f}x][/] [blue]总体进度[/]".format(
+                                speed
+                            )
+                        )
 
                         appenv.progress.update(
                             self._total_task,
                             completed=t_completed,
                             total=t_total,
-                            description="总体进度",
+                            description=desc_str,
                         )
 
                         # if t_count == d_count:
@@ -175,6 +200,5 @@ class MissionMaster:
                     # await asyncio.wait(workers)
                 # taskgroup
             # running Condition
-        except *PoisonError:
+        except* PoisonError:
             appenv.say("剩余任务被取消")
-

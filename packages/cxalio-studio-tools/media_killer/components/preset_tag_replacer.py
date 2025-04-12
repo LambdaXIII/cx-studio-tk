@@ -1,11 +1,10 @@
 import os
+from collections.abc import Generator
 from pathlib import Path
 
 from cx_studio.tag_replacer import TagReplacer, PathInfoProvider
 from cx_studio.utils import PathUtils
 from .preset import Preset
-from collections.abc import Generator
-from media_killer.appenv import appenv
 
 
 class PresetTagReplacer:

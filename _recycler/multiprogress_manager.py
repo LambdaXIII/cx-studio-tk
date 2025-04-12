@@ -1,11 +1,12 @@
 import threading
 from collections import defaultdict
 from copy import copy
+from datetime import datetime
 from typing import Hashable
 
 from rich.progress import TaskID
 
-from datetime import datetime
+
 class MultiProgressManager:
 
     class Status:
@@ -13,9 +14,9 @@ class MultiProgressManager:
         total: float | None = None
         completed: float = 0
         visible: bool = False
-        start_time:datetime|None = None
-        end_time:datetime|None = None
-        canceled:bool = False
+        start_time: datetime | None = None
+        end_time: datetime | None = None
+        canceled: bool = False
 
     def __init__(self):
         self.lock = threading.RLock()
@@ -80,9 +81,9 @@ class MultiProgressManager:
     def task_ids(self):
         with self.lock:
             return self.tasks.values()
-        
-    def show(self,key:Hashable):
-        self.update_task(key,visible=True)
 
-    def hide(self,key:Hashable):
-        self.update_task(key,visible=False)
+    def show(self, key: Hashable):
+        self.update_task(key, visible=True)
+
+    def hide(self, key: Hashable):
+        self.update_task(key, visible=False)

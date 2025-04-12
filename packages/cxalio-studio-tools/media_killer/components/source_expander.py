@@ -11,7 +11,6 @@ from cx_tools_common.path_prober import (
     TextProber,
 )
 from media_killer.appenv import appenv
-
 from .preset import Preset
 
 

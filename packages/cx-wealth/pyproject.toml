@@ -1,0 +1,19 @@
+[project]
+name = "cx-wealth"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "xiii_1991", email = "xiii_1991@163.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "rich>=14.0.0",
+]
+
+[project.scripts]
+cx-wealth = "cx_wealth:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

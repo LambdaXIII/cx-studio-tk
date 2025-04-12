@@ -1,17 +1,16 @@
+from collections.abc import Generator
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Literal
 
+import ulid
+from cx_wealth import RichLabel
+from rich.columns import Columns
 from rich.text import Text
 
-from cx_studio.utils import PathUtils, FunctionalUtils
-from cx_tools_common.rich_gadgets import RichLabel
+from cx_studio.utils import FunctionalUtils
+from cx_studio.utils import PathUtils
 from .argument_group import ArgumentGroup
 from .preset import Preset
-from cx_studio.utils import PathUtils
-from rich.columns import Columns
-from collections.abc import Generator
-import ulid
 
 
 @dataclass(frozen=True)

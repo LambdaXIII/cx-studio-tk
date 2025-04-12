@@ -1,24 +1,20 @@
+import asyncio
 import itertools
 import os
-from turtle import title
+from datetime import datetime
+from pathlib import Path
+
+from cx_tools_common.app_interface import ProgressTaskAgent
+from cx_wealth import RichLabel
+from rich.columns import Columns
+from rich.text import Text
+
 from cx_studio.core.cx_time import CxTime
 from cx_studio.ffmpeg import FFmpegAsync
 from cx_studio.utils import PathUtils
-from cx_studio.ffmpeg import FFmpegCodingInfo
-from cx_tools_common.rich_gadgets.indexed_list_panel import IndexedListPanel
+from cx_wealth.indexed_list_panel import IndexedListPanel
 from media_killer.appenv import appenv
 from .mission import Mission
-from .preset import Preset
-import asyncio
-from cx_tools_common.rich_gadgets import ProgressTaskAgent
-
-from collections.abc import Iterable
-from cx_tools_common.rich_gadgets import RichLabel
-from rich.text import Text
-from rich.columns import Columns
-import itertools
-from datetime import datetime
-from pathlib import Path
 
 
 class MissionRunner:
@@ -35,6 +31,7 @@ class MissionRunner:
         self._task_description: str = self.mission.name
         self._task_completed: float = 0
         self._task_total: float | None = None
+        self._task_speed:float = 0
 
         self._cancel_event = asyncio.Event()
         # self._canceled = False
@@ -45,7 +42,7 @@ class MissionRunner:
         self._ffmpeg_outputs = []
 
     def cancel(self):
-        self._canceled = True
+        # self._canceled = True
         self._cancel_event.set()
 
     @property
@@ -67,6 +64,10 @@ class MissionRunner:
     @property
     def task_end_time(self):
         return self._end_time
+    
+    @property
+    def task_speed(self):
+        return self._task_speed
 
     def done(self):
         return self._start_time is not None and self._end_time is not None
@@ -79,7 +80,7 @@ class MissionRunner:
         r = Text.from_markup(right_side, justify="right", overflow="ignore")
         return Columns([misison_label, r], expand=True)
 
-    async def _on_started(self, *args):
+    async def _on_started(self):
         appenv.whisper(self.make_line_report("[yellow]开始[/]"))
 
     async def _on_progress_updated(self, c: CxTime, t: CxTime | None):
@@ -87,11 +88,13 @@ class MissionRunner:
         t_seconds = t.total_seconds if t else None
         self._task_completed = c_seconds
         self._task_total = t_seconds
+        self._task_speed = self._ffmpeg.coding_info.current_speed
 
     async def _on_finished(self):
         appenv.say(self.make_line_report("[green]完成[/]"))
 
     async def _on_terminated(self):
+        appenv.whisper(IndexedListPanel(self._ffmpeg_outputs, title="FFmpeg 输出"))
         appenv.say(self.make_line_report("[red]运行异常[/]"))
         await self._clean_up()
 
@@ -101,7 +104,6 @@ class MissionRunner:
         self._cancel_event.clear()
 
     async def _clean_up(self):
-        appenv.whisper(IndexedListPanel(self._ffmpeg_outputs, title="FFmpeg 输出"))
         self._ffmpeg_outputs.clear()
         safe_outputs = set(self._output_files) - set(self._input_files)
         deleting_files = set(filter(lambda x: x.exists(), safe_outputs))
@@ -110,7 +112,7 @@ class MissionRunner:
             appenv.add_garbage_files(*deleting_files)
 
     async def _on_verbose(self, line: str):
-        appenv.whisper(line)
+        # appenv.whisper(line)
         self._ffmpeg_outputs.append(line)
 
     async def _holding_cancel(self):
@@ -122,16 +124,16 @@ class MissionRunner:
         async with self._running_cond:
             self._start_time = datetime.now()
 
-            conflits = set(self._input_files) & set(self._output_files)
-            if len(conflits) > 0:
+            conflicts = set(self._input_files) & set(self._output_files)
+            if len(conflicts) > 0:
                 appenv.say(self.make_line_report(f"[red]检测到重叠的输入输出文件[/]"))
-                appenv.whisper(IndexedListPanel(conflits, title="重叠文件"))
+                appenv.whisper(IndexedListPanel(conflicts, title="重叠文件"))
                 await self._on_canceled()
                 return
 
             if not PathUtils.is_executable(Path(self._ffmpeg.executable)):
                 appenv.say(self.make_line_report(f"[red]ffmpeg可执行文件无效[/]"))
-                appenv.whisper(self._ffmpeg.executable)
+                appenv.whisper("{}不存在或不可运行".format(self._ffmpeg.executable))
                 await self._on_canceled()
                 return
 
@@ -166,8 +168,6 @@ class MissionRunner:
             self._ffmpeg.add_listener("terminated", self._on_terminated)
             self._ffmpeg.add_listener("verbose", self._on_verbose)
 
-            ffmpeg_outputs = []
-
             try:
                 async with asyncio.TaskGroup() as task_group:
                     cancel_task = task_group.create_task(self._holding_cancel())
@@ -183,12 +183,6 @@ class MissionRunner:
                 self._end_time = datetime.now()
                 await self._ffmpeg.wait_for_complete()
                 result = main_task.result()
-                # if not result:
-                #     appenv.whisper(
-                #         IndexedListPanel(
-                #             ffmpeg_outputs, title="FFMPEG 输出", max_lines=1000
-                #         )
-                #     )
                 return result
 
         # running condition

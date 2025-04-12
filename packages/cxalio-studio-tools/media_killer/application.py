@@ -5,21 +5,12 @@ import sys
 from collections.abc import Sequence
 from pathlib import Path
 from typing import override
-from unittest import runner
 
-
-from cx_studio.core.cx_time import CxTime
 from cx_studio.utils import PathUtils
 from cx_tools_common.app_interface import IApplication
 from cx_tools_common.exception import SafeError
-from cx_tools_common.rich_gadgets import DynamicColumns
-from cx_tools_common.rich_gadgets import (
-    IndexedListPanel,
-)
-from cx_tools_common.rich_gadgets import RichDetailPanel
-
+from cx_wealth import DynamicColumns, IndexedListPanel, RichDetailPanel
 from media_killer.components.mission_master import MissionMaster
-from .components.mission_runner import MissionRunner
 from .appenv import appenv
 from .components import (
     InputScanner,
@@ -28,7 +19,6 @@ from .components import (
 )
 from .components import Mission
 from .components import Preset
-from cx_studio.ffmpeg import FFmpegAsync, FFmpegCodingInfo
 
 
 class Application(IApplication):
@@ -143,5 +133,5 @@ class Application(IApplication):
         )
         self._sort_and_set_missions(missions)
 
-        mm = MissionMaster(self.missions,2)
+        mm = MissionMaster(self.missions, 2)
         asyncio.run(mm.run())

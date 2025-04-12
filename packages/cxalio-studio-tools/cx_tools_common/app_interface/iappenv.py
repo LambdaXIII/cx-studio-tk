@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 from rich.console import Console
 
-from cx_studio.utils import DoubleTrigger
+from cx_studio.utils.tools import DoubleTrigger
 import asyncio
 
 
@@ -30,7 +30,7 @@ class IAppEnvironment(ABC):
             # self.really_wanna_quit = True
             self.really_wanna_quit_event.set()
             
-    def handle_interrupt(self, sig, frame):
+    def handle_interrupt(self, _sig, _frame):
         self.interrupt_handler.trigger()
 
     @abstractmethod

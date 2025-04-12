@@ -1,6 +1,6 @@
 from rich.progress import Progress, TaskID
+
 from cx_studio.utils import TextUtils
-import asyncio
 
 
 class ProgressTaskAgent:
@@ -59,7 +59,7 @@ class ProgressTaskAgent:
 
     def update(
         self,
-        *args,
+        *_args,
         total: float | None = None,
         completed: float | None = None,
         advance: float | None = None,
@@ -71,7 +71,7 @@ class ProgressTaskAgent:
         if self._progress and self._task_id:
             self._progress.update(
                 self._task_id,
-                *args,
+                *_args,
                 total=total,
                 completed=completed,
                 advance=advance,
