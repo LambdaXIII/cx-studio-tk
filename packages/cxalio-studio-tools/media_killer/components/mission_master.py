@@ -1,6 +1,8 @@
 import asyncio
 from collections.abc import Iterable
 from dataclasses import dataclass
+from turtle import pen
+from unittest import runner
 
 from cx_studio.utils.tools.job_counter import JobCounter
 import ulid
@@ -38,6 +40,7 @@ class MissionMaster:
         self._cancel_one = AsyncCanceller()
         self._cancel_all_event = asyncio.Event()
 
+
     async def _build_mission_info(self, index):
         mission = self._missions[index]
         ffmpeg = FFmpegAsync(mission.preset.ffmpeg)
@@ -72,27 +75,33 @@ class MissionMaster:
             t = asyncio.create_task(runner.execute())
 
             appenv.progress.start_task(mission_info.task_id)
+            try:
+                while not t.done():
+                    wanna_quit = await self._cancel_one.is_cancelling_async()
+                    if wanna_quit or self._cancel_all_event.is_set():
+                        runner.cancel()
+                        break
+                    await asyncio.sleep(0.1)
 
-            while not t.done():
-                wanna_quit = await self._cancel_one.is_cancelling_async()
-                if wanna_quit or self._cancel_all_event.is_set():
-                    runner.cancel()
-                    break
-                await asyncio.sleep(0.1)
+                # await t
 
-            # await t
+            except asyncio.CancelledError:
+                runner.cancel()
+                raise
+            finally:
+                appenv.progress.stop_task(mission_info.task_id)
+                if appenv.context.pretending_mode:
+                    await asyncio.sleep(1)
 
-            appenv.progress.stop_task(mission_info.task_id)
 
-            if appenv.context.pretending_mode:
-                await asyncio.sleep(1)
 
     async def _scan_tasks(self) -> tuple[float, float, float, float]:
         t_total = t_completed = t_current = 0
         done_count = 0
+        total_start_time = datetime.now()
 
         async with self._info_lock:
-            infos = self._mission_infos
+            infos = self._mission_infos.copy()
 
         infos_length = len(infos)
         jobs = JobCounter(infos_length, start=0)
@@ -103,6 +112,10 @@ class MissionMaster:
 
             if not info.runner:
                 continue
+            
+            runner_start = info.runner.task_start_time
+            if runner_start is not None and runner_start < total_start_time:
+                total_start_time = runner_start
 
             if info.runner.is_running():
                 desc_str = "[bright_black][{}] [{:.2f}x][/] [yellow]{}[/]".format(
@@ -126,6 +139,23 @@ class MissionMaster:
                 if info.runner.done():
                     done_count += 1
                     t_completed += info.runner.task_completed
+
+        speed = (
+            t_completed
+            / (datetime.now() - total_start_time).total_seconds()
+        )
+        desc_str = (
+            "[bright_black][{:.2f}x][/] [blue]总体进度[/]".format(
+                speed
+            )
+        )
+
+        appenv.progress.update(
+            self._total_task,
+            completed=t_completed,
+            total=t_total,
+            description=desc_str,
+        )
         return t_completed + t_current, t_total, done_count, infos_length
 
     @staticmethod
@@ -150,54 +180,34 @@ class MissionMaster:
                     appenv.progress.update(self._total_task, description=mission.name)
                     await self._build_mission_info(index)
 
-                async with asyncio.TaskGroup() as task_group:
-                    workers = [
-                        task_group.create_task(self._run_mission(x))
-                        for x in self._mission_infos
-                    ]
 
-                    while not all(x.done() for x in workers):
-                        if appenv.wanna_quit_event.is_set():
-                            self._cancel_one.cancel()
-                            appenv.wanna_quit_event.clear()
+                workers = [
+                    asyncio.create_task(self._run_mission(x))
+                    for x in self._mission_infos
+                ]
 
-                        if appenv.really_wanna_quit_event.is_set():
-                            self._cancel_all_event.set()
+                while not all(x.done() for x in workers):
+                    if appenv.wanna_quit_event.is_set():
+                        self._cancel_one.cancel()
+                        appenv.wanna_quit_event.clear()
 
-                        if self._cancel_all_event.is_set():
-                            # for w in workers:
-                            #     w.cancel()
-                            task_group.create_task(self._poison_task())
-                            break
+                    if appenv.really_wanna_quit_event.is_set():
+                        self._cancel_all_event.set()
+                        for t in workers:
+                            t.cancel()
+                        done,pending = await asyncio.wait(workers, return_when=asyncio.ALL_COMPLETED)
+                        for p in pending:
+                            p.cancel()
+                        await asyncio.sleep(1)
+                        break;
 
-                        t_completed, t_total, t_count, d_count = (
-                            await self._scan_tasks()
-                        )
+                    
+                    await self._scan_tasks()
+                    await asyncio.sleep(0.1)
+                # while checking
 
-                        speed = (
-                            t_completed
-                            / (datetime.now() - total_start_time).total_seconds()
-                        )
-                        desc_str = (
-                            "[bright_black][{:.2f}x][/] [blue]总体进度[/]".format(
-                                speed
-                            )
-                        )
+                asyncio.gather(*workers,return_exceptions=True)
 
-                        appenv.progress.update(
-                            self._total_task,
-                            completed=t_completed,
-                            total=t_total,
-                            description=desc_str,
-                        )
-
-                        # if t_count == d_count:
-                        #     break
-
-                        await asyncio.sleep(0.1)
-                    # while checking
-
-                    # await asyncio.wait(workers)
                 # taskgroup
             # running Condition
         except* PoisonError:

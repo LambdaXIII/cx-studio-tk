@@ -115,10 +115,10 @@ class MissionRunner:
         # appenv.whisper(line)
         self._ffmpeg_outputs.append(line)
 
-    async def _holding_cancel(self):
-        await self._cancel_event.wait()
-        self._ffmpeg.cancel()
-        self._cancel_event.clear()
+    # async def _holding_cancel(self):
+    #     await self._cancel_event.wait()
+    #     self._ffmpeg.cancel()
+    #     self._cancel_event.clear()
 
     async def execute(self):
         async with self._running_cond:
@@ -169,15 +169,21 @@ class MissionRunner:
             self._ffmpeg.add_listener("verbose", self._on_verbose)
 
             try:
-                async with asyncio.TaskGroup() as task_group:
-                    cancel_task = task_group.create_task(self._holding_cancel())
-                    main_task = task_group.create_task(
-                        self._ffmpeg.execute(self.mission.iter_arguments())
-                    )
-                    await main_task
-                    if not cancel_task.done():
-                        cancel_task.cancel()
-                        await cancel_task
+                # cancel_task = asyncio.create_task(self._holding_cancel())
+                main_task = asyncio.create_task(
+                    self._ffmpeg.execute(self.mission.iter_arguments())
+                )
+                
+                while not main_task.done():
+                    await asyncio.sleep(0.1)
+                    if self._cancel_event.is_set():
+                        # cancel_task.cancel()
+                        self._ffmpeg.cancel()
+                        self._cancel_event.clear()
+                        break
+
+                await asyncio.wait([main_task])
+
             finally:
                 # async with self._cancelling_cond:
                 self._end_time = datetime.now()
