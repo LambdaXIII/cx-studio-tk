@@ -45,29 +45,28 @@ class MissionMaster:
         self._cancel_all_event = asyncio.Event()
 
     async def _build_mission_info(self, mission: Mission):
-        async with self._semaphore:
-            mission_info = MissionMaster.MInfo(
-                mission_id=mission.mission_id,
-                task_id=appenv.progress.add_task(
-                    mission.name, total=None, visible=False, start=False
-                ),
-            )
-            # mission_info.description = mission.name
-            ffmpeg = FFmpegAsync(mission.preset.ffmpeg)
-            basic_info = await ffmpeg.get_basic_info(mission.source)
-            mission_info.total = (
-                basic_info["duration"].total_seconds
-                if "duraiton" in basic_info
-                else None
-            )
+        # async with self._semaphore:
+        
+        # mission_info.description = mission.name
+        ffmpeg = FFmpegAsync(mission.preset.ffmpeg)
+        basic_info = await ffmpeg.get_basic_info(mission.source)
+        duration = basic_info.get("duration")
+        mission_info = MissionMaster.MInfo(
+            mission_id=mission.mission_id,
+            task_id=appenv.progress.add_task(
+                mission.name, total=None, visible=False, start=False
+            ),
+            total = duration.total_seconds if duration else None
+        )
 
-            async with self._info_lock:
-                self._mission_infos[mission.mission_id] = mission_info
+        async with self._info_lock:
+            self._mission_infos[mission.mission_id] = mission_info
 
-            if appenv.context.pretending_mode:
-                await asyncio.sleep(0.2)
+        if appenv.context.pretending_mode:
+            await asyncio.sleep(0.2)
 
     async def _run_mission(self, mission: Mission):
+        appenv.say(f"开始执行任务{mission.name}")
         async with self._semaphore:
             wanna_quit = False
 
@@ -77,20 +76,25 @@ class MissionMaster:
             t = asyncio.create_task(runner.execute())
             appenv.progress.start_task(self._mission_infos[mission.mission_id].task_id)
             while not t.done():
-                wanna_quit = await self._cancel_one.is_cancelling()
+                wanna_quit = await self._cancel_one.is_cancelling_async()
                 if wanna_quit or self._cancel_all_event.is_set():
                     runner.cancel()
                     break
-
-                # await asyncio.sleep(0.1)
+                await asyncio.sleep(0.1)
             await t
             appenv.progress.stop_task(self._mission_infos[mission.mission_id].task_id)
+            if appenv.context.pretending_mode:
+                await asyncio.sleep(2)
 
     async def _scan_tasks(self) -> tuple[float, float, float, float]:
         t_total = t_completed = t_current = 0
         total_count = done_count = 0
 
-        for info in self._mission_infos.values():
+        async with self._info_lock:
+            infos = self._mission_infos.values()
+
+        for info in infos:
+            # appenv.say(info)
             total_count += 1
             t_total += info.total or 1
             if not info.runner:
@@ -109,7 +113,7 @@ class MissionMaster:
                     info.total = info.runner.task_total
                 t_current += info.runner.task_completed
             else:
-                appenv.progress.update(info.task_id, visible=False, start=False)
+                appenv.progress.update(info.task_id, visible=False)
                 if info.runner.done():
                     done_count += 1
                     t_completed += info.runner.task_completed
@@ -140,17 +144,20 @@ class MissionMaster:
                     ]
 
                     while not all(x.done() for x in workers):
+                        appenv.say(len(workers))
                         if appenv.wanna_quit_event.is_set():
                             self._cancel_one.cancel()
                             appenv.wanna_quit_event.clear()
 
                         if appenv.really_wanna_quit_event.is_set():
-                            # self._cancel_all_event.set()
-                        # if self._cancel_all_event.is_set():
+                            self._cancel_all_event.set()
+
+                        if self._cancel_all_event.is_set():
                             task_group.create_task(self._poison_task())
                             break
 
                         t_completed, t_total, t_count, d_count = await self._scan_tasks()
+                        appenv.say(t_completed, t_total, t_count, d_count)
 
                         appenv.progress.update(
                             self._total_task,
@@ -159,8 +166,8 @@ class MissionMaster:
                             description="总体进度",
                         )
 
-                        if t_count == d_count:
-                            break
+                        # if t_count == d_count:
+                        #     break
 
                         await asyncio.sleep(0.1)
                     # while checking

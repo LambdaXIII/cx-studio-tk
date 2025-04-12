@@ -110,11 +110,13 @@ class MissionRunner:
             appenv.add_garbage_files(*deleting_files)
 
     async def _on_verbose(self, line: str):
+        appenv.whisper(line)
         self._ffmpeg_outputs.append(line)
 
     async def _holding_cancel(self):
         await self._cancel_event.wait()
         self._ffmpeg.cancel()
+        self._cancel_event.clear()
 
     async def execute(self):
         async with self._running_cond:

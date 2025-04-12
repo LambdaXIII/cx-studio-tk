@@ -143,5 +143,5 @@ class Application(IApplication):
         )
         self._sort_and_set_missions(missions)
 
-        mm = MissionMaster(self.missions,1)
+        mm = MissionMaster(self.missions,2)
         asyncio.run(mm.run())

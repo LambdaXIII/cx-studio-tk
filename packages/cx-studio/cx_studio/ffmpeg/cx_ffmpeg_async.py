@@ -98,8 +98,8 @@ class FFmpegAsync(AsyncIOEventEmitter):
                     if not task_cancel.done():
                         task_cancel.cancel()
             except asyncio.CancelledError:
-                # self.cancel()
-                pass
+                self.cancel()
+                # pass
             finally:
                 await self._process.wait()
                 result = self._process.returncode==0
