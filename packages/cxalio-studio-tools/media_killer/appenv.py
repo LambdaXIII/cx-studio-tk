@@ -48,8 +48,8 @@ class AppEnv(IAppEnvironment):
         if self.context.pretending_mode:
             await asyncio.sleep(interval)
 
-    def add_garbage_files(self, *filenames: str|Path):
-        self._garbage_files.extend(map(Path,filenames))
+    def add_garbage_files(self, *filenames: str | Path):
+        self._garbage_files.extend(map(Path, filenames))
 
     def show_banner(self, console=None):
         with importlib.resources.open_text("media_killer", "banner.txt") as banner:

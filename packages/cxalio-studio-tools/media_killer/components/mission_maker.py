@@ -4,14 +4,11 @@ import threading
 from collections.abc import Sequence, Generator, Iterable
 from pathlib import Path
 
-from cx_wealth import (
-    RichLabel,
-    IndexedListPanel
-)
-from cx_tools_common.app_interface import ProgressTaskAgent
 from rich.columns import Columns
 from rich.text import Text
 
+from cx_tools_common.app_interface import ProgressTaskAgent
+from cx_wealth import RichLabel, IndexedListPanel
 from .argument_group import ArgumentGroup
 from .mission import Mission
 from .preset import Preset
@@ -88,11 +85,10 @@ class MissionMaker:
                 if appenv.wanna_quit_event.is_set():
                     wanna_quit = True
                     appenv.wanna_quit_event.clear()
-                
+
                 m = self.make_mission(ss)
                 appenv.pretending_sleep(0.05)
                 yield m
-                
 
     @staticmethod
     async def auto_make_missions(
@@ -100,7 +96,9 @@ class MissionMaker:
     ) -> list[Mission]:
         # missions = []
 
-        async def work(_preset: Preset, _sources: Iterable[str | Path]) -> list[Mission]:
+        async def work(
+            _preset: Preset, _sources: Iterable[str | Path]
+        ) -> list[Mission]:
             result = []
             appenv.whisper("开始为预设<{}>扫描源文件并创建任务…".format(_preset.name))
             async with ProgressTaskAgent(

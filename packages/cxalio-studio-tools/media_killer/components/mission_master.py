@@ -1,19 +1,16 @@
 import asyncio
 from collections.abc import Iterable
 from dataclasses import dataclass
-from turtle import pen
-from unittest import runner
+from datetime import datetime
 
-from cx_studio.utils.tools.job_counter import JobCounter
-import ulid
 from rich.progress import TaskID
 
 from cx_studio.ffmpeg import FFmpegAsync
 from cx_studio.utils.tools import AsyncCanceller
+from cx_studio.utils.tools.job_counter import JobCounter
 from .mission import Mission
 from .mission_runner import MissionRunner
 from ..appenv import appenv
-from datetime import datetime
 
 
 class PoisonError(Exception):
@@ -39,7 +36,6 @@ class MissionMaster:
 
         self._cancel_one = AsyncCanceller()
         self._cancel_all_event = asyncio.Event()
-
 
     async def _build_mission_info(self, index):
         mission = self._missions[index]
@@ -87,35 +83,32 @@ class MissionMaster:
 
             except asyncio.CancelledError:
                 runner.cancel()
-                raise
+                # raise
             finally:
                 appenv.progress.stop_task(mission_info.task_id)
                 if appenv.context.pretending_mode:
                     await asyncio.sleep(1)
 
-
-
-    async def _scan_tasks(self) -> tuple[float, float, float, float]:
-        t_total = t_completed = t_current = 0
-        done_count = 0
-        total_start_time = datetime.now()
+    async def _update_tasks(self):
+        mission_count = len(self._missions)
+        total_time = completed_time = 0
+        start_time = datetime.now()
 
         async with self._info_lock:
             infos = self._mission_infos.copy()
 
-        infos_length = len(infos)
-        jobs = JobCounter(infos_length, start=0)
+        jobs = JobCounter(mission_count)
+
         for index, info in infos.items():
             jobs.current = index
-
-            t_total += info.total or 1
+            total_time += info.total or 1
 
             if not info.runner:
                 continue
-            
-            runner_start = info.runner.task_start_time
-            if runner_start is not None and runner_start < total_start_time:
-                total_start_time = runner_start
+
+            runner_start_time = info.runner.task_start_time
+            if runner_start_time is not None and runner_start_time < start_time:
+                start_time = runner_start_time
 
             if info.runner.is_running():
                 desc_str = "[bright_black][{}] [{:.2f}x][/] [yellow]{}[/]".format(
@@ -130,33 +123,84 @@ class MissionMaster:
                     total=info.runner.task_total,
                 )
 
-                if info.total is None:
-                    info.total = info.runner.task_total
-
-                t_current += info.runner.task_completed
+                completed_time += info.runner.task_completed
             else:
                 appenv.progress.update(info.task_id, visible=False)
                 if info.runner.done():
-                    done_count += 1
-                    t_completed += info.runner.task_completed
-
-        speed = (
-            t_completed
-            / (datetime.now() - total_start_time).total_seconds()
-        )
-        desc_str = (
-            "[bright_black][{:.2f}x][/] [blue]总体进度[/]".format(
-                speed
-            )
-        )
+                    completed_time += info.runner.task_total or 1
+        # for
+        speed = completed_time / (datetime.now() - start_time).total_seconds()
+        desc_str = "[bright_black][{:.2f}x][/] [blue]总体进度[/]".format(speed)
 
         appenv.progress.update(
             self._total_task,
-            completed=t_completed,
-            total=t_total,
+            completed=completed_time,
+            total=total_time,
             description=desc_str,
         )
-        return t_completed + t_current, t_total, done_count, infos_length
+
+    # async def _scan_tasks(self) -> tuple[float, float, float, float]:
+    #     t_total = t_completed = t_current = 0
+    #     done_count = 0
+    #     total_start_time = datetime.now()
+
+    #     async with self._info_lock:
+    #         infos = self._mission_infos.copy()
+
+    #     infos_length = len(infos)
+    #     jobs = JobCounter(infos_length, start=0)
+    #     for index, info in infos.items():
+    #         jobs.current = index
+
+    #         t_total += info.total or 1
+
+    #         if not info.runner:
+    #             continue
+
+    #         runner_start = info.runner.task_start_time
+    #         if runner_start is not None and runner_start < total_start_time:
+    #             total_start_time = runner_start
+
+    #         if info.runner.is_running():
+    #             desc_str = "[bright_black][{}] [{:.2f}x][/] [yellow]{}[/]".format(
+    #                 jobs.format(), info.runner.task_speed, info.runner.task_description
+    #             )
+
+    #             appenv.progress.update(
+    #                 info.task_id,
+    #                 visible=True,
+    #                 description=desc_str,
+    #                 completed=info.runner.task_completed,
+    #                 total=info.runner.task_total,
+    #             )
+
+    #             if info.total is None:
+    #                 info.total = info.runner.task_total
+
+    #             t_current += info.runner.task_completed
+    #         else:
+    #             appenv.progress.update(info.task_id, visible=False)
+    #             if info.runner.done():
+    #                 done_count += 1
+    #                 t_completed += info.runner.task_completed
+
+    #     speed = (
+    #         t_completed
+    #         / (datetime.now() - total_start_time).total_seconds()
+    #     )
+    #     desc_str = (
+    #         "[bright_black][{:.2f}x][/] [blue]总体进度[/]".format(
+    #             speed
+    #         )
+    #     )
+
+    #     appenv.progress.update(
+    #         self._total_task,
+    #         completed=t_completed,
+    #         total=t_total,
+    #         description=desc_str,
+    #     )
+    #     return t_completed + t_current, t_total, done_count, infos_length
 
     @staticmethod
     async def _poison_task():
@@ -180,7 +224,6 @@ class MissionMaster:
                     appenv.progress.update(self._total_task, description=mission.name)
                     await self._build_mission_info(index)
 
-
                 workers = [
                     asyncio.create_task(self._run_mission(x))
                     for x in self._mission_infos
@@ -195,18 +238,19 @@ class MissionMaster:
                         self._cancel_all_event.set()
                         for t in workers:
                             t.cancel()
-                        done,pending = await asyncio.wait(workers, return_when=asyncio.ALL_COMPLETED)
+                        done, pending = await asyncio.wait(
+                            workers, return_when=asyncio.ALL_COMPLETED
+                        )
                         for p in pending:
                             p.cancel()
                         await asyncio.sleep(1)
-                        break;
+                        break
 
-                    
-                    await self._scan_tasks()
+                    await self._update_tasks()
                     await asyncio.sleep(0.1)
                 # while checking
 
-                asyncio.gather(*workers,return_exceptions=True)
+                asyncio.gather(*workers, return_exceptions=True)
 
                 # taskgroup
             # running Condition

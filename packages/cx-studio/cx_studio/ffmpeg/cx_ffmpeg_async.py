@@ -60,23 +60,14 @@ class FFmpegAsync(AsyncIOEventEmitter):
 
     def cancel(self):
         self._cancel_event.set()
-        if self._process and self._process.returncode is None:
-            try:
-                self._process.kill()  # 直接 kill 进程
-            except ProcessLookupError:
-                pass    
-        # await asyncio.wait_for(self._process.communicate(b"q"),5)
-
-    # async def _hold_cancel(self):
-    #     await self._cancel_event.wait()
-    #     self._canceled = True
-    #     sigterm = signal.SIGTERM if sys.platform != "win32" else signal.CTRL_BREAK_EVENT
-    #     self._process.send_signal(sigterm)
-    #     try:
-    #         await asyncio.wait_for(self._process.wait(), 4)
-    #     except asyncio.TimeoutError:
-    #         self._process.terminate()
-    #     self._cancel_event.clear()
+        
+    async def terminate(self):
+        sigterm = signal.SIGTERM if sys.platform != "win32" else signal.CTRL_BREAK_EVENT
+        self._process.send_signal(sigterm)
+        try:
+            await asyncio.wait_for(self._process.wait(), 4)
+        except asyncio.TimeoutError:
+            self._process.terminate()
 
     async def _redirect_input(self, input_stream: asyncio.StreamReader|bytes|None):
         input_stream = AsyncStreamUtils.wrap_io(input_stream)
@@ -106,7 +97,6 @@ class FFmpegAsync(AsyncIOEventEmitter):
             i_stream = AsyncStreamUtils.wrap_io(input_stream)
 
             try:
-                # cancel_task = asyncio.create_task(self._hold_cancel())
                 main_task = asyncio.create_task(self._handle_stderr())
                 tasks = [main_task]
                 if input_stream and self._process.stdin:
@@ -125,28 +115,12 @@ class FFmpegAsync(AsyncIOEventEmitter):
                             self._process.terminate()
                         self._cancel_event.clear()
                     await asyncio.sleep(0.1)
-
-
                 await asyncio.wait(tasks)
 
-                # if not cancel_task.done():
-                #     cancel_task.cancel()
+            except asyncio.CancelledError:
+                # self._canceled = True
+                self.cancel()
 
-                # await asyncio.sleep(0.1)
-
-                # await asyncio.wait(tasks)
-
-                # async with asyncio.TaskGroup() as tg:
-                #     task_main = tg.create_task(self._handle_stderr())
-                #     task_cancel = tg.create_task(self._hold_cancel())
-                #     if self._process.stdin:
-                #         task_redirect = tg.create_task(AsyncStreamUtils.redirect_stream(i_stream,self._process.stdin))
-                #     await task_main
-                #     if not task_cancel.done():
-                #         task_cancel.cancel()
-            # except asyncio.CancelledError:
-            #     self.cancel()
-            # pass
             finally:
                 await self._process.wait()
                 result = self._process.returncode == 0

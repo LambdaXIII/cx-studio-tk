@@ -3,19 +3,19 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 import ulid
-from cx_wealth import RichLabel
 from rich.columns import Columns
 from rich.text import Text
 
 from cx_studio.utils import FunctionalUtils
 from cx_studio.utils import PathUtils
+from cx_wealth import RichLabel
 from .argument_group import ArgumentGroup
 from .preset import Preset
 
 
 @dataclass(frozen=True)
 class Mission:
-    mission_id:ulid.ULID = field(default_factory=ulid.new,kw_only=True)
+    mission_id: ulid.ULID = field(default_factory=ulid.new, kw_only=True)
     preset: Preset
     source: Path
     standard_target: Path

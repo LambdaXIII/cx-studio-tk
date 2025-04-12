@@ -1,9 +1,9 @@
+import asyncio
 from abc import ABC, abstractmethod
 
 from rich.console import Console
 
 from cx_studio.utils.tools import DoubleTrigger
-import asyncio
 
 
 class IAppEnvironment(ABC):

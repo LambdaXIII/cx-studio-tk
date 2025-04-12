@@ -4,14 +4,13 @@ import os
 from datetime import datetime
 from pathlib import Path
 
-from cx_tools_common.app_interface import ProgressTaskAgent
-from cx_wealth import RichLabel
 from rich.columns import Columns
 from rich.text import Text
 
 from cx_studio.core.cx_time import CxTime
 from cx_studio.ffmpeg import FFmpegAsync
 from cx_studio.utils import PathUtils
+from cx_wealth import RichLabel
 from cx_wealth.indexed_list_panel import IndexedListPanel
 from media_killer.appenv import appenv
 from .mission import Mission
@@ -31,11 +30,10 @@ class MissionRunner:
         self._task_description: str = self.mission.name
         self._task_completed: float = 0
         self._task_total: float | None = None
-        self._task_speed:float = 0
+        self._task_speed: float = 0
 
         self._cancel_event = asyncio.Event()
-        # self._canceled = False
-        # self._cancelling_cond = asyncio.Condition()
+
         self._start_time: datetime | None = None
         self._end_time: datetime | None = None
         self._running_cond = asyncio.Condition()
@@ -64,7 +62,7 @@ class MissionRunner:
     @property
     def task_end_time(self):
         return self._end_time
-    
+
     @property
     def task_speed(self):
         return self._task_speed
@@ -115,11 +113,6 @@ class MissionRunner:
         # appenv.whisper(line)
         self._ffmpeg_outputs.append(line)
 
-    # async def _holding_cancel(self):
-    #     await self._cancel_event.wait()
-    #     self._ffmpeg.cancel()
-    #     self._cancel_event.clear()
-
     async def execute(self):
         async with self._running_cond:
             self._start_time = datetime.now()
@@ -169,23 +162,25 @@ class MissionRunner:
             self._ffmpeg.add_listener("verbose", self._on_verbose)
 
             try:
-                # cancel_task = asyncio.create_task(self._holding_cancel())
                 main_task = asyncio.create_task(
                     self._ffmpeg.execute(self.mission.iter_arguments())
                 )
-                
+
                 while not main_task.done():
                     await asyncio.sleep(0.1)
                     if self._cancel_event.is_set():
-                        # cancel_task.cancel()
                         self._ffmpeg.cancel()
                         self._cancel_event.clear()
                         break
 
-                await asyncio.wait([main_task])
+                # await asyncio.wait([main_task])
+
+            except asyncio.CancelledError:
+                self.cancel()
 
             finally:
                 # async with self._cancelling_cond:
+                await asyncio.wait([main_task])
                 self._end_time = datetime.now()
                 await self._ffmpeg.wait_for_complete()
                 result = main_task.result()
