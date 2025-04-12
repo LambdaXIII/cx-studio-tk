@@ -10,15 +10,14 @@ import signal,sys
 import re
 from cx_studio.core import CxTime, FileSize
 
-class FFmpegAsync(AsyncIOEventEmitter, BasicFFmpeg):
+class FFmpegAsync(AsyncIOEventEmitter):
     def __init__(
         self,
         ffmpeg_executable: str | Path | None = None,
-        arguments: Iterable[str] | None = None,
+        
     ):
         super().__init__()
         self._executable: str = str(CmdFinder.which(ffmpeg_executable or "ffmpeg"))
-        self._arguments = list(arguments or [])
         self._coding_info = FFmpegCodingInfo()
 
         self._is_running = asyncio.Condition()
@@ -58,34 +57,42 @@ class FFmpegAsync(AsyncIOEventEmitter, BasicFFmpeg):
             await self._process.wait()
         self._cancel_event.clear()
 
-    async def execute(self) -> bool:
+    async def execute(self,arguments: Iterable[str] | None = None, input_stream:asyncio.StreamReader|bytes|None = None) -> bool:
+        args = list(arguments or [])
         self._cancel_event.clear()
         async with self._is_running:
             self._process = await AsyncStreamUtils.create_subprocess(
                 self._executable,
-                *self.iter_arguments(),
-                stdin=asyncio.subprocess.PIPE,
+                *args,
+                stdin=asyncio.subprocess.PIPE if input_stream else None,
                 # stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
             )
 
             self.emit("started")
-            canceled = False
+
+            i_stream = AsyncStreamUtils.wrap_io(input_stream)
 
             try:
+                
                 async with asyncio.TaskGroup() as tg:
-                    tg.create_task(self._handle_stderr())
-                    tg.create_task(self._hold_cancel())
+                    task_main = tg.create_task(self._handle_stderr())
+                    task_cancel = tg.create_task(self._hold_cancel())
+                    if self._process.stdin:
+                        task_redirect = tg.create_task(AsyncStreamUtils.redirect_stream(i_stream,self._process.stdin))
+                    await task_main
+                    if not task_cancel.done():
+                        task_cancel.cancel()
             except asyncio.CancelledError:
                 # self.cancel()
                 pass
             finally:
                 await self._process.wait()
-                result = self._process.returncode==0 and not canceled
-                if canceled:
+                result = self._process.returncode==0
+                if result is False:
                     self.emit("canceled")
                 else:
-                    self.emit("finished",result)
+                    self.emit("finished")
                 return result
         #running condition
             

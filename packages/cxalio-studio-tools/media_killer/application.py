@@ -141,39 +141,40 @@ class Application(IApplication):
         )
         self._sort_and_set_missions(missions)
 
-        # mission_runner = MissionRunner(self.missions[0])
-        # mission_runner.run()
-
-        # async def work():
-        #     m = self.missions[0]
-        #     ffmpeg = FFmpegAsync(m.preset.ffmpeg, m.iter_arguments())
-        #     task_id = appenv.progress.add_task(m.name)
-
-        #     @ffmpeg.on("progress_updated")
-        #     async def progress(c: CxTime, t: CxTime | None):
-        #         cc = c.total_seconds
-        #         tt = t.total_seconds if t else None
-        #         appenv.progress.update(task_id, completed=cc, total=tt)
-
-        #     @ffmpeg.on("verbose")
-        #     async def verbose(line: str):
-        #         appenv.whisper(line)
-
-        #     async def check():
-        #         while ffmpeg.is_running():
-        #             appenv.say(appenv.wanna_quit)
-        #             if appenv.wanna_quit:
-        #                 ffmpeg.cancel()
-        #                 appenv.say("222222222222222222")
-        #                 break
-        #             await asyncio.sleep(0.1)
-
-        #     await asyncio.gather(asyncio.create_task(ffmpeg.execute()), check())
-        #     # return p_task.result()
-
-        # asyncio.run(work())
 
         for m in self.missions:
-            ffmpeg = FFmpegAsync(m.preset.ffmpeg, m.iter_arguments())
+            ffmpeg = FFmpegAsync(m.preset.ffmpeg)
             info = asyncio.run(ffmpeg.get_basic_info(m.source))
             appenv.whisper(RichDetailPanel(info, title="源文件信息"))
+
+        async def work():
+            m = self.missions[0]
+            ffmpeg = FFmpegAsync(m.preset.ffmpeg)
+            task_id = appenv.progress.add_task(m.name)
+
+            @ffmpeg.on("progress_updated")
+            async def progress(c: CxTime, t: CxTime | None):
+                cc = c.total_seconds
+                tt = t.total_seconds if t else None
+                appenv.progress.update(task_id, completed=cc, total=tt)
+
+            @ffmpeg.on("verbose")
+            async def verbose(line: str):
+                appenv.whisper(line)
+
+            async def check():
+                while ffmpeg.is_running():
+                    appenv.say(appenv.wanna_quit)
+                    if appenv.wanna_quit:
+                        ffmpeg.cancel()
+                        appenv.say("222222222222222222")
+                        break
+                    await asyncio.sleep(0.1)
+
+            p_task = asyncio.create_task(ffmpeg.execute(m.iter_arguments()))
+            await asyncio.gather(p_task,
+                                  check())
+            return p_task.result()
+
+        result = asyncio.run(work())
+        appenv.say(result)
