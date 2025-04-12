@@ -17,7 +17,7 @@ from cx_tools_common.rich_gadgets import (
     IndexedListPanel,
 )
 from cx_tools_common.rich_gadgets import RichDetailPanel
-from media_killer.components import mission, mission_manager
+
 from media_killer.components.mission_master import MissionMaster
 from .components.mission_runner import MissionRunner
 from .appenv import appenv
@@ -27,7 +27,7 @@ from .components import (
     MissionArranger,
 )
 from .components import Mission
-from .components import Preset, MissionManager
+from .components import Preset
 from cx_studio.ffmpeg import FFmpegAsync, FFmpegCodingInfo
 
 
@@ -143,11 +143,5 @@ class Application(IApplication):
         )
         self._sort_and_set_missions(missions)
 
-
-        for m in self.missions:
-            ffmpeg = FFmpegAsync(m.preset.ffmpeg)
-            info = asyncio.run(ffmpeg.get_basic_info(m.source))
-            appenv.whisper(RichDetailPanel(info, title="源文件信息"))
-
-        mm = MissionMaster(self.missions,3)
+        mm = MissionMaster(self.missions,1)
         asyncio.run(mm.run())

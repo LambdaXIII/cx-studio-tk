@@ -2,45 +2,15 @@ from collections.abc import Callable
 from datetime import datetime
 from functools import wraps
 from typing import Literal
+from pyee import EventEmitter
 
 
-class DoubleTrigger:
+class DoubleTrigger(EventEmitter):
 
     def __init__(self, delay: float = 3):
+        super().__init__()
         self._delay = delay
-        self._on_triggered = []
-        self._on_first_triggered = []
-        self._on_second_triggered = []
         self._last_time = None
-
-    def on(self, event: Literal["triggered", "first_triggered", "second_triggered"]):
-        def deco(func):
-            @wraps(func)
-            def wrapper(*args, **kwargs):
-                return func(*args, **kwargs)
-
-            if event == "triggered":
-                self._on_triggered.append(wrapper)
-            elif event == "first_triggered":
-                self._on_first_triggered.append(wrapper)
-            elif event == "second_triggered":
-                self._on_second_triggered.append(wrapper)
-            return wrapper
-
-        return deco
-
-    def install_trigger(
-        self,
-        event: Literal["triggered", "first_triggered", "second_triggered"],
-        func: Callable,
-    ):
-        if event == "triggered":
-            self._on_triggered.append(func)
-        elif event == "first_triggered":
-            self._on_first_triggered.append(func)
-        elif event == "second_triggered":
-            self._on_second_triggered.append(func)
-        return self
 
     @property
     def is_pending(self):
@@ -50,14 +20,11 @@ class DoubleTrigger:
         return span.seconds < self._delay
 
     def trigger(self):
-        for func in self._on_triggered:
-            func()
+        self.emit("triggered")
 
         if self.is_pending:
-            for func in self._on_second_triggered:
-                func()
+            self.emit("second_triggered")
         else:
-            for func in self._on_first_triggered:
-                func()
+            self.emit("first_triggered")
 
         self._last_time = datetime.now()

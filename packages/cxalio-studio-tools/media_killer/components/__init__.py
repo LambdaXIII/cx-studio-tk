@@ -7,4 +7,3 @@ from .mission_runner import MissionRunner
 from .preset import Preset
 from .source_expander import SourceExpander
 from .argument_group import ArgumentGroup
-from .mission_manager import MissionManager

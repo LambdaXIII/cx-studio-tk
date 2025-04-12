@@ -11,6 +11,7 @@ from cx_tools_common.path_prober import (
     TextProber,
 )
 from media_killer.appenv import appenv
+
 from .preset import Preset
 
 
@@ -54,7 +55,11 @@ class SourceExpander:
 
         expander = PathExpander(expander_start_info)
         for source in self._pre_expand(*paths):
-            if appenv.wanna_quit:
+            wanna_quit = False
+            if appenv.wanna_quit_event.is_set():
+                wanna_quit = True
+                appenv.wanna_quit_event.clear()
+            if wanna_quit:
                 appenv.whisper("接收到[bold]取消信号[/bold]，中断路径展开操作。")
                 break
             for p in expander.expand(source):

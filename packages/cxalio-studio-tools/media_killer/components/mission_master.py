@@ -1,7 +1,10 @@
 from tracemalloc import start
 from unittest import runner
+
+
 from .mission import Mission
 from cx_studio.core import CxTime, FileSize
+from cx_studio.utils import AsyncCanceller
 from cx_studio.ffmpeg import FFmpegAsync
 import asyncio
 from collections.abc import Iterable
@@ -37,7 +40,9 @@ class MissionMaster:
         self._info_lock = asyncio.Lock()
         self._running_cond = asyncio.Condition()
         self._total_task = appenv.progress.add_task("总进度")
-        # self._finished = asyncio.Event()
+        
+        self._cancel_one = AsyncCanceller()
+        self._cancel_all_event = asyncio.Event()
 
     async def _build_mission_info(self, mission: Mission):
         async with self._semaphore:
@@ -60,22 +65,24 @@ class MissionMaster:
                 self._mission_infos[mission.mission_id] = mission_info
 
             if appenv.context.pretending_mode:
-                await asyncio.sleep(0.5)
+                await asyncio.sleep(0.2)
 
     async def _run_mission(self, mission: Mission):
-        if appenv.wanna_quit:
-            return
         async with self._semaphore:
+            wanna_quit = False
+
             runner = MissionRunner(mission)
             async with self._info_lock:
                 self._mission_infos[mission.mission_id].runner = runner
             t = asyncio.create_task(runner.execute())
             appenv.progress.start_task(self._mission_infos[mission.mission_id].task_id)
             while not t.done():
-                if appenv.wanna_quit:
+                wanna_quit = await self._cancel_one.is_cancelling()
+                if wanna_quit or self._cancel_all_event.is_set():
                     runner.cancel()
                     break
-                await asyncio.sleep(0.1)
+
+                # await asyncio.sleep(0.1)
             await t
             appenv.progress.stop_task(self._mission_infos[mission.mission_id].task_id)
 
@@ -116,6 +123,7 @@ class MissionMaster:
         self,
     ):
         try:
+            self._cancel_all_event.clear()
             async with self._running_cond:
                 appenv.progress.update(
                     self._total_task, start=True, visible=True, total=len(self._missions)
@@ -132,24 +140,34 @@ class MissionMaster:
                     ]
 
                     while not all(x.done() for x in workers):
-                        if appenv.really_wanna_quit:
+                        if appenv.wanna_quit_event.is_set():
+                            self._cancel_one.cancel()
+                            appenv.wanna_quit_event.clear()
+
+                        if appenv.really_wanna_quit_event.is_set():
+                            # self._cancel_all_event.set()
+                        # if self._cancel_all_event.is_set():
                             task_group.create_task(self._poison_task())
                             break
+
                         t_completed, t_total, t_count, d_count = await self._scan_tasks()
+
                         appenv.progress.update(
                             self._total_task,
                             completed=t_completed,
                             total=t_total,
                             description="总体进度",
                         )
+
                         if t_count == d_count:
                             break
+
                         await asyncio.sleep(0.1)
                     # while checking
 
-                    await asyncio.wait(workers)
+                    # await asyncio.wait(workers)
                 # taskgroup
             # running Condition
         except *PoisonError:
-            appenv.say("所剩余任务被取消")
+            appenv.say("剩余任务被取消")
 
