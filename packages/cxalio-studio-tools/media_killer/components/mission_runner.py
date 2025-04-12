@@ -1,5 +1,6 @@
 import itertools
 import os
+from turtle import title
 from cx_studio.core.cx_time import CxTime
 from cx_studio.ffmpeg import FFmpegAsync
 from cx_studio.utils import PathUtils
@@ -41,6 +42,7 @@ class MissionRunner:
         self._start_time: datetime | None = None
         self._end_time: datetime | None = None
         self._running_cond = asyncio.Condition()
+        self._ffmpeg_outputs = []
 
     def cancel(self):
         self._canceled = True
@@ -99,11 +101,17 @@ class MissionRunner:
         self._cancel_event.clear()
 
     async def _clean_up(self):
+        appenv.whisper(IndexedListPanel(self._ffmpeg_outputs),title="FFmpeg 输出")
+        self._ffmpeg_outputs.clear()
         safe_outputs = set(self._output_files) - set(self._input_files)
         deleting_files = set(filter(lambda x: x.exists(), safe_outputs))
         if deleting_files:
             appenv.whisper(IndexedListPanel(deleting_files, title="未完成的目标文件"))
             appenv.add_garbage_files(*deleting_files)
+
+    async def _on_verbose(self,line:str):
+        self._ffmpeg_outputs.append(line)
+
         
 
     async def _holding_cancel(self):
@@ -156,12 +164,9 @@ class MissionRunner:
             self._ffmpeg.add_listener("finished", self._on_finished)
             self._ffmpeg.add_listener("canceled", self._on_canceled)
             self._ffmpeg.add_listener("terminated", self._on_terminated)
+            self._ffmpeg.add_listener("verbose",self._on_verbose)
 
             ffmpeg_outputs = []
-
-            @self._ffmpeg.on("verbose")
-            async def on_verbose(line: str):
-                ffmpeg_outputs.append(line)
 
             try:
                 async with asyncio.TaskGroup() as task_group:
@@ -178,12 +183,12 @@ class MissionRunner:
                 self._end_time = datetime.now()
                 await self._ffmpeg.wait_for_complete()
                 result = main_task.result()
-                if not result:
-                    appenv.whisper(
-                        IndexedListPanel(
-                            ffmpeg_outputs, title="FFMPEG 输出", max_lines=1000
-                        )
-                    )
+                # if not result:
+                #     appenv.whisper(
+                #         IndexedListPanel(
+                #             ffmpeg_outputs, title="FFMPEG 输出", max_lines=1000
+                #         )
+                #     )
                 return result
 
         # running condition
