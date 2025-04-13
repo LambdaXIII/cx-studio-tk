@@ -3,6 +3,7 @@ import itertools
 import os
 from datetime import datetime
 from pathlib import Path
+from pprint import saferepr
 
 from rich.columns import Columns
 from rich.text import Text
@@ -14,7 +15,7 @@ from cx_wealth import RichLabel
 from cx_wealth.indexed_list_panel import IndexedListPanel
 from media_killer.appenv import appenv
 from .mission import Mission
-
+from .exception import SafeError
 
 class MissionRunner:
     def __init__(self, mission: Mission):
@@ -96,10 +97,11 @@ class MissionRunner:
         appenv.say(self.make_line_report("[red]运行异常[/]"))
         await self._clean_up()
 
-    async def _on_canceled(self):
-        appenv.say(self.make_line_report("[bright_blue]被取消[/]"))
+    async def _on_canceled(self,reason:str|None = None):
+        appenv.say(self.make_line_report("[bright_blue]{}[/]".format(reason or "被取消")))
         await self._clean_up()
-        self._cancel_event.clear()
+        if self._cancel_event.is_set():
+            self._cancel_event.clear()      
 
     async def _clean_up(self):
         self._ffmpeg_outputs.clear()
@@ -110,7 +112,6 @@ class MissionRunner:
             appenv.add_garbage_files(*deleting_files)
 
     async def _on_verbose(self, line: str):
-        # appenv.whisper(line)
         self._ffmpeg_outputs.append(line)
 
     async def execute(self):
@@ -119,16 +120,17 @@ class MissionRunner:
 
             conflicts = set(self._input_files) & set(self._output_files)
             if len(conflicts) > 0:
-                appenv.say(self.make_line_report(f"[red]检测到重叠的输入输出文件[/]"))
-                appenv.whisper(IndexedListPanel(conflicts, title="重叠文件"))
-                await self._on_canceled()
-                return
+                appenv.whisper(IndexedListPanel(conflicts, title="发现重叠文件"))
+                raise SafeError("检测到重叠的输入输出文件")
+                
 
             if not PathUtils.is_executable(Path(self._ffmpeg.executable)):
-                appenv.say(self.make_line_report(f"[red]ffmpeg可执行文件无效[/]"))
-                appenv.whisper("{}不存在或不可运行".format(self._ffmpeg.executable))
-                await self._on_canceled()
-                return
+                raise SafeError("ffmpeg可执行文件无效:{}".format(self._ffmpeg.executable))
+            
+            no_existed_input_files = set(itertools.filterfalse(lambda x: x.exists(), self._input_files))
+            if no_existed_input_files:
+                raise SafeError("输入文件不存在: {}".format(';'.join(map(saferepr, no_existed_input_files))))
+                
 
             o_dirs = set(map(lambda x: x.parent, self._output_files))
             invalid_o_dirs = set(
@@ -138,10 +140,7 @@ class MissionRunner:
                 )
             )
             if invalid_o_dirs:
-                appenv.say(self.make_line_report(f"[red]输出目录无效[/]"))
-                appenv.whisper(IndexedListPanel(invalid_o_dirs, title="无效输出目录"))
-                await self._on_canceled()
-                return
+                raise SafeError("输出目录无效")
 
             non_existent_o_dirs = set(
                 itertools.filterfalse(lambda x: x.exists(), o_dirs)
@@ -151,7 +150,7 @@ class MissionRunner:
                 for x in non_existent_o_dirs:
                     x.mkdir(parents=True, exist_ok=True)
                 appenv.whisper(
-                    IndexedListPanel(non_existent_o_dirs, title="创建的目标文件夹")
+                    IndexedListPanel(non_existent_o_dirs, title="自动创建目标文件夹")
                 )
 
             self._ffmpeg.add_listener("started", self._on_started)
@@ -177,6 +176,9 @@ class MissionRunner:
 
             except asyncio.CancelledError:
                 self.cancel()
+
+            except SafeError as e:
+                await self._on_canceled(reason = e.message)
 
             finally:
                 # async with self._cancelling_cond:

@@ -8,7 +8,7 @@ from typing import override
 
 from cx_studio.utils import PathUtils
 from cx_tools_common.app_interface import IApplication
-from cx_tools_common.exception import SafeError
+from .components.exception import SafeError
 from cx_wealth import DynamicColumns, IndexedListPanel, RichDetailPanel
 from media_killer.components.mission_master import MissionMaster
 from .appenv import appenv
