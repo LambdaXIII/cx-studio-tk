@@ -133,5 +133,10 @@ class Application(IApplication):
         )
         self._sort_and_set_missions(missions)
 
+        if appenv.context.pretending_mode:
+            appenv.say(
+                "[dim]检测到[italic cyan]假装模式[/]，将不会真正执行任何操作。[/]"
+            )
+
         mm = MissionMaster(self.missions, 2)
         asyncio.run(mm.run())

@@ -9,7 +9,7 @@ from cx_studio.ffmpeg import FFmpegAsync
 from cx_studio.utils.tools import AsyncCanceller
 from cx_studio.utils.tools.job_counter import JobCounter
 from .mission import Mission
-from .mission_runner import MissionRunner
+from .mission_runner import MissionRunner, MissionPretender
 from ..appenv import appenv
 
 
@@ -54,7 +54,7 @@ class MissionMaster:
             self._mission_infos[index + 1] = mission_info
 
         if appenv.context.pretending_mode:
-            await asyncio.sleep(0.2)
+            await asyncio.sleep(0.1)
 
     async def _run_mission(self, index: int):
         async with self._semaphore:
@@ -63,7 +63,11 @@ class MissionMaster:
 
             mission_info = self._mission_infos[index]
             mission = mission_info.mission
-            runner = MissionRunner(mission)
+            runner = (
+                MissionPretender(mission)
+                if appenv.context.pretending_mode
+                else MissionRunner(mission)
+            )
 
             async with self._info_lock:
                 self._mission_infos[index].runner = runner
@@ -85,9 +89,9 @@ class MissionMaster:
                 runner.cancel()
                 # raise
             finally:
-                appenv.progress.stop_task(mission_info.task_id)
                 if appenv.context.pretending_mode:
-                    await asyncio.sleep(1)
+                    await asyncio.sleep(0.2)
+                appenv.progress.stop_task(mission_info.task_id)
 
     async def _update_tasks(self):
         mission_count = len(self._missions)
@@ -110,10 +114,10 @@ class MissionMaster:
             if runner_start_time is not None and runner_start_time < start_time:
                 start_time = runner_start_time
 
+            desc_str = "[bright_black][{}][{:.2f}x][/][yellow]{}[/]".format(
+                jobs.format(), info.runner.task_speed, info.runner.task_description
+            )
             if info.runner.is_running():
-                desc_str = "[bright_black][{}] [{:.2f}x][/] [yellow]{}[/]".format(
-                    jobs.format(), info.runner.task_speed, info.runner.task_description
-                )
 
                 appenv.progress.update(
                     info.task_id,
@@ -130,7 +134,7 @@ class MissionMaster:
                     completed_time += info.runner.task_total or 1
         # for
         speed = completed_time / (datetime.now() - start_time).total_seconds()
-        desc_str = "[bright_black][{:.2f}x][/] [blue]总体进度[/]".format(speed)
+        desc_str = "[bright_black][{:.2f}x][/][blue]总体进度[/]".format(speed)
 
         appenv.progress.update(
             self._total_task,
@@ -180,7 +184,7 @@ class MissionMaster:
                         )
                         for p in pending:
                             p.cancel()
-                        await asyncio.sleep(1)
+                        await asyncio.sleep(0.1)
                         break
 
                     await self._update_tasks()

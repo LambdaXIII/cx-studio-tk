@@ -11,6 +11,15 @@ from rich.text import Text
 
 from cx_tools_common.app_interface import IAppEnvironment, ConfigManager
 from .appcontext import AppContext
+from rich.progress import (
+    TextColumn,
+    BarColumn,
+    TaskProgressColumn,
+    TimeRemainingColumn,
+    RenderableColumn,
+    SpinnerColumn,
+)
+from rich.table import Column
 
 
 class AppEnv(IAppEnvironment):
@@ -20,7 +29,19 @@ class AppEnv(IAppEnvironment):
         self.app_version = "0.5.0"
         self.app_description = "媒体文件批量操作工具"
         self.context: AppContext = AppContext()
-        self.progress = Progress()
+        self.progress = Progress(
+            # RenderableColumn("[bright_black]M[/]"),
+            SpinnerColumn(),
+            TextColumn(
+                "[progress.description]{task.description}",
+                table_column=Column(ratio=60, no_wrap=True),
+            ),
+            BarColumn(table_column=Column(ratio=40)),
+            TaskProgressColumn(justify="right"),
+            TimeRemainingColumn(compact=True),
+            expand=True,
+        )
+
         self.console = self.progress.console
         self.config_manager = ConfigManager(self.app_name)
         self._garbage_files = []
