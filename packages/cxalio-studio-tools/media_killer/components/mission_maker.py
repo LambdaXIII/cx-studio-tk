@@ -24,9 +24,10 @@ class MissionMaker:
         self._preset = preset
         self._source_expander = SourceExpander(self._preset)
 
-    def make_mission(self, source: Path) -> Mission:
-        # TODO: add support for cusomizing output dir
-        replacer = PresetTagReplacer(self._preset, source)
+    def make_mission(self, source: Path, external_output_dir: Path | None) -> Mission:
+        replacer = PresetTagReplacer(
+            self._preset, source, output_dir=external_output_dir
+        )
 
         general = ArgumentGroup()
         general.add_options(list(replacer.read_value_as_list(self._preset.options)))
@@ -74,7 +75,7 @@ class MissionMaker:
             appenv.say(Columns([preset_label, missions_label], expand=True))
 
     def expand_and_make_missions(
-        self, sources: Sequence[str | Path]
+        self, sources: Sequence[str | Path], external_output_dir: Path | None = None
     ) -> Generator[Mission]:
         wanna_quit = False
         for source in sources:
@@ -86,19 +87,24 @@ class MissionMaker:
                     wanna_quit = True
                     appenv.wanna_quit_event.clear()
 
-                m = self.make_mission(ss)
+                m = self.make_mission(ss, external_output_dir=external_output_dir)
                 appenv.pretending_sleep(0.05)
                 yield m
 
     @staticmethod
     async def auto_make_missions(
-        presets: Iterable[Preset], sources: Iterable[str | Path]
+        presets: Iterable[Preset],
+        sources: Iterable[str | Path],
+        external_output_dir: Path | str | None = None,
     ) -> list[Mission]:
         # missions = []
 
         async def work(
             _preset: Preset, _sources: Iterable[str | Path]
         ) -> list[Mission]:
+            external_dir = (
+                Path(external_output_dir).resolve() if external_output_dir else None
+            )
             result = []
             appenv.whisper("开始为预设<{}>扫描源文件并创建任务…".format(_preset.name))
             async with ProgressTaskAgent(
@@ -120,11 +126,11 @@ class MissionMaker:
                             )
                         )
                         break
-                    m = maker.make_mission(Path(s))
+                    m = maker.make_mission(Path(s), external_dir)
                     result.append(m)
                     task_agent.advance()
                     await appenv.pretendint_asleep(0.05)
-                await asyncio.sleep(2)
+                await appenv.pretendint_asleep(0.2)
                 return result
 
         tasks = []

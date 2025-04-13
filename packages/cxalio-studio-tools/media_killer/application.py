@@ -128,8 +128,14 @@ class Application(IApplication):
 
         self._set_presets_and_sources(presets, sources)
 
+        if appenv.context.output_dir:
+            appenv.say("输出目录将被替换为:{}".format(appenv.context.output_dir))
         missions = asyncio.run(
-            MissionMaker.auto_make_missions(self.presets, self.sources)
+            MissionMaker.auto_make_missions(
+                self.presets,
+                self.sources,
+                external_output_dir=appenv.context.output_dir,
+            )
         )
         self._sort_and_set_missions(missions)
 

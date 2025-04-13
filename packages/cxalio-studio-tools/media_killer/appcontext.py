@@ -16,6 +16,7 @@ class AppContext:
         self.show_full_help: bool = False
         self.force_overwrite: bool = False
         self.force_no_overwrite: bool = False
+        self.output_dir: str | None = None
 
         for k, v in kwargs.items():
             if k in self.__dict__:
@@ -41,6 +42,13 @@ class AppContext:
             action="store_true",
             default=False,
             dest="generate",
+        )
+        parser.add_argument(
+            "--output",
+            "-o",
+            help="Output directory.",
+            default=None,
+            dest="output_dir",
         )
         parser.add_argument("--save-script", "-s", help="Generate script file")
         parser.add_argument(
