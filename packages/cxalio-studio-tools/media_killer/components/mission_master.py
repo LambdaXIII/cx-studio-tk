@@ -139,69 +139,6 @@ class MissionMaster:
             description=desc_str,
         )
 
-    # async def _scan_tasks(self) -> tuple[float, float, float, float]:
-    #     t_total = t_completed = t_current = 0
-    #     done_count = 0
-    #     total_start_time = datetime.now()
-
-    #     async with self._info_lock:
-    #         infos = self._mission_infos.copy()
-
-    #     infos_length = len(infos)
-    #     jobs = JobCounter(infos_length, start=0)
-    #     for index, info in infos.items():
-    #         jobs.current = index
-
-    #         t_total += info.total or 1
-
-    #         if not info.runner:
-    #             continue
-
-    #         runner_start = info.runner.task_start_time
-    #         if runner_start is not None and runner_start < total_start_time:
-    #             total_start_time = runner_start
-
-    #         if info.runner.is_running():
-    #             desc_str = "[bright_black][{}] [{:.2f}x][/] [yellow]{}[/]".format(
-    #                 jobs.format(), info.runner.task_speed, info.runner.task_description
-    #             )
-
-    #             appenv.progress.update(
-    #                 info.task_id,
-    #                 visible=True,
-    #                 description=desc_str,
-    #                 completed=info.runner.task_completed,
-    #                 total=info.runner.task_total,
-    #             )
-
-    #             if info.total is None:
-    #                 info.total = info.runner.task_total
-
-    #             t_current += info.runner.task_completed
-    #         else:
-    #             appenv.progress.update(info.task_id, visible=False)
-    #             if info.runner.done():
-    #                 done_count += 1
-    #                 t_completed += info.runner.task_completed
-
-    #     speed = (
-    #         t_completed
-    #         / (datetime.now() - total_start_time).total_seconds()
-    #     )
-    #     desc_str = (
-    #         "[bright_black][{:.2f}x][/] [blue]总体进度[/]".format(
-    #             speed
-    #         )
-    #     )
-
-    #     appenv.progress.update(
-    #         self._total_task,
-    #         completed=t_completed,
-    #         total=t_total,
-    #         description=desc_str,
-    #     )
-    #     return t_completed + t_current, t_total, done_count, infos_length
-
     @staticmethod
     async def _poison_task():
         raise PoisonError()

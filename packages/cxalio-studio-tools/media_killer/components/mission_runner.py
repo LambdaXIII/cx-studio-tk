@@ -7,6 +7,9 @@ from pprint import saferepr
 
 from rich.columns import Columns
 from rich.text import Text
+from rich.table import Table
+from rich.layout import Layout
+from rich.console import Group
 
 from cx_studio.core.cx_time import CxTime
 from cx_studio.ffmpeg import FFmpegAsync
@@ -75,9 +78,18 @@ class MissionRunner:
         return self._running_cond.locked()
 
     def make_line_report(self, right_side: str):
-        misison_label = RichLabel(self.mission)
-        r = Text.from_markup(right_side, justify="right", overflow="ignore")
-        return Columns([misison_label, r], expand=True)
+        header = "[bright_black]M[/] [dim green][{i_count}->{o_count}][/]".format(
+            i_count = len(self.mission.inputs),o_count=len(self.mission.outputs) 
+        )
+        name = "[yellow]{}[/]".format(self.mission.name)
+
+        label = header + " " + name
+
+        left = Text.from_markup(label,end="",justify="left", overflow="ellipsis")
+        left.no_wrap = True
+        right = Text.from_markup(right_side,justify="right")
+
+        return Columns([left,right],expand=True)
 
     async def _on_started(self):
         appenv.whisper(self.make_line_report("[yellow]开始[/]"))
@@ -114,45 +126,45 @@ class MissionRunner:
     async def _on_verbose(self, line: str):
         self._ffmpeg_outputs.append(line)
 
+
+    def _prepare_mission(self):
+        conflicts = set(self._input_files) & set(self._output_files)
+        if len(conflicts) > 0:
+            appenv.whisper(IndexedListPanel(conflicts, title="发现重叠文件"))
+            raise SafeError("检测到重叠的输入输出文件")
+            
+
+        if not PathUtils.is_executable(Path(self._ffmpeg.executable)):
+            raise SafeError("ffmpeg可执行文件无效:{}".format(self._ffmpeg.executable))
+        
+        no_existed_input_files = set(itertools.filterfalse(lambda x: x.exists(), self._input_files))
+        if no_existed_input_files:
+            raise SafeError("输入文件不存在: {}".format(';'.join(map(saferepr, no_existed_input_files))))
+            
+
+        o_dirs = set(map(lambda x: x.parent, self._output_files))
+        invalid_o_dirs = set(
+            itertools.filterfalse(
+                lambda x: os.access(x, os.W_OK),
+                filter(lambda x: x.exists(), o_dirs),
+            )
+        )
+        if invalid_o_dirs:
+            raise SafeError("输出目录无效")
+
+        non_existent_o_dirs = set(
+            itertools.filterfalse(lambda x: x.exists(), o_dirs)
+        )
+        if non_existent_o_dirs:
+            self._task_description = "创建目标文件夹"
+            for x in non_existent_o_dirs:
+                x.mkdir(parents=True, exist_ok=True)
+            appenv.whisper(
+                IndexedListPanel(non_existent_o_dirs, title="自动创建目标文件夹")
+            )
+
     async def execute(self):
         async with self._running_cond:
-            self._start_time = datetime.now()
-
-            conflicts = set(self._input_files) & set(self._output_files)
-            if len(conflicts) > 0:
-                appenv.whisper(IndexedListPanel(conflicts, title="发现重叠文件"))
-                raise SafeError("检测到重叠的输入输出文件")
-                
-
-            if not PathUtils.is_executable(Path(self._ffmpeg.executable)):
-                raise SafeError("ffmpeg可执行文件无效:{}".format(self._ffmpeg.executable))
-            
-            no_existed_input_files = set(itertools.filterfalse(lambda x: x.exists(), self._input_files))
-            if no_existed_input_files:
-                raise SafeError("输入文件不存在: {}".format(';'.join(map(saferepr, no_existed_input_files))))
-                
-
-            o_dirs = set(map(lambda x: x.parent, self._output_files))
-            invalid_o_dirs = set(
-                itertools.filterfalse(
-                    lambda x: os.access(x, os.W_OK),
-                    filter(lambda x: x.exists(), o_dirs),
-                )
-            )
-            if invalid_o_dirs:
-                raise SafeError("输出目录无效")
-
-            non_existent_o_dirs = set(
-                itertools.filterfalse(lambda x: x.exists(), o_dirs)
-            )
-            if non_existent_o_dirs:
-                self._task_description = "创建目标文件夹"
-                for x in non_existent_o_dirs:
-                    x.mkdir(parents=True, exist_ok=True)
-                appenv.whisper(
-                    IndexedListPanel(non_existent_o_dirs, title="自动创建目标文件夹")
-                )
-
             self._ffmpeg.add_listener("started", self._on_started)
             self._ffmpeg.add_listener("progress_updated", self._on_progress_updated)
             self._ffmpeg.add_listener("finished", self._on_finished)
@@ -160,7 +172,11 @@ class MissionRunner:
             self._ffmpeg.add_listener("terminated", self._on_terminated)
             self._ffmpeg.add_listener("verbose", self._on_verbose)
 
+            self._start_time = datetime.now()
+  
             try:
+                self._prepare_mission()
+
                 main_task = asyncio.create_task(
                     self._ffmpeg.execute(self.mission.iter_arguments())
                 )
