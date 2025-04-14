@@ -21,6 +21,7 @@ from .components import (
 )
 from .components import Mission
 from .components import Preset
+from .help_info import MKHelpInfo
 
 
 class Application(IApplication):
@@ -107,6 +108,9 @@ class Application(IApplication):
             appenv.say("全部任务整理完毕，已按照设定方式排序。")
 
     def run(self):
+        if appenv.context.show_help:
+            appenv.say(MKHelpInfo())
+
         # 是否生成配置文件
         if appenv.context.generate:
             for s in appenv.context.inputs:

@@ -19,6 +19,7 @@ class AppContext:
         self.force_overwrite: bool = False
         self.force_no_overwrite: bool = False
         self.output_dir: str | None = None
+        self.show_help = False
 
         for k, v in kwargs.items():
             if k in self.__dict__:
@@ -104,8 +105,11 @@ class AppContext:
         help_group.add_argument(
             "-h",
             "--help",
-            action="help",
+            # action="help",
             help="显示此帮助信息",
+            dest="show_help",
+            action="store_true",
+            default=False,
         )
         help_group.add_argument(
             "--tutorial",
