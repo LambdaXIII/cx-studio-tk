@@ -57,3 +57,16 @@ class _Group(_Node):
     def render_useage(self) -> Text:
         useages = [x.render_useage() for x in self.iter_actions()]
         return r.Text(" ").join(useages)
+
+    @override
+    @r.group(True)
+    def render_details(self):
+        if self.name:
+            yield r.Text(self.name, style="cx.help.group.title")
+        if self.description:
+            yield r.Text("\t") + r.Text(
+                self.description, style="cx.help.group.description"
+            )
+        for child in self.children:
+            p = r.Padding(child.render_details(), (0, 0, 0, child.level))
+            yield p

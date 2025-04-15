@@ -112,3 +112,21 @@ class _Action(_Node):
             res = self._make_optional(res)
 
         return res
+
+    def render_detail_title(self):
+        res = r.Text()
+        if self.is_positional():
+            res = self.render_argument() or res
+        else:
+            ps = [self.render_options(","), self.render_argument()]
+            res = r.Text(" ").join([x for x in ps if x is not None])
+        return res
+
+    @override
+    @r.group(True)
+    def render_details(self):
+        yield self.render_detail_title()
+        if self.description:
+            yield r.Text("\t") + r.Text.from_markup(
+                self.description, style="cx.help.details.description"
+            )

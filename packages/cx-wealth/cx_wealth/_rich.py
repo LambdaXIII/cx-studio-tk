@@ -25,3 +25,7 @@ Table = rich.table.Table
 import rich.theme
 
 Theme = rich.theme.Theme
+
+import rich.padding
+
+Padding = rich.padding.Padding

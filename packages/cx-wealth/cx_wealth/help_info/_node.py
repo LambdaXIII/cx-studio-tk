@@ -36,3 +36,6 @@ class _Node:
 
     def render_useage(self) -> r.Text:
         return r.Text(" ").join(x.render_useage() for x in self.children)
+
+    def render_details(self) -> r.RenderableType:
+        return r.Group(*(x.render_details() for x in self.children))

@@ -1,4 +1,5 @@
 import itertools
+from tokenize import tabsize
 from ._node import _Node
 from ._action import _Action
 from ._group import _Group
@@ -14,6 +15,10 @@ class WealthHelpInfomation:
         "cx.help.useage.bracket": "bright_black",
         "cx.help.useage.option": "cyan",
         "cx.help.useage.argument": "italic yellow",
+        "cx.help.group.title": "orange1",
+        "cx.help.group.description": "italic dim default",
+        "cx.help.details.box": "blue",
+        "cx.help.details.description": "italic default",
     }
 
     def __init__(
@@ -81,15 +86,26 @@ class WealthHelpInfomation:
         table.add_row(program, useage)
         return r.Panel(
             table,
-            title="Useage",
+            title="用法",
             expand=True,
             title_align="left",
             style="cx.help.useage.title",
         )
 
+    def render_details(self) -> r.RenderableType:
+        details = [x.render_details() for x in self._root.children]
+        return r.Panel(
+            r.Group(*details),
+            title="参数详情",
+            expand=True,
+            title_align="left",
+            style="cx.help.details.box",
+        )
+
     @r.group(True)
     def render(self):
         yield self.render_useage()
+        yield self.render_details()
 
     def __rich_console__(self, console: r.Console, options: r.ConsoleOptions):
         with console.use_theme(self.theme):
