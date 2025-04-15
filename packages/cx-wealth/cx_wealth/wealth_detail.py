@@ -1,50 +1,42 @@
 from collections.abc import Generator
-import enum
 from typing import Iterable, Mapping, Protocol, Sequence, runtime_checkable
 
-from .indexed_list_panel import IndexedListPanel
-from pygments import highlight
 from rich.console import (
     RenderableType,
 )
-from rich.panel import Panel
-from rich.pretty import Pretty
-from rich.table import Table
 
-from .rich_label import RichLabel, RichLabelMixin
+from . import rich_types as r
 from .common import RichPrettyMixin
-from rich.columns import Columns
-from rich.text import Text
-from rich import box
-from rich.style import StyleType
+from .indexed_list_panel import IndexedListPanel
+from .wealth_label import WealthLabel, WealthLabelMixin
 
 
 @runtime_checkable
-class RichDetailMixin(Protocol):
+class WealthDetailMixin(Protocol):
     def __rich_detail__(self) -> Generator: ...
 
 
-class RichDetail:
-    def __init__(self, item: RichDetailMixin):
+class WealthDetail:
+    def __init__(self, item: WealthDetailMixin):
         self._item = item
 
     def __rich_repr__(self):
         yield from self._item.__rich_detail__()
 
 
-class RichDetailTable:
+class WealthDetailTable:
     _SUB_BOX_BORDER_STYLE = "grey70"
 
     def __init__(
         self,
-        item: RichDetailMixin | RichPrettyMixin | Mapping | dict,
+        item: WealthDetailMixin | RichPrettyMixin | Mapping | dict,
         sub_box: bool = True,
     ) -> None:
         self._item = item
         self._sub_box = sub_box
 
     def make_table(self, item):
-        table = Table(
+        table = r.Table(
             show_header=False,
             box=None,
         )
@@ -52,7 +44,7 @@ class RichDetailTable:
         table.add_column("value", justify="left", overflow="fold", highlight=True)
 
         iterator = None
-        if isinstance(item, RichDetailMixin):
+        if isinstance(item, WealthDetailMixin):
             iterator = item.__rich_detail__()
         elif isinstance(item, RichPrettyMixin):
             iterator = item.__rich_repr__()
@@ -81,7 +73,7 @@ class RichDetailTable:
             table.add_row(key, self.__check_value(value))
 
         if table.row_count == 0:
-            return Text("(empty)", style="dim yellow")
+            return r.Text("(empty)", style="dim yellow")
         return table
 
     def __check_value(
@@ -89,17 +81,17 @@ class RichDetailTable:
     ) -> RenderableType | None:
         if value is None:
             return None
-        if isinstance(value, Mapping | dict | RichDetailMixin | RichPrettyMixin):
+        if isinstance(value, Mapping | dict | WealthDetailMixin | RichPrettyMixin):
             if self._sub_box and not disable_sub_box:
-                return RichDetailPanel(
+                return WealthDetailPanel(
                     value,
                     border_style=self._SUB_BOX_BORDER_STYLE,
                     sub_box=False,
                     title=value.__class__.__name__,
                 )
             return self.make_table(value)
-        if isinstance(value, RichLabelMixin):
-            return RichLabel(value)
+        if isinstance(value, WealthLabelMixin):
+            return WealthLabel(value)
         if isinstance(value, RenderableType):
             return value
         if isinstance(value, Sequence | Iterable):
@@ -112,18 +104,18 @@ class RichDetailTable:
             if self._sub_box and not disable_sub_box:
                 return list_panel
             return list_panel.get_table()
-        return Pretty(value)
+        return r.Pretty(value)
 
     def __rich__(self):
         return self.make_table(self._item)
 
 
-class RichDetailPanel:
+class WealthDetailPanel:
     def __init__(
         self,
-        item: RichDetailMixin | RichPrettyMixin | Mapping | dict,
+        item: WealthDetailMixin | RichPrettyMixin | Mapping | dict,
         title: str | None = None,
-        border_style: StyleType | None = None,
+        border_style: r.StyleType | None = None,
         sub_box: bool = True,
     ):
         self._item = item
@@ -132,9 +124,9 @@ class RichDetailPanel:
         self._sub_box = sub_box
 
     def __rich__(self):
-        content = RichDetailTable(self._item, sub_box=self._sub_box)
+        content = WealthDetailTable(self._item, sub_box=self._sub_box)
 
-        panel = Panel(
+        panel = r.Panel(
             content,
             title=self._title,
             subtitle=self._item.__class__.__name__,

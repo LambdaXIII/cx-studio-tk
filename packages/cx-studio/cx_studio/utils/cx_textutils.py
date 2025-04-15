@@ -1,4 +1,5 @@
 from collections.abc import Callable
+import re
 
 
 def auto_quote(text: str, needs_quote=None) -> str:
@@ -37,3 +38,10 @@ def auto_list(input: str | list[str] | None, sep=None) -> list[str]:
     if isinstance(input, str):
         return input.split(sep or " ")
     return input
+
+
+def unwrap(t: str) -> str:
+    t = re.sub(r"\r", "\n", t)
+    t = re.sub(r"\n\s+", "\n", t)
+    t = re.sub(r"\n+", lambda m: "\n" if len(m.group(0)) >= 2 else "", t)
+    return t

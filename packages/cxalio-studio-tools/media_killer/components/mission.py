@@ -1,20 +1,21 @@
+from collections.abc import Generator
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Literal
 
+import ulid
+from rich.columns import Columns
 from rich.text import Text
 
-from cx_studio.utils import PathUtils, FunctionalUtils
-from cx_tools_common.rich_gadgets import RichLabel
+from cx_studio.utils import FunctionalUtils
+from cx_studio.utils import PathUtils
+from cx_wealth import WealthLabel
 from .argument_group import ArgumentGroup
 from .preset import Preset
-from cx_studio.utils import PathUtils
-from rich.columns import Columns
-from collections.abc import Generator
 
 
 @dataclass(frozen=True)
 class Mission:
+    mission_id: ulid.ULID = field(default_factory=ulid.new, kw_only=True)
     preset: Preset
     source: Path
     standard_target: Path
@@ -72,7 +73,7 @@ class Mission:
 
     def __rich_detail__(self):
         yield "名称", self.name
-        yield "来源预设", RichLabel(self.preset)
+        yield "来源预设", WealthLabel(self.preset)
         yield "来源文件路径", self.source
         yield "标准目标路径", self.standard_target
         yield "覆盖已存在的目标", "是" if self.overwrite else "否"

@@ -8,10 +8,15 @@ dependencies = ["cx-studio", "cxalio-studio-tools"]
 
 [tool.uv.sources]
 cx-studio = {workspace = true}
+cx-wealth = {workspace = true}
 cxalio-studio-tools = {workspace = true}
 
 [tool.uv.workspace]
-members = ["packages/cx-studio", "packages/cxalio-studio-tools"]
+members = [
+    "packages/cx-studio",
+ "packages/cxalio-studio-tools",
+ "packages/cx-wealth",
+]
 
 [dependency-groups]
 dev = [

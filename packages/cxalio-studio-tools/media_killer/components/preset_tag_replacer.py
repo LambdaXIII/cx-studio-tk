@@ -1,11 +1,10 @@
 import os
+from collections.abc import Generator
 from pathlib import Path
 
 from cx_studio.tag_replacer import TagReplacer, PathInfoProvider
 from cx_studio.utils import PathUtils
 from .preset import Preset
-from collections.abc import Generator
-from media_killer.appenv import appenv
 
 
 class PresetTagReplacer:
@@ -19,7 +18,7 @@ class PresetTagReplacer:
         self.replacer.install_provider("source", PathInfoProvider(self._source))
         self.replacer.install_provider("sep", os.sep)
 
-        output_dir = output_dir or Path.cwd()
+        output_dir = (output_dir or Path.cwd()).resolve()
         target_folder = Path(self._preset.target_folder)
         if target_folder.is_absolute():
             output_dir = target_folder
