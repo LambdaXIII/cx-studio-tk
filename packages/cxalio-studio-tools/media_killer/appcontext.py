@@ -20,6 +20,7 @@ class AppContext:
         self.force_no_overwrite: bool = False
         self.output_dir: str | None = None
         self.show_help = False
+        self.max_workers: int = 1
 
         for k, v in kwargs.items():
             if k in self.__dict__:
@@ -38,16 +39,14 @@ class AppContext:
             add_help=False,
         )
 
-        inputs_group = parser.add_argument_group("输入内容")
-        inputs_group.add_argument(
+        parser.add_argument(
             "inputs",
             help="多个需要处理的文件路径[dim]（源文件或配置文件）",
             nargs="*",
             metavar="输入文件",
         )
 
-        operation_group = parser.add_argument_group("基本功能")
-        operation_group.add_argument(
+        parser.add_argument(
             "-g",
             "--generate",
             help="生成新的预设文件示例",
@@ -55,8 +54,18 @@ class AppContext:
             default=False,
             dest="generate",
         )
-        operation_group.add_argument("--save-script", "-s", help="将转码任务编写为脚本")
-        operation_group.add_argument(
+        parser.add_argument("--save-script", "-s", help="将转码任务编写为脚本")
+        parser.add_argument(
+            "-j",
+            "--jobs",
+            "--max-workers",
+            help="指定最大工作线程数",
+            type=int,
+            default=1,
+            dest="max_workers",
+            metavar="线程数",
+        )
+        parser.add_argument(
             "-c",
             "--continue",
             action="store_true",
@@ -64,8 +73,7 @@ class AppContext:
             dest="continue_mode",
         )
 
-        transcoding_group = parser.add_argument_group("转码选项")
-        transcoding_group.add_argument(
+        parser.add_argument(
             "--output",
             "-o",
             help="指定一个输出目录",
@@ -73,7 +81,7 @@ class AppContext:
             default=None,
             dest="output_dir",
         )
-        transcoding_group.add_argument(
+        parser.add_argument(
             "--sort",
             help="指定任务排序方式",
             choices=["source", "preset", "target", "x"],
@@ -82,8 +90,7 @@ class AppContext:
             dest="sort_mode",
         )
 
-        overwrite_group = parser.add_argument_group("强制（不）覆盖模式")
-        overwrite_group.add_argument(
+        parser.add_argument(
             "--overwrite",
             "-y",
             help="强制覆盖所有输出文件",
@@ -92,7 +99,7 @@ class AppContext:
             dest="force_overwrite",
         )
 
-        overwrite_group.add_argument(
+        parser.add_argument(
             "--no-overwrite",
             "-n",
             help="强制启用安全模式（不覆盖已有文件）",
@@ -101,8 +108,7 @@ class AppContext:
             dest="force_no_overwrite",
         )
 
-        help_group = parser.add_argument_group("其它选项")
-        help_group.add_argument(
+        parser.add_argument(
             "-h",
             "--help",
             # action="help",
@@ -111,7 +117,7 @@ class AppContext:
             action="store_true",
             default=False,
         )
-        help_group.add_argument(
+        parser.add_argument(
             "--tutorial",
             "--full-help",
             action="store_true",
@@ -119,14 +125,14 @@ class AppContext:
             dest="show_full_help",
         )
 
-        help_group.add_argument(
+        parser.add_argument(
             "-p",
             "--pretend",
             help="以[italic dim]假装模式[/]模拟运行 :)",
             action="store_true",
             dest="pretending_mode",
         )
-        help_group.add_argument(
+        parser.add_argument(
             "-d",
             "--debug",
             help="显示调试信息",

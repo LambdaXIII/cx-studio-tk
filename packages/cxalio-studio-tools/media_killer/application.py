@@ -158,5 +158,5 @@ class Application(IApplication):
                 "[dim]检测到[italic cyan]假装模式[/]，将不会真正执行任何操作。[/]"
             )
 
-        mm = MissionMaster(self.missions, 2)
+        mm = MissionMaster(self.missions, appenv.context.max_workers)
         asyncio.run(mm.run())

@@ -25,9 +25,21 @@ class MKHelpInfo(WealthHelpInfomation):
         trans_opts.add_action(
             "--sort",
             metavar="source|preset|target|x",
-            description=textwrap.dedent(
+            description=TextUtils.unwrap(
                 """设置任务的排序模式，在执行任务之前将会按照指定的模式进行排序。
             四种模式分别为[u]按源文件路径排序[/]、[u]按预设排序[/]、[u]按目标文件路径排序[/]、[u]按输入顺序排序[/]。"""
+            ),
+        )
+
+        trans_opts.add_action(
+            "-j",
+            "--jobs" "--max-workers",
+            metavar="NUM",
+            description=TextUtils.unwrap(
+                """
+                设置并行工作进程的数量，默认为 1 。
+                不建议设置大于 2 的数值，除非你知道你在干什么。
+                """
             ),
         )
 
