@@ -1,5 +1,5 @@
 from ._node import _Node
-from typing import Literal, Text
+from typing import Literal, override
 from .. import _rich as r
 import re
 
@@ -20,17 +20,22 @@ class _Action(_Node):
         self.flags = [str(x) for x in flags]
         self.metavar = metavar
         self.nargs = nargs
-        self.optional = None
+        self.optional = optional
 
     def _argument(self):
-        return self.flags[0] if self.flags else self.metavar or self.name or ""
+        return (
+            self.metavar
+            or (self.flags[0] if self.flags and self.is_positional() else None)
+            or self.name
+            or ""
+        )
 
     def _format_argument(self, pattern: str | None = None) -> r.Text:
         a = self._argument() if pattern is None else pattern.format(self._argument())
         return r.Text(a, style="cx.help.useage.argument")
 
     def is_positional(self) -> bool:
-        return not self.flags or all(not re.match(r"^[-+]\w+", x) for x in self.flags)
+        return not self.flags or all(not re.match(r"^[-+]+\w+", x) for x in self.flags)
 
     def is_optional(self) -> bool:
         if self.optional is not None:
@@ -44,8 +49,8 @@ class _Action(_Node):
 
     @staticmethod
     def _make_optional(*text: r.Text | str | None) -> r.Text:
-        left = r.Text("[", style="cx.help.useage.bracket")
-        right = r.Text("]", style="cx.help.useage.bracket")
+        left = ("[", "cx.help.useage.bracket")
+        right = ("]", "cx.help.useage.bracket")
         ts = [
             x if isinstance(x, r.Text) else r.Text.from_markup(x)
             for x in text
@@ -76,7 +81,7 @@ class _Action(_Node):
 
         if self.nargs == "+":
             args = [
-                self._format_argument(),
+                self._format_argument(pattern="{}1"),
                 self._make_optional(sep, self._format_argument(pattern="{}2")),
                 self._make_optional(sep, self._format_argument(pattern="{}3")),
                 self._make_optional(sep, self._format_argument(pattern="{}...")),
@@ -94,6 +99,7 @@ class _Action(_Node):
 
         return self._format_argument()
 
+    @override
     def render_useage(self) -> r.Text:
         res = r.Text()
         if self.is_positional():

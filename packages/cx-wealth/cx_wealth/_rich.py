@@ -9,6 +9,7 @@ import rich.table
 
 Text = rich.text.Text
 Console = rich.console.Console
+ConsoleOptions = rich.console.ConsoleOptions
 Group = rich.console.Group
 group = rich.console.group
 Panel = rich.panel.Panel

@@ -21,7 +21,7 @@ from .components import (
 )
 from .components import Mission
 from .components import Preset
-from .help_info import MKHelpInfo
+from .mk_help_info import MKHelpInfo
 
 
 class Application(IApplication):
