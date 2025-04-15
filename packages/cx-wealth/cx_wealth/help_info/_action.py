@@ -127,6 +127,9 @@ class _Action(_Node):
     def render_details(self):
         yield self.render_detail_title()
         if self.description:
-            yield r.Text("\t") + r.Text.from_markup(
-                self.description, style="cx.help.details.description"
+            yield r.Padding(
+                r.Text.from_markup(
+                    self.description, style="cx.help.details.description"
+                ),
+                pad=(0, 0, 0, 4),
             )

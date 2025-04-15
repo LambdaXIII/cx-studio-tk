@@ -64,9 +64,12 @@ class _Group(_Node):
         if self.name:
             yield r.Text(self.name, style="cx.help.group.title")
         if self.description:
-            yield r.Text("\t") + r.Text(
-                self.description, style="cx.help.group.description"
+            yield r.Padding(
+                r.Text(
+                    self.description, style="cx.help.group.description", overflow="fold"
+                ),
+                pad=(0, 0, 1, 2),
             )
         for child in self.children:
-            p = r.Padding(child.render_details(), (0, 0, 0, child.level))
+            p = r.Padding(child.render_details(), (0, 0, 1, child.level))
             yield p

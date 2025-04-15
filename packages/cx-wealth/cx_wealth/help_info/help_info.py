@@ -19,18 +19,21 @@ class WealthHelpInfomation:
         "cx.help.group.description": "italic dim default",
         "cx.help.details.box": "blue",
         "cx.help.details.description": "italic default",
+        "cx.help.epilog": "dim italic default",
     }
 
     def __init__(
         self,
         prog: str | None = None,
-        description: str | None = None,
+        description: str | r.RenderableType | None = None,
+        epilog: str | r.RenderableType | None = None,
         styles: dict | None = None,
     ):
         self.prog = prog or sys.argv[0]
         self.description = description
-        self._root = _Group(prog, description)
+        self._root = _Group()
         self.styles = self.DEFAULT_STYLES
+        self.epilog = epilog
         if styles is not None:
             self.styles.update(styles)
         self.theme = r.Theme(self.styles)
@@ -60,6 +63,34 @@ class WealthHelpInfomation:
     ) -> _Group:
         return self._root.add_group(name=name, description=description)
 
+    def render_description(self) -> r.RenderableType | None:
+        if isinstance(self.description, str):
+            desc = r.Text.from_markup(
+                self.description, style="cx.help.group.description"
+            )
+        elif isinstance(self.description, r.RenderableType):
+            desc = self.description
+        else:
+            return None
+
+        return (
+            r.Padding(
+                desc,
+                (1, 1, 0, 1),
+            )
+            if self.description
+            else None
+        )
+
+    def render_epilog(self) -> r.RenderableType | None:
+        if isinstance(self.epilog, str):
+            return r.Text.from_markup(
+                self.epilog, style="cx.help.epilog", justify="right"
+            )
+        if isinstance(self.epilog, r.RenderableType):
+            return self.epilog
+        return None
+
     def render_useage(self) -> r.RenderableType:
         def separate(x: _Action):
             a = "o" if x.is_optional() else ""
@@ -84,8 +115,11 @@ class WealthHelpInfomation:
         table.add_column("prog", no_wrap=True, overflow="ignore")
         table.add_column("useage", overflow="fold")
         table.add_row(program, useage)
+
+        desc = self.render_description()
+
         return r.Panel(
-            table,
+            r.Group(table, desc) if desc else table,
             title="用法",
             expand=True,
             title_align="left",
@@ -106,6 +140,8 @@ class WealthHelpInfomation:
     def render(self):
         yield self.render_useage()
         yield self.render_details()
+        if self.epilog:
+            yield self.render_epilog()
 
     def __rich_console__(self, console: r.Console, options: r.ConsoleOptions):
         with console.use_theme(self.theme):
