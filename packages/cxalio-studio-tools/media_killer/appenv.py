@@ -60,6 +60,7 @@ class AppEnv(IAppEnvironment):
         self.progress.refresh()
         time.sleep(0.1)
         self.progress.stop()
+        self.clean_garbage_files()
         self.config_manager.remove_old_log_files()
 
     def pretending_sleep(self, interval: float = 0.2):
@@ -72,6 +73,17 @@ class AppEnv(IAppEnvironment):
 
     def add_garbage_files(self, *filenames: str | Path):
         self._garbage_files.extend(map(Path, filenames))
+
+    def clean_garbage_files(self):
+        if not self._garbage_files:
+            return
+        self.say("[dim]正在清理失败的目标文件...[/]")
+        for filename in self._garbage_files:
+            filename.unlink(missing_ok=True)
+            self.whisper(f"  {filename} [red]已删除[/red]")
+            if self.context.debug_mode:
+                time.sleep(0.1)
+        self._garbage_files.clear()
 
     def show_banner(self, console=None):
         with importlib.resources.open_text("media_killer", "banner.txt") as banner:
