@@ -1,20 +1,19 @@
 import itertools
-from tokenize import tabsize
-from ._node import _Node
-from ._action import _Action
-from ._group import _Group
-from .. import _rich as r
-import sys, re
+import sys
 from typing import Literal
 
+from ._action import _Action
+from ._group import _Group
+from .. import rich_types as r
 
-class WealthHelpInfomation:
+
+class WealthHelp:
     DEFAULT_STYLES = {
-        "cx.help.useage.title": "green",
-        "cx.help.useage.prog": "orange1",
-        "cx.help.useage.bracket": "bright_black",
-        "cx.help.useage.option": "cyan",
-        "cx.help.useage.argument": "italic yellow",
+        "cx.help.usage.title": "green",
+        "cx.help.usage.prog": "orange1",
+        "cx.help.usage.bracket": "bright_black",
+        "cx.help.usage.option": "cyan",
+        "cx.help.usage.argument": "italic yellow",
         "cx.help.group.title": "orange1",
         "cx.help.group.description": "italic dim default",
         "cx.help.details.box": "blue",
@@ -91,7 +90,7 @@ class WealthHelpInfomation:
             return self.epilog
         return None
 
-    def render_useage(self) -> r.RenderableType:
+    def render_usage(self) -> r.RenderableType:
         def separate(x: _Action):
             a = "o" if x.is_optional() else ""
             b = "+p" if x.is_positional() else "-p"
@@ -102,19 +101,19 @@ class WealthHelpInfomation:
             for k, v in itertools.groupby(self._root.iter_actions(), key=separate)
         }
 
-        useages = [
-            x.render_useage()
+        usages = [
+            x.render_usage()
             for x in itertools.chain(
                 *(grouped_actions.get(x, []) for x in ["o-p", "-p", "o+p", "+p"])
             )
         ]
-        useage = r.Text(" ").join(useages)
+        usage = r.Text(" ").join(usages)
 
-        program = r.Text(self.prog, style="cx.help.useage.prog")
+        program = r.Text(self.prog, style="cx.help.usage.prog")
         table = r.Table(box=None, show_header=False, expand=True)
         table.add_column("prog", no_wrap=True, overflow="ignore")
-        table.add_column("useage", overflow="fold")
-        table.add_row(program, useage)
+        table.add_column("usage", overflow="fold")
+        table.add_row(program, usage)
 
         desc = self.render_description()
 
@@ -123,7 +122,7 @@ class WealthHelpInfomation:
             title="用法",
             expand=True,
             title_align="left",
-            style="cx.help.useage.title",
+            style="cx.help.usage.title",
         )
 
     def render_details(self) -> r.RenderableType:
@@ -136,9 +135,8 @@ class WealthHelpInfomation:
             style="cx.help.details.box",
         )
 
-    @r.group(True)
     def render(self):
-        yield self.render_useage()
+        yield self.render_usage()
         yield self.render_details()
         if self.epilog:
             yield self.render_epilog()
@@ -146,4 +144,4 @@ class WealthHelpInfomation:
     def __rich_console__(self, console: r.Console, options: r.ConsoleOptions):
         with console.use_theme(self.theme):
             o = options.update(highlight=False)
-            yield from console.render(self.render(), o)
+            yield from console.render(r.Group(*self.render(),fit=True), o)

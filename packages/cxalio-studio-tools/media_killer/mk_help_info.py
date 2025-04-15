@@ -1,11 +1,8 @@
-from cx_wealth import WealthHelpInfomation
-import cx_wealth._rich as r
-from typing import override
-import textwrap
 from cx_studio.utils import TextUtils
+from cx_wealth import WealthHelp
 
 
-class MKHelpInfo(WealthHelpInfomation):
+class MKHelpInfo(WealthHelp):
     def __init__(self):
         super().__init__(prog="mediakiller")
 

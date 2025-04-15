@@ -1,25 +1,24 @@
 import asyncio
 import itertools
 import os
+import random
 from datetime import datetime
 from pathlib import Path
 from pprint import saferepr
 from typing import override
 
-from cx_wealth.rich_detail import RichDetailPanel
 from rich.columns import Columns
 from rich.text import Text
 
 from cx_studio.core.cx_time import CxTime
 from cx_studio.ffmpeg import FFmpegAsync
 from cx_studio.utils import PathUtils
-from cx_wealth import RichLabel
+from cx_wealth import rich_types as r
 from cx_wealth.indexed_list_panel import IndexedListPanel
+from cx_wealth.wealth_detail import WealthDetailPanel
 from media_killer.appenv import appenv
-from .mission import Mission
 from .exception import SafeError
-import random
-from cx_wealth import _rich as r
+from .mission import Mission
 
 
 class MissionRunner:
@@ -96,7 +95,7 @@ class MissionRunner:
     async def _on_started(self):
         report = self.make_line_report("[yellow]开始[/]")
         g = r.Group(
-            RichDetailPanel(self.mission, title=str(self.mission.mission_id)), report
+            WealthDetailPanel(self.mission, title=str(self.mission.mission_id)), report
         )
         appenv.whisper(g)
 
@@ -144,7 +143,7 @@ class MissionRunner:
             raise SafeError("ffmpeg可执行文件无效:{}".format(self._ffmpeg.executable))
 
         no_existed_input_files = set(
-            itertools.filterfalse(lambda x: x.exists(), self._input_files)
+            itertools.filterfalse(lambda a: a.exists(), self._input_files)
         )
         if no_existed_input_files:
             raise SafeError(
@@ -153,17 +152,17 @@ class MissionRunner:
                 )
             )
 
-        o_dirs = set(map(lambda x: x.parent, self._output_files))
+        o_dirs = set(map(lambda a: a.parent, self._output_files))
         invalid_o_dirs = set(
             itertools.filterfalse(
-                lambda x: os.access(x, os.W_OK),
-                filter(lambda x: x.exists(), o_dirs),
+                lambda a: os.access(a, os.W_OK),
+                filter(lambda a: a.exists(), o_dirs),
             )
         )
         if invalid_o_dirs:
             raise SafeError("输出目录无效")
 
-        non_existent_o_dirs = set(itertools.filterfalse(lambda x: x.exists(), o_dirs))
+        non_existent_o_dirs = set(itertools.filterfalse(lambda a: a.exists(), o_dirs))
         if non_existent_o_dirs:
             self._task_description = "创建目标文件夹"
             for x in non_existent_o_dirs:
@@ -221,7 +220,7 @@ class MissionPretender(MissionRunner):
     def _init__(self, mission: Mission):
         super().__init__(mission)
 
-    async def _pretendint_prepare_mission(self):
+    async def _pretending_prepare_mission(self):
         self._task_description = "检查输入输出文件"
         await asyncio.sleep(0.5)
         conflicts = set(self._input_files) & set(self._output_files)
@@ -263,7 +262,7 @@ class MissionPretender(MissionRunner):
         non_existent_o_dirs = set(itertools.filterfalse(lambda x: x.exists(), o_dirs))
         if non_existent_o_dirs:
             self._task_total = len(non_existent_o_dirs)
-            for x in non_existent_o_dirs:
+            for _ in non_existent_o_dirs:
                 self._task_completed += 1
                 await asyncio.sleep(0.25)
             self._task_total = None
@@ -275,7 +274,7 @@ class MissionPretender(MissionRunner):
     async def execute(self):
         async with self._running_cond:
             try:
-                await self._pretendint_prepare_mission()
+                await self._pretending_prepare_mission()
 
                 self._task_total = 1000
                 self._task_completed = 0

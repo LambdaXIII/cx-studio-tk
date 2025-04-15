@@ -150,7 +150,7 @@ class MissionMaster:
     async def run(self):
         try:
             self._cancel_all_event.clear()
-            total_start_time = datetime.now()
+            # total_start_time = datetime.now()
             async with self._running_cond:
                 appenv.progress.update(
                     self._total_task,
@@ -191,7 +191,7 @@ class MissionMaster:
                     await asyncio.sleep(0.1)
                 # while checking
 
-                asyncio.gather(*workers, return_exceptions=True)
+                await asyncio.gather(*workers, return_exceptions=True)
 
                 # taskgroup
             # running Condition

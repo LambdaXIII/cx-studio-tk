@@ -8,7 +8,7 @@ from rich.text import Text
 
 from cx_studio.utils import FunctionalUtils
 from cx_studio.utils import PathUtils
-from cx_wealth import RichLabel
+from cx_wealth import WealthLabel
 from .argument_group import ArgumentGroup
 from .preset import Preset
 
@@ -73,7 +73,7 @@ class Mission:
 
     def __rich_detail__(self):
         yield "名称", self.name
-        yield "来源预设", RichLabel(self.preset)
+        yield "来源预设", WealthLabel(self.preset)
         yield "来源文件路径", self.source
         yield "标准目标路径", self.standard_target
         yield "覆盖已存在的目标", "是" if self.overwrite else "否"

@@ -4,15 +4,13 @@ import importlib.resources
 import sys
 from collections.abc import Sequence
 from pathlib import Path
-from tabnanny import check
 from typing import override
 
 from cx_studio.utils import PathUtils
 from cx_tools_common.app_interface import IApplication
-from media_killer.components.script_maker import ScriptMaker
-from .components.exception import SafeError
-from cx_wealth import DynamicColumns, IndexedListPanel, RichDetailPanel
+from cx_wealth import DynamicColumns, IndexedListPanel, WealthDetailPanel
 from media_killer.components.mission_master import MissionMaster
+from media_killer.components.script_maker import ScriptMaker
 from .appenv import appenv
 from .components import (
     InputScanner,
@@ -21,6 +19,7 @@ from .components import (
 )
 from .components import Mission
 from .components import Preset
+from .components.exception import SafeError
 from .mk_help_info import MKHelpInfo
 
 
@@ -80,7 +79,7 @@ class Application(IApplication):
             self.presets.append(p)
 
         appenv.whisper(
-            DynamicColumns(RichDetailPanel(x, title=x.id) for x in self.presets)
+            DynamicColumns(WealthDetailPanel(x, title=x.id) for x in self.presets)
         )
 
         source_count = len(sources)

@@ -1,6 +1,8 @@
 from __future__ import annotations
+
 from typing import Self
-from .. import _rich as r
+
+from .. import rich_types as r
 
 
 class _Node:
@@ -34,8 +36,8 @@ class _Node:
     def level(self) -> int:
         return self.parent.level + 1 if self.parent is not None else 0
 
-    def render_useage(self) -> r.Text:
-        return r.Text(" ").join(x.render_useage() for x in self.children)
+    def render_usage(self) -> r.Text:
+        return r.Text(" ").join(x.render_usage() for x in self.children)
 
     def render_details(self) -> r.RenderableType:
         return r.Group(*(x.render_details() for x in self.children))

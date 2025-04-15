@@ -1,7 +1,8 @@
-from ._node import _Node
-from typing import Literal, override
-from .. import _rich as r
 import re
+from typing import Literal, override
+
+from ._node import _Node
+from .. import rich_types as r
 
 
 class _Action(_Node):
@@ -32,7 +33,7 @@ class _Action(_Node):
 
     def _format_argument(self, pattern: str | None = None) -> r.Text:
         a = self._argument() if pattern is None else pattern.format(self._argument())
-        return r.Text(a, style="cx.help.useage.argument")
+        return r.Text(a, style="cx.help.usage.argument")
 
     def is_positional(self) -> bool:
         return not self.flags or all(not re.match(r"^[-+]+\w+", x) for x in self.flags)
@@ -45,12 +46,12 @@ class _Action(_Node):
 
     @staticmethod
     def _format_option(option: str) -> r.Text:
-        return r.Text(option, style="cx.help.useage.option")
+        return r.Text(option, style="cx.help.usage.option")
 
     @staticmethod
     def _make_optional(*text: r.Text | str | None) -> r.Text:
-        left = ("[", "cx.help.useage.bracket")
-        right = ("]", "cx.help.useage.bracket")
+        left = ("[", "cx.help.usage.bracket")
+        right = ("]", "cx.help.usage.bracket")
         ts = [
             x if isinstance(x, r.Text) else r.Text.from_markup(x)
             for x in text
@@ -63,7 +64,7 @@ class _Action(_Node):
             return None
 
         elements = [self._format_option(x) for x in self.flags]
-        separator = r.Text(sep, style="cx.help.useage.bracket")
+        separator = r.Text(sep, style="cx.help.usage.bracket")
         return separator.join(elements)
 
     def render_argument(self) -> r.Text | None:
@@ -72,12 +73,12 @@ class _Action(_Node):
 
         if isinstance(self.nargs, int):
             args = [
-                self._format_argument(pattern=f"{"{}"}{i+1}") for i in range(self.nargs)
+                self._format_argument(pattern="{}"+str(i+1)) for i in range(self.nargs)
             ]
-            sep = r.Text(", ", style="cx.help.useage.bracket")
+            sep = r.Text(", ", style="cx.help.usage.bracket")
             return sep.join(args)
 
-        sep = r.Text(", ", style="cx.help.useage.bracket")
+        sep = r.Text(", ", style="cx.help.usage.bracket")
 
         if self.nargs == "+":
             args = [
@@ -100,7 +101,7 @@ class _Action(_Node):
         return self._format_argument()
 
     @override
-    def render_useage(self) -> r.Text:
+    def render_usage(self) -> r.Text:
         res = r.Text()
         if self.is_positional():
             res = self.render_argument() or res

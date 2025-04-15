@@ -1,12 +1,11 @@
 import sys
-
-from media_killer.components.exception import SafeError
-from .mission import Mission
 from collections.abc import Iterable, Generator
-from cx_studio.utils import TextUtils, PathUtils
 from pathlib import Path
-from ..appenv import appenv
+
+from cx_studio.utils import TextUtils
 from cx_wealth import IndexedListPanel
+from .mission import Mission
+from ..appenv import appenv
 
 
 class ScriptMaker:

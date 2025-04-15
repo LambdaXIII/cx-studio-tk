@@ -8,7 +8,7 @@ from rich.columns import Columns
 from rich.text import Text
 
 from cx_tools_common.app_interface import ProgressTaskAgent
-from cx_wealth import RichLabel, IndexedListPanel
+from cx_wealth import WealthLabel, IndexedListPanel
 from .argument_group import ArgumentGroup
 from .mission import Mission
 from .preset import Preset
@@ -70,7 +70,7 @@ class MissionMaker:
             )
 
             count = len(missions)
-            preset_label = RichLabel(self._preset, justify="left", overflow="crop")
+            preset_label = WealthLabel(self._preset, justify="left", overflow="crop")
             missions_label = Text(f"{count}个任务", style="italic", justify="right")
             appenv.say(Columns([preset_label, missions_label], expand=True))
 
@@ -129,15 +129,15 @@ class MissionMaker:
                     m = maker.make_mission(Path(s), external_dir)
                     result.append(m)
                     task_agent.advance()
-                    await appenv.pretendint_asleep(0.05)
-                await appenv.pretendint_asleep(0.2)
+                    await appenv.pretending_asleep(0.05)
+                await appenv.pretending_asleep(0.2)
                 return result
 
         tasks = []
         for preset in presets:
             task = asyncio.create_task(work(preset, sources))
             tasks.append(task)
-            await appenv.pretendint_asleep(0.2)
+            await appenv.pretending_asleep(0.2)
 
         results = await asyncio.gather(*tasks)
         missions = list(itertools.chain(*results))

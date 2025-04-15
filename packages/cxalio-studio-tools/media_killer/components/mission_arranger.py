@@ -1,7 +1,7 @@
 from operator import attrgetter
 from typing import Generator, Literal
 
-from cx_wealth.rich_label import RichLabel
+from cx_wealth.wealth_label import WealthLabel
 from media_killer.appenv import appenv
 from .mission import Mission
 
@@ -38,7 +38,7 @@ class MissionArranger:
         cache = set()
         for m in self._sorters[self.sort_mode]():
             if m in cache:
-                appenv.say(RichLabel(m), "是重复任务，已自动排除。")
+                appenv.say(WealthLabel(m), "是重复任务，已自动排除。")
                 continue
             cache.add(m)
             yield m

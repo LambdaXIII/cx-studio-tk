@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 from collections.abc import Sequence
-from operator import add
 from typing import Literal
+
 from rich_argparse import RichHelpFormatter
 
 

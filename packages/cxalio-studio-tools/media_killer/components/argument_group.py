@@ -36,7 +36,7 @@ class ArgumentGroup:
     def __add_options_from_pairs(self, pairs: Iterable[tuple[str | None, str | None]]):
         for k, v in pairs:
             # print(k, v)
-            k = self._deformat_key(k)
+            k = self._clean_up_key(k)
             v = str(v) if v else None
             if k and v:
                 self._options[k].append(v)
@@ -83,7 +83,7 @@ class ArgumentGroup:
         return key if key.startswith("-") else f"-{key}"
 
     @staticmethod
-    def _deformat_key(key: object | None) -> str | None:
+    def _clean_up_key(key: object | None) -> str | None:
         if key is None:
             return None
         key = str(key)

@@ -1,12 +1,13 @@
 from __future__ import annotations
-from typing import Self, override
-from collections.abc import Generator
 
-from cx_wealth._rich import Text
+from collections.abc import Generator
+from typing import Literal
+from typing import override
+
+from cx_wealth.rich_types import Text
 from ._action import _Action
 from ._node import _Node
-from typing import Literal
-from .. import _rich as r
+from .. import rich_types as r
 
 
 class _Group(_Node):
@@ -54,9 +55,9 @@ class _Group(_Node):
                 yield from action.iter_actions()
 
     @override
-    def render_useage(self) -> Text:
-        useages = [x.render_useage() for x in self.iter_actions()]
-        return r.Text(" ").join(useages)
+    def render_usage(self) -> Text:
+        usages = [x.render_usage() for x in self.iter_actions()]
+        return r.Text(" ").join(usages)
 
     @override
     @r.group(True)

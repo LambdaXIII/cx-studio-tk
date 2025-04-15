@@ -2,23 +2,19 @@ from collections.abc import Generator
 from typing import Literal
 from typing import Protocol, runtime_checkable
 
-import rich.markup
-from rich.pretty import Pretty
-from rich.segment import Segment
-from rich.text import Text
-
 from cx_studio.utils import FunctionalUtils
+from . import rich_types as r
 
 
 @runtime_checkable
-class RichLabelMixin(Protocol):
+class WealthLabelMixin(Protocol):
     def __rich_label__(self) -> Generator: ...
 
 
-class RichLabel:
+class WealthLabel:
     def __init__(
         self,
-        obj: RichLabelMixin,
+        obj: WealthLabelMixin,
         markup=True,
         sep: str = " ",
         tab_size: int = 1,
@@ -33,16 +29,16 @@ class RichLabel:
         self._justify: Literal["left", "center", "right"] = justify
 
     def __unpack_item(self, item):
-        if isinstance(item, RichLabelMixin):
+        if isinstance(item, WealthLabelMixin):
             for x in item.__rich_label__():
                 yield from self.__unpack_item(x)
-        elif isinstance(item, RichLabel):
+        elif isinstance(item, WealthLabel):
             yield from self.__unpack_item(item._obj)
         elif isinstance(item, str):
-            yield Text.from_markup(item) if self._markup else rich.markup.escape(item)
-        elif isinstance(item, Text):
+            yield r.Text.from_markup(item) if self._markup else r.markup.escape(item)
+        elif isinstance(item, r.Text):
             yield item
-        elif isinstance(item, Segment):
+        elif isinstance(item, r.Segment):
             yield item.text
             if item.style:
                 yield item.style
@@ -50,15 +46,15 @@ class RichLabel:
             yield str(item)
 
     def __rich__(self):
-        if not isinstance(self._obj, RichLabelMixin):
+        if not isinstance(self._obj, WealthLabelMixin):
             cls_name = self._obj.__class__.__name__
-            return Pretty(f"[{cls_name}] (instance)")
+            return r.Pretty(f"[{cls_name}] (instance)")
 
         elements = self.__unpack_item(self._obj)
         elements_with_sep = list(
             FunctionalUtils.iter_with_separator(elements, self._sep)
         )
-        text = Text.assemble(
+        text = r.Text.assemble(
             *elements_with_sep,  # type:ignore
             tab_size=self._tab_size,
             overflow=self._overflow,

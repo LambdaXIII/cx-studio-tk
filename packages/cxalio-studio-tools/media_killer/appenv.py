@@ -5,22 +5,21 @@ import time
 from collections.abc import Sequence
 from pathlib import Path
 
-from media_killer.components.exception import SafeError
 from rich.progress import Progress
-from rich.table import Table
-from rich.text import Text
-
-from cx_tools_common.app_interface import IAppEnvironment, ConfigManager
-from .appcontext import AppContext
 from rich.progress import (
     TextColumn,
     BarColumn,
     TaskProgressColumn,
     TimeRemainingColumn,
-    RenderableColumn,
     SpinnerColumn,
 )
 from rich.table import Column
+from rich.table import Table
+from rich.text import Text
+
+from cx_tools_common.app_interface import IAppEnvironment, ConfigManager
+from media_killer.components.exception import SafeError
+from .appcontext import AppContext
 
 
 class AppEnv(IAppEnvironment):
@@ -67,7 +66,7 @@ class AppEnv(IAppEnvironment):
         if self.context.pretending_mode:
             time.sleep(interval)
 
-    async def pretendint_asleep(self, interval: float = 0.2):
+    async def pretending_asleep(self, interval: float = 0.2):
         if self.context.pretending_mode:
             await asyncio.sleep(interval)
 

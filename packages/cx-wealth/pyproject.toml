@@ -1,7 +1,7 @@
 [project]
 name = "cx-wealth"
 version = "0.1.0"
-description = "Add your description here"
+description = "A lib of CLI gadgets extended from rich."
 readme = "README.md"
 authors = [
     { name = "xiii_1991", email = "xiii_1991@163.com" }
