@@ -6,6 +6,7 @@ from pathlib import Path
 from pprint import saferepr
 from typing import override
 
+from cx_wealth.rich_detail import RichDetailPanel
 from rich.columns import Columns
 from rich.text import Text
 
@@ -18,6 +19,7 @@ from media_killer.appenv import appenv
 from .mission import Mission
 from .exception import SafeError
 import random
+from cx_wealth import _rich as r
 
 
 class MissionRunner:
@@ -92,7 +94,11 @@ class MissionRunner:
         return Columns([left, right], expand=True)
 
     async def _on_started(self):
-        appenv.whisper(self.make_line_report("[yellow]开始[/]"))
+        report = self.make_line_report("[yellow]开始[/]")
+        g = r.Group(
+            RichDetailPanel(self.mission, title=str(self.mission.mission_id)), report
+        )
+        appenv.whisper(g)
 
     async def _on_progress_updated(self, c: CxTime, t: CxTime | None):
         c_seconds = c.total_seconds
