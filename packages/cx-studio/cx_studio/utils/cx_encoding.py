@@ -5,7 +5,7 @@ from chardet import UniversalDetector
 __char_detector = Proxy(UniversalDetector)
 
 
-def detect_encoding(filename):
+def detect_encoding(filename, default_encoding: str | None = "utf-8"):
     __char_detector.reset()
     try:
         with open(filename, "rb") as fp:
@@ -19,4 +19,4 @@ def detect_encoding(filename):
             result = __char_detector.result
             return result["encoding"]
     except FileNotFoundError:
-        return "utf-8"
+        return default_encoding or "locale"
