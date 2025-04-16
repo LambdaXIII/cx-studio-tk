@@ -1,10 +1,11 @@
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
+import sys
 
 
 class IApplication(ABC):
-    def __init__(self, arguments: Sequence[str] | None):
-        self.sys_arguments = arguments
+    def __init__(self, arguments: Sequence[str] | None = None):
+        self.sys_arguments = arguments or sys.argv[1:]
 
     @abstractmethod
     def start(self):
