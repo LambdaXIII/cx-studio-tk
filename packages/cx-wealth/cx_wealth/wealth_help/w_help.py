@@ -1,6 +1,6 @@
 import itertools
 import sys
-from typing import Literal
+from typing import Iterable, Literal
 
 from ._action import _Action
 from ._group import _Group
@@ -135,13 +135,14 @@ class WealthHelp:
             style="cx.help.details.box",
         )
 
-    def render(self):
+    def render(self) -> Iterable[r.RenderableType]:
         yield self.render_usage()
         yield self.render_details()
-        if self.epilog:
-            yield self.render_epilog()
+        r_epilog = self.render_epilog()
+        if r_epilog:
+            yield r_epilog
 
     def __rich_console__(self, console: r.Console, options: r.ConsoleOptions):
         with console.use_theme(self.theme):
             o = options.update(highlight=False)
-            yield from console.render(r.Group(*self.render(),fit=True), o)
+            yield from console.render(r.Group(*self.render(), fit=True), o)
