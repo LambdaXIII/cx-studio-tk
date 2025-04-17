@@ -4,7 +4,9 @@ import signal
 import time
 from collections.abc import Sequence
 from pathlib import Path
-
+from turtle import title
+from rich.markdown import Markdown
+from rich.panel import Panel
 from rich.progress import Progress
 from rich.progress import (
     TextColumn,
@@ -13,6 +15,7 @@ from rich.progress import (
     TimeRemainingColumn,
     SpinnerColumn,
 )
+from rich.columns import Columns
 from rich.table import Column
 from rich.table import Table
 from rich.text import Text
@@ -20,6 +23,10 @@ from rich.text import Text
 from cx_tools_common.app_interface import IAppEnvironment, ConfigManager
 from media_killer.components.exception import SafeError
 from .appcontext import AppContext
+from .mk_help_info import MKHelpInfo
+import importlib
+from rich.align import Align
+from rich.console import NewLine
 
 
 class AppEnv(IAppEnvironment):
@@ -134,6 +141,19 @@ class AppEnv(IAppEnvironment):
         if not check_only and result:
             self.say(f"[dim red]文件 {filename} 已存在，将强制覆盖。[/]")
         return result
+
+    def show_help(self):
+        self.say(MKHelpInfo())
+        return
+
+    def show_full_help(self):
+        with importlib.resources.open_text("media_killer", "help.md") as h:
+            tuto = h.read()
+        tutorial = Panel(
+            Markdown(tuto, style="default"), width=90, style="bright_black"
+        )
+        self.say(NewLine(3))
+        self.say(Align.center(tutorial))
 
 
 appenv = AppEnv()

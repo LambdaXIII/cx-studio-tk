@@ -5,7 +5,7 @@ from typing import Literal
 from typing import override
 
 from cx_wealth.rich_types import Text
-from ._action import _Action
+from ._action import _Action, _ActionNargs
 from ._node import _Node
 from .. import rich_types as r
 
@@ -25,7 +25,7 @@ class _Group(_Node):
         name: str | None = None,
         description: str | None = None,
         metavar: str | None = None,
-        nargs: int | Literal["?", "+", "*"] | None = None,
+        nargs: int | _ActionNargs | None = None,
         optional: bool | None = None,
     ) -> _Action:
         action = _Action(
@@ -63,13 +63,15 @@ class _Group(_Node):
     @r.group(True)
     def render_details(self):
         if self.name:
-            yield r.Text(self.name, style="cx.help.group.title")
+            yield r.Padding(
+                r.Text(self.name, style="cx.help.group.title"), pad=(1, 0, 0, 0)
+            )
         if self.description:
             yield r.Padding(
                 r.Text(
                     self.description, style="cx.help.group.description", overflow="fold"
                 ),
-                pad=(0, 0, 1, 2),
+                pad=(0, 0, 0, 2),
             )
         for child in self.children:
             p = r.Padding(child.render_details(), (0, 0, 1, child.level))

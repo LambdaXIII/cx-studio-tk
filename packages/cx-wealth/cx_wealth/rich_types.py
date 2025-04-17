@@ -9,7 +9,10 @@ ConsoleOptions = rich.console.ConsoleOptions
 Group = rich.console.Group
 group = rich.console.group
 RenderableType = rich.console.RenderableType
-Segment = rich.console.Segment
+
+import rich.segment
+
+Segment = rich.segment.Segment
 
 import rich.panel
 
