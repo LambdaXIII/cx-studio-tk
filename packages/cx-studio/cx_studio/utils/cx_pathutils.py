@@ -1,6 +1,6 @@
 import os
 import re
-from pathlib import Path
+from pathlib import Path, PurePath
 
 from typing import Literal
 
@@ -26,6 +26,15 @@ def force_suffix(source: Path | str, suffix: str) -> Path:
     source = Path(source)
     suffix = normalize_suffix(suffix)
     return Path(source if source.suffix == suffix else source.with_suffix(suffix))
+
+
+def auto_suffix(source: Path | str, suffix: str) -> PurePath:
+    if not source:
+        return Path()
+    source = Path(source)
+    if source.suffix:
+        return source
+    return source.with_suffix(suffix)
 
 
 def take_dir(source: Path) -> Path:
