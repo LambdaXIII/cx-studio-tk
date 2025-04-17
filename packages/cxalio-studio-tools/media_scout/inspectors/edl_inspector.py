@@ -9,8 +9,10 @@ class EDLInspector(MediaPathInspector):
     FILENAME_PATTERN = re.compile(r"CLIP NAME: (.+)")
 
     def _is_inspectable(self, info: InspectorInfo) -> bool:
-        assert info.path.suffix == ".edl"
-        assert info.is_decodable()
+        if info.path.suffix != ".edl":
+            return False
+        if not info.is_decodable():
+            return False
         return True
 
     def _inspect(self, info: InspectorInfo) -> Iterable[PurePath]:

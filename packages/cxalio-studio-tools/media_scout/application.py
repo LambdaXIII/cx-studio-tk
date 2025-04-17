@@ -2,6 +2,8 @@ from pathlib import Path
 from cx_tools_common.app_interface import IApplication
 import sys
 
+from media_scout.inspectors.filelist_inspector import FileListInspector
+
 from .inspectors import (
     ResolveMetadataInspector,
     MediaPathInspector,
@@ -10,6 +12,7 @@ from .inspectors import (
     LegacyXMLInspector,
     FCPXMLInspector,
     FCPXMLDInspector,
+    InspectorChain,
 )
 
 
@@ -36,5 +39,15 @@ class Application(IApplication):
                 print(x)
 
     def run(self):
-        for x in self.sys_arguments:
-            self.probe(Path(x))
+        inspectors = [
+            ResolveMetadataInspector(),
+            EDLInspector(),
+            LegacyXMLInspector(),
+            FCPXMLInspector(),
+            FCPXMLDInspector(),
+            FileListInspector(".txt", ".ps1", ".sh"),
+        ]
+        with InspectorChain(*inspectors, auto_resolve=True) as chain:
+            for x in sys.argv[1:]:
+                for y in chain.inspect(InspectorInfo(Path(x))):
+                    print(y)

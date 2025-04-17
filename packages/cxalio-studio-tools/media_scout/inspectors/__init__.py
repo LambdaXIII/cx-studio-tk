@@ -4,3 +4,4 @@ from .resolve_metadata_inspector import *
 from .edl_inspector import *
 from .legacy_xml_inspector import *
 from .fcpxml_inspector import *
+from .inspector_chain import *
