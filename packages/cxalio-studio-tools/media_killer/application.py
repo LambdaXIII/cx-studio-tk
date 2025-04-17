@@ -109,7 +109,11 @@ class Application(IApplication):
 
     def run(self):
         if appenv.context.show_help:
-            appenv.say(MKHelpInfo())
+            appenv.show_help()
+            return
+
+        if appenv.context.show_full_help:
+            appenv.show_full_help()
             return
 
         # 是否生成配置文件
