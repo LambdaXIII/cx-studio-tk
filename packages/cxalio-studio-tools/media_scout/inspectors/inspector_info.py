@@ -15,7 +15,10 @@ class InspectorInfo:
         self.path = Path(path)
         self.size = FileSize(os.path.getsize(path))
         self.encoding: str = "locale"
-        self.sample: bytes
+        self.sample: bytes = b""
+
+        if not self.path.is_file():
+            return
 
         _record: InspectorInfo._Record | None = self._sample_cache.get(path)
 

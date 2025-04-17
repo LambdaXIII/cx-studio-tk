@@ -8,6 +8,8 @@ from .inspectors import (
     InspectorInfo,
     EDLInspector,
     LegacyXMLInspector,
+    FCPXMLInspector,
+    FCPXMLDInspector,
 )
 
 
@@ -26,7 +28,7 @@ class Application(IApplication):
 
     @staticmethod
     def probe(filename: Path):
-        inspector = LegacyXMLInspector()
+        inspector = FCPXMLDInspector()
         sample = InspectorInfo(filename)
         if inspector.is_inspectable(sample):
             print("OK")
