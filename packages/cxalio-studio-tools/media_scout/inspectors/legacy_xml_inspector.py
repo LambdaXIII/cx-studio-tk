@@ -25,9 +25,8 @@ class LegacyXMLInspector(MediaPathInspector):
         return False
 
     def _inspect(self, info: InspectorInfo) -> Iterable[PurePath]:
-        with open(info.path, "r", encoding=info.encoding) as f:
-            root = ET.fromstring(f.read())
-
+        tree = ET.parse(info.path)
+        root = tree.getroot()
         for node in root.iter("pathurl"):
             url = urllib.parse.unquote(node.text or "")
             if self.URL_HEAD.match(url):

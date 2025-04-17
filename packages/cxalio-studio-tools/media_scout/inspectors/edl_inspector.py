@@ -16,6 +16,6 @@ class EDLInspector(MediaPathInspector):
     def _inspect(self, info: InspectorInfo) -> Iterable[PurePath]:
         with open(info.path, "r", encoding=info.encoding) as fp:
             for line in fp:
-                match = self.FILENAME_PATTERN.match(line)
+                match = self.FILENAME_PATTERN.search(line)
                 if match:
                     yield Path(match.group(1))

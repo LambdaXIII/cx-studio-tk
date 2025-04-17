@@ -1,7 +1,14 @@
 from pathlib import Path
 from cx_tools_common.app_interface import IApplication
 import sys
-from .inspectors import ResolveMetadataInspector, MediaPathInspector, InspectorInfo
+
+from .inspectors import (
+    ResolveMetadataInspector,
+    MediaPathInspector,
+    InspectorInfo,
+    EDLInspector,
+    LegacyXMLInspector,
+)
 
 
 class Application(IApplication):
@@ -19,7 +26,7 @@ class Application(IApplication):
 
     @staticmethod
     def probe(filename: Path):
-        inspector = ResolveMetadataInspector()
+        inspector = LegacyXMLInspector()
         sample = InspectorInfo(filename)
         if inspector.is_inspectable(sample):
             print("OK")
