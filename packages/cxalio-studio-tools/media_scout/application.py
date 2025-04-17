@@ -1,7 +1,7 @@
 from pathlib import Path
 from cx_tools_common.app_interface import IApplication
 import sys
-from .inspectors import ResolveMetadataInspector, MediaPathInspector, Sample
+from .inspectors import ResolveMetadataInspector, MediaPathInspector, InspectorInfo
 
 
 class Application(IApplication):
@@ -20,7 +20,7 @@ class Application(IApplication):
     @staticmethod
     def probe(filename: Path):
         inspector = ResolveMetadataInspector()
-        sample = Sample.load(filename)
+        sample = InspectorInfo(filename)
         if inspector.is_inspectable(sample):
             print("OK")
             for x in inspector.inspect(sample):
