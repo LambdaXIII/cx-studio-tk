@@ -21,6 +21,7 @@ from .inspectors import (
     FCPXMLDInspector,
     InspectorChain,
 )
+from .arg_parser import MSHelp
 
 
 class Application(IApplication):
@@ -32,6 +33,7 @@ class Application(IApplication):
 
     def start(self):
         appenv.start()
+        appenv.show_banner()
         appenv.whisper("MediaScout 启动")
         appenv.whisper(WealthDetailPanel(appenv.context))
 
@@ -54,11 +56,14 @@ class Application(IApplication):
     @staticmethod
     def auto_expand(path: os.PathLike, info: InspectorInfo) -> Iterable[PurePath]:
         result = Path(path)
+        includes = [info.path.parent.resolve()] if appenv.context.auto_resolve else []
+        includes.extend([Path(x) for x in appenv.context.includes])
+
         if result.is_absolute() or not appenv.context.includes:
             yield result
         else:
             appenv.whisper("[red]在搜索路径中搜索：{}[/]".format(result))
-            for include in appenv.context.includes:
+            for include in includes:
                 p = Path(include).absolute() / result
                 if p.exists():
                     appenv.whisper("找到：{}".format(p))
@@ -88,6 +93,9 @@ class Application(IApplication):
                         yield a
 
     def run(self):
+        if appenv.context.show_help:
+            appenv.say(MSHelp())
+            return
 
         if appenv.context.allow_duplicated:
             appenv.say("[red]允许输出重复项[/]")

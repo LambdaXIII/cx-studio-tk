@@ -25,5 +25,8 @@ class AppEnv(IAppEnvironment):
     def is_debug_mode_on(self):
         return self.context.debug_mode
 
+    def show_banner(self):
+        self.say("[blue]{}[/] [yellow]v{}[/]".format(self.app_name, self.app_version))
+
 
 appenv = AppEnv()

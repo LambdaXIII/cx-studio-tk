@@ -1,8 +1,8 @@
 import itertools
 import sys
-from typing import Iterable, Literal
-
-from ._action import _Action
+from typing import Literal
+from collections.abc import Iterable
+from ._action import _Action, _ActionNargs
 from ._group import _Group
 from .. import rich_types as r
 
@@ -43,7 +43,7 @@ class WealthHelp:
         name: str | None = None,
         description: str | None = None,
         metavar: str | None = None,
-        nargs: int | Literal["?", "+", "*"] | None = None,
+        nargs: int | _ActionNargs | None = None,
         optional: bool | None = None,
     ) -> _Action:
         return self._root.add_action(
@@ -67,6 +67,8 @@ class WealthHelp:
             desc = r.Text.from_markup(
                 self.description, style="cx.help.group.description"
             )
+            # desc.no_wrap = True
+            desc.overflow = "fold"
         elif isinstance(self.description, r.RenderableType):
             desc = self.description
         else:

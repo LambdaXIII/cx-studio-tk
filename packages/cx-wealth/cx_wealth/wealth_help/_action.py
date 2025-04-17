@@ -5,6 +5,9 @@ from ._node import _Node
 from .. import rich_types as r
 
 
+_ActionNargs = Literal["?", "+", "*", "**"]
+
+
 class _Action(_Node):
 
     def __init__(
@@ -13,7 +16,7 @@ class _Action(_Node):
         name: str | None = None,
         description: str | None = None,
         metavar: str | None = None,
-        nargs: int | Literal["?", "+", "*"] | None = None,
+        nargs: int | _ActionNargs | None = None,
         optional: bool | None = None,
         parent: _Node | None = None,
     ) -> None:
@@ -73,7 +76,8 @@ class _Action(_Node):
 
         if isinstance(self.nargs, int):
             args = [
-                self._format_argument(pattern="{}"+str(i+1)) for i in range(self.nargs)
+                self._format_argument(pattern="{}" + str(i + 1))
+                for i in range(self.nargs)
             ]
             sep = r.Text(", ", style="cx.help.usage.bracket")
             return sep.join(args)
@@ -108,6 +112,15 @@ class _Action(_Node):
         else:
             ps = [self.render_options(), self.render_argument()]
             res = r.Text(" ").join([x for x in ps if x is not None])
+
+        if self.nargs == "**":
+            res = r.Text.assemble(
+                self._make_optional(res),
+                self._make_optional(
+                    self.render_options(),
+                    r.Text(" ...", style="cx.help.usage.argument"),
+                ),
+            )
 
         if self.is_optional():
             res = self._make_optional(res)
