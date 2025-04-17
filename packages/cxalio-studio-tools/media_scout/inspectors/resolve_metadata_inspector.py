@@ -1,4 +1,3 @@
-from importlib.abc import InspectLoader
 from pathlib import PurePath
 from .media_path_inspector import MediaPathInspector
 from collections.abc import Iterable

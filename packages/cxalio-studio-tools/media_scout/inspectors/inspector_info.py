@@ -63,6 +63,13 @@ class InspectorInfo:
                 return x.decode(self.encoding)
         return ""
 
+    def peek_lines(self, ignore_empty_lines: bool = True) -> Iterable[str]:
+        for x in self.sample.splitlines(keepends=False):
+            if ignore_empty_lines and not x.strip():
+                continue
+            if x.strip():
+                yield x.decode(self.encoding)
+
     def is_decodable(self) -> bool:
         try:
             self.sample.decode(self.encoding)

@@ -23,6 +23,7 @@ class MediaPathInspector(ABC):
     def is_inspectable(self, info: InspectorInfo) -> bool:
         if not info.path.exists():
             return False
+
         return self._is_inspectable(info)
 
     @abstractmethod
