@@ -105,6 +105,7 @@ class Application(IApplication):
             )
         else:
             appenv.say("全部任务整理完毕，已按照设定方式排序。")
+        appenv.whisper(IndexedListPanel(self.missions, "整理完的任务列表"))
 
     def run(self):
         if appenv.context.show_help:
