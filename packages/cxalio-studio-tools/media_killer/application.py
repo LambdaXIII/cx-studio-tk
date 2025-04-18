@@ -20,7 +20,6 @@ from .components import (
 from .components import Mission
 from .components import Preset
 from .components.exception import SafeError
-from .mk_help_info import MKHelpInfo
 
 
 class Application(IApplication):

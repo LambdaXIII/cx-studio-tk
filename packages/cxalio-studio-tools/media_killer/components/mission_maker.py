@@ -4,11 +4,9 @@ import threading
 from collections.abc import Sequence, Generator, Iterable
 from pathlib import Path
 
-from rich.columns import Columns
-from rich.text import Text
-
 from cx_tools_common.app_interface import ProgressTaskAgent
 from cx_wealth import WealthLabel, IndexedListPanel
+from cx_wealth import rich_types as r
 from .argument_group import ArgumentGroup
 from .mission import Mission
 from .preset import Preset
@@ -71,8 +69,8 @@ class MissionMaker:
 
             count = len(missions)
             preset_label = WealthLabel(self._preset, justify="left", overflow="crop")
-            missions_label = Text(f"{count}个任务", style="italic", justify="right")
-            appenv.say(Columns([preset_label, missions_label], expand=True))
+            missions_label = r.Text(f"{count}个任务", style="italic", justify="right")
+            appenv.say(r.Columns([preset_label, missions_label], expand=True))
 
     def expand_and_make_missions(
         self, sources: Sequence[str | Path], external_output_dir: Path | None = None

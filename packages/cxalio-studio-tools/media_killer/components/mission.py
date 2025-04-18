@@ -3,12 +3,11 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 import ulid
-from rich.columns import Columns
-from rich.text import Text
 
 from cx_studio.utils import FunctionalUtils
 from cx_studio.utils import PathUtils
 from cx_wealth import WealthLabel
+from cx_wealth import rich_types as r
 from .argument_group import ArgumentGroup
 from .preset import Preset
 
@@ -30,9 +29,9 @@ class Mission:
         return PathUtils.get_basename(self.source)
 
     def __rich__(self):
-        return Text.assemble(
+        return r.Text.assemble(
             *[
-                Text.from_markup(x)
+                r.Text.from_markup(x)
                 for x in FunctionalUtils.iter_with_separator(self.__rich_label__(), " ")
             ],
             overflow="crop",
@@ -79,7 +78,7 @@ class Mission:
         yield "覆盖已存在的目标", "是" if self.overwrite else "否"
         yield "硬件加速模式", self.hardware_accelerate
         if self.options:
-            yield "通用参数（自定义）", Columns(
+            yield "通用参数（自定义）", r.Columns(
                 self.options.iter_arguments(position_for_position_arguments="front")
             )
         yield "媒体输入组", self.inputs

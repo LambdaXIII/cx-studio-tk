@@ -7,9 +7,6 @@ from pathlib import Path
 from pprint import saferepr
 from typing import override
 
-from rich.columns import Columns
-from rich.text import Text
-
 from cx_studio.core.cx_time import CxTime
 from cx_studio.ffmpeg import FFmpegAsync
 from cx_studio.utils import PathUtils
@@ -86,11 +83,11 @@ class MissionRunner:
 
         label = header + name
 
-        left = Text.from_markup(label, end="", justify="left", overflow="ellipsis")
+        left = r.Text.from_markup(label, end="", justify="left", overflow="ellipsis")
         left.no_wrap = True
-        right = Text.from_markup(right_side, justify="right")
+        right = r.Text.from_markup(right_side, justify="right")
 
-        return Columns([left, right], expand=True)
+        return r.Columns([left, right], expand=True)
 
     async def _on_started(self):
         report = self.make_line_report("[yellow]开始[/]")
