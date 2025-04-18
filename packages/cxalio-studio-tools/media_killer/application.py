@@ -20,6 +20,7 @@ from .components import (
 from .components import Mission
 from .components import Preset
 from .components.exception import SafeError
+import shelve
 
 
 class Application(IApplication):
@@ -33,9 +34,14 @@ class Application(IApplication):
         appenv.load_arguments(self.sys_arguments)
         appenv.start()
         appenv.show_banner()
+
+        # ms = self.load_missions()
+        # appenv.whisper(IndexedListPanel(ms, "最近一次保存的任务列表"))
+
         return self
 
     def stop(self):
+        # self.save_missions(self.missions)
         appenv.whisper("Bye ~")
         appenv.stop()
 
@@ -48,6 +54,23 @@ class Application(IApplication):
             appenv.say(exc_val)
             result = True
         return result
+
+    # @staticmethod
+    # def save_missions(missions: list[Mission]):
+    #     path = appenv.config_manager.get_file("last_missions.db")
+    #     if missions:
+    #         with shelve.open(path) as db:
+    #             db["missions"] = missions
+    #     else:
+    #         path.unlink()
+
+    # @staticmethod
+    # def load_missions() -> list[Mission]:
+    #     path = appenv.config_manager.get_file("last_missions.db")
+    #     if not path.exists():
+    #         return []
+    #     with shelve.open(path) as db:
+    #         return list(db["missions"])
 
     @staticmethod
     def export_example_preset(filename: Path):
