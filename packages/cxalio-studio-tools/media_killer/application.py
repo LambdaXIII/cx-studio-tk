@@ -34,14 +34,10 @@ class Application(IApplication):
         appenv.load_arguments(self.sys_arguments)
         appenv.start()
         appenv.show_banner()
-
-        # ms = self.load_missions()
-        # appenv.whisper(IndexedListPanel(ms, "最近一次保存的任务列表"))
-
         return self
 
     def stop(self):
-        # self.save_missions(self.missions)
+        self.save_missions(self.missions)
         appenv.whisper("Bye ~")
         appenv.stop()
 
@@ -55,22 +51,22 @@ class Application(IApplication):
             result = True
         return result
 
-    # @staticmethod
-    # def save_missions(missions: list[Mission]):
-    #     path = appenv.config_manager.get_file("last_missions.db")
-    #     if missions:
-    #         with shelve.open(path) as db:
-    #             db["missions"] = missions
-    #     else:
-    #         path.unlink()
+    @staticmethod
+    def save_missions(missions: list[Mission]):
+        path = appenv.config_manager.get_file("last_missions.db")
+        if missions:
+            with shelve.open(path) as db:
+                db["missions"] = missions
 
-    # @staticmethod
-    # def load_missions() -> list[Mission]:
-    #     path = appenv.config_manager.get_file("last_missions.db")
-    #     if not path.exists():
-    #         return []
-    #     with shelve.open(path) as db:
-    #         return list(db["missions"])
+    @staticmethod
+    def load_missions() -> list[Mission]:
+        path = appenv.config_manager.get_file("last_missions.db")
+        if not path.exists():
+            return []
+        with shelve.open(path) as db:
+            result = list(db["missions"])
+            appenv.whisper(IndexedListPanel(result, "从上次执行中恢复的任务"))
+            return result
 
     @staticmethod
     def export_example_preset(filename: Path):
@@ -85,10 +81,6 @@ class Application(IApplication):
         appenv.say(f"已生成示例配置文件：{filename}。[blink red]请在修改后使用！[/]")
 
     def _set_presets_and_sources(self, presets, sources):
-        preset_count = len(presets)
-        if preset_count == 0:
-            raise SafeError("未发现任何配置文件，无法进行任何处理。")
-
         # 去除重复的配置文件
         preset_ids = set()
         for p in presets:
@@ -104,20 +96,22 @@ class Application(IApplication):
             DynamicColumns(WealthDetailPanel(x, title=x.id) for x in self.presets)
         )
 
-        source_count = len(sources)
-        if source_count == 0:
-            raise SafeError("用户未指定任何来源，无需进行任何处理。")
         self.sources += list(sources)
         appenv.whisper(IndexedListPanel(self.sources, "来源路径列表"))
 
-        appenv.say(
-            "已发现{preset_count}个配置文件和{source_count}个来源路径。".format(
-                preset_count=preset_count, source_count=source_count
+        if self.presets or self.sources:
+            appenv.say(
+                "已添加{preset_count}个配置文件和{source_count}个来源路径。".format(
+                    preset_count=len(self.presets), source_count=len(self.sources)
+                )
             )
-        )
 
     def _sort_and_set_missions(self, missions):
         self.missions = list(MissionArranger(missions, appenv.context.sort_mode))
+        # 检查任务数量并判断是否运行
+        if not self.missions:
+            raise SafeError("没有任务需要执行。")
+        # 汇报任务数量
         old_count, new_count = len(missions), len(self.missions)
         if old_count != new_count:
             appenv.say(
@@ -157,19 +151,29 @@ class Application(IApplication):
 
         self._set_presets_and_sources(presets, sources)
 
+        # 恢复上次的任务
+        missions = []
+        if appenv.context.continue_mode:
+            last_missions = self.load_missions()
+            appenv.say("从上次执行中恢复了 {} 个任务……".format(len(last_missions)))
+            missions.extend(last_missions)
+
         # 整理并生成任务序列
         output_dir = None
         if appenv.context.output_dir:
             output_dir = Path(appenv.context.output_dir).resolve()
             appenv.say('输出目录将被替换为: "{}"'.format(output_dir))
 
-        missions = asyncio.run(
+        current_missions = asyncio.run(
             MissionMaker.auto_make_missions(
                 self.presets,
                 self.sources,
                 external_output_dir=output_dir,
             )
         )
+        if current_missions:
+            appenv.say("生成了 {} 个任务。".format(len(current_missions)))
+        missions.extend(current_missions)
         self._sort_and_set_missions(missions)
 
         # 生成脚本
