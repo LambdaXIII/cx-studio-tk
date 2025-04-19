@@ -11,6 +11,7 @@ from cx_tools_common.app_interface import IApplication
 from cx_wealth import DynamicColumns, IndexedListPanel, WealthDetailPanel
 from media_killer.components.mission_master import MissionMaster
 from media_killer.components.script_maker import ScriptMaker
+from media_killer.mk_help_info import MKHelp
 from .appenv import appenv
 from .components import (
     InputScanner,
@@ -125,11 +126,11 @@ class Application(IApplication):
 
     def run(self):
         if appenv.context.show_help:
-            appenv.show_help()
+            MKHelp.show_help(appenv.console)
             return
 
         if appenv.context.show_full_help:
-            appenv.show_full_help()
+            MKHelp.show_full_help(appenv.console)
             return
 
         # 是否生成配置文件

@@ -1,8 +1,10 @@
+import importlib.resources
 from cx_studio.utils import TextUtils
 from cx_wealth import WealthHelp
+from cx_wealth import rich_types as r
 
 
-class MKHelpInfo(WealthHelp):
+class MKHelp(WealthHelp):
     def __init__(self):
         super().__init__(prog="mediakiller")
 
@@ -93,3 +95,20 @@ class MKHelpInfo(WealthHelp):
         self.epilog = (
             "[link https://github.com/LambdaXIII/cx-studio-tk]Cxalio Studio Tools[/]"
         )
+
+    @staticmethod
+    def show_help(console: r.Console):
+        console.print(MKHelp())
+
+    @staticmethod
+    def show_full_help(console: r.Console):
+        md = importlib.resources.read_text("media_killer", "help.md")
+        content = r.Markdown(md, style="default")
+        panel = r.Panel(
+            content,
+            title="Media Killer 教程",
+            width=90,
+            style="bright_black",
+            title_align="left",
+        )
+        console.print(r.Align.center(panel))

@@ -10,7 +10,7 @@ from cx_tools_common.app_interface import IAppEnvironment, ConfigManager
 from cx_wealth import rich_types as r
 from media_killer.components.exception import SafeError
 from .appcontext import AppContext
-from .mk_help_info import MKHelpInfo
+from .mk_help_info import MKHelp
 
 
 class AppEnv(IAppEnvironment):
@@ -127,19 +127,6 @@ class AppEnv(IAppEnvironment):
         if not check_only and result:
             self.say(f"[dim red]文件 {filename} 已存在，将强制覆盖。[/]")
         return result
-
-    def show_help(self):
-        self.say(MKHelpInfo())
-        return
-
-    def show_full_help(self):
-        with importlib.resources.open_text("media_killer", "help.md") as h:
-            tuto = h.read()
-        tutorial = r.Panel(
-            r.Markdown(tuto, style="default"), width=90, style="bright_black"
-        )
-        self.say(r.NewLine(3))
-        self.say(r.Align.center(tutorial))
 
 
 appenv = AppEnv()

@@ -94,7 +94,11 @@ class Application(IApplication):
 
     def run(self):
         if appenv.context.show_help:
-            appenv.say(MSHelp())
+            MSHelp.show_help(appenv.console)
+            return
+
+        if appenv.context.show_full_help:
+            MSHelp.show_full_help(appenv.console)
             return
 
         if appenv.context.allow_duplicated:
