@@ -1,34 +1,22 @@
 [project]
 name = "cx-studio-tk"
-version = "0.1.0"
+version = "0.5.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = ["cx-studio", "cxalio-studio-tools"]
 
 [tool.uv.sources]
-cx-studio = {workspace = true}
-cx-wealth = {workspace = true}
-cxalio-studio-tools = {workspace = true}
+cx-studio = { workspace = true }
+cx-wealth = { workspace = true }
+cxalio-studio-tools = { workspace = true }
 
 [tool.uv.workspace]
 members = [
     "packages/cx-studio",
- "packages/cxalio-studio-tools",
- "packages/cx-wealth",
+    "packages/cxalio-studio-tools",
+    "packages/cx-wealth",
 ]
 
 [dependency-groups]
-dev = [
-    "black>=25.1.0",
-    "ipython>=9.0.2",
-]
-
-# [dependency-groups]
-# dev = []
-
-# [tool.pytest.ini_options]
-# pythonpath = [".","packages/cx-studio/src"]
-
-# [project.scripts]
-# hello = "hello:h"
+dev = ["black>=25.1.0", "ipython>=9.0.2"]
