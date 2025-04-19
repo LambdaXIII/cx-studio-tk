@@ -2,14 +2,8 @@ from collections.abc import Generator, Iterable
 from pathlib import Path, PurePath
 
 from cx_studio.path_expander import PathExpander, SuffixValidator
-from cx_studio.utils import EncodingUtils
-
 from media_killer.appenv import appenv
-from media_scout.inspectors.inspector_info import InspectorInfo
-from .preset import Preset
-
 from media_scout.inspectors import (
-    InspectorChain,
     EDLInspector,
     FCPXMLDInspector,
     FCPXMLInspector,
@@ -17,6 +11,8 @@ from media_scout.inspectors import (
     InspectorChain,
     ResolveMetadataInspector,
 )
+from media_scout.inspectors.inspector_info import InspectorInfo
+from .preset import Preset
 
 
 class SourceExpander:

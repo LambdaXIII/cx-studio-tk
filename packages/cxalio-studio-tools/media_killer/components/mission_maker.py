@@ -4,11 +4,9 @@ import threading
 from collections.abc import Sequence, Generator, Iterable
 from pathlib import Path
 
-from rich.columns import Columns
-from rich.text import Text
-
 from cx_tools_common.app_interface import ProgressTaskAgent
 from cx_wealth import WealthLabel, IndexedListPanel
+from cx_wealth import rich_types as r
 from .argument_group import ArgumentGroup
 from .mission import Mission
 from .preset import Preset
@@ -46,11 +44,19 @@ class MissionMaker:
             x.add_options(list(replacer.read_value_as_list(g.options)))
             outputs.append(x)
 
+        _overwrite: bool = self._preset.overwrite
+        if appenv.context.force_overwrite:
+            _overwrite = True
+        if appenv.context.force_no_overwrite:
+            _overwrite = False
+
         return Mission(
-            preset=self._preset,
+            preset_id=self._preset.id,
+            preset_name=self._preset.name,
+            ffmpeg=self._preset.ffmpeg,
             source=source,
             standard_target=replacer.standard_target,
-            overwrite=self._preset.overwrite,
+            overwrite=_overwrite,
             hardware_accelerate=self._preset.hardware_accelerate or "auto",
             options=general,
             inputs=inputs,
@@ -71,8 +77,8 @@ class MissionMaker:
 
             count = len(missions)
             preset_label = WealthLabel(self._preset, justify="left", overflow="crop")
-            missions_label = Text(f"{count}个任务", style="italic", justify="right")
-            appenv.say(Columns([preset_label, missions_label], expand=True))
+            missions_label = r.Text(f"{count}个任务", style="italic", justify="right")
+            appenv.say(r.Columns([preset_label, missions_label], expand=True))
 
     def expand_and_make_missions(
         self, sources: Sequence[str | Path], external_output_dir: Path | None = None

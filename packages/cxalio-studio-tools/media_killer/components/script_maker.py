@@ -25,7 +25,7 @@ class ScriptMaker:
                     yield f"{self._make_dir} {TextUtils.auto_quote(str(output_folder.resolve()))}"
                     folders.add(output_folder)
 
-            es = [mission.preset.ffmpeg]
+            es = [mission.ffmpeg]
             es.extend(mission.iter_arguments(quote_mode="auto"))
             yield " ".join(es)
 

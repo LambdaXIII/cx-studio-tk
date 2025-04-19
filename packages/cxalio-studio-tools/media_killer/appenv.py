@@ -1,32 +1,16 @@
 import asyncio
+import importlib
 import importlib.resources
 import signal
 import time
 from collections.abc import Sequence
 from pathlib import Path
-from turtle import title
-from rich.markdown import Markdown
-from rich.panel import Panel
-from rich.progress import Progress
-from rich.progress import (
-    TextColumn,
-    BarColumn,
-    TaskProgressColumn,
-    TimeRemainingColumn,
-    SpinnerColumn,
-)
-from rich.columns import Columns
-from rich.table import Column
-from rich.table import Table
-from rich.text import Text
 
 from cx_tools_common.app_interface import IAppEnvironment, ConfigManager
+from cx_wealth import rich_types as r
 from media_killer.components.exception import SafeError
 from .appcontext import AppContext
-from .mk_help_info import MKHelpInfo
-import importlib
-from rich.align import Align
-from rich.console import NewLine
+from .mk_help_info import MKHelp
 
 
 class AppEnv(IAppEnvironment):
@@ -36,16 +20,16 @@ class AppEnv(IAppEnvironment):
         self.app_version = "0.5.0"
         self.app_description = "媒体文件批量操作工具"
         self.context: AppContext = AppContext()
-        self.progress = Progress(
+        self.progress = r.Progress(
             # RenderableColumn("[bright_black]M[/]"),
-            SpinnerColumn(),
-            TextColumn(
+            r.SpinnerColumn(),
+            r.TextColumn(
                 "[progress.description]{task.description}",
-                table_column=Column(ratio=60, no_wrap=True),
+                table_column=r.Column(ratio=60, no_wrap=True),
             ),
-            BarColumn(table_column=Column(ratio=40)),
-            TaskProgressColumn(justify="right"),
-            TimeRemainingColumn(compact=True),
+            r.BarColumn(table_column=r.Column(ratio=40)),
+            r.TaskProgressColumn(justify="right"),
+            r.TimeRemainingColumn(compact=True),
             expand=True,
         )
 
@@ -91,35 +75,37 @@ class AppEnv(IAppEnvironment):
                 time.sleep(0.1)
         self._garbage_files.clear()
 
-    def show_banner(self, console=None):
+    def show_banner(self):
+        banners = []
+
         with importlib.resources.open_text("media_killer", "banner.txt") as banner:
-            banner_text = Text(banner.read(), style="bold red")
-        version_info = Text.from_markup(
+            banner_text = r.Text(
+                banner.read(),
+                style="bold red",
+                no_wrap=True,
+                overflow="crop",
+                justify="center",
+            )
+            banners.append(r.Align.center(banner_text))
+
+        version_info = r.Text.from_markup(
             f"[bold blue]{self.app_name}[/] [yellow]v{self.app_version}[/]"
         )
-        description = Text(self.app_description, style="bright_black")
+        banners.append(r.Align.center(version_info))
 
+        description = r.Text(self.app_description, style="bright_black")
         tags = []
         if self.context.pretending_mode:
             tags.append("[blue]模拟运行[/]")
-
         if self.context.force_no_overwrite:
             tags.append("[green]安全模式[/]")
         elif self.context.force_overwrite:
             tags.append("[red]强制覆盖模式[/]")
-
         if tags:
             description = "·".join(tags)
+        banners.append(r.Align.center(description))
 
-        table = Table(box=None, show_header=False, show_footer=False, expand=True)
-        table.add_column(justify="center", overflow="ellipsis")
-
-        table.add_row(banner_text)
-        table.add_row(version_info)
-        table.add_row(description)
-
-        console = console or self.console
-        console.print(table)
+        self.say(r.Group(*banners))
 
     def check_overwritable_file(self, filename: Path, check_only: bool = False) -> bool:
         existed = filename.exists()
@@ -141,19 +127,6 @@ class AppEnv(IAppEnvironment):
         if not check_only and result:
             self.say(f"[dim red]文件 {filename} 已存在，将强制覆盖。[/]")
         return result
-
-    def show_help(self):
-        self.say(MKHelpInfo())
-        return
-
-    def show_full_help(self):
-        with importlib.resources.open_text("media_killer", "help.md") as h:
-            tuto = h.read()
-        tutorial = Panel(
-            Markdown(tuto, style="default"), width=90, style="bright_black"
-        )
-        self.say(NewLine(3))
-        self.say(Align.center(tutorial))
 
 
 appenv = AppEnv()

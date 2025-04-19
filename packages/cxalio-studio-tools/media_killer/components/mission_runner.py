@@ -7,9 +7,6 @@ from pathlib import Path
 from pprint import saferepr
 from typing import override
 
-from rich.columns import Columns
-from rich.text import Text
-
 from cx_studio.core.cx_time import CxTime
 from cx_studio.ffmpeg import FFmpegAsync
 from cx_studio.utils import PathUtils
@@ -24,7 +21,7 @@ from .mission import Mission
 class MissionRunner:
     def __init__(self, mission: Mission):
         self.mission = mission
-        self._ffmpeg: FFmpegAsync = FFmpegAsync(self.mission.preset.ffmpeg)
+        self._ffmpeg: FFmpegAsync = FFmpegAsync(self.mission.ffmpeg)
         self._input_files = [self.mission.source] + list(
             self.mission.iter_input_filenames()
         )
@@ -86,11 +83,11 @@ class MissionRunner:
 
         label = header + name
 
-        left = Text.from_markup(label, end="", justify="left", overflow="ellipsis")
+        left = r.Text.from_markup(label, end="", justify="left", overflow="ellipsis")
         left.no_wrap = True
-        right = Text.from_markup(right_side, justify="right")
+        right = r.Text.from_markup(right_side, justify="right")
 
-        return Columns([left, right], expand=True)
+        return r.Columns([left, right], expand=True)
 
     async def _on_started(self):
         report = self.make_line_report("[yellow]开始[/]")
@@ -147,9 +144,7 @@ class MissionRunner:
         )
         if no_existed_input_files:
             raise SafeError(
-                "输入文件不存在: {}".format(
-                    ";".join(map(saferepr, no_existed_input_files))
-                )
+                "输入文件不存在: {}".format(";".join(map(str, no_existed_input_files)))
             )
 
         o_dirs = set(map(lambda a: a.parent, self._output_files))
@@ -183,6 +178,8 @@ class MissionRunner:
             self._start_time = datetime.now()
             self._task_description = self.mission.name
 
+            result = None
+
             try:
                 self._prepare_mission()
 
@@ -198,19 +195,21 @@ class MissionRunner:
                         break
 
                 # await asyncio.wait([main_task])
+                result = main_task.result()
 
             except asyncio.CancelledError:
                 self.cancel()
+                result = False
 
             except SafeError as e:
                 await self._on_canceled(reason=e.message)
+                result = False
 
             finally:
                 # async with self._cancelling_cond:
-                await asyncio.wait([main_task])
+                # await asyncio.wait([main_task])
                 self._end_time = datetime.now()
                 await self._ffmpeg.wait_for_complete()
-                result = main_task.result()
                 return result
 
         # running condition

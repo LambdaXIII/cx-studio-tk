@@ -39,7 +39,7 @@ class MissionMaster:
 
     async def _build_mission_info(self, index):
         mission = self._missions[index]
-        ffmpeg = FFmpegAsync(mission.preset.ffmpeg)
+        ffmpeg = FFmpegAsync(mission.ffmpeg)
         basic_info = await ffmpeg.get_basic_info(mission.source)
         duration = basic_info.get("duration")
         mission_info = MissionMaster.MInfo(

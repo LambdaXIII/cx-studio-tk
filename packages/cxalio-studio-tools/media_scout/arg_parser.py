@@ -5,6 +5,8 @@ from xml.etree.ElementInclude import include
 
 from cx_studio.utils.cx_textutils import auto_quote
 from cx_wealth import WealthHelp
+from cx_wealth import rich_types as r
+import importlib.resources
 
 
 class ArgParser(ArgumentParser):
@@ -51,6 +53,13 @@ class ArgParser(ArgumentParser):
         self.add_argument(
             "-h", "--help", action="store_true", default=False, dest="show_help"
         )
+        self.add_argument(
+            "--tutorial",
+            "--full-help",
+            action="store_true",
+            default=False,
+            dest="show_full_help",
+        )
 
 
 @dataclass
@@ -64,6 +73,7 @@ class AppContext:
     auto_quote: bool
     debug_mode: bool
     show_help: bool
+    show_full_help: bool
 
     @classmethod
     def load(cls, arguments: Sequence[str] | None = None):
@@ -79,6 +89,7 @@ class AppContext:
             auto_quote=args.auto_quote,
             debug_mode=args.debug_mode,
             show_help=args.show_help,
+            show_full_help=args.show_full_help,
         )
 
     def __rich_detail__(self):
@@ -102,7 +113,7 @@ class MSHelp(WealthHelp):
         o_group = self.add_group("选项", "对结果进行处理的若干选项")
         o_group.add_action(
             "-i",
-            "--includes",
+            "--include",
             metavar="DIR",
             nargs="**",
             description="指定用于搜索无路径文件名的文件夹",
@@ -120,7 +131,27 @@ class MSHelp(WealthHelp):
         x_group = self.add_group("其它")
         x_group.add_action("-d", "--debug", description="开启调试模式")
         x_group.add_action("-h", "--help", description="显示帮助信息")
+        x_group.add_action(
+            "--tutorial", "--full-help", description="显示完整的帮助信息"
+        )
 
         self.epilog = (
             "[link https://github.com/LambdaXIII/cx-studio-tk]Cxalio Studio Tools[/]"
         )
+
+    @staticmethod
+    def show_help(console: r.Console):
+        console.print(MSHelp())
+
+    @staticmethod
+    def show_full_help(console: r.Console):
+        md = importlib.resources.read_text("media_scout", "help.md")
+        content = r.Markdown(md, style="default")
+        panel = r.Panel(
+            content,
+            title="MediaScout 教程",
+            title_align="left",
+            style="bright_black",
+            width=90,
+        )
+        console.print(r.Align.center(panel))

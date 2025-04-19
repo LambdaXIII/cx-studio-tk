@@ -15,11 +15,11 @@ MediaKiller 将会基于提供的源文件路径自动探测可能的原始文�
 
 1. 如果`源文件路径`为以下类型之一，则会直接读取并展开其中包含的文件路径：
 
-   - EDL 剪辑决定表 (.edl)
-   - Fcp7XML 经典 XML 时间线文件 (.xml)
-   - Final Cut Pro XML 项目文件 (.fcpxml | .fcpxmld)
-   - Davinci Resolve 导出的媒体元数据信息 (.csv)
-   - 包含路径信息的纯文本文件（包括脚本文件） (.txt | .sh)
+    - EDL 剪辑决定表 (.edl)
+    - Fcp7XML 经典 XML 时间线文件 (.xml)
+    - Final Cut Pro XML 项目文件 (.fcpxml | .fcpxmld)
+    - Davinci Resolve 导出的媒体元数据信息 (.csv)
+    - 包含路径信息的纯文本文件（包括脚本文件） (.txt | .sh)
 
 2. 如果`源文件路径`是一个*文件夹*，则会递归地展开其中所有的文件和子目录中的文件。
 3. 将所有探测到的文件按照对应的`预设文件`中的预设进行筛选。
@@ -55,13 +55,13 @@ mediakiller --generate example1.toml example2.toml
 
 - `${source}` 引用当前任务的源文件信息，默认情况下返回源文件的绝对路径。
 
-| 参数               | 介绍                           |
-| ------------------ | ------------------------------ |
-| ${source:fullpath} | 源文件的绝对路径               |
-| ${source:parent}   | 源文件的上级目录               |
-| ${source:name}     | 源文件的文件名（不包含路径）   |
+| 参数                 | 介绍              |
+|--------------------|-----------------|
+| ${source:fullpath} | 源文件的绝对路径        |
+| ${source:parent}   | 源文件的上级目录        |
+| ${source:name}     | 源文件的文件名（不包含路径）  |
 | ${source:basename} | 源文件的基本名（不包含扩展名） |
-| ${source:suffix}   | 源文件的扩展名（包含点号）     |
+| ${source:suffix}   | 源文件的扩展名（包含点号）   |
 
 - `${target}` 引用标准情况下的目标文件名，此文件名是由源文件和`[target]`组中的设置计算而来的。其选项和`source`相同。
 
