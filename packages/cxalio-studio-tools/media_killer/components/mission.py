@@ -15,8 +15,11 @@ from .preset import Preset
 @dataclass(frozen=True)
 class Mission:
     mission_id: ulid.ULID = field(default_factory=ulid.new, kw_only=True)
-    # TODO: Remove Preset in Mission
-    preset: Preset
+
+    preset_id: str
+    preset_name: str
+    ffmpeg: str
+
     source: Path
     standard_target: Path
     overwrite: bool = False
@@ -40,17 +43,17 @@ class Mission:
 
     def __rich_label__(self):
         yield "[bold bright_black]M[/]"
-        yield f"[dim green][[cyan]{self.preset.name}[/cyan]:{len(self.inputs)}->{len(self.outputs)}][/dim green]"
+        yield f"[dim green][[cyan]{self.preset_name}[/cyan]:{len(self.inputs)}->{len(self.outputs)}][/dim green]"
         yield f"[yellow]{self.name}[/]"
         yield f"[italic dim blue]({self.source.resolve().parent})[/]"
 
     def __eq__(self, value: object) -> bool:
         if not isinstance(value, Mission):
             return False
-        return self.source == value.source and self.preset.id == value.preset.id
+        return self.source == value.source and self.preset_id == value.preset_id
 
     def __hash__(self) -> int:
-        return hash(str(self.source)) ^ hash(self.preset) ^ hash("mission")
+        return hash(str(self.source)) ^ hash(self.preset_id) ^ hash("mission")
 
     def iter_arguments(
         self,
@@ -73,7 +76,7 @@ class Mission:
 
     def __rich_detail__(self):
         yield "名称", self.name
-        yield "来源预设", WealthLabel(self.preset)
+        yield "来源预设", f"{self.preset_name}({self.preset_name})"
         yield "来源文件路径", self.source
         yield "标准目标路径", self.standard_target
         yield "覆盖已存在的目标", "是" if self.overwrite else "否"

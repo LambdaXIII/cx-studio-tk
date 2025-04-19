@@ -32,7 +32,7 @@ class MissionArranger:
         yield from sorted(self.missions, key=attrgetter("standard_target"))
 
     def __sort_by_preset(self) -> Generator[Mission]:
-        yield from sorted(self.missions, key=lambda x: x.preset.id)
+        yield from sorted(self.missions, key=lambda x: x.preset_id)
 
     def __iter__(self) -> Generator[Mission]:
         cache = set()

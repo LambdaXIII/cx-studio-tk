@@ -44,17 +44,19 @@ class MissionMaker:
             x.add_options(list(replacer.read_value_as_list(g.options)))
             outputs.append(x)
 
-        overwrite = self._preset.overwrite
+        _overwrite: bool = self._preset.overwrite
         if appenv.context.force_overwrite:
-            overwrite = True
+            _overwrite = True
         if appenv.context.force_no_overwrite:
-            overwrite = False
+            _overwrite = False
 
         return Mission(
-            preset=self._preset,
+            preset_id=self._preset.id,
+            preset_name=self._preset.name,
+            ffmpeg=self._preset.ffmpeg,
             source=source,
             standard_target=replacer.standard_target,
-            overwrite=overwrite,
+            overwrite=_overwrite,
             hardware_accelerate=self._preset.hardware_accelerate or "auto",
             options=general,
             inputs=inputs,
