@@ -1,191 +1,201 @@
-from collections.abc import Generator
-
+from __future__ import annotations
+from collections import defaultdict
+from collections.abc import Generator, Iterable, Mapping, Sequence, Set, MutableMapping
+import enum
+from typing import Any, AnyStr, Literal
 from cx_studio.utils import NumberUtils
+import re
 
 
-class DataPackage:
-    def __init__(self, *args, **kwargs):
-        self.__data = {}
+class DataPackage(MutableMapping):
+
+    @staticmethod
+    def __check_value(obj: Any) -> Any:
+        if isinstance(obj, DataPackage):
+            return obj
+        if isinstance(obj, Mapping):
+            return DataPackage(**obj)
+        if isinstance(obj, Sequence | Set) and not isinstance(obj, str | bytes):
+            return [DataPackage.__check_value(item) for item in obj]
+        return obj
+
+    def __init__(self, **kwargs):
+        self.__internal_dict__: dict = {}
         for k, v in kwargs.items():
-            if k in self.__dict__:
-                object.__setattr__(self, k, v)
-            else:
-                self.__data[k] = self._check_value(v)
-
-    @classmethod
-    def _check_value(cls, value):
-        if isinstance(value, cls):
-            pass
-        elif isinstance(value, list | tuple | set):
-            return [cls._check_value(x) for x in value]
-        elif isinstance(value, dict):
-            return cls(**value)
-        return value
-
-    @staticmethod
-    def __get_value(obj, key):
-        if isinstance(obj, DataPackage):
-            return (
-                object.__getattribute__(obj, key)
-                if key in obj.__dict__
-                else obj.__data.get(key)
-            )
-        elif isinstance(key, int) and isinstance(obj, list):
-            return obj[key] if 0 <= key <= len(obj) else None
-        elif isinstance(obj, dict):
-            return obj.get(key)
-        return None
-
-    @staticmethod
-    def __contains_key(obj, key) -> bool:
-        return DataPackage.__get_value(obj, key) is not None
-
-    @staticmethod
-    def __set_value(obj, key, value):
-        if isinstance(obj, DataPackage):
-            if key in obj.__dict__:
-                object.__setattr__(obj, key, value)
-            else:
-                obj.__data[key] = value
-        elif isinstance(key, int) and isinstance(obj, list):
-            index = int(NumberUtils.limit_number(key, bottom=0, top=len(obj) - 1))
-            obj[index] = value
-        elif isinstance(obj, dict):
-            obj[key] = value
-        else:
-            raise TypeError("Cannot set value for object of type {}".format(type(obj)))
-
-    def __getattr__(self, item):
-        return self.__data.get(item)
-
-    def __setattr__(self, key, value):
-        if key in self.__dict__ or key.startswith("_"):
-            object.__setattr__(self, key, value)
-        else:
-            self.__data[key] = self._check_value(value)
-
-    def __getitem__(self, item):
-        if isinstance(item, str) and "." in item:
-            key, *sub_keys, final_key = item.split(".")
-            current = DataPackage.__get_value(self, key)
-            for k in sub_keys:
-                current = DataPackage.__get_value(current, k)
-                if current is None:
-                    return None
-            return DataPackage.__get_value(current, final_key)
-        return DataPackage.__get_value(self, item)
-
-    def __setitem__(self, key, value):
-        if key in self.__dict__:
-            object.__setattr__(self, key, value)
-        elif isinstance(key, str) and "." in key:
-            *keys, final_key = key.split(".")
-            current = self
-            for k in keys:
-                x = DataPackage.__get_value(current, k)
-                if not isinstance(x, DataPackage | dict):
-                    DataPackage.__set_value(current, k, DataPackage())
-                current = DataPackage.__get_value(current, k)
-            current[final_key] = value  # type: ignore
-        else:
-            self.__data[key] = self._check_value(value)
-
-    def __delitem__(self, key):
-        if key in self.__dict__:
-            raise TypeError("'{}' is an attribute, not a data key.".format(key))
-        if isinstance(key, str) and "." in key:
-            *keys, final_key = key.split(".")
-            current = self
-            for k in keys:
-                current = DataPackage.__get_value(current, k)
-                if current is None:
-                    raise KeyError("Key '{}' not found.".format(key))
-            del current[final_key]
-        else:
-            del self.__data[key]
-
-    def __contains__(self, item):
-        if isinstance(item, str) and "." in item:
-            *keys, final_key = item.split(".")
-            current = self
-            for k in keys:
-                current = DataPackage.__get_value(current, k)
-                if current is None:
-                    return False
-            return DataPackage.__contains_key(current, final_key)
-        else:
-            return DataPackage.__contains_key(self, item)
-
-    def keys(self) -> list:
-        safe_keys = [k for k in self.__dict__ if not str(k).startswith("_")]
-        data_keys = self.__data.keys()
-        return safe_keys + list(data_keys)
-
-    def __iter__(self):
-        for k in self.__dict__:
-            if not k.startswith("_"):
-                yield k
-        yield from self.__data
+            self.__internal_dict__[k] = self.__check_value(v)
 
     def __len__(self):
-        return sum(1 for k in self.__iter__())
+        return self.__internal_dict__.__len__()
 
-    def items(self) -> Generator[tuple, None, None]:
-        for k, v in self.__dict__.items():
-            if not k.startswith("_"):
-                yield k, v
-        yield from self.__data.items()
+    def __iter__(self):
+        return self.__internal_dict__.__iter__()
 
-    def get(self, key):
-        return self.__getitem__(key)
+    def __get_value(self, key: Any) -> Any:
+        if isinstance(key, str) and "." in key:
+            k, *ks, last_k = key.split(".")
+            v = self.__internal_dict__.get(k)
+            for _k in ks:
+                if v is None:
+                    return None
+                if isinstance(v, Mapping):
+                    v = v.get(_k)
+                elif isinstance(v, list):
+                    try:
+                        v = v[int(_k)]
+                    except ValueError or IndexError:
+                        v = None
+            v = v.get(last_k) if isinstance(v, Mapping) else None
+            return v
+        return self.__internal_dict__.get(key)
+
+    def __set_value(self, key: Any, value: Any) -> None:
+        checked_value = self.__check_value(value)
+        if isinstance(key, str) and "." in key:
+            k, *ks, last_k = key.split(".")
+            if not isinstance(self.__internal_dict__.get(k), MutableMapping):
+                self.__internal_dict__[k] = DataPackage()
+            current_obj = self.__internal_dict__[k]
+            for _k in ks:
+                if isinstance(current_obj, list):
+                    try:
+                        n = int(_k)
+                        if not isinstance(current_obj[n], MutableMapping):
+                            current_obj[n] = DataPackage()
+                        current_obj = current_obj[n]
+                    except ValueError or IndexError:
+                        raise KeyError(f"{k}.{ks}" "is not a valid index")
+                elif isinstance(current_obj, MutableMapping) and not isinstance(
+                    current_obj.get(_k), MutableMapping
+                ):
+                    current_obj[_k] = DataPackage()
+                current_obj = current_obj[_k]
+            current_obj[last_k] = checked_value
+        else:
+            self.__internal_dict__[key] = checked_value
+
+    def __del_value(self, key: Any):
+        if isinstance(key, str) and "." in key:
+            k, *ks, last_k = key.split(".")
+            o = self.__internal_dict__.get(k)
+            for _k in ks:
+                if o is None:
+                    return
+                if isinstance(o, list):
+                    try:
+                        n = int(_k)
+                        o = o[n]
+                    except ValueError or IndexError:
+                        o = None
+                elif isinstance(o, MutableMapping):
+                    o = o.get(_k)
+
+            if o is None:
+                return
+            if isinstance(o, list):
+                try:
+                    n = int(last_k)
+                    del o[n]
+                except ValueError or IndexError:
+                    pass
+            elif isinstance(o, MutableMapping):
+                del o[last_k]
+        elif key in self.__internal_dict__:
+            del self.__internal_dict__[key]
+
+    def __getitem__(self, key: Any) -> Any:
+        return self.__get_value(key)
+
+    def __setitem__(self, key: Any, value: Any) -> None:
+        self.__set_value(key, value)
+
+    def __delitem__(self, key: Any) -> None:
+        self.__del_value(key)
+
+    def __contains__(self, key: Any) -> bool:
+        return self.__get_value(key) is not None
+
+    def get(self, key: Any, default: Any = None) -> Any:
+        return self.__get_value(key) or default
+
+    def keys(self):
+        return self.__internal_dict__.keys()
 
     def values(self):
-        for k in self.keys():
-            yield self.__getitem__(k)
+        return self.__internal_dict__.values()
 
-    def update(self, other: "DataPackage|dict|None" = None, **kwargs):
-        if isinstance(other, (DataPackage, dict)):
-            for k, v in other.items():
-                self[k] = self._check_value(v)
-        elif other is None:
-            pass
-        else:
-            raise TypeError(
-                "Cannot update DataPackage with object of type {}. "
-                "Maybe try to unpack it or make it a dict.".format(type(other))
-            )
+    def items(self):
+        return self.__internal_dict__.items()
 
-        for k, v in kwargs.items():
-            self[k] = self._check_value(v)
+    def __eq__(self, value: object) -> bool:
+        if not isinstance(value, DataPackage):
+            return False
+        return self.__internal_dict__ == value.__internal_dict__
+
+    def __ne__(self, value: object) -> bool:
+        return not self.__eq__(value)
 
     def clear(self):
-        self.__data.clear()
+        self.__internal_dict__.clear()
 
-    def search(self, key) -> Generator:
-        # TODO: support '.' keys
-        for k, v in self.items():
-            if k == key:
-                yield v
-            if isinstance(v, DataPackage):
-                yield from v.search(key)
-            elif isinstance(v, dict) and k in v:
-                yield v[k]
+    def update(self, **kwargs):
+        for key, value in kwargs.items():
+            self.__set_value(key, value)
+        return self
+
+    def pop(self, key: Any, default: Any = None) -> Any:
+        return self.__internal_dict__.pop(key, default)
+
+    def popitem(self) -> tuple[Any, Any]:
+        return self.__internal_dict__.popitem()
+
+    def setdefault(self, key: Any, default: Any = None) -> Any:
+        return self.__internal_dict__.setdefault(key, default)
+
+    def copy(self) -> DataPackage:
+        return DataPackage(**self.__internal_dict__)
 
     def to_dict(self) -> dict:
-        result = {}
-        for k, v in self.__dict__.items():
-            if not k.startswith("_"):
-                result[k] = v
+        return {
+            k: v.to_dict() if isinstance(v, DataPackage) else v
+            for k, v in self.__internal_dict__.items()
+        }
 
-        for k, v in self.__data.items():
-            value = v
+    def __getattribute__(self, name: str) -> Any:
+        try:
+            return object.__getattribute__(self, name)
+        except AttributeError:
+            return self.__get_value(name)
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        if (
+            name.startswith("__")
+            or name.startswith("_DataPackage__")
+            or name in dir(self)
+        ):
+            object.__setattr__(self, name, value)
+        else:
+            self.__set_value(name, value)
+
+    def __delattr__(self, name: str) -> None:
+        try:
+            object.__delattr__(self, name)
+        except AttributeError:
+            self.__del_value(name)
+
+    def iter_all_keys(self) -> Iterable[str]:
+        for k, v in self.__internal_dict__.items():
+            yield k
             if isinstance(v, DataPackage):
-                value = v.to_dict()
-            elif isinstance(v, list):
-                value = [x.to_dict() if isinstance(x, DataPackage) else x for x in v]
-            result[k] = value
+                for _k in v.iter_all_keys():  # type: ignore
+                    yield k + "." + _k
+            if isinstance(v, list):
+                for i, _k in enumerate(v):
+                    yield k + "." + str(i)
+                    if isinstance(_k, DataPackage):
+                        for _k in _k.iter_all_keys():  # type: ignore
+                            yield k + "." + str(i) + "." + _k
 
-        return result
-
-    def __rich_repr__(self):
-        yield from self.items()
+    def search(self, key: str) -> Iterable[Any]:
+        for k in self.iter_all_keys():
+            if k.endswith(key):
+                yield self.__get_value(k)
