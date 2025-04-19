@@ -102,7 +102,7 @@ class MSHelp(WealthHelp):
         o_group = self.add_group("选项", "对结果进行处理的若干选项")
         o_group.add_action(
             "-i",
-            "--includes",
+            "--include",
             metavar="DIR",
             nargs="**",
             description="指定用于搜索无路径文件名的文件夹",
