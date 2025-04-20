@@ -1,5 +1,9 @@
 # Change logs of cx-studio
 
+### v0.2.1.4
+
+- PathUtils.quote now supports `escape` mode.
+
 ### v0.2.1.3
 
 - rewrite DataPackage with proper annotations.

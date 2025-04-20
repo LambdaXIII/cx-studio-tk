@@ -69,10 +69,10 @@ class Mission:
         for input_group in self.inputs:
             yield from input_group.iter_arguments()
             yield "-i"
-            yield PathUtils.quoted(input_group.filename, quote_mode)
+            yield PathUtils.quote(input_group.filename, quote_mode)
         for output_group in self.outputs:
             yield from output_group.iter_arguments()
-            yield PathUtils.quoted(output_group.filename, quote_mode)
+            yield PathUtils.quote(output_group.filename, quote_mode)
 
     def __rich_detail__(self):
         yield "名称", self.name
