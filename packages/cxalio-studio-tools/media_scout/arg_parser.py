@@ -1,6 +1,7 @@
 from argparse import ArgumentParser
 from dataclasses import dataclass
 from collections.abc import Sequence
+from typing import Literal
 from xml.etree.ElementInclude import include
 
 from cx_studio.utils.cx_textutils import auto_quote
@@ -42,7 +43,11 @@ class ArgParser(ArgumentParser):
             dest="allow_duplicated",
         )
         self.add_argument(
-            "-q", "--auto-quote", action="store_true", default=False, dest="auto_quote"
+            "-q",
+            "--quote-mode",
+            default="none",
+            choices=["auto", "force", "escape", "none"],
+            dest="quote_mode",
         )
         self.add_argument(
             "--auto-resolve", action="store_true", default=False, dest="auto_resolve"
@@ -70,7 +75,7 @@ class AppContext:
     allow_duplicated: bool
     auto_resolve: bool
     existed_only: bool
-    auto_quote: bool
+    quote_mode: Literal["auto", "force", "escape", "none"]
     debug_mode: bool
     show_help: bool
     show_full_help: bool
@@ -86,7 +91,7 @@ class AppContext:
             allow_duplicated=args.allow_duplicated,
             auto_resolve=args.auto_resolve,
             existed_only=args.existed_only,
-            auto_quote=args.auto_quote,
+            quote_mode=args.quote_mode,
             debug_mode=args.debug_mode,
             show_help=args.show_help,
             show_full_help=args.show_full_help,
@@ -122,7 +127,10 @@ class MSHelp(WealthHelp):
         o_group.add_action("--allow-duplicated", description="允许重复输出文件路径")
         o_group.add_action("--auto-resolve", description="自动解析并整理文件路径")
         o_group.add_action(
-            "-q", "--auto-quote", description="自动对输出的文件路径进行引号处理"
+            "-q",
+            "--quote-mode",
+            metavar="auto|force|excape|none",
+            description="指定对于包含空格的路径的处理方式",
         )
         o_group.add_action(
             "-o", "--output", metavar="OUTPUT", description="将文件列表保存到目标文件"

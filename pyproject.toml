@@ -19,4 +19,9 @@ members = [
 ]
 
 [dependency-groups]
-dev = ["black>=25.1.0", "ipython>=9.0.2"]
+dev = ["black>=25.1.0", "ipython>=9.0.2", "pytest>=8.3.5"]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+testpaths = ["tests"]
+# addopts = "-ra -q"

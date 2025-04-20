@@ -76,10 +76,10 @@ def get_posix_path(path: Path | str) -> str:
     return path
 
 
-PathQuoteMode = Literal["force", "auto", "none"]
+PathQuoteMode = Literal["auto", "force", "escape", "none"]
 
 
-def quoted(path: str | Path | None, quote_mode: PathQuoteMode = "auto") -> str:
+def quote(path: str | Path | None, quote_mode: PathQuoteMode = "auto") -> str:
     if path is None:
         return ""
 
@@ -88,5 +88,7 @@ def quoted(path: str | Path | None, quote_mode: PathQuoteMode = "auto") -> str:
         return f'"{path}"'
     if quote_mode == "auto":
         return f'"{path}"' if " " in path else path
+    if quote_mode == "escape":
+        return re.sub(r"\s", "\\ ", path)
 
     return path

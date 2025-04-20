@@ -49,9 +49,7 @@ class Application(IApplication):
             return None
         if appenv.context.auto_resolve:
             result = result.resolve()
-        if appenv.context.auto_quote:
-            result = TextUtils.auto_quote(str(result))
-        return str(result)
+        return PathUtils.quote(result, appenv.context.quote_mode)
 
     @staticmethod
     def auto_expand(path: os.PathLike, info: InspectorInfo) -> Iterable[PurePath]:
@@ -109,9 +107,6 @@ class Application(IApplication):
             time.sleep(0.5)
         if appenv.context.existed_only:
             appenv.say("[green]只输出存在的文件[/]")
-            time.sleep(0.5)
-        if appenv.context.auto_quote:
-            appenv.say("[yellow]自动添加引号[/]")
             time.sleep(0.5)
 
         result = []
