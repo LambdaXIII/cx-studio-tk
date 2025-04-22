@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime
 import importlib
 import importlib.resources
 import signal
@@ -6,6 +7,7 @@ import time
 from collections.abc import Sequence
 from pathlib import Path
 
+from cx_studio.core.cx_time import CxTime
 from cx_tools_common.app_interface import IAppEnvironment, ConfigManager
 from cx_wealth import rich_types as r
 from media_killer.components.exception import SafeError
@@ -17,7 +19,7 @@ class AppEnv(IAppEnvironment):
     def __init__(self):
         super().__init__()
         self.app_name = "MediaKiller"
-        self.app_version = "0.5.0"
+        self.app_version = "0.4.9.2"
         self.app_description = "媒体文件批量操作工具"
         self.context: AppContext = AppContext()
         self.progress = r.Progress(
@@ -36,6 +38,7 @@ class AppEnv(IAppEnvironment):
         self.console = self.progress.console
         self.config_manager = ConfigManager(self.app_name)
         self._garbage_files = []
+        self._app_start_time: datetime
 
     def is_debug_mode_on(self):
         return self.context.debug_mode
@@ -45,6 +48,7 @@ class AppEnv(IAppEnvironment):
 
     def start(self):
         self.progress.start()
+        self._app_start_time = datetime.now()
 
     def stop(self):
         self.progress.refresh()
@@ -52,6 +56,13 @@ class AppEnv(IAppEnvironment):
         self.progress.stop()
         self.clean_garbage_files()
         self.config_manager.remove_old_log_files()
+        time_spent = datetime.now() - self._app_start_time
+        if time_spent.total_seconds() > 5:
+            self.say(
+                "[dim]总共耗时[blue]{}[/]。[/]".format(
+                    CxTime.from_seconds(time_spent.total_seconds()).pretty_string
+                )
+            )
 
     def pretending_sleep(self, interval: float = 0.2):
         if self.context.pretending_mode:
