@@ -6,7 +6,7 @@ from .cx_timebase import Timebase
 from .. import get_root
 
 __t = gettext.translation(
-    "cx_time", localedir=os.path.join(get_root(), "locales"), fallback=True
+    "messages", localedir=os.path.join(get_root(), "locales"), fallback=True
 )
 _ = __t.gettext
 
