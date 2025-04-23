@@ -9,7 +9,7 @@ from cx_studio.utils import AsyncStreamUtils
 import signal, sys
 import re
 from cx_studio.core import CxTime, FileSize
-import dataclasses
+from copy import copy
 
 
 class FFmpegAsync(AsyncIOEventEmitter):
@@ -32,7 +32,7 @@ class FFmpegAsync(AsyncIOEventEmitter):
 
     @property
     def coding_info(self) -> FFmpegCodingInfo:
-        return self._coding_info
+        return copy(self._coding_info)
 
     async def _handle_stderr(self):
         stream = AsyncStreamUtils.wrap_io(self._process.stderr)
@@ -52,7 +52,7 @@ class FFmpegAsync(AsyncIOEventEmitter):
                 )
 
             if "current_frame" in coding_info_dict:
-                self.emit("status_updated", self._coding_info)
+                self.emit("status_updated", copy(self._coding_info))
         # for
 
     def is_running(self) -> bool:
@@ -60,7 +60,7 @@ class FFmpegAsync(AsyncIOEventEmitter):
 
     def cancel(self):
         self._cancel_event.set()
-        
+
     async def terminate(self):
         sigterm = signal.SIGTERM if sys.platform != "win32" else signal.CTRL_BREAK_EVENT
         self._process.send_signal(sigterm)
@@ -69,7 +69,7 @@ class FFmpegAsync(AsyncIOEventEmitter):
         except asyncio.TimeoutError:
             self._process.terminate()
 
-    async def _redirect_input(self, input_stream: asyncio.StreamReader|bytes|None):
+    async def _redirect_input(self, input_stream: asyncio.StreamReader | bytes | None):
         input_stream = AsyncStreamUtils.wrap_io(input_stream)
         if self._process.stdin is None:
             return
@@ -83,6 +83,7 @@ class FFmpegAsync(AsyncIOEventEmitter):
     ) -> bool:
         args = list(arguments or [])
         self._cancel_event.clear()
+        self._canceled = False
         async with self._is_running:
             self._process = await AsyncStreamUtils.create_subprocess(
                 self._executable,
@@ -100,14 +101,19 @@ class FFmpegAsync(AsyncIOEventEmitter):
                 main_task = asyncio.create_task(self._handle_stderr())
                 tasks = [main_task]
                 if input_stream and self._process.stdin:
-                    redirect_task = asyncio.create_task( AsyncStreamUtils.redirect_stream(i_stream, self._process.stdin))
+                    redirect_task = asyncio.create_task(
+                        AsyncStreamUtils.redirect_stream(i_stream, self._process.stdin)
+                    )
                     tasks.append(redirect_task)
-                
 
                 while not main_task.done():
                     if self._cancel_event.is_set():
                         self._canceled = True
-                        sigterm = signal.SIGTERM if sys.platform != "win32" else signal.CTRL_BREAK_EVENT
+                        sigterm = (
+                            signal.SIGTERM
+                            if sys.platform != "win32"
+                            else signal.CTRL_BREAK_EVENT
+                        )
                         self._process.send_signal(sigterm)
                         try:
                             await asyncio.wait_for(self._process.wait(), 4)

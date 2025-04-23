@@ -3,6 +3,7 @@
 ### v0.2.1.4
 
 - PathUtils.quote now supports `escape` mode.
+- Rewrite ffmpeg(thread safe version).
 
 ### v0.2.1.3
 
