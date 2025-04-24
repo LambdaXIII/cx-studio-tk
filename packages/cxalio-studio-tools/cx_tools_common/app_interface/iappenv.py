@@ -29,11 +29,11 @@ class IAppEnvironment(ABC):
             self.whisper("[red]检测到强制中断信号…[/]")
             # self.really_wanna_quit = True
             self.really_wanna_quit_event.set()
-            
+
     def handle_interrupt(self, _sig, _frame):
         self.interrupt_handler.trigger()
 
-    @abstractmethod
+    # @abstractmethod
     def is_debug_mode_on(self):
         return False
 
