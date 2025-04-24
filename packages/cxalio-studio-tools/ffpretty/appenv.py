@@ -1,5 +1,5 @@
 from typing import override
-from cx_tools_common.app_interface import IAppEnvironment
+from cx_tools.app import IAppEnvironment
 from cx_studio.path_expander import CmdFinder
 
 

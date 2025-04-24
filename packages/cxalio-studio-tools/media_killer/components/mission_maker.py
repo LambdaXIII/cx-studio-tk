@@ -4,7 +4,7 @@ import threading
 from collections.abc import Sequence, Generator, Iterable
 from pathlib import Path
 
-from cx_tools_common.app_interface import ProgressTaskAgent
+from cx_tools.app import ProgressTaskAgent
 from cx_wealth import WealthLabel, IndexedListPanel
 from cx_wealth import rich_types as r
 from .argument_group import ArgumentGroup

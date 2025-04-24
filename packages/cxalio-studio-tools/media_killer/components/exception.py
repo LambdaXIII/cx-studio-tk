@@ -1,4 +1,4 @@
-from cx_tools_common.app_interface import SafeError
+from cx_tools.app import SafeError
 
 
 class UserForceCancelError(SafeError):

@@ -8,7 +8,7 @@ from collections.abc import Sequence
 from pathlib import Path
 
 from cx_studio.core.cx_time import CxTime
-from cx_tools_common.app_interface import IAppEnvironment, ConfigManager
+from cx_tools.app import IAppEnvironment, ConfigManager
 from cx_wealth import rich_types as r
 from media_killer.components.exception import SafeError
 from .appcontext import AppContext

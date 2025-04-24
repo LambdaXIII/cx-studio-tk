@@ -1,7 +1,7 @@
 from collections.abc import Iterable
 import sys
 from cx_studio.ffmpeg import FFmpeg
-from cx_tools_common.app_interface import IApplication, SafeError
+from cx_tools.app import IApplication, SafeError
 from cx_wealth.indexed_list_panel import IndexedListPanel
 from .appenv import appenv
 

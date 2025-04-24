@@ -39,11 +39,15 @@ class IAppEnvironment(ABC):
 
     @abstractmethod
     def start(self):
-        pass
+        self.whisper(
+            "{} v{} environment started.".format(self.app_name, self.app_version)
+        )
 
     @abstractmethod
     def stop(self):
-        pass
+        self.whisper(
+            "{} v{} environment stopped.".format(self.app_name, self.app_version)
+        )
 
     def __enter__(self):
         self.start()
@@ -51,6 +55,7 @@ class IAppEnvironment(ABC):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.stop()
+        self.whisper("Bye ~")
         return False
 
     def say(self, *args, **kwargs):
