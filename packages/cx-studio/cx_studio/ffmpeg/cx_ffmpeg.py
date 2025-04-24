@@ -77,18 +77,18 @@ class FFmpeg(EventEmitter):
         args = list(arguments or [])
         if not args:
             return False
+        args.insert(0, self._executable)
         self._canceled = False
         self._cancel_event.clear()
-        try:
-            with self._running_cond:
-                self._process = StreamUtils.create_subprocess(
-                    args,
-                    # bufsize=0,
-                    stdin=subprocess.PIPE if (input_stream is not None) else None,
-                    # stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                )
-
+        with self._running_cond:
+            self._process = StreamUtils.create_subprocess(
+                args,
+                # bufsize=0,
+                stdin=subprocess.PIPE if (input_stream is not None) else None,
+                # stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+            try:
                 self.emit("started")
 
                 for line in StreamUtils.readlines_from_stream(
@@ -101,17 +101,17 @@ class FFmpeg(EventEmitter):
                         self._cancel_event.clear()
                         break
                     time.sleep(0.01)
-            # running_cond
-        finally:
-            self._process.wait()
-            result = self._process.returncode == 0
-            if self._canceled:
-                self.emit("canceled")
-            elif result is False:
-                self.emit("terminated")
-            else:
-                self.emit("finished")
-            return result
+            finally:
+                self._process.wait()
+                result = self._process.returncode == 0
+                if self._canceled:
+                    self.emit("canceled")
+                elif result is False:
+                    self.emit("terminated")
+                else:
+                    self.emit("finished")
+                return result
+        # running_cond
 
     def get_basic_info(self, filename: Path) -> dict:
         with self._running_cond:
