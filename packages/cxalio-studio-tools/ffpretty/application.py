@@ -1,10 +1,12 @@
 from collections.abc import Iterable, Sequence
 import sys
+from cx_studio.core.cx_time import CxTime
 from cx_studio.ffmpeg import FFmpeg
 from cx_tools.app import IApplication, SafeError
 from cx_wealth.indexed_list_panel import IndexedListPanel
 from .appenv import appenv
 from pathlib import Path
+from cx_wealth import rich_types as r
 
 
 class FFPrettyApp(IApplication):
@@ -90,4 +92,11 @@ class FFPrettyApp(IApplication):
         #         d.mkdir(parents=True, exist_ok=True)
         #     appenv.whisper(IndexedListPanel(non_exist_dirs, title="创建的输出目录"))
 
-        self.ffmpeg.execute(self.arguments)
+        with r.Progress() as p:
+            task = p.add_task("[green]处理中...", total=100)
+
+            @self.ffmpeg.on("progress_updated")
+            def progress_updated(a: CxTime, b: CxTime):
+                p.update(task, completed=a.total_seconds, total=b.total_seconds)
+
+            self.ffmpeg.execute(self.arguments)
