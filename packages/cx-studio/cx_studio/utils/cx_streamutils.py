@@ -2,7 +2,6 @@ import io
 import re
 import subprocess
 import sys
-from datetime import timedelta
 from typing import IO, Any, Iterable
 
 

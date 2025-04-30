@@ -1,10 +1,7 @@
 from __future__ import annotations
-from collections import defaultdict
-from collections.abc import Generator, Iterable, Mapping, Sequence, Set, MutableMapping
-import enum
-from typing import Any, AnyStr, Literal
-from cx_studio.utils import NumberUtils
-import re
+
+from collections.abc import Iterable, Mapping, Sequence, Set, MutableMapping
+from typing import Any
 
 
 class DataPackage(MutableMapping):

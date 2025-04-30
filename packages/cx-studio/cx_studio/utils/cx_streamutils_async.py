@@ -1,12 +1,10 @@
+import asyncio
 import io
 import re
 import subprocess
 import sys
-from datetime import timedelta
-from typing import IO, Any
-from collections.abc import AsyncIterable, Awaitable, Iterable
-import asyncio
-
+from collections.abc import AsyncIterable, Awaitable
+from typing import Any
 
 
 def create_subprocess(*args: Any, **kwargs: Any) -> Awaitable[asyncio.subprocess.Process]:

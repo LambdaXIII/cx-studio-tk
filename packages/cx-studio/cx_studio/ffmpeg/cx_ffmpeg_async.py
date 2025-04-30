@@ -1,15 +1,17 @@
 import asyncio
-from .cx_ff_infos import FFmpegCodingInfo
-from .utils.basic_ffmpeg import BasicFFmpeg
-from pyee.asyncio import AsyncIOEventEmitter
+import re
+import signal
+import sys
 from collections.abc import Iterable
+from copy import copy
 from pathlib import Path
+
+from pyee.asyncio import AsyncIOEventEmitter
+
+from cx_studio.core import CxTime, FileSize
 from cx_studio.path_expander import CmdFinder
 from cx_studio.utils import AsyncStreamUtils
-import signal, sys
-import re
-from cx_studio.core import CxTime, FileSize
-from copy import copy
+from .cx_ff_infos import FFmpegCodingInfo
 
 
 class FFmpegAsync(AsyncIOEventEmitter):

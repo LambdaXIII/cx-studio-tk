@@ -1,6 +1,5 @@
-from lazy_object_proxy import Proxy
-
 from chardet import UniversalDetector
+from lazy_object_proxy import Proxy
 
 __char_detector = Proxy(UniversalDetector)
 

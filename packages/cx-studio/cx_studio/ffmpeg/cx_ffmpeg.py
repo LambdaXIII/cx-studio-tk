@@ -1,23 +1,23 @@
-from calendar import c
 from copy import copy
-from encodings.punycode import T
-import time
-import concurrent
-from pyee import EventEmitter
-from cx_studio.path_expander import CmdFinder
-from pathlib import Path
-from .cx_ff_infos import FFmpegCodingInfo
-import threading
-from collections.abc import Iterable, Generator
-from cx_studio.utils import TextUtils, StreamUtils
-from .utils.basic_ffmpeg import BasicFFmpeg
-from typing import IO
-from .cx_ff_errors import *
-import io, os
-import subprocess
 import concurrent.futures as con_futures
-import sys, signal
+import io
+import signal
+import subprocess
+import sys
+import threading
+from collections.abc import Iterable
+from copy import copy
+from pathlib import Path
+from typing import IO
+
+from encodings.punycode import T
+from pyee import EventEmitter
+
 from cx_studio.core import CxTime, FileSize
+from cx_studio.path_expander import CmdFinder
+from cx_studio.utils import StreamUtils
+from .cx_ff_errors import *
+from .cx_ff_infos import FFmpegCodingInfo
 
 
 class FFmpeg(EventEmitter):

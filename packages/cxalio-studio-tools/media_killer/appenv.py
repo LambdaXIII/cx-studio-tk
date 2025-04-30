@@ -19,7 +19,7 @@ class AppEnv(IAppEnvironment):
     def __init__(self):
         super().__init__()
         self.app_name = "MediaKiller"
-        self.app_version = "0.4.9.2"
+        self.app_version = "0.4.9.5"
         self.app_description = "媒体文件批量操作工具"
         self.context: AppContext = AppContext()
         self.progress = r.Progress(
