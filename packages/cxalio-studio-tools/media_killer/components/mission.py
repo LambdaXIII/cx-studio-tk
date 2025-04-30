@@ -1,20 +1,21 @@
 from collections.abc import Generator
-from dataclasses import dataclass, field
+# from dataclasses import dataclass, field
 from pathlib import Path
 
 import ulid
+from pydantic import BaseModel, Field, ConfigDict
 
 from cx_studio.utils import FunctionalUtils
 from cx_studio.utils import PathUtils
-from cx_wealth import WealthLabel
 from cx_wealth import rich_types as r
 from .argument_group import ArgumentGroup
-from .preset import Preset
 
 
-@dataclass(frozen=True)
-class Mission:
-    mission_id: ulid.ULID = field(default_factory=ulid.new, kw_only=True)
+# @dataclass(frozen=True)
+class Mission(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True, frozen=True)
+
+    mission_id: ulid.ULID = Field(default_factory=ulid.new, kw_only=True)
 
     preset_id: str
     preset_name: str
@@ -24,9 +25,9 @@ class Mission:
     standard_target: Path
     overwrite: bool = False
     hardware_accelerate: str = "auto"
-    options: ArgumentGroup = field(default_factory=ArgumentGroup)
-    inputs: list[ArgumentGroup] = field(default_factory=list)
-    outputs: list[ArgumentGroup] = field(default_factory=list)
+    options: ArgumentGroup = Field(default_factory=ArgumentGroup)
+    inputs: list[ArgumentGroup] = []
+    outputs: list[ArgumentGroup] = []
 
     @property
     def name(self):

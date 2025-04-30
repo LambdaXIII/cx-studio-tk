@@ -1,10 +1,11 @@
 import tomllib
-from dataclasses import dataclass, field
+# from dataclasses import dataclass, field
 from pathlib import Path
 
+from box import Box
+from pydantic import BaseModel, Field, ConfigDict
 from rich.columns import Columns
 
-from cx_studio.core import DataPackage
 from cx_studio.utils import PathUtils, TextUtils
 
 DefaultSuffixes = (
@@ -23,8 +24,10 @@ DefaultSuffixes = (
 )
 
 
-@dataclass(frozen=True)
-class Preset:
+# @dataclass(frozen=True)
+class Preset(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True, frozen=True)
+
     id: str = ""
     name: str = ""
     description: str = ""
@@ -33,17 +36,18 @@ class Preset:
     overwrite: bool = False
     hardware_accelerate: str | None = "auto"
     options: str | list = ""
-    source_suffixes: set = field(default_factory=set)
+    source_suffixes: set = Field(default_factory=set)
     target_suffix: str = ""
     target_folder: Path = Path(".")
     keep_parent_level: int = 0
-    inputs: list = field(default_factory=list)
-    outputs: list = field(default_factory=list)
-    custom: dict = field(default_factory=dict)
-    raw: DataPackage = field(default_factory=DataPackage)
+    inputs: list = Field(default_factory=list)
+    outputs: list = Field(default_factory=list)
+    custom: dict = Field(default_factory=dict)
+    # raw: DataPackage = Field(default_factory=DataPackage)
+    raw: Box = Box()
 
     @staticmethod
-    def _get_source_suffixes(data: DataPackage) -> set[str]:
+    def _get_source_suffixes(data: Box) -> set[str]:
         default_suffixes = (
             set(DefaultSuffixes.split())
             if not data.source.ignore_default_suffixes  # type:ignore
@@ -64,7 +68,8 @@ class Preset:
         filename = PathUtils.force_suffix(filename, ".toml")
         with open(filename, "rb") as f:
             toml = tomllib.load(f)
-        data = DataPackage(**toml)
+        # data = DataPackage(**toml)
+        data = Box(toml)
 
         return cls(
             id=data.general.preset_id,  # type:ignore

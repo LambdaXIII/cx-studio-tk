@@ -1,5 +1,5 @@
-from collections.abc import Callable
 import re
+from collections.abc import Callable
 
 
 def auto_quote(text: str, needs_quote=None) -> str:
