@@ -1,7 +1,7 @@
 import os
 from pathlib import Path, PurePath
 import time
-from cx_tools_common.app_interface import IApplication
+from cx_tools.app import IApplication
 import sys
 from collections.abc import Iterable
 from .appenv import appenv

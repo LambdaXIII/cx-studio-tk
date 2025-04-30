@@ -1,5 +1,8 @@
-
+from calendar import c
 from copy import copy
+from encodings.punycode import T
+import time
+import concurrent
 from pyee import EventEmitter
 from cx_studio.path_expander import CmdFinder
 from pathlib import Path
@@ -14,118 +17,199 @@ import io, os
 import subprocess
 import concurrent.futures as con_futures
 import sys, signal
+from cx_studio.core import CxTime, FileSize
 
-import dataclasses
-class FFmpeg(EventEmitter, BasicFFmpeg):
-    def __init__(
-        self,
-        ffmpeg_executable: str | Path | None = None,
-        arguments: Iterable[str] | None = None,
-    ):
+
+class FFmpeg(EventEmitter):
+    def __init__(self, ffmpeg_executable: str | Path | None = None):
         super().__init__()
         self._executable: str = str(CmdFinder.which(ffmpeg_executable or "ffmpeg"))
-        self._arguments = list(arguments or [])
         self._coding_info = FFmpegCodingInfo()
-        self._is_running = False
-        self._canceled: bool = False
 
+        self._running_lock = threading.Lock()
+        self._running_cond = threading.Condition(self._running_lock)
+        self._cancel_event = threading.Event()
+        self._canceled = False
         self._process: subprocess.Popen[bytes]
 
-    def is_running(self) -> bool:
-        return self._is_running
-
-    def cancel(self):
-        if not self._is_running or not self._process:
-            return
-        sigterm = signal.SIGTERM if sys.platform != "win32" else signal.CTRL_BREAK_EVENT
-        self._canceled = True
-        self._process.send_signal(sigterm)
+    @property
+    def executable(self) -> str:
+        return self._executable
 
     @property
-    def coding_info(self):
-        return self._coding_info
+    def coding_info(self) -> FFmpegCodingInfo:
+        return copy(self._coding_info)
+
+    def is_running(self) -> bool:
+        return self._running_lock.locked()
+
+    def cancel(self):
+        self._cancel_event.set()
+
+    def terminate(self):
+        sigterm = signal.SIGTERM if sys.platform != "win32" else signal.CTRL_BREAK_EVENT
+        self._process.send_signal(sigterm)
+        try:
+            self._process.wait(4)
+        except subprocess.TimeoutExpired:
+            self._process.terminate()
+
+    def get_basic_info(self, filename: Path) -> dict:
+        with self._running_cond:
+            self._process = StreamUtils.create_subprocess(
+                self._executable,
+                "-i",
+                str(filename),
+                stderr=subprocess.PIPE,
+            )
+
+            stream = StreamUtils.wrap_io(self._process.stderr)
+            result = self._parse_basic_info_from_stream(stream)
+            self._process.wait()
+            return result
+        # running_cond
+
+    def _parse_basic_info_from_stream(self, input_stream: IO[bytes]) -> dict:
+        result = {}
+        streams = []
+        for line in StreamUtils.readlines_from_stream(input_stream):
+            line_str = line.decode("utf-8", errors="ignore")
+            input_match = re.match(r"Input #0, (.+), from '(.+)':", line_str)
+            if input_match:
+                result["format_name"] = input_match.group(1)
+                result["file_name"] = input_match.group(2)
+                continue
+
+            time_match = re.search(
+                r"Duration: (.+), start: (.+), bitrate: (\d+\.?\d*\s?\w+)/s",
+                line_str,
+            )
+            if time_match:
+                result["duration"] = CxTime.from_timestamp(time_match.group(1))
+                result["start_time"] = CxTime.from_seconds(float(time_match.group(2)))
+                result["bitrate"] = FileSize.from_string(time_match.group(3))
+                continue
+
+            streams_match = re.search(r"Stream #0:\d+\s+", line_str)
+            if streams_match:
+                streams.append(line_str.strip())
+                continue
+        if len(streams) > 0:
+            result["streams"] = streams
+        return result
+
+    def _redirect_stdin(self, stream: IO[bytes] | None):
+        if stream is None:
+            return
+
+        assert self._process.stdin is not None
+
+        for chunk in StreamUtils.read_stream(stream, io.DEFAULT_BUFFER_SIZE):
+            self._process.stdin.write(chunk)
+        self._process.stdin.flush()
+        self._process.stdin.close()
+
+    def _read_stdout(self) -> bytes:
+        assert self._process.stdout is not None
+
+        buffer = bytearray()
+        for chunk in StreamUtils.read_stream(
+            self._process.stdout, io.DEFAULT_BUFFER_SIZE
+        ):
+            buffer.extend(chunk)
+
+        self._process.stdout.close()
+        return bytes(buffer)
 
     def _handle_stderr(self):
         assert self._process.stderr is not None
         line = b""
         for line in StreamUtils.readlines_from_stream(self._process.stderr):
-            decoded = line.decode()
-            self._coding_info.update_from_status_line(decoded)
-            self.emit("coding_info_updated", copy(self._coding_info))
-            self.emit("verbose",decoded)
-            if 'frame' in decoded:
+            line_str = line.decode("utf-8", errors="ignore")
+            self.emit("verbose", line_str)
+
+            conding_info_dict = FFmpegCodingInfo.parse_status_line(line_str)
+
+            self._coding_info.update(**conding_info_dict)
+
+            if "current_time" in conding_info_dict or "total_time" in conding_info_dict:
                 self.emit(
                     "progress_updated",
                     self._coding_info.current_time,
                     self._coding_info.total_time,
                 )
+
+            if "current_frame" in conding_info_dict:
+                self.emit("status_updated", copy(self._coding_info))
+
+        self._process.stderr.close()
         return line.decode()
+
+    def _handle_cancel_event(self):
+        while self._process.poll() is None:
+            if self._cancel_event.wait(0.1):
+                self._canceled = True
+                self._process.terminate()
+                self._process.wait()
+                self._cancel_event.clear()
+                break
 
     def execute(
         self,
-        input_stream: bytes | IO[bytes] | None = None,
-        timeout: float | None = None,
-    ):
-        """
-        Args:
-            stream: A stream to input to the standard input. Defaults to None.
-            timeout: The maximum number of seconds to wait before returning. Defaults to None.
+        arguments: Iterable[str] | None = None,
+        input_stream: IO[bytes] | None = None,
+    ) -> bool:
+        with self._running_cond:
+            self._canceled = False
+            self._cancel_event.clear()
 
-        Raises:
-            FFmpegAlreadyExecuted: If FFmpeg is already executed.
-            FFmpegError: If FFmpeg process returns non-zero exit status.
-            subprocess.TimeoutExpired: If FFmpeg process does not terminate after `timeout` seconds.
-        """
-        args = list(self.iter_arguments(True))
+            try:
+                args = [self._executable, *(arguments or [])]
 
-        if self._is_running:
-            raise FFmpegIsRunningError("FFmpeg is already running.", args)
+                self._process = StreamUtils.create_subprocess(
+                    args,
+                    bufsize=0,
+                    stdin=subprocess.PIPE if input_stream is not None else None,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                )
 
-        input_stream = StreamUtils.wrap_io(input_stream)
+                self.emit("started")
 
-        self._process = StreamUtils.create_subprocess(
-            args,
-            bufsize=0,
-            stdin=subprocess.PIPE if (input_stream is not None) else None,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
+                if input_stream is not None:
+                    input_stream = StreamUtils.wrap_io(input_stream)
 
-        with con_futures.ThreadPoolExecutor(max_workers=4) as pool:
-            self._is_running = True
-            self.emit("started", args)
-            futures = [
-                pool.submit(
-                    StreamUtils.redirect_stream, input_stream, self._process.stdin
-                ),
-                pool.submit(StreamUtils.record_stream, self._process.stdout),
-                pool.submit(self._handle_stderr),
-                pool.submit(self._process.wait, timeout),
-            ]
-            done, pending = con_futures.wait(
-                futures, return_when=con_futures.FIRST_EXCEPTION
-            )
-            self._is_running = False
+                with con_futures.ThreadPoolExecutor() as executor:
+                    futures = [
+                        executor.submit(self._handle_stderr),
+                        executor.submit(self._redirect_stdin, input_stream),
+                        executor.submit(self._read_stdout),
+                        executor.submit(self._handle_cancel_event),
+                        executor.submit(self._process.wait),
+                    ]
 
-            for f in done:
-                exc = f.exception()
-                if exc is not None:
-                    self._process.terminate()
-                    con_futures.wait(pending)
-                    return exc
+                    done, pending = con_futures.wait(
+                        futures,
+                        timeout=None,
+                        return_when=con_futures.FIRST_EXCEPTION,
+                    )
 
-            if self._process.returncode == 0:
-                self.emit("finished")
-            elif self._canceled:
-                self.emit("canceled")
-            else:
-                raise FFmpegError.create(message=futures[2].result(), arguments=args)
-            return futures[1].result()
-        
-    def __enter__(self):
-        return self
-    
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        if self._process is not None:
-            self._process.terminate()
-            self._process.wait()
+                    for future in done:
+                        exs = future.exception()
+                        if exs is not None:
+                            self._process.terminate()
+                            con_futures.wait(pending)
+                            raise exs
+
+            finally:
+                self._process.wait()
+                result = self._process.returncode == 0
+                if self._canceled:
+                    self.emit("canceled")
+                elif result is False:
+                    self.emit("terminated")
+                else:
+                    self.emit("finished")
+                return result
+
+        # running_cond

@@ -64,3 +64,11 @@ mediakiller 将会自动识别预设文件，并对源文件路径进行展开�
 详细信息请看 [这里](media_scout/help.md)。
 
 > Media Killer 依赖于 Media Scout 中的工程文件探测功能。
+
+### FFpretty
+
+FFpretty 是一个简单的 ffmpeg 包装。
+
+它直接转发提供的所有参数给 ffmpeg，并提供一个类似于 Media Killer 的进度条。
+
+> 因为 FFpretty 屏蔽了所有来自 ffmpeg 的输出，所以当运行出错时，仍需要手动检查错误。

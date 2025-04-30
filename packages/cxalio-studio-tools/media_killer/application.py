@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import override
 
 from cx_studio.utils import PathUtils
-from cx_tools_common.app_interface import IApplication
+from cx_tools.app import IApplication
 from cx_wealth import DynamicColumns, IndexedListPanel, WealthDetailPanel
 from media_killer.components.mission_master import MissionMaster
 from media_killer.components.script_maker import ScriptMaker

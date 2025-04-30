@@ -29,21 +29,25 @@ class IAppEnvironment(ABC):
             self.whisper("[red]检测到强制中断信号…[/]")
             # self.really_wanna_quit = True
             self.really_wanna_quit_event.set()
-            
+
     def handle_interrupt(self, _sig, _frame):
         self.interrupt_handler.trigger()
 
-    @abstractmethod
+    # @abstractmethod
     def is_debug_mode_on(self):
         return False
 
     @abstractmethod
     def start(self):
-        pass
+        self.whisper(
+            "{} v{} environment started.".format(self.app_name, self.app_version)
+        )
 
     @abstractmethod
     def stop(self):
-        pass
+        self.whisper(
+            "{} v{} environment stopped.".format(self.app_name, self.app_version)
+        )
 
     def __enter__(self):
         self.start()
@@ -51,6 +55,7 @@ class IAppEnvironment(ABC):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.stop()
+        self.whisper("Bye ~")
         return False
 
     def say(self, *args, **kwargs):

@@ -165,6 +165,7 @@ class MissionRunner:
             appenv.whisper(
                 IndexedListPanel(non_existent_o_dirs, title="自动创建目标文件夹")
             )
+        self._task_description = self.mission.name
 
     async def execute(self):
         async with self._running_cond:
