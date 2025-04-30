@@ -27,6 +27,10 @@ class FFmpegAsync(AsyncIOEventEmitter):
         self._process: asyncio.subprocess.Process
 
     @property
+    def is_canceled(self) -> bool:
+        return self._canceled
+
+    @property
     def executable(self) -> str:
         return self._executable
 

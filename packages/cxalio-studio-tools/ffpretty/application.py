@@ -1,7 +1,11 @@
+import asyncio
 from collections.abc import Iterable, Sequence
+from datetime import datetime
+import itertools
 import sys
 from cx_studio.core.cx_time import CxTime
-from cx_studio.ffmpeg import FFmpeg
+from cx_studio.ffmpeg import FFmpegAsync
+from cx_studio.ffmpeg.cx_ff_infos import FFmpegCodingInfo
 from cx_tools.app import IApplication, SafeError
 from cx_wealth.indexed_list_panel import IndexedListPanel
 from .appenv import appenv
@@ -21,20 +25,34 @@ class FFPrettyApp(IApplication):
             else:
                 self.arguments.append(a)
 
-        self.ffmpeg: FFmpeg = FFmpeg(appenv.ffmpeg_executable)
+        if "-y" not in self.arguments and "-n" not in self.arguments:
+            self.arguments.append("-n")
+
+        self.ffmpeg = FFmpegAsync(appenv.ffmpeg_executable)
+        self.start_time: datetime
+
+        self._task_description: str = ""
 
     def start(self):
         appenv.start()
+        self.start_time = datetime.now()
 
     def stop(self):
         appenv.stop()
+        time_span = datetime.now() - self.start_time
+        if time_span.total_seconds() > 5:
+            appenv.say(
+                "[dim]用时 [blue]{}[/]。".format(
+                    CxTime.from_seconds(time_span.total_seconds()).pretty_string
+                )
+            )
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         result = False
         if exc_type is None:
             pass
         elif issubclass(exc_type, SafeError):
-            appenv.say(exc_val)
+            appenv.say("[red]错误：{}[/]".format(exc_val))
             result = True
         self.stop()
         return result
@@ -49,17 +67,58 @@ class FFPrettyApp(IApplication):
                 input_marked = False
 
     def output_files(self) -> Iterable[str]:
-        has_key = False
+        prev_key = None
         for a in self.arguments:
             if a.startswith("-"):
-                has_key = True
-            else:
-                if not has_key:
-                    yield a
-                else:
-                    has_key = False
+                prev_key = a
+                continue
+            if "." in a and prev_key != "-i":
+                yield a
 
-    def run(self):
+    async def _random_task_description(self):
+        input_files = [Path(x).name for x in self.input_files()]
+        output_files = [Path(x).name for x in self.output_files()]
+        for name in itertools.cycle(input_files + output_files):
+            try:
+                self._task_description = name
+                await asyncio.sleep(2)
+            except asyncio.CancelledError:
+                break
+
+    async def execute(self, args: Iterable[str]):
+        task_id = appenv.progress.add_task("[green]正在开始...[/]", total=None)
+
+        m, n = len(list(self.input_files())), len(list(self.output_files()))
+        sumary = f"[blue][{m}->{n}][/]"
+
+        @self.ffmpeg.on("status_updated")
+        def on_status_updated(status: FFmpegCodingInfo):
+            current = status.current_time.total_seconds
+            total = status.total_time.total_seconds if status.total_time else None
+
+            speed = "[bright_black][{:.2f}x][/]".format(status.current_speed)
+            desc = f"{sumary}{speed}[green]{self._task_description}[/]"
+            appenv.progress.update(
+                task_id,
+                completed=current,
+                total=total,
+                description=desc,
+            )
+
+        ff_task = asyncio.create_task(self.ffmpeg.execute(args))
+        desc_task = asyncio.create_task(self._random_task_description())
+
+        while not ff_task.done():
+            await asyncio.sleep(0.01)
+            if appenv.wanna_quit_event.is_set():
+                self.ffmpeg.cancel()
+                break
+
+        await asyncio.wait([ff_task])
+        desc_task.cancel()
+        return ff_task.result()
+
+    def run(self) -> bool:
         if not self.arguments:
             raise SafeError("No arguments provided.")
 
@@ -74,29 +133,37 @@ class FFPrettyApp(IApplication):
             IndexedListPanel(outputs, title="输出文件"),
         )
 
-        # if not inputs:
-        #     raise SafeError("No input files provided.")
+        if not inputs:
+            raise SafeError("No input files provided.")
 
-        # if not outputs:
-        #     raise SafeError("No output files provided.")
+        if not outputs:
+            raise SafeError("No output files provided.")
 
-        # for i in inputs:
-        #     if not Path(i).exists():
-        #         raise SafeError(f"输入文件 {i} 不存在。")
+        for i in inputs:
+            if not Path(i).exists():
+                raise SafeError(f"输入文件 {i} 不存在。")
 
-        # non_exist_dirs = filter(
-        #     lambda x: not x.exists(), [Path(a).parent for a in outputs]
-        # )
-        # if non_exist_dirs:
-        #     for d in non_exist_dirs:
-        #         d.mkdir(parents=True, exist_ok=True)
-        #     appenv.whisper(IndexedListPanel(non_exist_dirs, title="创建的输出目录"))
+        existed_outputs = [x for x in outputs if Path(x).exists()]
+        if existed_outputs and "-y" not in self.arguments:
+            appenv.whisper(IndexedListPanel(existed_outputs, title="已存在的输出文件"))
+            raise SafeError("请使用 -y 参数覆盖已存在的文件。")
 
-        with r.Progress() as p:
-            task = p.add_task("[green]处理中...", total=100)
+        non_exist_dirs = filter(
+            lambda x: not x.exists(), [Path(a).parent for a in outputs]
+        )
+        if non_exist_dirs:
+            for d in non_exist_dirs:
+                d.mkdir(parents=True, exist_ok=True)
+            appenv.whisper(IndexedListPanel(non_exist_dirs, title="创建的输出目录"))
 
-            @self.ffmpeg.on("progress_updated")
-            def progress_updated(a: CxTime, b: CxTime):
-                p.update(task, completed=a.total_seconds, total=b.total_seconds)
+        result = asyncio.run(self.execute(self.arguments))
 
-            self.ffmpeg.execute(self.arguments)
+        appenv.whisper("运行结果：{}".format(result))
+
+        if not result:
+            if self.ffmpeg.is_canceled:
+                raise SafeError("[blue]用户取消了操作。[/]")
+            else:
+                raise SafeError("[red]操作失败，请排查问题。[/]")
+
+        return result

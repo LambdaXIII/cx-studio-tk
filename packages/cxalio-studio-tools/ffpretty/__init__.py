@@ -1,10 +1,11 @@
 from .application import FFPrettyApp
 
 
-def run():
+def run() -> int:
     from rich.traceback import install
 
     install(show_locals=False, word_wrap=True, suppress=["rich"])
 
     with FFPrettyApp() as app:
-        app.run()
+        result = app.run()
+        return 0 if result else -1
