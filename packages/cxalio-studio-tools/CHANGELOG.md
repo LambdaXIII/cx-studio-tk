@@ -1,5 +1,9 @@
 # Change Log of Cxalio Studio Tools
 
+### v0.4.9.4
+
+- hot fix for a packaging bug
+
 ### v0.4.9.3
 
 - 修复了 Media Killer 提示信息的 bug
