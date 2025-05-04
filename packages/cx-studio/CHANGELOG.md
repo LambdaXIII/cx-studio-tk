@@ -1,6 +1,11 @@
 # Change logs of cx-studio
 
+### v0.2.1.7
+
+- 应用 pydantic
+
 ### v0.2.1.6
+
 - 删除了没用的文件
 - 重新整理的代码格式
 

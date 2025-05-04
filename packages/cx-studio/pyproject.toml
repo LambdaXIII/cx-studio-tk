@@ -1,10 +1,15 @@
 [project]
 name = "cx-studio"
-version = "0.2.1.6"
+version = "0.2.1.7"
 description = "A Python library for interacting with the CX Studio API"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = ["chardet>=5.2.0", "lazy-object-proxy>=1.10.0", "pyee>=13.0.0"]
+dependencies = [
+    "chardet>=5.2.0",
+    "lazy-object-proxy>=1.10.0",
+    "pydantic>=2.11.4",
+    "pyee>=13.0.0",
+]
 
 [build-system]
 requires = ["hatchling"]
