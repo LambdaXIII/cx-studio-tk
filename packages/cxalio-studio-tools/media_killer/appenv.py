@@ -22,7 +22,7 @@ class AppEnv(IAppEnvironment):
     def __init__(self):
         super().__init__()
         self.app_name = "MediaKiller"
-        self.app_version = "0.5.0.1"
+        self.app_version = "0.5.0.2"
         self.app_description = "媒体文件批量操作工具"
         self.context: AppContext = AppContext()
         self.progress = r.Progress(
@@ -66,15 +66,15 @@ class AppEnv(IAppEnvironment):
         input_filesize = self.input_filesize_counter.total_size
         output_filesize = self.output_filesize_counter.total_size
         filesize_report = ""
-        if input_filesize:
+        if input_filesize.total_bytes > 0:
             filesize_report = (
                 f"[dim]输入文件总大小: [blue]{input_filesize.pretty_string}[/]"
             )
-        if output_filesize:
+        if output_filesize.total_bytes > 0:
             filesize_report += (
                 f"[dim] 输出文件总大小: [blue]{output_filesize.pretty_string}[/]"
             )
-        if filesize_report:
+        if len(filesize_report) > 0:
             self.say(filesize_report)
 
         time_spent = datetime.now() - self._app_start_time
