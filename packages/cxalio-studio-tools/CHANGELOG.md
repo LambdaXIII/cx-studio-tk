@@ -1,6 +1,12 @@
 # Change Log of Cxalio Studio Tools
 
+### v0.5.0.1
+
+- 修正错误的 import
+- 为 mediakiller 增加文件大小统计功能
+
 ### v0.4.9.5
+
 - 全面使用 pydantic 和 Box 替代原生和 cx-studio 的实现
 
 ### v0.4.9.4

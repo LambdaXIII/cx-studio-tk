@@ -37,13 +37,13 @@ class IAppEnvironment(ABC):
     def is_debug_mode_on(self):
         return False
 
-    @abstractmethod
+    # @abstractmethod
     def start(self):
         self.whisper(
             "{} v{} environment started.".format(self.app_name, self.app_version)
         )
 
-    @abstractmethod
+    # @abstractmethod
     def stop(self):
         self.whisper(
             "{} v{} environment stopped.".format(self.app_name, self.app_version)

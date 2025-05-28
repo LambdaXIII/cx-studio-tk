@@ -4,10 +4,12 @@ from cx_studio.core import CxTime, FileSize
 from pathlib import Path
 from datetime import datetime, timedelta
 import re
+from pydantic import BaseModel, ConfigDict
 
 
-@dataclass(frozen=True)
-class FFmpegFormatInfo:
+# @dataclass(frozen=True)
+class FFmpegFormatInfo(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True, frozen=True)
     filename: Path
     streams: int | None = None
     format_name: str | None = None
@@ -36,7 +38,12 @@ class FFmpegFormatInfo:
 
 
 @dataclass
-class FFmpegProcessInfo:
+class FFmpegProcessInfo(BaseModel):
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True,
+        #   frozen=True
+    )
+
     bin: str
     args: list[str]
     start_time: datetime | None = None
@@ -52,8 +59,13 @@ class FFmpegProcessInfo:
         return self.end_time is not None
 
 
-@dataclass
-class FFmpegCodingInfo:
+# @dataclass
+class FFmpegCodingInfo(BaseModel):
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True,
+        #   frozen=True
+    )
+
     current_frame: int = 0
     current_fps: float = 0
     current_q: float = -1

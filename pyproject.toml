@@ -1,6 +1,6 @@
 [project]
 name = "cx-studio-tk"
-version = "0.5.0"
+version = "0.5.0.1"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
@@ -19,11 +19,7 @@ members = [
 ]
 
 [dependency-groups]
-dev = [
-    "babel>=2.17.0",
-    "black>=25.1.0",
-    "pytest>=8.3.5",
-]
+dev = ["babel>=2.17.0", "black>=25.1.0", "pytest>=8.3.5"]
 
 [tool.pytest.ini_options]
 minversion = "6.0"

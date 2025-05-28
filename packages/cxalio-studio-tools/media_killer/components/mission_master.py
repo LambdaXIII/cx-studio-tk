@@ -12,6 +12,8 @@ from .mission import Mission
 from .mission_runner import MissionRunner, MissionPretender
 from ..appenv import appenv
 
+from pathlib import Path
+
 
 class PoisonError(Exception):
     pass
@@ -69,6 +71,9 @@ class MissionMaster:
                 else MissionRunner(mission)
             )
 
+            # 记录即将处理的文件列表
+            appenv.input_filesize_counter.add_paths(mission.iter_input_filenames())
+
             async with self._info_lock:
                 self._mission_infos[index].runner = runner
 
@@ -84,6 +89,10 @@ class MissionMaster:
                     await asyncio.sleep(0.1)
 
                 # await t
+                # 记录已处理完成的文件列表
+                appenv.output_filesize_counter.add_paths(
+                    mission.iter_output_filenames()
+                )
 
             except asyncio.CancelledError:
                 runner.cancel()
