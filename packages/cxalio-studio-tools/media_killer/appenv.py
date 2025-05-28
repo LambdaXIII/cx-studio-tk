@@ -7,19 +7,22 @@ import time
 from collections.abc import Sequence
 from pathlib import Path
 
+from cx_studio.core.cx_filesize import FileSize
 from cx_studio.core.cx_time import CxTime
 from cx_tools.app import IAppEnvironment, ConfigManager
 from cx_wealth import rich_types as r
 from media_killer.components.exception import SafeError
 from .appcontext import AppContext
-from .mk_help_info import MKHelp
+
+# from .mk_help_info import MKHelp
+from cx_tools import FileSizeCounter
 
 
 class AppEnv(IAppEnvironment):
     def __init__(self):
         super().__init__()
         self.app_name = "MediaKiller"
-        self.app_version = "0.4.9.5"
+        self.app_version = "0.5.0.1"
         self.app_description = "媒体文件批量操作工具"
         self.context: AppContext = AppContext()
         self.progress = r.Progress(
@@ -40,6 +43,9 @@ class AppEnv(IAppEnvironment):
         self._garbage_files = []
         self._app_start_time: datetime
 
+        self.input_filesize_counter = FileSizeCounter()
+        self.output_filesize_counter = FileSizeCounter()
+
     def is_debug_mode_on(self):
         return self.context.debug_mode
 
@@ -56,6 +62,21 @@ class AppEnv(IAppEnvironment):
         self.progress.stop()
         self.clean_garbage_files()
         self.config_manager.remove_old_log_files()
+
+        input_filesize = self.input_filesize_counter.total_size
+        output_filesize = self.output_filesize_counter.total_size
+        filesize_report = ""
+        if input_filesize:
+            filesize_report = (
+                f"[dim]输入文件总大小: [blue]{input_filesize.pretty_string}[/]"
+            )
+        if output_filesize:
+            filesize_report += (
+                f"[dim] 输出文件总大小: [blue]{output_filesize.pretty_string}[/]"
+            )
+        if filesize_report:
+            self.say(filesize_report)
+
         time_spent = datetime.now() - self._app_start_time
         if time_spent.total_seconds() > 5:
             self.say(
