@@ -8,6 +8,7 @@ dependencies = [
     "cachetools>=5.5.2",
     "cx-studio",
     "cx-wealth",
+    "pillow>=11.2.1",
     "pydantic>=2.11.4",
     "python-box[all]~=7.0",
     "rich>=14.0.0",
