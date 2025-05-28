@@ -1,5 +1,9 @@
 # Change Log of Cxalio Studio Tools
 
+### v0.5.0.2
+
+- hotfix: mediakiller 文件大小统计的输出 bug
+
 ### v0.5.0.1
 
 - 修正错误的 import

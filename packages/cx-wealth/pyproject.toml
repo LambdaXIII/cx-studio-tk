@@ -1,15 +1,11 @@
 [project]
 name = "cx-wealth"
-version = "0.1.0"
+version = "0.1.0.1"
 description = "A lib of CLI gadgets extended from rich."
 readme = "README.md"
-authors = [
-    { name = "xiii_1991", email = "xiii_1991@163.com" }
-]
+authors = [{ name = "xiii_1991", email = "xiii_1991@163.com" }]
 requires-python = ">=3.12"
-dependencies = [
-    "rich>=14.0.0",
-]
+dependencies = ["rich>=14.0.0"]
 
 [project.scripts]
 cx-wealth = "cx_wealth:main"
