@@ -1,8 +1,9 @@
 # Change Log of Cxalio Studio Tools
 
-### v0.5.0.2
+### v0.5.0.3
 
 - hotfix: mediakiller 文件大小统计的输出 bug
+- hotfix: 尝试修复任务自动保存在 macOS 上的 bug
 
 ### v0.5.0.1
 
