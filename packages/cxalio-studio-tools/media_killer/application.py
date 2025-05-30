@@ -56,6 +56,10 @@ class Application(IApplication):
     def save_missions(missions: list[Mission]):
         path = appenv.config_manager.get_file("last_missions.db")
         if missions:
+            if not path.parent.exists():
+                path.parent.mkdir(parents=True)
+            if not path.exists():
+                path.touch()
             with shelve.open(path) as db:
                 db["missions"] = missions
 

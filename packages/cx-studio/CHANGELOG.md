@@ -1,5 +1,9 @@
 # Change logs of cx-studio
 
+### v0.2.1.8
+
+- hotfix: pathexpander 的 macos 兼容性问题
+
 ### v0.2.1.7
 
 - 应用 pydantic
