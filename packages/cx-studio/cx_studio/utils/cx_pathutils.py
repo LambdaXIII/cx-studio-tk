@@ -92,3 +92,12 @@ def quote(path: str | Path | None, quote_mode: PathQuoteMode = "auto") -> str:
         return re.sub(r"\s", "\\ ", path)
 
     return path
+
+
+def ensure_parents(path: Path | str, touch_child: bool = False) -> Path:
+    path = Path(path).absolute()
+    parent = path.parent
+    parent.mkdir(parents=True, exist_ok=True)
+    if touch_child and not path.exists():
+        path.touch()
+    return path

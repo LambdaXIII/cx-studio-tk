@@ -1,5 +1,9 @@
 # Change logs of cx-studio
 
+### v0.2.1.9
+
+- 为 PathUtils 增加了一个 ensure_parents 方法，用于自动创建文件夹。
+
 ### v0.2.1.8
 
 - hotfix: pathexpander 的 macos 兼容性问题
