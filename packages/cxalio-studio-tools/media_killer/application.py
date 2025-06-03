@@ -9,19 +9,20 @@ from typing import override
 from cx_studio.utils import PathUtils
 from cx_tools.app import IApplication
 from cx_wealth import DynamicColumns, IndexedListPanel, WealthDetailPanel
-from media_killer.components.mission_master import MissionMaster
-from media_killer.components.script_maker import ScriptMaker
-from media_killer.mk_help_info import MKHelp
-from .appenv import appenv
-from .components import (
-    InputScanner,
-    MissionMaker,
-    MissionArranger,
-)
-from .components import Mission
-from .components import Preset
+
+
+from .components.mission_master import MissionMaster
+from .components.mission_xml import MissionXML
+from .components.script_maker import ScriptMaker
+from .components.input_scanner import InputScanner
+from .components.mission_maker import MissionMaker
+from .components.mission_arranger import MissionArranger
+from .components.mission import Mission
+from .components.preset import Preset
 from .components.exception import SafeError
-import shelve
+
+from .appenv import appenv
+from .mk_help_info import MKHelp
 
 
 class Application(IApplication):
@@ -38,7 +39,8 @@ class Application(IApplication):
         return self
 
     def stop(self):
-        self.save_missions(self.missions)
+        if not appenv.context.continue_mode:
+            self.save_missions(self.missions)
         appenv.whisper("Bye ~")
         appenv.stop()
 
@@ -54,24 +56,28 @@ class Application(IApplication):
 
     @staticmethod
     def save_missions(missions: list[Mission]):
-        path = appenv.config_manager.get_file("last_missions.db")
-        if missions:
-            if not path.parent.exists():
-                path.parent.mkdir(parents=True)
-            if not path.exists():
-                path.touch()
-            with shelve.open(path) as db:
-                db["missions"] = missions
+        # path = appenv.config_manager.get_file("last_missions.db")
+        # if missions:
+        #     if not path.parent.exists():
+        #         path.parent.mkdir(parents=True)
+        #     if not path.exists():
+        #         path.touch()
+        #     with shelve.open(path) as db:
+        #         db["missions"] = missions
+
+        mission_xml = MissionXML()
+        mission_xml.add_missions(missions)
+        mission_xml.save(appenv.config_manager.get_file("last_missions.xml"))
 
     @staticmethod
     def load_missions() -> list[Mission]:
-        path = appenv.config_manager.get_file("last_missions.db")
-        if not path.exists():
+        last_missions = appenv.config_manager.get_file("last_missions.xml")
+        if not last_missions.exists():
             return []
-        with shelve.open(path) as db:
-            result = list(db["missions"])
-            appenv.whisper(IndexedListPanel(result, "从上次执行中恢复的任务"))
-            return result
+        mission_xml = MissionXML.load(
+            appenv.config_manager.get_file("last_missions.xml")
+        )
+        return list(mission_xml.iter_missions())
 
     @staticmethod
     def export_example_preset(filename: Path):

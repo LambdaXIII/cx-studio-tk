@@ -10,7 +10,7 @@ class ConfigManager:
 
     @property
     def config_dir(self) -> Path:
-        return Path.home() / ".config" / self.app_name
+        return Path.home() / ".config" / "cx-studio" / self.app_name
 
     @property
     def log_dir(self) -> Path:

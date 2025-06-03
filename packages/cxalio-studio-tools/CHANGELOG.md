@@ -1,5 +1,11 @@
 # Change Log of Cxalio Studio Tools
 
+### v0.5.0.4
+
+- 修改 mediakiller 的任务保存格式为 XML 格式
+- 修改 ConfigManager 的默认配置文件保存位置，增加了一级子目录
+- 调整了 mediakiller 中 import 的顺序，避免载入 bug
+
 ### v0.5.0.3
 
 - hotfix: mediakiller 文件大小统计的输出 bug

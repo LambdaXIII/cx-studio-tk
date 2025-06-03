@@ -5,7 +5,7 @@ from rich.columns import Columns
 from rich.text import Text
 
 from cx_studio.utils import PathUtils, FunctionalUtils
-from media_killer.appenv import appenv
+from ..appenv import appenv
 from .preset import Preset
 
 
