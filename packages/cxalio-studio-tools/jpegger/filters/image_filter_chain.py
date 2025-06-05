@@ -8,7 +8,10 @@ class ImageFilterChain(IImageFilter):
         self.filters = filters
 
     def append(self, filter: IImageFilter):
-        self.filters.append(filter)
+        if isinstance(filter, ImageFilterChain):
+            self.filters.extend(filter.filters)
+        else:
+            self.filters.append(filter)
 
     def run(self, image: Image) -> Image:
         for filter in self.filters:
