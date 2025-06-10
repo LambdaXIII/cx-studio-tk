@@ -26,5 +26,20 @@ class AppContext:
         )
 
         parser.add_argument("inputs", nargs="*")
+        parser.add_argument("-h", "--help", action="help", help="显示帮助信息")
+        parser.add_argument("--sacle", action="store", dest="sacle_factor")
+        parser.add_argument("--size", "-s", action="store", dest="size")
+        parser.add_argument("--width", "-w", action="store", dest="width")
+        parser.add_argument("--height", "-h", action="store", dest="height")
+        parser.add_argument(
+            "--color-space", "-c", choices=["RGB", "CMYK", "L"], dest="color_space"
+        )
+        parser.add_argument("--format", "-f", choices=["jpg", "png"], dest="format")
+        parser.add_argument("--quality", "-q", action="store", dest="quality")
+        parser.add_argument("--output", "-o", action="store", dest="output")
+        parser.add_argument(
+            "--force-overwrite", "-y", action="store_true", dest="overwrite"
+        )
+        parser.add_argument("--debug", "-d", action="store_true", dest="debug_mode")
 
         return parser
