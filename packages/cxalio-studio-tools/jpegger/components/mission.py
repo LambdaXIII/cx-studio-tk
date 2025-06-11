@@ -20,6 +20,7 @@ class Mission(BaseModel):
     target: Path
     target_format: str | None
     filter_chain: ImageFilterChain = ImageFilterChain([])
+    saving_options: dict = {}
 
     def __rich_label__(self):
         yield (
@@ -34,13 +35,18 @@ class Mission(BaseModel):
 
 
 class SimpleMissionBuilder:
+    DEFAULT_SAVING_OPTIONS: dict = {"saveall": True}
+
     def __init__(
         self,
         filter_chain: ImageFilterChain,
         output_dir: Path | str | None,
+        quality: int | None = None,
         target_format: str | None = None,
     ):
+        self.filter_chain = filter_chain
         self.output_dir = PathUtils.normalize_path(output_dir or Path.cwd())
+
         self.target_format_info = (
             FormatDB.search(target_format) if target_format else None
         )
@@ -50,7 +56,7 @@ class SimpleMissionBuilder:
             if self.target_suffix not in self.target_format_info.extensions:
                 self.target_suffix = self.target_format_info.preferred_extension
 
-        self.filter_chain = filter_chain
+        self.quality = quality
 
         self._semaphore = asyncio.Semaphore(10)
 
@@ -60,6 +66,11 @@ class SimpleMissionBuilder:
             target = self.output_dir / source.name
             if self.target_suffix:
                 target = PathUtils.force_suffix(target, self.target_suffix)
+
+            options = self.DEFAULT_SAVING_OPTIONS.copy()
+            if self.quality:
+                options["quality"] = self.quality
+
             return Mission(
                 source=source,
                 target=target,
@@ -67,6 +78,7 @@ class SimpleMissionBuilder:
                     self.target_format_info.name if self.target_format_info else None
                 ),
                 filter_chain=self.filter_chain,
+                saving_options=options,
             )
 
     async def _dispatch_missions(self, sources: Sequence[Path | str]):

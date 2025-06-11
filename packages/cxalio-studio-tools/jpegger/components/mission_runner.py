@@ -46,7 +46,7 @@ class MissionRunner:
 
         img = Image.open(mission.source)
         img = mission.filter_chain.run(img)
-        img.save(target, format=mission.target_format)
+        img.save(target, format=mission.target_format, **mission.saving_options)
         appenv.say(
             f"[green]DONE[/] [yellow]{mission.source.name}[/] -> [yellow]{target}[/]"
         )
@@ -54,7 +54,10 @@ class MissionRunner:
     def run(self):
         with appenv.console.status("正在执行任务...") as status:
             with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
-                tasks = {m: executor.submit(self.run_mission, m) for m in self.missions}
+                tasks = {
+                    m.mission_id: executor.submit(self.run_mission, m)
+                    for m in self.missions
+                }
                 while True:
                     done = [task for task in tasks.values() if task.done()]
                     remains = len(tasks) - len(done)

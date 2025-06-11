@@ -32,7 +32,10 @@ class JpeggerApp(IApplication):
         )
 
         builder = SimpleMissionBuilder(
-            filter_chain, appenv.context.output_dir, appenv.context.format
+            filter_chain,
+            appenv.context.output_dir,
+            quality=appenv.context.quality,
+            target_format=appenv.context.format,
         )
 
         missions = builder.make_missions(appenv.context.inputs)
