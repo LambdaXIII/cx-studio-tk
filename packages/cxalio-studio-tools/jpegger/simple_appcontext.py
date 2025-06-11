@@ -2,7 +2,7 @@ from argparse import ArgumentParser
 from collections.abc import Sequence
 
 
-class AppContext:
+class SimpleAppContext:
     def __init__(self, **kwargs):
         self.inputs: list[str] = []
         self.show_help: bool = False

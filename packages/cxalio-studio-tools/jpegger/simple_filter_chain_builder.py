@@ -1,5 +1,5 @@
-from jpegger.appcontext import AppContext
-from ..filters import (
+from jpegger.simple_appcontext import SimpleAppContext
+from .filters import (
     ImageFilterChain,
     AutoResizeFilter,
     AutoScaleFilter,
@@ -8,7 +8,7 @@ from ..filters import (
 import re
 
 
-class FilterChainBuilder:
+class SimpleFilterChainBuilder:
 
     @staticmethod
     def __parse_size_str(size_str: str | None) -> tuple[int, int] | None:
@@ -24,13 +24,13 @@ class FilterChainBuilder:
 
     @staticmethod
     def build_filter_chain_from_simple_context(
-        app_context: AppContext,
+        app_context: SimpleAppContext,
     ) -> ImageFilterChain:
         filters = []
         if app_context.scale_factor:
             filters.append(AutoScaleFilter(float(app_context.scale_factor)))
         else:
-            iw, ih = FilterChainBuilder.__parse_size_str(app_context.size) or (
+            iw, ih = SimpleFilterChainBuilder.__parse_size_str(app_context.size) or (
                 None,
                 None,
             )

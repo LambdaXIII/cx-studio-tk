@@ -1,6 +1,6 @@
 from cx_tools.app import IAppEnvironment
 from collections.abc import Sequence
-from .appcontext import AppContext
+from .simple_appcontext import SimpleAppContext
 
 
 class AppEnv(IAppEnvironment):
@@ -8,7 +8,7 @@ class AppEnv(IAppEnvironment):
         super().__init__()
         self.app_name = "Jpegger"
         self.app_version = "0.5.1"
-        self.context: AppContext
+        self.context: SimpleAppContext
 
 
 appenv = AppEnv()

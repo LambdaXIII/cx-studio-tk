@@ -1,4 +1,4 @@
-from .application import JpeggerApp
+from .simple_application import JpeggerApp
 
 
 def run():
