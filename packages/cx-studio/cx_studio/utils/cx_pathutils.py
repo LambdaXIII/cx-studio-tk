@@ -16,6 +16,8 @@ def normalize_path(
 
 
 def normalize_suffix(suffix: str, with_dot=True) -> str:
+    if not suffix:
+        return ""
     s = str(suffix).strip().strip(".").lower()
     return "." + s if with_dot else s
 

@@ -9,6 +9,7 @@ from collections.abc import Sequence
 import asyncio
 from pydantic import BaseModel, Field, ConfigDict
 import ulid
+from .format_database import FormatDB
 
 
 class Mission(BaseModel):
@@ -40,20 +41,31 @@ class SimpleMissionBuilder:
         target_format: str | None = None,
     ):
         self.output_dir = PathUtils.normalize_path(output_dir or Path.cwd())
-        self.target_format = target_format
+        self.target_format_info = (
+            FormatDB.search(target_format) if target_format else None
+        )
+        self.target_suffix = None
+        if self.target_format_info:
+            self.target_suffix = PathUtils.normalize_suffix(target_format or "").lower()
+            if self.target_suffix not in self.target_format_info.extensions:
+                self.target_suffix = self.target_format_info.preferred_extension
+
         self.filter_chain = filter_chain
+
         self._semaphore = asyncio.Semaphore(10)
 
     async def make_mission(self, source: Path | str) -> Mission:
         async with self._semaphore:
             source = PathUtils.normalize_path(source)
             target = self.output_dir / source.name
-            if self.target_format:
-                target = PathUtils.force_suffix(target, self.target_format)
+            if self.target_suffix:
+                target = PathUtils.force_suffix(target, self.target_suffix)
             return Mission(
                 source=source,
                 target=target,
-                target_format=self.target_format,
+                target_format=(
+                    self.target_format_info.name if self.target_format_info else None
+                ),
                 filter_chain=self.filter_chain,
             )
 

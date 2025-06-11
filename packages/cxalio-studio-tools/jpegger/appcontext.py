@@ -50,7 +50,7 @@ class AppContext:
         parser.add_argument(
             "--color-space", "-c", choices=["RGB", "CMYK", "L"], dest="color_space"
         )
-        parser.add_argument("--format", "-f", choices=["jpg", "png"], dest="format")
+        parser.add_argument("--format", "-f", action="store", dest="format")
         parser.add_argument("--quality", "-q", action="store", dest="quality")
         parser.add_argument("--output", "-o", action="store", dest="output_dir")
         parser.add_argument(

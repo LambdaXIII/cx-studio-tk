@@ -1,3 +1,4 @@
+from click import Path
 from pydantic import BaseModel, Field
 import importlib.resources
 import csv
@@ -10,6 +11,10 @@ class FormatInfo(BaseModel):
     extensions: list[str]
     load_params: dict[str, str] = Field(default_factory=dict)
     save_params: dict[str, str] = Field(default_factory=dict)
+
+    @property
+    def preferred_extension(self) -> str:
+        return self.extensions[0] if self.extensions else ""
 
 
 class FormatDB:
@@ -46,6 +51,7 @@ class FormatDB:
 
     @classmethod
     def search_for_extension(cls, extension: str) -> FormatInfo | None:
+        extension = PathUtils.normalize_suffix(extension).lower()
         for info in cls.__data.values():
             if extension in info.extensions:
                 return info

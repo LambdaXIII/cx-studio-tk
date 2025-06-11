@@ -46,7 +46,7 @@ class MissionRunner:
 
         img = Image.open(mission.source)
         img = mission.filter_chain.run(img)
-        img.save(target)
+        img.save(target, format=mission.target_format)
         appenv.say(
             f"[green]DONE[/] [yellow]{mission.source.name}[/] -> [yellow]{target}[/]"
         )
