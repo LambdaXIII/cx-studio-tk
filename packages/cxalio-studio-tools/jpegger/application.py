@@ -31,8 +31,10 @@ class JpeggerApp(IApplication):
         appenv.say(WealthLabel(filter_chain))
         appenv.say(WealthDetailPanel(filter_chain))
 
-        builder = SimpleMissionBuilder(filter_chain, appenv.context.output_dir)
+        builder = SimpleMissionBuilder(
+            filter_chain, appenv.context.output_dir, appenv.context.format
+        )
 
-        missions = asyncio.run(builder.make_missions(appenv.context.inputs))
+        missions = builder.make_missions(appenv.context.inputs)
 
         appenv.say(IndexedListPanel([WealthLabel(x) for x in missions]))

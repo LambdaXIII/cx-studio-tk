@@ -13,10 +13,15 @@ import asyncio
 class Mission:
     source: Path
     target: Path
+    target_format: str | None
     filter_chain: ImageFilterChain = ImageFilterChain([])
 
     def __rich_label__(self):
-        yield "[dim][M][/]"
+        yield (
+            f"[yellow][{self.target_format.upper()}][/]"
+            if self.target_format
+            else "[dim][M][/]"
+        )
         yield f"[yellow]{self.source.name}[/yellow]"
         yield "[blue]=>[/]"
         yield f"[yellow]{self.target.name}[/yellow]"
@@ -24,8 +29,14 @@ class Mission:
 
 
 class SimpleMissionBuilder:
-    def __init__(self, filter_chain: ImageFilterChain, output_dir: Path | str | None):
+    def __init__(
+        self,
+        filter_chain: ImageFilterChain,
+        output_dir: Path | str | None,
+        target_format: str | None = None,
+    ):
         self.output_dir = PathUtils.normalize_path(output_dir or Path.cwd())
+        self.target_format = target_format
         self.filter_chain = filter_chain
         self._semaphore = asyncio.Semaphore(10)
 
@@ -33,11 +44,18 @@ class SimpleMissionBuilder:
         async with self._semaphore:
             source = PathUtils.normalize_path(source)
             target = PathUtils.take_dir(source) / source.name
-            return Mission(source=source, target=target, filter_chain=self.filter_chain)
+            if self.target_format:
+                target = PathUtils.force_suffix(target, self.target_format)
+            return Mission(
+                source=source,
+                target=target,
+                target_format=self.target_format,
+                filter_chain=self.filter_chain,
+            )
 
-    async def make_missions(self, sources: Sequence[Path | str]):
-        if not sources:
-            return []
+    async def _dispatch_missions(self, sources: Sequence[Path | str]):
+        missions = await asyncio.gather(*[self.make_mission(s) for s in sources])
+        return [m for m in missions if m is not None]
 
-        missions = [await self.make_mission(source) for source in sources]
-        return missions
+    def make_missions(self, sources: Sequence[Path | str]) -> list[Mission]:
+        return asyncio.run(self._dispatch_missions(sources))
