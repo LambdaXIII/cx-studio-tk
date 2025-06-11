@@ -4,7 +4,7 @@ import sys
 from .appenv import appenv
 from .appcontext import AppContext
 from cx_wealth import rich_types as r
-from cx_wealth import WealthDetailPanel, WealthDetail
+from cx_wealth import WealthDetailPanel, WealthDetail, WealthLabel
 
 from .components.filter_chain_builder import FilterChainBuilder
 
@@ -25,4 +25,5 @@ class JpeggerApp(IApplication):
             appenv.context
         )
 
+        appenv.say(WealthLabel(filter_chain))
         appenv.say(WealthDetailPanel(filter_chain))

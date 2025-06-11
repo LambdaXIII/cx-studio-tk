@@ -65,13 +65,10 @@ class AutoResizeFilter(IImageFilter):
         iw, ih = self.get_target_size(image)
         return _auto_resize(image, iw, ih)
 
-    def __rich_label__(self) -> str:
-        parameter = (
-            f"[blue][[u]{self.width or "N/A"}{":" if self.height else ""}{self.height or "N/A"}[/u]][/blue]"
-            if self.width or self.height
-            else ""
-        )
-        return f"[yellow]AutoResize[/]{parameter}"
+    def __rich_label__(self):
+        na = "[red]N/A[/red]"
+        yield super().__rich_label__()
+        yield f"[blue]({self.width or na}:{self.height or na})[/]"
 
 
 class AutoScaleFilter(IImageFilter):
@@ -98,6 +95,6 @@ class AutoScaleFilter(IImageFilter):
         iw, ih = self.get_target_size(image)
         return _auto_resize(image, iw, ih)
 
-    def __rich_label__(self) -> str:
-        parameter = f"[blue][[u]{self.factor:.2f}[/u]][/]"
-        return f"[yellow]AutoScale[/]{parameter}"
+    def __rich_label__(self):
+        yield from super().__rich_label__()
+        yield f"[blue]({self.factor:.2f}x)[/]"

@@ -1,5 +1,6 @@
 from typing import Literal, override
 from PIL.Image import Image
+from pytest import param
 from .image_filter import IImageFilter
 
 
@@ -27,16 +28,16 @@ class ColorSpaceFilter(IImageFilter):
         else:
             return image.convert("RGB").convert(self.colorspace)
 
-    def __rich_label__(self) -> str:
-        param = ""
-        match (self.colorspace):
-            case "RGB":
-                param = "[red]R[/][green]G[/][blue]B[/]"
-            case "L":
-                param = "[white]L[/]"
-            case "CMYK":
-                param = "[cyan]C[/][magenta]M[/][yellow]Y[/][black]K[/]"
-            case _:
-                param = "[red]N/A[/]"
-
-        return f"[yellow]ColorSpace[/][blue][[u]{param}[/]][/]"
+    def __rich_label__(self):
+        yield from super().__rich_label__()
+        _RGB = "[black on red]R[black on green]G[black on blue]B[reset]"
+        _CMYK = "[black on cyan]C[black on magenta]M[black on yellow]Y[black on black]K[reset]"
+        _L = "[black on white]L[reset]"
+        _NONE = "[red]N/A[/]"
+        param = {
+            "RGB": _RGB,
+            "CMYK": _CMYK,
+            "L": _L,
+            None: _NONE,
+        }.get(self.colorspace, _NONE)
+        yield f"[blue]({param})[/]"

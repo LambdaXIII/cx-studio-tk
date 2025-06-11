@@ -1,3 +1,5 @@
+from typing import override
+from cx_wealth.wealth_label import WealthLabel
 from .image_filter import IImageFilter
 from PIL.Image import Image
 
@@ -18,16 +20,18 @@ class ImageFilterChain(IImageFilter):
             image = filter.run(image)
         return image
 
+    @override
+    def filter_name(self):
+        return "FilterChain"
+
     def __len__(self):
         return len(self.filters)
 
-    def __rich_label__(self) -> str:
-        if len(self.filters) == 0:
-            return "[red][EMPTY_FILTER_CHAIN][/]"
-        labels = [x.__rich_label__() for x in self.filters]
-        return "[dim]=>[/]".join(labels)
+    def __rich_label__(self):
+        yield from super().__rich_label__()
+        yield f"[blue]({len(self.filters)}Filters)[/]"
 
     def __rich_detail__(self):
         yield "Filter Chaing"
         for i, f in enumerate(self.filters):
-            yield f"[dim cyan]{i}[/]", f.__rich_label__()
+            yield f"[dim cyan]{i}[/]", WealthLabel(f)
