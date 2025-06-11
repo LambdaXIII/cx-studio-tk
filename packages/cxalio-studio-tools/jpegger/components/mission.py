@@ -7,10 +7,14 @@ from ..filters import ImageFilterChain
 from cx_studio.utils import PathUtils
 from collections.abc import Sequence
 import asyncio
+from pydantic import BaseModel, Field, ConfigDict
+import ulid
 
 
-@dataclass
-class Mission:
+class Mission(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True, frozen=True)
+    mission_id: ulid.ULID = Field(default_factory=ulid.new, kw_only=True)
+
     source: Path
     target: Path
     target_format: str | None
@@ -43,7 +47,7 @@ class SimpleMissionBuilder:
     async def make_mission(self, source: Path | str) -> Mission:
         async with self._semaphore:
             source = PathUtils.normalize_path(source)
-            target = PathUtils.take_dir(source) / source.name
+            target = self.output_dir / source.name
             if self.target_format:
                 target = PathUtils.force_suffix(target, self.target_format)
             return Mission(

@@ -8,6 +8,7 @@ from cx_wealth import WealthDetailPanel, WealthDetail, WealthLabel, IndexedListP
 
 from .components.filter_chain_builder import FilterChainBuilder
 from .components.mission import SimpleMissionBuilder, Mission
+from .components.mission_runner import MissionRunner
 
 import asyncio
 
@@ -24,12 +25,11 @@ class JpeggerApp(IApplication):
         appenv.stop()
 
     def run(self):
+        appenv.say(WealthDetailPanel(appenv.context, title="初始化参数"))
+
         filter_chain = FilterChainBuilder.build_filter_chain_from_simple_context(
             appenv.context
         )
-
-        appenv.say(WealthLabel(filter_chain))
-        appenv.say(WealthDetailPanel(filter_chain))
 
         builder = SimpleMissionBuilder(
             filter_chain, appenv.context.output_dir, appenv.context.format
@@ -38,3 +38,6 @@ class JpeggerApp(IApplication):
         missions = builder.make_missions(appenv.context.inputs)
 
         appenv.say(IndexedListPanel([WealthLabel(x) for x in missions]))
+
+        runner = MissionRunner(missions)
+        runner.run()
