@@ -10,7 +10,7 @@ def _auto_resize(image: Image, width: int, height: int) -> Image:
     if (width, height) == (iw, ih):
         return image
 
-    if width >= height:
+    if iw <= ih:
         _factor = width / iw
         scaled_image = image.resize((width, int(ih * _factor)))
         y = (scaled_image.height - height) / 2
