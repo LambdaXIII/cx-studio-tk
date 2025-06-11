@@ -1,4 +1,5 @@
-from .image_filter import IImageFilter
-from .image_filter_chain import ImageFilterChain
-from .resize import ResizeFilter, FactorResizeFilter
-from .colorspace import SimpleBlackWhiteFilter
+from .image_filter import *
+from .image_filter_chain import *
+from .resize import *
+from .colorspace import *
+from .auto_resize import *

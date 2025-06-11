@@ -6,6 +6,8 @@ from .appcontext import AppContext
 from cx_wealth import rich_types as r
 from cx_wealth import WealthDetailPanel, WealthDetail
 
+from .components.filter_chain_builder import FilterChainBuilder
+
 
 class JpeggerApp(IApplication):
     def __init__(self, arguments: Sequence[str] | None = None):
@@ -19,4 +21,8 @@ class JpeggerApp(IApplication):
         appenv.stop()
 
     def run(self):
-        appenv.say(WealthDetailPanel(appenv.context))
+        filter_chain = FilterChainBuilder.build_filter_chain_from_simple_context(
+            appenv.context
+        )
+
+        appenv.say(WealthDetailPanel(filter_chain))

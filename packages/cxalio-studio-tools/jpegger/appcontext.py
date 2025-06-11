@@ -7,7 +7,7 @@ class AppContext:
         self.inputs: list[str] = []
         self.show_help: bool = False
         self.scale_factor: float | None = None
-        self.size: tuple[int, int] | None = None
+        self.size: str | None = None
         self.width: int | None = None
         self.height: int | None = None
         self.color_space: str | None = None
