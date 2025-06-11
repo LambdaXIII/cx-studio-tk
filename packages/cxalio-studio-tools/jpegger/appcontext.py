@@ -13,7 +13,7 @@ class AppContext:
         self.color_space: str | None = None
         self.format: str | None = None
         self.quality: int | None = None
-        self.output: str | None = None
+        self.output_dir: str | None = None
         self.overwrite: bool = False
         self.debug_mode: bool = False
 
@@ -52,7 +52,7 @@ class AppContext:
         )
         parser.add_argument("--format", "-f", choices=["jpg", "png"], dest="format")
         parser.add_argument("--quality", "-q", action="store", dest="quality")
-        parser.add_argument("--output", "-o", action="store", dest="output")
+        parser.add_argument("--output", "-o", action="store", dest="output_dir")
         parser.add_argument(
             "--force-overwrite", "-y", action="store_true", dest="overwrite"
         )
