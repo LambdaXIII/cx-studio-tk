@@ -4,8 +4,11 @@ from .appcontext import AppContext
 
 
 class AppEnv(IAppEnvironment):
-    def __init__(self, arguments: Sequence[str] | None = None):
+    def __init__(self):
         super().__init__()
         self.app_name = "Jpegger"
-        self.app_version = "0.1.0"
-        self.app_context = AppContext.from_arguments(arguments)
+        self.app_version = "0.5.1"
+        self.context: AppContext
+
+
+appenv = AppEnv()

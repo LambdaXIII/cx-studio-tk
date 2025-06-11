@@ -24,6 +24,9 @@ class AppContext:
     def __rich_repr__(self):
         yield from self.__dict__.items()
 
+    def __rich_detail__(self):
+        yield from self.__dict__.items()
+
     @classmethod
     def from_arguments(cls, arguments: Sequence[str] | None = None):
         parser = cls.__make_parser()
@@ -38,12 +41,12 @@ class AppContext:
 
         parser.add_argument("inputs", nargs="*")
         parser.add_argument(
-            "-h", "--help", action="help", help="显示帮助信息", dest="show_help"
+            "--help", "-h", action="store_true", help="显示帮助信息", dest="show_help"
         )
-        parser.add_argument("--sacle", action="store", dest="sacle_factor")
+        parser.add_argument("--scale", action="store", dest="scale_factor")
         parser.add_argument("--size", "-s", action="store", dest="size")
-        parser.add_argument("--width", "-w", action="store", dest="width")
-        parser.add_argument("--height", "-h", action="store", dest="height")
+        parser.add_argument("--width", action="store", dest="width")
+        parser.add_argument("--height", action="store", dest="height")
         parser.add_argument(
             "--color-space", "-c", choices=["RGB", "CMYK", "L"], dest="color_space"
         )
