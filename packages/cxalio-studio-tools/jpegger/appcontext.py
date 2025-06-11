@@ -5,6 +5,17 @@ from collections.abc import Sequence
 class AppContext:
     def __init__(self, **kwargs):
         self.inputs: list[str] = []
+        self.show_help: bool = False
+        self.scale_factor: float | None = None
+        self.size: tuple[int, int] | None = None
+        self.width: int | None = None
+        self.height: int | None = None
+        self.color_space: str | None = None
+        self.format: str | None = None
+        self.quality: int | None = None
+        self.output: str | None = None
+        self.overwrite: bool = False
+        self.debug_mode: bool = False
 
         for k, v in kwargs.items():
             if k in self.__dict__:
@@ -26,7 +37,9 @@ class AppContext:
         )
 
         parser.add_argument("inputs", nargs="*")
-        parser.add_argument("-h", "--help", action="help", help="显示帮助信息")
+        parser.add_argument(
+            "-h", "--help", action="help", help="显示帮助信息", dest="show_help"
+        )
         parser.add_argument("--sacle", action="store", dest="sacle_factor")
         parser.add_argument("--size", "-s", action="store", dest="size")
         parser.add_argument("--width", "-w", action="store", dest="width")
