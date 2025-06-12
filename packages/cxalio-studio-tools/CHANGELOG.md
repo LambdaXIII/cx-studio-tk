@@ -1,5 +1,9 @@
 # Change Log of Cxalio Studio Tools
 
+### v0.5.1
+
+- 增加了 Jpegger 工具，用于快速批量转换图片
+
 ### v0.5.0.4
 
 - 修改 mediakiller 的任务保存格式为 XML 格式

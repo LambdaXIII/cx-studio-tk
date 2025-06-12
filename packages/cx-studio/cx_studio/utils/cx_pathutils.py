@@ -16,6 +16,8 @@ def normalize_path(
 
 
 def normalize_suffix(suffix: str, with_dot=True) -> str:
+    if not suffix:
+        return ""
     s = str(suffix).strip().strip(".").lower()
     return "." + s if with_dot else s
 
@@ -100,4 +102,16 @@ def ensure_parents(path: Path | str, touch_child: bool = False) -> Path:
     parent.mkdir(parents=True, exist_ok=True)
     if touch_child and not path.exists():
         path.touch()
+    return path
+
+
+def ensure_new_file(path: Path | str) -> Path:
+    """Make sure the file does not exist by adding suffixes to the basename."""
+    path = Path(path)
+    basename = path.stem
+    suffix = ""
+    while path.exists():
+        suffix += "_"
+        new_basename = basename + suffix
+        path = path.with_stem(new_basename)
     return path

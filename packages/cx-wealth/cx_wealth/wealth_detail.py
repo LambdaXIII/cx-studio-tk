@@ -31,9 +31,11 @@ class WealthDetailTable:
         self,
         item: WealthDetailMixin | RichPrettyMixin | Mapping | dict,
         sub_box: bool = True,
+        list_max_lines: int = -1,
     ) -> None:
         self._item = item
         self._sub_box = sub_box
+        self._list_max_lines = list_max_lines
 
     def make_table(self, item):
         table = r.Table(
@@ -100,6 +102,7 @@ class WealthDetailTable:
                 title=value.__class__.__name__,
                 border_style=self._SUB_BOX_BORDER_STYLE,
                 start_index=0,
+                max_lines=self._list_max_lines,
             )
             if self._sub_box and not disable_sub_box:
                 return list_panel
@@ -117,14 +120,18 @@ class WealthDetailPanel:
         title: str | None = None,
         border_style: r.StyleType | None = None,
         sub_box: bool = True,
+        limit_list_lines: bool = True,
     ):
         self._item = item
         self._title = title
         self._border_style = border_style or "none"
         self._sub_box = sub_box
+        self._list_max_lines = 8 if limit_list_lines else -1
 
     def __rich__(self):
-        content = WealthDetailTable(self._item, sub_box=self._sub_box)
+        content = WealthDetailTable(
+            self._item, sub_box=self._sub_box, list_max_lines=self._list_max_lines
+        )
 
         panel = r.Panel(
             content,

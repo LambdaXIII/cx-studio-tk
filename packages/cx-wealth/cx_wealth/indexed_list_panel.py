@@ -16,7 +16,7 @@ class IndexedListPanel:
 
     该组件基于Rich库的Table和Panel组件实现，适用于命令行工具的列表展示场景。
     """
-    
+
     def __init__(
         self,
         items: Sequence | Iterable,
@@ -85,16 +85,22 @@ class IndexedListPanel:
         total = len(self._items)
         total_digits = len(str(total))
 
-        for i, item in enumerate(self._items, start=self._start_index):
-            if self._max_lines and i > self._max_lines:
-                table.add_row(
-                    f"[red][{'.'*total_digits}][/]",
-                    f"[italic red]skipped {total - i -1} items...[/]",
-                )
-                table.add_row(f"[{total}]", self.__check_item(self._items[-1]))
-                break
+        if self._max_lines <= 0 or self._max_lines + 1 >= total:
+            for i, item in enumerate(self._items, start=self._start_index):
+                table.add_row(f"{i:>{total_digits}}", self.__check_item(item))
+
+        else:
+            safe_lines = self._max_lines - 2
+            for i in range(self._start_index, self._start_index + safe_lines):
+                item = self._items[i]
+                table.add_row(f"{i:>{total_digits}}", self.__check_item(item))
             table.add_row(
-                f"[{i:>{total_digits}}]",
+                f"[red][{'.'*total_digits}][/]",
+                f"[italic red]skipped {total - safe_lines } items...[/]",
+            )
+            last_row_number = total - self._start_index
+            table.add_row(
+                f"[{last_row_number:>{total_digits}}]",
                 self.__check_item(item),
             )
 
