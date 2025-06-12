@@ -31,8 +31,11 @@ class JpeggerApp(IApplication):
         filter_chain = SimpleFilterChainBuilder.build_filter_chain_from_simple_context(
             appenv.context
         )
-
         appenv.whisper(WealthDetailPanel(filter_chain, title="过滤器链"))
+
+        if not appenv.context.inputs:
+            appenv.say("未指定输入文件，无事可做")
+            return
 
         builder = SimpleMissionBuilder(filter_chain, appenv.context)
 

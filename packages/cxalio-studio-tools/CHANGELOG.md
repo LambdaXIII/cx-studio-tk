@@ -1,5 +1,9 @@
 # Change Log of Cxalio Studio Tools
 
+### v0.5.1.2
+
+- 为 Jpegger 定义了无事可做时的处理方式
+
 ### v0.5.1.1
 
 - 增加了 Jpegger 工具，用于快速批量转换图片
