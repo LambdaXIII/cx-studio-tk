@@ -1,7 +1,7 @@
 import itertools
 import sys
-from typing import Literal
 from collections.abc import Iterable
+
 from ._action import _Action, _ActionNargs
 from ._group import _Group
 from .. import rich_types as r

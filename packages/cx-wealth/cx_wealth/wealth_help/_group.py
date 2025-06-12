@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from collections.abc import Generator
-from typing import Literal
 from typing import override
 
 from cx_wealth.rich_types import Text

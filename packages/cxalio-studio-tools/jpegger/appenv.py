@@ -1,5 +1,4 @@
 from cx_tools.app import IAppEnvironment
-from collections.abc import Sequence
 from .simple_appcontext import SimpleAppContext
 
 

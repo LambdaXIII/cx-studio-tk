@@ -1,10 +1,8 @@
 from argparse import ArgumentParser
 from collections.abc import Sequence
-from email.mime import image
-from pydoc import describe
+
 from cx_studio.utils import TextUtils
 from cx_wealth import WealthHelp
-from cx_wealth import rich_types as r
 
 
 class SimpleAppContext:

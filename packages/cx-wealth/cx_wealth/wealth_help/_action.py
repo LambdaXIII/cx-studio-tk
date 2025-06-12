@@ -4,7 +4,6 @@ from typing import Literal, override
 from ._node import _Node
 from .. import rich_types as r
 
-
 _ActionNargs = Literal["?", "+", "*", "**"]
 
 

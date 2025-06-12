@@ -1,18 +1,13 @@
-from cx_tools.app import IApplication
-from collections.abc import Sequence
 import sys
+from collections.abc import Sequence
 
-from .simple_mission_builder import SimpleMissionBuilder
+from cx_tools.app import IApplication
+from cx_wealth import WealthDetailPanel, WealthLabel, IndexedListPanel
 from .appenv import appenv
-from .simple_appcontext import SimpleAppContext, SimpleHelp
-from cx_wealth import rich_types as r
-from cx_wealth import WealthDetailPanel, WealthDetail, WealthLabel, IndexedListPanel
-
-from .simple_filter_chain_builder import SimpleFilterChainBuilder
-from .components.mission import Mission
 from .components.mission_runner import MissionRunner
-from .filters import ImageFilterChain
-import asyncio
+from .simple_appcontext import SimpleAppContext, SimpleHelp
+from .simple_filter_chain_builder import SimpleFilterChainBuilder
+from .simple_mission_builder import SimpleMissionBuilder
 
 
 class JpeggerApp(IApplication):

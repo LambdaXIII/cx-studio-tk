@@ -1,4 +1,5 @@
 from PIL.Image import Image
+
 from .image_filter import IImageFilter
 
 

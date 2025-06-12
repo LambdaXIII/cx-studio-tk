@@ -1,9 +1,10 @@
-from click import Path
-from pydantic import BaseModel, Field
-import importlib.resources
 import csv
-from cx_studio.utils import PathUtils
+import importlib.resources
 from threading import Lock, Event
+
+from pydantic import BaseModel, Field
+
+from cx_studio.utils import PathUtils
 
 
 class FormatInfo(BaseModel):

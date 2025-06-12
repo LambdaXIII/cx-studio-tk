@@ -1,6 +1,7 @@
-from typing import Literal, override
+from typing import Literal
+
 from PIL.Image import Image
-from pytest import param
+
 from .image_filter import IImageFilter
 
 

@@ -1,12 +1,12 @@
+import asyncio
+from collections.abc import Sequence
+from pathlib import Path
+
 from cx_studio.utils import PathUtils
 from jpegger.components.format_database import FormatDB
 from jpegger.components.mission import Mission
 from jpegger.filters import ImageFilterChain
 from .simple_appcontext import SimpleAppContext
-
-import asyncio
-from collections.abc import Sequence
-from pathlib import Path
 
 
 class SimpleMissionBuilder:

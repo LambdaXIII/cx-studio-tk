@@ -1,3 +1,5 @@
+import re
+
 from jpegger.simple_appcontext import SimpleAppContext
 from .filters import (
     ImageFilterChain,
@@ -5,7 +7,6 @@ from .filters import (
     AutoScaleFilter,
     ColorSpaceFilter,
 )
-import re
 
 
 class SimpleFilterChainBuilder:

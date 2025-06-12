@@ -1,7 +1,8 @@
 from typing import override
-from cx_wealth.wealth_label import WealthLabel
-from .image_filter import IImageFilter
+
 from PIL.Image import Image
+
+from .image_filter import IImageFilter
 
 
 class ImageFilterChain(IImageFilter):

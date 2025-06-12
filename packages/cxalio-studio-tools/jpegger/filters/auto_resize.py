@@ -1,8 +1,8 @@
-from math import factorial
 from typing import Literal
-from .image_filter import IImageFilter
 
 from PIL.Image import Image
+
+from .image_filter import IImageFilter
 
 __all__ = ["AutoResizeFilter", "AutoScaleFilter"]
 

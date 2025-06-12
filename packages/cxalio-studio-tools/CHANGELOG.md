@@ -1,8 +1,9 @@
 # Change Log of Cxalio Studio Tools
 
-### v0.5.1
+### v0.5.1.1
 
 - 增加了 Jpegger 工具，用于快速批量转换图片
+- 调整了代码格式
 
 ### v0.5.0.4
 

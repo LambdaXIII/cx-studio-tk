@@ -1,11 +1,9 @@
-from dataclasses import dataclass
-from multiprocessing.pool import ThreadPool
 from pathlib import Path
 
-from cx_wealth.wealth_label import WealthLabel
-from ..filters import ImageFilterChain
-from pydantic import BaseModel, Field, ConfigDict
 import ulid
+from pydantic import BaseModel, Field, ConfigDict
+
+from ..filters import ImageFilterChain
 
 
 class Mission(BaseModel):
