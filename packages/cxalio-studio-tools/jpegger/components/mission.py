@@ -19,12 +19,7 @@ class Mission(BaseModel):
     saving_options: dict = {}
 
     def __rich_label__(self):
-        yield (
-            f"[yellow][{self.target_format.upper()}][/]"
-            if self.target_format
-            else "[dim][M][/]"
-        )
-        yield f"[yellow]{self.source.name}[/yellow]"
-        yield "[blue]=>[/]"
-        yield f"[yellow]{self.target.name}[/yellow]"
-        yield f"[blue]({len(self.filter_chain)} filters)[/blue]"
+        yield f"[yellow][>{self.target_format or "auto"}][/]"
+        yield self.source.name
+        yield f"[blue]=={len(self.filter_chain)}=>[/]"
+        yield self.target.name

@@ -41,3 +41,6 @@ class ColorSpaceFilter(IImageFilter):
             None: _NONE,
         }.get(self.colorspace, _NONE)
         yield f"[blue]({param})[/]"
+
+    def __filter_description__(self) -> str:
+        return f"将图像的色彩空间转换为 {self.colorspace}"
