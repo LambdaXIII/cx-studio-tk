@@ -1,5 +1,10 @@
 from argparse import ArgumentParser
 from collections.abc import Sequence
+from email.mime import image
+from pydoc import describe
+from cx_studio.utils import TextUtils
+from cx_wealth import WealthHelp
+from cx_wealth import rich_types as r
 
 
 class SimpleAppContext:
@@ -98,3 +103,68 @@ class SimpleAppContext:
 
         if self.inputs:
             yield "输入文件", self.inputs
+
+
+class SimpleHelp(WealthHelp):
+    def __init__(self):
+        super().__init__(prog="jpegger")
+        self.description = TextUtils.unwrap(
+            """Jpegger是一个简单的批量转换图片的命令行工具。
+
+            使用选项可以简单地控制输出图片的尺寸、编码质量和色彩空间。
+            本工具旨在快速地进行简单的批量处理，所以暂不提供更高级的客制化功能。
+            """
+        )
+        self.epilog = (
+            "[link https://github.com/LambdaXIII/cx-studio-tk]Cxalio Studio Tools[/]"
+        )
+
+        basic_opts = self.add_group("基本选项")
+        basic_opts.add_action(
+            "inputs", nargs="+", metavar="FILE", description="需要转码的文件"
+        )
+        basic_opts.add_action(
+            "-f",
+            "--format",
+            metavar="FORMAT",
+            description="指定输出格式，默认沿用原始格式",
+        )
+        basic_opts.add_action(
+            "-q",
+            "--quality",
+            metavar="QUALITY",
+            description="指定输出质量，默认使用内置的常用质量设置",
+        )
+        basic_opts.add_action(
+            "-o", "--output", metavar="DIR", description="输出目录，默认为当前目录"
+        )
+
+        image_controls = self.add_group("图片处理", "对图像进行处理")
+        image_controls.add_action(
+            "--scale", metavar="FACTOR", description="按比例缩放图片的尺寸"
+        )
+        image_controls.add_action(
+            "-s",
+            "--size",
+            metavar="WIDTHxHEIGHT",
+            description="指定图片的尺寸，接受包含两个数字的表达式",
+        )
+        image_controls.add_action(
+            "--width",
+            metavar="WIDTH",
+            description="指定图片的宽度，如果未指定高度则保持原始图像比例",
+        )
+        image_controls.add_action(
+            "--height",
+            metavar="HEIGHT",
+            description="指定图片的高度，如果未指定宽度则保持原始图像比例",
+        )
+
+        process_control = self.add_group("其它选项")
+        process_control.add_action(
+            "--overwrite",
+            "-y",
+            description="强制覆盖已存在的文件，未设置时将会自动重命名目标文件",
+        )
+        process_control.add_action("--debug", description="显示调试信息")
+        process_control.add_action("-h", "--help", description="显示帮助信息")

@@ -4,7 +4,7 @@ import sys
 
 from .simple_mission_builder import SimpleMissionBuilder
 from .appenv import appenv
-from .simple_appcontext import SimpleAppContext
+from .simple_appcontext import SimpleAppContext, SimpleHelp
 from cx_wealth import rich_types as r
 from cx_wealth import WealthDetailPanel, WealthDetail, WealthLabel, IndexedListPanel
 
@@ -27,6 +27,10 @@ class JpeggerApp(IApplication):
         appenv.stop()
 
     def run(self):
+        if appenv.context.show_help:
+            appenv.say(SimpleHelp())
+            return
+
         appenv.whisper(WealthDetailPanel(appenv.context, title="初始化参数"))
 
         filter_chain = SimpleFilterChainBuilder.build_filter_chain_from_simple_context(
