@@ -146,5 +146,5 @@ class WealthHelp:
 
     def __rich_console__(self, console: r.Console, options: r.ConsoleOptions):
         with console.use_theme(self.theme):
-            o = options.update(highlight=False)
+            o = options.update(highlight=False)  # 屏蔽默认的Highlighter
             yield from console.render(r.Group(*self.render(), fit=True), o)

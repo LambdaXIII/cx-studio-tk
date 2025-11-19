@@ -22,7 +22,7 @@ class AppEnv(IAppEnvironment):
     def __init__(self):
         super().__init__()
         self.app_name = "MediaKiller"
-        self.app_version = "0.5.0.4"
+        self.app_version = "0.5.1.4"
         self.app_description = "媒体文件批量操作工具"
         self.context: AppContext = AppContext()
         self.progress = r.Progress(
@@ -35,10 +35,12 @@ class AppEnv(IAppEnvironment):
             r.BarColumn(table_column=r.Column(ratio=40)),
             r.TaskProgressColumn(justify="right"),
             r.TimeRemainingColumn(compact=True),
+            console=self.console,
+            transient=True,
             expand=True,
         )
 
-        self.console = self.progress.console
+        # self.console = self.progress.console
         self.config_manager = ConfigManager(self.app_name)
         self._garbage_files = []
         self._app_start_time: datetime
@@ -80,7 +82,7 @@ class AppEnv(IAppEnvironment):
         time_spent = datetime.now() - self._app_start_time
         if time_spent.total_seconds() > 5:
             self.say(
-                "[dim]总共耗时[blue]{}[/]。[/]".format(
+                "[cx.whisper]总共耗时[blue]{}[/]。[/]".format(
                     CxTime.from_seconds(time_spent.total_seconds()).pretty_string
                 )
             )

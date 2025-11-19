@@ -1,13 +1,38 @@
 import asyncio
 from abc import ABC, abstractmethod
 
-from cx_tools.app.cx_highlighter import CxHighlighter
 from rich.console import Console
 
 from cx_studio.utils.tools import DoubleTrigger
-from .cx_highlighter import CxHighlighter
 import cx_wealth.rich_types as r
 from typing import Union
+
+from rich.highlighter import RegexHighlighter
+
+DEFAULT_STYLES = {
+    "cx.info": "blue",
+    "cx.debug": "bright_black",
+    "cx.warning": "yellow",
+    "cx.error": "red",
+    "cx.success": "green",
+    "cx.whisper": "dim",
+    "cx.number": "cyan",
+    "cx.brackets": "dim",
+    "cx.quotes": "light_pink1",
+    "cx.filepath": "bold magenta underline",
+}
+cx_default_theme = r.Theme(DEFAULT_STYLES)
+
+
+class CxHighlighter(RegexHighlighter):
+    base_style = "cx."
+    highlights = [
+        r"(?P<brackets>\(.*?\))",  # 括号括起的
+        r"(?P<quotes>\".*?\"|\'.*?\')",  # 引号引用的
+        r"(?P<filepath>[A-Za-z]:[\\/][^:*?\"<>|\n]*)",  # Windows 文件路径
+        r"(?P<filepath>[\\/][^:*?\"<>|\n]*)",  # Unix 文件路径
+        r"(?P<number>\d+(?:\.\d+)?)",  # 数字
+    ]
 
 
 class IAppEnvironment(ABC):
@@ -16,7 +41,13 @@ class IAppEnvironment(ABC):
         self.app_name = ""
         self.app_version = ""
         self.highlighter = CxHighlighter()
-        self.console = Console(stderr=True, style=CxHighlighter.DEFAULT_STYLES)
+        self.console_theme = cx_default_theme
+        self.console = Console(
+            stderr=True,
+            theme=self.console_theme,
+            highlighter=self.highlighter,  # 全局安装默认的Highlighter
+            highlight=False,  # 屏蔽默认的Highlighter，将只在 say 方法中启用
+        )
 
         self.wanna_quit_event = asyncio.Event()
         self.really_wanna_quit_event = asyncio.Event()
@@ -64,15 +95,16 @@ class IAppEnvironment(ABC):
         return False
 
     def say(self, *args, **kwargs):
-        highlighted_args = (
-            self.highlighter(x) if isinstance(x, Union[str, r.Text]) else x
-            for x in args
-        )
-        self.console.print(*highlighted_args, **kwargs)
+        # highlighted_args = (
+        #     self.highlighter(x) if isinstance(x, Union[str, r.Text]) else x
+        #     for x in args
+        # )
+        kwargs["highlight"] = True
+        self.console.print(*args, **kwargs)
 
     def whisper(self, *args, **kwargs):
         if self.is_debug_mode_on():
-            highlighted_args = (self.highlighter(x) or x for x in args)
+            # highlighted_args = (self.highlighter(x) or x for x in args)
             kwargs["style"] = "dim"
             kwargs["highlight"] = False
-            self.console.print(*highlighted_args, **kwargs)
+            self.console.print(*args, **kwargs)

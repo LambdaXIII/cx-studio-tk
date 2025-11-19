@@ -56,15 +56,6 @@ class Application(IApplication):
 
     @staticmethod
     def save_missions(missions: list[Mission]):
-        # path = appenv.config_manager.get_file("last_missions.db")
-        # if missions:
-        #     if not path.parent.exists():
-        #         path.parent.mkdir(parents=True)
-        #     if not path.exists():
-        #         path.touch()
-        #     with shelve.open(path) as db:
-        #         db["missions"] = missions
-
         mission_xml = MissionXML()
         mission_xml.add_missions(missions)
         mission_xml.save(appenv.config_manager.get_file("last_missions.xml"))
@@ -97,7 +88,7 @@ class Application(IApplication):
         for p in presets:
             if p.id in preset_ids:
                 appenv.say(
-                    "[red]发现重复的配置文件: [/red][bright_black]{}[/]".format(p.path)
+                    "[cx.warning]发现重复的配置文件: [bright_black]{}[/]".format(p.path)
                 )
                 continue
             preset_ids.add(p.id)
@@ -112,7 +103,7 @@ class Application(IApplication):
 
         if self.presets or self.sources:
             appenv.say(
-                "已添加{preset_count}个配置文件和{source_count}个来源路径。".format(
+                "已添加 {preset_count} 个配置文件和 {source_count} 个来源路径。".format(
                     preset_count=len(self.presets), source_count=len(self.sources)
                 )
             )
@@ -126,7 +117,7 @@ class Application(IApplication):
         old_count, new_count = len(missions), len(self.missions)
         if old_count != new_count:
             appenv.say(
-                "[red]已自动过滤掉{}个重复任务，共{}个任务需要执行。[/red]".format(
+                "[cx.warning]已自动过滤掉 {} 个重复任务，共 {} 个任务需要执行。[/]".format(
                     old_count - new_count, new_count
                 )
             )
@@ -196,7 +187,7 @@ class Application(IApplication):
         # 执行转码任务
         if appenv.context.pretending_mode:
             appenv.say(
-                "[dim]检测到[italic cyan]假装模式[/]，将不会真正执行任何操作。[/]"
+                "[dim]检测到[italic cyan underline]假装模式[/]，将不会真正执行任何操作。[/]"
             )
 
         mm = MissionMaster(self.missions, appenv.context.max_workers)
