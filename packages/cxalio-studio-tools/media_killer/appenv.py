@@ -22,7 +22,7 @@ class AppEnv(IAppEnvironment):
     def __init__(self):
         super().__init__()
         self.app_name = "MediaKiller"
-        self.app_version = "0.5.0.4"
+        self.app_version = "0.5.1.4"
         self.app_description = "媒体文件批量操作工具"
         self.context: AppContext = AppContext()
         self.progress = r.Progress(
@@ -35,10 +35,12 @@ class AppEnv(IAppEnvironment):
             r.BarColumn(table_column=r.Column(ratio=40)),
             r.TaskProgressColumn(justify="right"),
             r.TimeRemainingColumn(compact=True),
+            console=self.console,
+            transient=True,
             expand=True,
         )
 
-        self.console = self.progress.console
+        # self.console = self.progress.console
         self.config_manager = ConfigManager(self.app_name)
         self._garbage_files = []
         self._app_start_time: datetime
@@ -68,11 +70,11 @@ class AppEnv(IAppEnvironment):
         filesize_report = ""
         if input_filesize.total_bytes > 0:
             filesize_report = (
-                f"[dim]输入文件总大小: [blue]{input_filesize.pretty_string}[/]"
+                f"[dim]输入文件总大小: [cx.nummber]{input_filesize.pretty_string}[/]"
             )
         if output_filesize.total_bytes > 0:
             filesize_report += (
-                f"[dim] 输出文件总大小: [blue]{output_filesize.pretty_string}[/]"
+                f"[dim] 输出文件总大小: [cx.number]{output_filesize.pretty_string}[/]"
             )
         if len(filesize_report) > 0:
             self.say(filesize_report)
@@ -80,7 +82,7 @@ class AppEnv(IAppEnvironment):
         time_spent = datetime.now() - self._app_start_time
         if time_spent.total_seconds() > 5:
             self.say(
-                "[dim]总共耗时[blue]{}[/]。[/]".format(
+                "[cx.whisper]总共耗时[cx.number]{}[/]。[/]".format(
                     CxTime.from_seconds(time_spent.total_seconds()).pretty_string
                 )
             )
@@ -102,9 +104,13 @@ class AppEnv(IAppEnvironment):
         self.say("[dim]正在清理失败的目标文件...[/]")
         for filename in self._garbage_files:
             filename.unlink(missing_ok=True)
-            self.whisper(f"  {filename} [red]已删除[/red]")
+            self.whisper(f"  [cx.filepath]{filename}[/] [red]已删除[/red]")
             if self.context.debug_mode:
                 time.sleep(0.1)
+        if len(self._garbage_files) > 0:
+            self.say(f"[dim]已清理 {len(self._garbage_files)} 个目标文件。[/]")
+        else:
+            self.say("[dim cx.info]没有失败的目标文件需要清理。[/]")
         self._garbage_files.clear()
 
     def show_banner(self):
@@ -130,7 +136,7 @@ class AppEnv(IAppEnvironment):
         if self.context.pretending_mode:
             tags.append("[blue]模拟运行[/]")
         if self.context.force_no_overwrite:
-            tags.append("[green]安全模式[/]")
+            tags.append("[green1]安全模式[/]")
         elif self.context.force_overwrite:
             tags.append("[red]强制覆盖模式[/]")
         if tags:

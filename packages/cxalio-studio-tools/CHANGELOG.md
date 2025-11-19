@@ -1,5 +1,11 @@
 # Change Log of Cxalio Studio Tools
 
+### v0.5.1.4
+
+ - 全面排查bug
+ - 将默认样式定义为全局主题 cx_default_theme
+ - 优化了 mediakiller 中的一些输出方式
+
 ### v0.5.1.3
 
  - 增加了 CxHighlighter 类，用于高亮显示 CX 相关的日志信息
