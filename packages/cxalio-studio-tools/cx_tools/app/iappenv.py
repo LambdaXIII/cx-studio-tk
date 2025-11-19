@@ -14,12 +14,13 @@ DEFAULT_STYLES = {
     "cx.debug": "bright_black",
     "cx.warning": "yellow",
     "cx.error": "red",
-    "cx.success": "green",
+    "cx.argument": "bold green1",
+    "cx.success": "green1",
     "cx.whisper": "dim",
-    "cx.number": "cyan",
-    "cx.brackets": "dim",
+    "cx.number": "yellow",
+    "cx.brackets": "magenta",
     "cx.quotes": "light_pink1",
-    "cx.filepath": "bold magenta underline",
+    "cx.filepath": "bold cyan underline",
 }
 cx_default_theme = r.Theme(DEFAULT_STYLES)
 
@@ -32,6 +33,7 @@ class CxHighlighter(RegexHighlighter):
         r"(?P<filepath>[A-Za-z]:[\\/][^:*?\"<>|\n]*)",  # Windows 文件路径
         r"(?P<filepath>[\\/][^:*?\"<>|\n]*)",  # Unix 文件路径
         r"(?P<number>\d+(?:\.\d+)?)",  # 数字
+        r"(?P<argument>\b--?[a-zA-Z0-9_\-]+\b)",  # 命令行参数
     ]
 
 
@@ -56,13 +58,13 @@ class IAppEnvironment(ABC):
 
         @self.interrupt_handler.on("first_triggered")
         def __when_wanna_quit():
-            self.whisper("[red]触发中断信号…[/]")
+            self.whisper("[cx.error]触发中断信号…[/]")
             # self.wanna_quit = True
             self.wanna_quit_event.set()
 
         @self.interrupt_handler.on("second_triggered")
         def __when_really_wanna_quit():
-            self.whisper("[red]检测到强制中断信号…[/]")
+            self.whisper("[cx.error]检测到强制中断信号…[/]")
             # self.really_wanna_quit = True
             self.really_wanna_quit_event.set()
 

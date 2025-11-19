@@ -80,7 +80,9 @@ class Application(IApplication):
             with open(filename, "w", encoding="utf-8") as f:
                 f.write(example.read())
 
-        appenv.say(f"已生成示例配置文件：{filename}。[blink red]请在修改后使用！[/]")
+        appenv.say(
+            f"[cx.success]已生成示例配置文件：{filename}。[/][blink red]请在修改后使用！[/]"
+        )
 
     def _set_presets_and_sources(self, presets, sources):
         # 去除重复的配置文件
@@ -88,7 +90,7 @@ class Application(IApplication):
         for p in presets:
             if p.id in preset_ids:
                 appenv.say(
-                    "[cx.warning]发现重复的配置文件: [bright_black]{}[/]".format(p.path)
+                    "[cx.warning]发现重复的配置文件: [cx.warning]{}[/]".format(p.path)
                 )
                 continue
             preset_ids.add(p.id)
