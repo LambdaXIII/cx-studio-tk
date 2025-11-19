@@ -3,7 +3,7 @@
 ### v0.5.1.3
 
  - 增加了 CxHighlighter 类，用于高亮显示 CX 相关的日志信息
- - 自动安装 CxHighlighter 作为全局输出的高粱显示工具
+ - 自动安装 CxHighlighter 作为全局输出的高粱显示工具，默认情况下不影响 WealthHelp 的输出
 
 ### v0.5.1.2
 
