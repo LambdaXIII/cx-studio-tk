@@ -1,5 +1,10 @@
 # Change Log of Cxalio Studio Tools
 
+### v0.5.1.3
+
+ - 增加了 CxHighlighter 类，用于高亮显示 CX 相关的日志信息
+ - 自动安装 CxHighlighter 作为全局输出的高粱显示工具
+
 ### v0.5.1.2
 
 - 为 Jpegger 定义了无事可做时的处理方式

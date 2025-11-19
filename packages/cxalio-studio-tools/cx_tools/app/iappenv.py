@@ -1,9 +1,11 @@
 import asyncio
 from abc import ABC, abstractmethod
 
+from cx_tools.app.cx_highlighter import CxHighlighter
 from rich.console import Console
 
 from cx_studio.utils.tools import DoubleTrigger
+from . import CxHIghlighter
 
 
 class IAppEnvironment(ABC):
@@ -11,7 +13,10 @@ class IAppEnvironment(ABC):
     def __init__(self):
         self.app_name = ""
         self.app_version = ""
-        self.console = Console(stderr=True)
+        self.highlighter = CxHighlighter()
+        self.console = Console(
+            stderr=True, styles=CxHighlighter.DEFAULT_STYLES, highlight=self.highlighter
+        )
 
         self.wanna_quit_event = asyncio.Event()
         self.really_wanna_quit_event = asyncio.Event()
