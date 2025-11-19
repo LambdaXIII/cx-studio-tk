@@ -1,9 +1,13 @@
 import asyncio
 from abc import ABC, abstractmethod
 
+from cx_tools.app.cx_highlighter import CxHighlighter
 from rich.console import Console
 
 from cx_studio.utils.tools import DoubleTrigger
+from .cx_highlighter import CxHighlighter
+import cx_wealth.rich_types as r
+from typing import Union
 
 
 class IAppEnvironment(ABC):
@@ -11,7 +15,8 @@ class IAppEnvironment(ABC):
     def __init__(self):
         self.app_name = ""
         self.app_version = ""
-        self.console = Console(stderr=True)
+        self.highlighter = CxHighlighter()
+        self.console = Console(stderr=True, style=CxHighlighter.DEFAULT_STYLES)
 
         self.wanna_quit_event = asyncio.Event()
         self.really_wanna_quit_event = asyncio.Event()
@@ -59,10 +64,15 @@ class IAppEnvironment(ABC):
         return False
 
     def say(self, *args, **kwargs):
-        self.console.print(*args, **kwargs)
+        highlighted_args = (
+            self.highlighter(x) if isinstance(x, Union[str, r.Text]) else x
+            for x in args
+        )
+        self.console.print(*highlighted_args, **kwargs)
 
     def whisper(self, *args, **kwargs):
         if self.is_debug_mode_on():
+            highlighted_args = (self.highlighter(x) or x for x in args)
             kwargs["style"] = "dim"
             kwargs["highlight"] = False
-            self.console.print(*args, **kwargs)
+            self.console.print(*highlighted_args, **kwargs)
