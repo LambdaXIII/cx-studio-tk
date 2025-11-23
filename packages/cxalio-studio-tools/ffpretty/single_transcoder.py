@@ -4,6 +4,7 @@ from collections.abc import Iterable
 
 from cx_studio.ffmpeg import FFmpegAsync, FFmpegArgumentsPreProcessor
 from cx_studio.ffmpeg.cx_ff_infos import FFmpegCodingInfo
+from cx_tools.app.safe_error import SafeError
 from .appenv import appenv
 from cx_wealth import IndexedListPanel
 
@@ -14,7 +15,6 @@ class SingleTranscoder:
         self._taskID = None
         self._task_description = "Transcoding"
         self._ffmpeg_outputs = []
-        self._cancel_event = asyncio.Event()
 
     def __enter__(self):
         self._taskID = appenv.progress.add_task(
@@ -27,10 +27,6 @@ class SingleTranscoder:
             appenv.progress.remove_task(self._taskID)
             self._taskID = None
         return False
-
-    def cancel(self):
-        """取消转码任务"""
-        self._cancel_event.set()
 
     def _get_input_files(self, arguments: Iterable[str]) -> list[str]:
         """从参数中提取输入文件列表"""
@@ -60,11 +56,6 @@ class SingleTranscoder:
     async def _on_verbose(self, line: str):
         """处理FFmpeg输出日志"""
         self._ffmpeg_outputs.append(line)
-
-    async def _monitor_progress(self):
-        """监控转码进度并更新UI"""
-        while not self._cancel_event.is_set():
-            await asyncio.sleep(0.1)
 
     async def run(self, arguments: list[str] | None = None):
         """执行转码任务
@@ -110,43 +101,52 @@ class SingleTranscoder:
         @self._ffmpeg.on("started")
         def on_started():
             appenv.progress.update(
-                self._taskID, description=f"{summary}[green]开始转码...[/]"
+                self._taskID, description=f"{summary}[cx.success]开始转码...[/]"
             )
 
         @self._ffmpeg.on("finished")
         def on_finished():
             appenv.progress.update(
-                self._taskID, description=f"{summary}[green]转码完成[/]"
+                self._taskID, description=f"{summary}[cx.success]转码完成[/]"
             )
 
         @self._ffmpeg.on("terminated")
         def on_terminated():
             appenv.progress.update(
-                self._taskID, description=f"{summary}[red]转码失败[/]"
+                self._taskID, description=f"{summary}[cx.error]转码失败[/]"
             )
             appenv.whisper(self._ffmpeg_outputs, title="FFmpeg 输出")
 
         try:
-            # 创建监控任务
-            monitor_task = asyncio.create_task(self._monitor_progress())
+            main_task = asyncio.create_task(self._ffmpeg.execute(arguments))
+            while not main_task.done():
+                await asyncio.sleep(0.1)
+                if appenv.really_wanna_quit_event.is_set():
+                    appenv.whisper("尝试终止任务……")
+                    self._ffmpeg.cancel()
+                    await asyncio.sleep(1)
+                    break
+            result = main_task.result()
 
-            # 执行FFmpeg任务
-            result = await self._ffmpeg.execute(arguments)
+        except asyncio.CancelledError:
+            self._ffmpeg.cancel()
+            result = False
 
-            # 取消监控任务
-            monitor_task.cancel()
+        except SafeError:
+            raise
 
         except Exception as e:
             appenv.progress.update(
-                self._taskID, description=f"{summary}[red]转码异常: {str(e)}[/]"
+                self._taskID, description=f"{summary}[cx.error]转码异常: {str(e)}[/]"
             )
-            raise
+            result = False
+            raise SafeError(f"{str(e)}")
         finally:
             # 清理事件监听器
             self._ffmpeg.remove_all_listeners()
 
         if not result:
-            if self.ffmpeg.is_canceled:
+            if self._ffmpeg.is_canceled:
                 raise SafeError("[cx.warning]用户取消了操作。[/]")
             else:
                 raise SafeError("[cx.error]操作失败，请排查问题。[/]")
