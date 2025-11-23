@@ -8,9 +8,9 @@ from cx_tools.app import IApplication, SafeError
 from cx_wealth.indexed_list_panel import IndexedListPanel
 from packaging.tags import ios_platforms
 from .appenv import appenv
-from .single_transcoder import transcode
 from pathlib import Path
 from cx_wealth import rich_types as r
+from .single_transcoder import SingleTranscoder
 
 
 class FFPrettyApp(IApplication):
@@ -100,7 +100,8 @@ class FFPrettyApp(IApplication):
 
     def run_transcode(self):
         """运行转码过程"""
-        transcode(appenv.ffmpeg_executable, self.arguments)
+        with SingleTranscoder(appenv.ffmpeg_executable) as transcoder:
+            return asyncio.run(transcoder.run(self.arguments))
 
     def run_probe(self):
         appenv.say("进入探测模式。")
