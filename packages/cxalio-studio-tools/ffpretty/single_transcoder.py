@@ -2,9 +2,10 @@ from pathlib import Path
 import asyncio
 from collections.abc import Iterable
 
-from cx_studio.ffmpeg import FFmpegAsync
+from cx_studio.ffmpeg import FFmpegAsync, FFmpegArgumentsPreProcessor
 from cx_studio.ffmpeg.cx_ff_infos import FFmpegCodingInfo
 from .appenv import appenv
+from cx_wealth import IndexedListPanel
 
 
 class SingleTranscoder:
@@ -163,6 +164,11 @@ def transcode(ffmpeg_executable: str, arguments: list[str] | None = None):
     Returns:
         bool: 转码是否成功
     """
+
+    io_processor = FFmpegArgumentsPreProcessor(arguments)
+    inputs = list(io_processor.iter_input_files())
+    outputs = list(io_processor.iter_output_files())
+
     # 检查输入文件是否存在
     for i in inputs:
         if not Path(i).exists():
@@ -170,7 +176,7 @@ def transcode(ffmpeg_executable: str, arguments: list[str] | None = None):
 
     # 检查输出文件是否已存在
     existed_outputs = [x for x in outputs if Path(x).exists()]
-    if existed_outputs and "-y" not in self.arguments:
+    if existed_outputs and "-y" not in arguments:
         appenv.whisper(IndexedListPanel(existed_outputs, title="已存在的输出文件"))
         raise SafeError("请使用 -y 参数覆盖已存在的文件。")
 

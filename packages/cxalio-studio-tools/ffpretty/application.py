@@ -3,9 +3,10 @@ from datetime import datetime
 import asyncio
 import sys
 from cx_studio.core.cx_time import CxTime
-from cx_studio.ffmpeg import FFmpegFilePathPreProcessor
+from cx_studio.ffmpeg import FFmpegArgumentsPreProcessor
 from cx_tools.app import IApplication, SafeError
 from cx_wealth.indexed_list_panel import IndexedListPanel
+from packaging.tags import ios_platforms
 from .appenv import appenv
 from .single_transcoder import transcode
 from pathlib import Path
@@ -113,9 +114,10 @@ class FFPrettyApp(IApplication):
             raise SafeError("未提供任何参数。")
 
         # 开始检查输入输出
-        io_processor = FFmpegFilePathPreProcessor(self.arguments)
-        inputs = io_processor.inputs
-        outputs = io_processor.outputs
+        io_processor = FFmpegArgumentsPreProcessor(self.arguments)
+        inputs = list(io_processor.iter_input_files())
+        outputs = list(io_processor.iter_output_files())
+        options = list(io_processor.iter_option_pairs())
 
         # 验证输入文件
         if (not inputs) and (not outputs):
@@ -131,6 +133,8 @@ class FFPrettyApp(IApplication):
                 IndexedListPanel(outputs, title="输出文件"),
             )
             self.run_transcode()
-        else:
+        elif not options:
             # 进入解析模式
             self.run_probe()
+        else:
+            appenv.say("[cx.error]参数无法解读。")
