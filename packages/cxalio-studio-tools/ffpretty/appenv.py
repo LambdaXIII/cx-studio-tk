@@ -28,6 +28,14 @@ class AppEnv(IAppEnvironment):
             transient=True,
         )
 
+        @self.interrupt_handler.on("first_triggered")
+        def __when_wanna_quit():
+            self.say("[cx.info]再次按下 Ctrl+C 确认退出[/]")
+
+        @self.interrupt_handler.on("second_triggered")
+        def __when_really_wanna_quit():
+            self.say("[cx.error]正在强制中断程序……[/]")
+
     @override
     def is_debug_mode_on(self):
         return self.debug_mode
