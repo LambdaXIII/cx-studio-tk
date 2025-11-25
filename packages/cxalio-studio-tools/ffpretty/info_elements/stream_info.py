@@ -31,13 +31,13 @@ class StreamInfo:
         s_type = self.codec_type
         match s_type:
             case "video":
-                yield r.Text(f"视频流: {index}", style="blue")
+                yield r.Text(f"视频流 #{index}", style="blue")
             case "audio":
-                yield r.Text(f"音频流: {index}", style="blue")
+                yield r.Text(f"音频流 #{index}", style="blue")
             case "subtitle":
-                yield r.Text(f"字幕流: {index}", style="blue")
+                yield r.Text(f"字幕流 #{index}", style="blue")
             case _:
-                yield r.Text(f"未知流: {index}", style="blue")
+                yield r.Text(f"未知流 #{index}", style="blue")
 
         yield r.Text(self.codec_name, style="green1")
         profile = self.data.get("profile", None)

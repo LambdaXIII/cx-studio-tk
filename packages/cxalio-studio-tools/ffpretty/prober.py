@@ -7,9 +7,9 @@ from cx_studio.utils import AsyncStreamUtils
 from cx_tools.app.safe_error import SafeError
 import cx_wealth.rich_types as r
 from .appenv import appenv
-from cx_wealth import WealthDetailPanel, WealthLabel
+from cx_wealth import WealthDetailPanel, WealthDetailTable, WealthLabel
 from typing import Any
-from .info_elements import StreamInfo
+from .info_elements import MediaInfo
 
 
 class Prober:
@@ -48,7 +48,5 @@ class Prober:
     def probe(self, file: Path) -> dict[str, Any]:
         """同步获取媒体文件的详细信息"""
         details = asyncio.run(self.get_details(file))
-        # appenv.say(WealthDetailPanel(details, title=file.name))
-        stream_infos = [StreamInfo(stream) for stream in details.get("streams", [])]
-        for x in stream_infos:
-            appenv.say(WealthLabel(x))
+        media_info = MediaInfo(details)
+        appenv.say(media_info)
