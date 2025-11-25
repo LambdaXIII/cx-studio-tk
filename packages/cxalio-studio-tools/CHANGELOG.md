@@ -1,5 +1,11 @@
 # Change Log of Cxalio Studio Tools
 
+### v0.5.1.5
+
+ - 为 ffpretty 增加了取消操作的提示信息
+ - 为 ffpretty 增加了查询模式
+ - 为 ffpretty 增加了帮助信息
+
 ### v0.5.1.4
 
  - 全面排查bug

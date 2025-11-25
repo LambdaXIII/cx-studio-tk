@@ -9,7 +9,7 @@ class AppEnv(IAppEnvironment):
     def __init__(self):
         super().__init__()
         self.app_name = "FFpretty"
-        self.app_version = "0.1.0"
+        self.app_version = "0.5.1.5"
         self.ffmpeg_executable = CmdFinder.which("ffmpeg")
         self.debug_mode = False
 
@@ -27,6 +27,14 @@ class AppEnv(IAppEnvironment):
             console=self.console,
             transient=True,
         )
+
+        @self.interrupt_handler.on("first_triggered")
+        def __when_wanna_quit():
+            self.say("[cx.info]再次按下 Ctrl+C 确认退出[/]")
+
+        @self.interrupt_handler.on("second_triggered")
+        def __when_really_wanna_quit():
+            self.say("[cx.error]正在强制中断程序……[/]")
 
     @override
     def is_debug_mode_on(self):
