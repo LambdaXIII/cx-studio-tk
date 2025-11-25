@@ -1,5 +1,8 @@
 # Change logs of cx-studio
 
+### v0.5.1.5
+ - 增加了 FFmpegArgumentsPreProcessor 类，用于预处理 FFmpeg 命令行参数。
+
 ### v0.2.1.9
 
 - 为 PathUtils 增加了一个 ensure_parents 方法，用于自动创建文件夹。
