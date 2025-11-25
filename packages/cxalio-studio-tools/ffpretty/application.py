@@ -6,7 +6,6 @@ from cx_studio.ffmpeg import FFmpegArgumentsPreProcessor
 from cx_tools.app import IApplication, SafeError
 from cx_wealth.indexed_list_panel import IndexedListPanel
 from .mk_help_info import MKHelp
-from packaging.tags import ios_platforms
 from .appenv import appenv
 from pathlib import Path
 from cx_wealth import rich_types as r
