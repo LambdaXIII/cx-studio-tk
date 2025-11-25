@@ -10,7 +10,8 @@ from packaging.tags import ios_platforms
 from .appenv import appenv
 from pathlib import Path
 from cx_wealth import rich_types as r
-from .single_transcoder import SingleTranscoder
+from .transcoder import Transcoder
+from .prober import Prober
 
 
 class FFPrettyApp(IApplication):
@@ -100,11 +101,13 @@ class FFPrettyApp(IApplication):
 
     def run_transcode(self):
         """运行转码过程"""
-        with SingleTranscoder(appenv.ffmpeg_executable) as transcoder:
+        with Transcoder(appenv.ffmpeg_executable) as transcoder:
             return asyncio.run(transcoder.run(self.arguments))
 
-    def run_probe(self):
-        appenv.say("进入探测模式。")
+    def run_probe(self, files: list[Path]):
+        prober = Prober()
+        for x in files:
+            prober.probe(x)
 
     def run(self) -> bool:
         # 验证参数
@@ -136,6 +139,6 @@ class FFPrettyApp(IApplication):
             self.run_transcode()
         elif not options:
             # 进入解析模式
-            self.run_probe()
+            self.run_probe([Path(x) for x in inputs + outputs])
         else:
             appenv.say("[cx.error]参数无法解读。")

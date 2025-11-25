@@ -11,7 +11,7 @@ from .appenv import appenv
 from cx_wealth import IndexedListPanel
 
 
-class SingleTranscoder:
+class Transcoder:
     def __init__(self, ffmpeg_executable: str | Path | None = None):
         self._ffmpeg = FFmpegAsync(ffmpeg_executable)
         self._taskID = None
