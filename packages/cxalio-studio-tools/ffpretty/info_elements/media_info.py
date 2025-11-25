@@ -1,7 +1,7 @@
 from .format_info import FormatInfo
 from .stream_info import StreamInfo
 import cx_wealth.rich_types as r
-from cx_wealth import IndexedListPanel, WealthDetailTable, WealthLabel
+from cx_wealth import WealthDetailTable, WealthLabel
 
 
 class MediaInfo:

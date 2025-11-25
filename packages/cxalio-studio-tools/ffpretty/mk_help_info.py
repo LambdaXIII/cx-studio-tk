@@ -1,6 +1,5 @@
 from cx_studio.utils import TextUtils
 from cx_wealth import WealthHelp
-from cx_wealth import rich_types as r
 
 
 class MKHelp(WealthHelp):

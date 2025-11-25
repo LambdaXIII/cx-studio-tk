@@ -5,9 +5,7 @@ import json
 from cx_studio.path_expander import CmdFinder
 from cx_studio.utils import AsyncStreamUtils
 from cx_tools.app.safe_error import SafeError
-import cx_wealth.rich_types as r
 from .appenv import appenv
-from cx_wealth import WealthDetailPanel, WealthDetailTable, WealthLabel
 from typing import Any
 from .info_elements import MediaInfo
 
