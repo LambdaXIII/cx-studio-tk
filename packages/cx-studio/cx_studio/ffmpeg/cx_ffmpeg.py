@@ -200,16 +200,17 @@ class FFmpeg(EventEmitter):
                             self._process.terminate()
                             con_futures.wait(pending)
                             raise exs
-
-            finally:
-                self._process.wait()
-                result = self._process.returncode == 0
-                if self._canceled:
-                    self.emit("canceled")
-                elif result is False:
-                    self.emit("terminated")
-                else:
-                    self.emit("finished")
-                return result
+            except:
+                pass
+            # finally:
+            self._process.wait()
+            result = self._process.returncode == 0
+            if self._canceled:
+                self.emit("canceled")
+            elif result is False:
+                self.emit("terminated")
+            else:
+                self.emit("finished")
+            return result
 
         # running_cond
