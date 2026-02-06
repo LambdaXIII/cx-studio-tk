@@ -16,6 +16,8 @@
 			"**/.pytest_cache": true,
 			".idea":true,
 			".vscode":true,
+			".qoder":true,
+			".trae":true,
 		}
 	}
 }
