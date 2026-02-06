@@ -1,9 +1,9 @@
 [project]
 name = "cx-studio-tk"
-version = "0.5.1"
+version = "0.5.2"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.13"
+# requires-python = ">=3.12,<3.14"
 dependencies = ["cx-studio", "cxalio-studio-tools"]
 
 [tool.uv.sources]

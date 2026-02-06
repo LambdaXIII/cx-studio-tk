@@ -176,5 +176,7 @@ cython_debug/
 .vscode/
 .idea/
 .vs/
+.qoder/
+.trae/
 
 /temp/

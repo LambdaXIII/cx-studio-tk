@@ -1,9 +1,9 @@
 [project]
 name = "cx-studio"
-version = "0.5.1.5"
+version = "0.5.2"
 description = "A Python library for interacting with the CX Studio API"
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.12,<3.14"
 dependencies = [
     "chardet>=5.2.0",
     "lazy-object-proxy>=1.10.0",

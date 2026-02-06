@@ -1,5 +1,8 @@
 # Change logs of cx-studio
 
+### v0.5.2
+ - 修复了 FFmpeg 命令行参数预处理的问题。
+
 ### v0.5.1.5
  - 增加了 FFmpegArgumentsPreProcessor 类，用于预处理 FFmpeg 命令行参数。
 
