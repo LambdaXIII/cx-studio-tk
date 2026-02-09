@@ -11,7 +11,7 @@ class AppEnv(IAppEnvironment):
     def __init__(self):
         super().__init__()
         self.app_name = "HostsKeeper"
-        self.app_version = "0.1.0"
+        self.app_version = "0.6.2"
         self.app_description = "根据配置文件更新 hosts"
         self.context = AppContext()
 

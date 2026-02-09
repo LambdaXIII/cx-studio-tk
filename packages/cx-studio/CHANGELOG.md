@@ -1,4 +1,6 @@
 # Change logs of cx-studio
+### v0.6.1
+ - 增加了 SystemUtils.flush_dns_cache 方法。
 
 ### v0.6.0
  - 在 cx_studio.utils 中增加了一个 SystemUtils 模块，提供一些判断操作系统和运行环境的方法。

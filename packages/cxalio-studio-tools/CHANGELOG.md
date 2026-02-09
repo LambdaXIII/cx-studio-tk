@@ -1,6 +1,6 @@
 # Change Log of Cxalio Studio Tools
 
-### v0.6.0.0
+### v0.6.2
 
  - 增加了 HostsKeeper 工具，用于管理 hosts 文件
  - 为 IAppEnvironment 增加了判断当前用户是否为管理员的方法
