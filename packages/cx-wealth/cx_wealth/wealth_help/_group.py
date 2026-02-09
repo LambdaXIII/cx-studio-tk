@@ -6,6 +6,7 @@ from typing import override
 from cx_wealth.rich_types import Text
 from ._action import _Action, _ActionNargs
 from ._node import _Node
+from ._note import _Note
 from .. import rich_types as r
 
 
@@ -45,6 +46,14 @@ class _Group(_Node):
     ) -> _Group:
         group = _Group(name, description, self)
         return group
+
+    def add_note(
+        self,
+        *contents: r.RenderableType,
+        title: r.RenderableType | None = None,
+    ) -> _Note:
+        note = _Note(*contents, title=title, parent=self)
+        return note
 
     def iter_actions(self) -> Generator[_Action, None, None]:
         for action in self.children:

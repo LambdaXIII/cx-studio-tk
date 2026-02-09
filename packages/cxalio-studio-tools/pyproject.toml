@@ -1,6 +1,6 @@
 [project]
 name = "cxalio-studio-tools"
-version = "0.5.2"
+version = "0.6.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12,<3.14"
@@ -21,6 +21,7 @@ mediakiller = "media_killer:run"
 mediascout = "media_scout:run"
 ffpretty = "ffpretty:run"
 jpegger = "jpegger:run"
+hostskeeper = "hosts_keeper:run"
 
 [build-system]
 requires = ["hatchling"]

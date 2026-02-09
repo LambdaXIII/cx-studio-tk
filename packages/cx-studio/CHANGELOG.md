@@ -1,5 +1,10 @@
 # Change logs of cx-studio
 
+### v0.6.0
+ - 在 cx_studio.utils 中增加了一个 SystemUtils 模块，提供一些判断操作系统和运行环境的方法。
+ - 为 path_expander 中添加了一个 SuffixFinder 类，用于快速根据扩展名搜索文件。
+ - 修改了 FunctionalUtils.flatten_list 方法的实现。
+
 ### v0.5.2
  - 修复了 FFmpeg 命令行参数预处理的问题。
 

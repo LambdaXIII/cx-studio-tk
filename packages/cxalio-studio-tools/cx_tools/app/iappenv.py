@@ -4,10 +4,13 @@ from abc import ABC, abstractmethod
 from rich.console import Console
 
 from cx_studio.utils.tools import DoubleTrigger
+from cx_studio.utils import SystemUtils
 import cx_wealth.rich_types as r
 from typing import Union
 
 from rich.highlighter import RegexHighlighter
+
+import os, sys, ctypes
 
 DEFAULT_STYLES = {
     "cx.info": "blue",
@@ -110,3 +113,7 @@ class IAppEnvironment(ABC):
             kwargs["style"] = "dim"
             kwargs["highlight"] = False
             self.console.print(*args, **kwargs)
+
+    @staticmethod
+    def is_user_admin() -> bool:
+        return SystemUtils.is_user_admin()

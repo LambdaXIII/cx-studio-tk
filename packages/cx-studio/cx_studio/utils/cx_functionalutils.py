@@ -4,8 +4,10 @@ from typing import Any
 
 def flatten_list(*args):
     for arg in args:
-        if isinstance(arg, list | tuple | set):
+        if isinstance(arg, Iterable) and not isinstance(arg, str):
             yield from flatten_list(*arg)
+        else:
+            yield arg
 
 
 def iter_with_separator(iterable: Iterable, sep):
