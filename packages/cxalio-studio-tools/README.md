@@ -78,3 +78,11 @@ FFpretty 是一个简单的 ffmpeg 包装。
 Jpegger 是一个快速批量转换图片的工具。
 
 它可以简单地转换色彩空间并对图片进行缩放（保持画面比例），并支持多种格式的存取。
+
+### HostsKeeper
+
+[HostsKeeper](hosts_keeper/help.md) 是一个用于管理 hosts 文件的工具。
+它可以从多个来源获取 hosts 内容，并将其合并到一个文件中。
+同时，它还可以根据配置文件中的规则，自动更新 hosts 文件。
+
+> 注意：HostsKeeper 要求运行在管理员权限下，否则无法修改 hosts 文件。

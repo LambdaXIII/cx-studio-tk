@@ -1,5 +1,10 @@
 # Change Log of Cxalio Studio Tools
 
+### v0.6.0.0
+
+ - 增加了 HostsKeeper 工具，用于管理 hosts 文件
+ - 为 IAppEnvironment 增加了判断当前用户是否为管理员的方法
+
 ### v0.5.1.6
 
  - 为 ffpretty 增加了取消操作的提示信息

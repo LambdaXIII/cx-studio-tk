@@ -1,0 +1,27 @@
+[hosts_profile]
+profile_id = 'example-id'
+profile_name = '示例'
+description = '示例配置文件'
+enabled = false
+# 优先级，数字越大越靠前
+priority = -1
+
+#以下内容只有一种即可，也可以自由组合
+
+[[url_content]]
+# 从网络直接获取内容，如 github hosts
+# url = 'https://raw.githubusercontent.com/racaljk/hosts/master/hosts'
+# description = '从 github hosts 获取内容'
+# encoding = 'utf-8'
+
+[[local_content]]
+# 从文件加载内容，如本地 hosts 文件。支持绝对或相对路径。
+# file = 'some_hosts_file.txt'
+# description = '从本地 hosts 文件获取内容'
+# encoding = 'utf-8'
+
+# 直接编写内容
+[[direct_content]]
+# ip = '127.0.0.1'
+# domains = ['localhost']
+# comment = '这是一个注释'
