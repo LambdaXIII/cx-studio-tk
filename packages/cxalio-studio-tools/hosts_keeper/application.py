@@ -152,7 +152,17 @@ class Application(IApplication):
             pretending = True
 
         saver = HostsSaver(pretending_mode=pretending)
-        saver.save_to(lines)
+        saved = saver.save_to(lines)
+        if saved:
+            appenv.whisper("[cx.success]hosts 文件已更新。")
+            flush_result = SystemUtils.flush_dns_cache()
+            if flush_result:
+                appenv.say("[cx.success]DNS 缓存已刷新。")
+            else:
+                appenv.whisper("[cx.error]刷新 DNS 缓存失败。")
+
+        else:
+            appenv.whisper("[cx.error]hosts 文件为被修改。")
 
     def command_help(self):
         AppHelp.show_help(appenv.console)

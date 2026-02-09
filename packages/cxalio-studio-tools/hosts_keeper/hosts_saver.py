@@ -40,8 +40,13 @@ class HostsSaver:
         for line in lines:
             print(line.strip())
 
-    def save_to(self, lines: Iterable[str]):
-        if self.pretending_mode:
-            self.__show_new_hosts(lines)
-        else:
-            self.__overwrite_hosts(lines)
+    def save_to(self, lines: Iterable[str]) -> bool:
+        try:
+            if self.pretending_mode:
+                self.__show_new_hosts(lines)
+                return False
+            else:
+                self.__overwrite_hosts(lines)
+                return True
+        except Exception:
+            return False
