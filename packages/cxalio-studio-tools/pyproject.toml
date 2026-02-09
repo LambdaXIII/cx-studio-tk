@@ -1,6 +1,6 @@
 [project]
 name = "cxalio-studio-tools"
-version = "0.6.0"
+version = "0.6.1"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12,<3.14"
@@ -28,7 +28,14 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["cx_tools", "media_killer", "media_scout", "ffpretty", "jpegger"]
+packages = [
+    "cx_tools",
+    "media_killer",
+    "media_scout",
+    "ffpretty",
+    "jpegger",
+    "hosts_keeper",
+]
 
 [dependency-groups]
 dev = ["types-cachetools>=5.5.0.20240820"]
