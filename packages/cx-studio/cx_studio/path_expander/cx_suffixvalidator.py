@@ -13,7 +13,7 @@ class SuffixValidator(IPathValidator):
             result = "." + result
         return result
 
-    def __init__(self, suffixes: Collection|Iterable):
+    def __init__(self, suffixes: Collection | Iterable):
         self.__suffixes = {self.__clear_suffix(str(s)) for s in suffixes}
 
     def validate(self, path: Path) -> bool:
