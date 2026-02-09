@@ -76,3 +76,7 @@ TextColumn = rich.progress.TextColumn
 BarColumn = rich.progress.BarColumn
 TaskProgressColumn = rich.progress.TaskProgressColumn
 TimeRemainingColumn = rich.progress.TimeRemainingColumn
+
+import rich.box
+
+box = rich.box

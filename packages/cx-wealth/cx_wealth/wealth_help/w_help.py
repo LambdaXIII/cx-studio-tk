@@ -4,6 +4,7 @@ from collections.abc import Iterable
 
 from ._action import _Action, _ActionNargs
 from ._group import _Group
+from ._note import _Note
 from .. import rich_types as r
 
 
@@ -61,6 +62,13 @@ class WealthHelp:
         description: str | None = None,
     ) -> _Group:
         return self._root.add_group(name=name, description=description)
+
+    def add_note(
+        self,
+        *contents: r.RenderableType,
+        title: r.RenderableType | None = None,
+    ) -> _Note:
+        return self._root.add_note(*contents, title=title)
 
     def render_description(self) -> r.RenderableType | None:
         if isinstance(self.description, str):
