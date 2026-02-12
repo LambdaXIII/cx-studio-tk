@@ -1,7 +1,7 @@
 # Change Log of Cxalio Studio Tools
 
 
-### v0.6.3
+### v0.6.3.1
 
  - 增加了 HostsKeeper 工具保存 hosts 文件的方法，现在将在需要时调用管理员权限（仅支持sudo）
  - 增加了 HostsKeeper 工具指定目标文件的参数，不指定的话仍然是系统hosts文件。

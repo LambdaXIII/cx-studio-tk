@@ -25,7 +25,6 @@ class AppEnv(IAppEnvironment):
     def start(self):
         self.show_banners()
         super().start()
-        appenv.say(f"~~~ 你的 hosts 列表由我来守护！ ~~~")
         if self._temp_dir is None:
             self._temp_dir = TemporaryDirectory()
             appenv.whisper(f"临时目录已创建：{self.temp_dir}")
