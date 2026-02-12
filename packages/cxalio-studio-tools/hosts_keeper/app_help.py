@@ -47,7 +47,8 @@ class AppHelp(WealthHelp):
         )
 
         opt_group.add_action(
-            "--target" "--to",
+            "--target",
+            "--to",
             "-t",
             name="目标文件",
             optional=True,
