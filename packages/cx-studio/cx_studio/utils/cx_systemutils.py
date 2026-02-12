@@ -117,3 +117,13 @@ def flush_dns_cache() -> bool:
     # else:
     #     print(f"❌ DNS 刷新失败。请检查权限或手动执行系统命令。")
     return False
+
+
+def check_permission(path: os.PathLike | None = None, mode=os.W_OK) -> bool:
+    """检查路径是否有写入权限"""
+    if path is None:
+        return False
+    path = Path(path)
+    if path.exists():
+        return os.access(path, mode)
+    return check_permission(path.parent, mode)

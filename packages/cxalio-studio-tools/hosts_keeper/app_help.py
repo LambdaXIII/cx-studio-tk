@@ -46,6 +46,15 @@ class AppHelp(WealthHelp):
             ),
         )
 
+        opt_group.add_action(
+            "--target" "--to",
+            "-t",
+            name="目标文件",
+            optional=True,
+            metavar="TARGET_HOSTS",
+            description=("指定目标 hosts 文件，默认值为系统 hosts 文件。"),
+        )
+
         misc_opts = self.add_group("杂项")
         misc_opts.add_action("-h", "--help", description="显示此帮助信息")
         misc_opts.add_action(

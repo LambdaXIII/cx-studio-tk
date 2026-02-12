@@ -1,4 +1,8 @@
 # Change logs of cx-studio
+
+### v0.6.3
+ - 为 SystemUtils 增加了迭代检查文件权限的方法。
+
 ### v0.6.1
  - 增加了 SystemUtils.flush_dns_cache 方法。
 
