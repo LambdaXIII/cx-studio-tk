@@ -9,6 +9,7 @@ class AppContext:
         self.max_workers: int = 4
         self.profile_id: str | None = None
         self.search_pattern: str | None = None
+        self.save_target: str | None = None
 
         self.show_full_help: bool = False
         self.show_help = False
@@ -71,6 +72,16 @@ class AppContext:
 
         update_parser = subparsers.add_parser(
             "update", help="更新 hosts 文件", description="更新 hosts 文件"
+        )
+        update_parser.add_argument(
+            "--target",
+            "--to",
+            "-t",
+            help="指定 hosts 文件路径",
+            dest="save_target",
+            required=False,
+            type=str,
+            default=None,
         )
 
         list_parser = subparsers.add_parser(

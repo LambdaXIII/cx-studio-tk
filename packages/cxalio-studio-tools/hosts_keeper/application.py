@@ -144,25 +144,29 @@ class Application(IApplication):
         appenv.whisper("开始构建 Hosts 文件内容")
         lines = builder.iter_lines(enabled_profiles)
 
-        pretending = appenv.context.pretending_mode
-        if not appenv.is_pretending_mode_on() and not appenv.is_user_admin():
-            appenv.say(
-                "[cx.warning]当前会话非管理员权限运行，无法更新 hosts 文件。 [cx.error]将强制启用假装模式。"
-            )
-            pretending = True
+        # 保存临时文件
+        with appenv.temp_hosts.open("w", encoding="utf-8") as f:
+            for line in lines:
+                f.write(line + "\n")
+        appenv.whisper(f"已写入新的内容到临时文件 {appenv.temp_hosts}")
 
-        saver = HostsSaver(pretending_mode=pretending)
-        saved = saver.save_to(lines)
+        saver = HostsSaver()
+        save_target = None
+        if appenv.context.save_target:
+            save_target = Path(appenv.context.save_target)
+            appenv.whisper(f"将保存到目标文件 {save_target}")
+        saved = saver.save(save_target)
         if saved:
-            appenv.whisper("[cx.success]hosts 文件已更新。")
-            flush_result = SystemUtils.flush_dns_cache()
-            if flush_result:
-                appenv.say("[cx.success]DNS 缓存已刷新。")
-            else:
-                appenv.whisper("[cx.error]刷新 DNS 缓存失败。")
+            appenv.say(f"[cx.success]已成功保存新的 hosts 文件。")
+            self.show_refresh_tips()
 
+    def show_refresh_tips(self):
+        if sys.platform.startswith("win"):
+            appenv.say(
+                "[cx.info]请在管理员权限下执行 ipconfig /flushdns 以刷新 DNS 缓存。"
+            )
         else:
-            appenv.whisper("[cx.error]hosts 文件为被修改。")
+            appenv.say("[cx.info]请别忘了刷新DNS缓存以应用新的 hosts 文件。")
 
     def command_help(self):
         AppHelp.show_help(appenv.console)
