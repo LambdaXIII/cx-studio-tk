@@ -180,3 +180,5 @@ cython_debug/
 .trae/
 
 /temp/
+
+py.typed

@@ -1,6 +1,6 @@
 from collections import namedtuple
-import sys, os, io
-from pathlib import Path, PurePath
+import os, io
+from pathlib import Path
 from cx_studio.core import FileSize
 from chardet import UniversalDetector
 from cachetools import LRUCache

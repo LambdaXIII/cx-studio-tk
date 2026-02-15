@@ -1,12 +1,13 @@
 from collections.abc import Generator
+
 # from dataclasses import dataclass, field
 from pathlib import Path
 
 import ulid
 from pydantic import BaseModel, Field, ConfigDict
 
-from cx_studio.utils import FunctionalUtils
-from cx_studio.utils import PathUtils
+from cx_studio.collectiontools import iter_with_separator
+from cx_studio.filesystem import get_basename, PathQuoteMode, quote_path
 from cx_wealth import rich_types as r
 from .argument_group import ArgumentGroup
 
@@ -31,13 +32,13 @@ class Mission(BaseModel):
 
     @property
     def name(self):
-        return PathUtils.get_basename(self.source)
+        return get_basename(self.source)
 
     def __rich__(self):
         return r.Text.assemble(
             *[
                 r.Text.from_markup(x)
-                for x in FunctionalUtils.iter_with_separator(self.__rich_label__(), " ")
+                for x in iter_with_separator(self.__rich_label__(), " ")
             ],
             overflow="crop",
         )
@@ -59,7 +60,7 @@ class Mission(BaseModel):
     def iter_arguments(
         self,
         force_overwrite: bool | None = None,
-        quote_mode: PathUtils.PathQuoteMode = "none",
+        quote_mode: PathQuoteMode = "none",
     ) -> Generator[str]:
         if self.hardware_accelerate:
             yield "-hwaccel"
@@ -70,10 +71,10 @@ class Mission(BaseModel):
         for input_group in self.inputs:
             yield from input_group.iter_arguments()
             yield "-i"
-            yield PathUtils.quote(input_group.filename, quote_mode)
+            yield quote_path(input_group.filename, quote_mode)
         for output_group in self.outputs:
             yield from output_group.iter_arguments()
-            yield PathUtils.quote(output_group.filename, quote_mode)
+            yield quote_path(output_group.filename, quote_mode)
 
     def __rich_detail__(self):
         yield "名称", self.name

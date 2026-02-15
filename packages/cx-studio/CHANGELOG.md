@@ -1,5 +1,8 @@
 # Change logs of cx-studio
 
+### v0.7.0
+ - 拆分了utils，进行了大量模块层级改动
+
 ### v0.6.3
  - 为 SystemUtils 增加了迭代检查文件权限的方法。
 

@@ -1,4 +1,4 @@
-from cx_studio.utils import TextUtils
+from cx_studio import text as tt
 from cx_wealth import WealthHelp
 from cx_wealth import rich_types as r
 import importlib.resources
@@ -76,7 +76,7 @@ class AppHelp(WealthHelp):
             )
         )
 
-        self.description = TextUtils.unwrap(
+        self.description = tt.auto_unwrap(
             """本工具通过一系列配置文件自动编写操作系统的 hosts 文件。
             配置文件可通过 [u]list[/] [u]show[/] [u]edit[/] 等命令进行管理。
             执行 [u]update[/] 命令后，hosts 文件将被自动更新。

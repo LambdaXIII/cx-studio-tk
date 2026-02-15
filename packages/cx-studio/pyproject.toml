@@ -1,6 +1,6 @@
 [project]
 name = "cx-studio"
-version = "0.6.3"
+version = "0.7.0"
 description = "A Python library for interacting with the CX Studio API"
 readme = "README.md"
 requires-python = ">=3.12,<3.14"

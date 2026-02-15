@@ -6,7 +6,7 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import override
 
-from cx_studio.utils import PathUtils
+from cx_studio.filesystem import force_suffix
 from cx_tools.app import IApplication
 from cx_wealth import DynamicColumns, IndexedListPanel, WealthDetailPanel
 
@@ -72,7 +72,7 @@ class Application(IApplication):
 
     @staticmethod
     def export_example_preset(filename: Path):
-        filename = Path(PathUtils.force_suffix(filename, ".toml"))
+        filename = Path(force_suffix(filename, ".toml"))
         appenv.check_overwritable_file(filename)
         with importlib.resources.open_text(
             "media_killer", "example_preset.toml"

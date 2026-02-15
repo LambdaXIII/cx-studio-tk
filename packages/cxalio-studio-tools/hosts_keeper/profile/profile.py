@@ -4,18 +4,16 @@ import tomllib
 from pathlib import Path
 from box import Box, BoxList
 
-# from pydantic import BaseModel, Field, ConfigDict
 from typing import AsyncGenerator, Self, Sequence
 from .hostrecord import HostRecord
 from dataclasses import dataclass, field
-from cx_studio.utils import PathUtils
+from cx_studio.filesystem import force_suffix
 
 from .contenter_base import ContenterBase
 
 
 @dataclass(frozen=True)
 class Profile:
-    # model_config = ConfigDict(frozen=True)
 
     id: str = ""
     name: str = ""
@@ -29,7 +27,7 @@ class Profile:
 
     @classmethod
     def load(cls, filename: Path | str) -> Self | None:
-        filename = PathUtils.force_suffix(filename, ".toml")
+        filename = force_suffix(filename, ".toml")
         with open(filename, "rb") as f:
             toml = tomllib.load(f)
         data = Box(toml)
@@ -54,7 +52,7 @@ class Profile:
 
     @staticmethod
     def create(profile_id: str, target: Path) -> Path:
-        target = PathUtils.force_suffix(target, ".toml")
+        target = force_suffix(target, ".toml")
         target.parent.mkdir(parents=True, exist_ok=True)
 
         example = importlib.resources.read_text(__package__, "example_profile.toml")

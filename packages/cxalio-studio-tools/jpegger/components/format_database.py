@@ -4,7 +4,7 @@ from threading import Lock, Event
 
 from pydantic import BaseModel, Field
 
-from cx_studio.utils import PathUtils
+from cx_studio.filesystem import normalize_suffix
 
 
 class FormatInfo(BaseModel):
@@ -39,7 +39,7 @@ class FormatDB:
             for row in reader:
                 name = row["NAME"].strip().upper()
                 extensions = [
-                    PathUtils.normalize_suffix(ext.strip().lower())
+                    normalize_suffix(ext.strip().lower())
                     for ext in row["EXTENSIONS"].split(" ")
                 ]
                 info = FormatInfo(name=name, extensions=extensions)
@@ -52,7 +52,7 @@ class FormatDB:
 
     @classmethod
     def search_for_extension(cls, extension: str) -> FormatInfo | None:
-        extension = PathUtils.normalize_suffix(extension).lower()
+        extension = normalize_suffix(extension).lower()
         for info in cls.__data.values():
             if extension in info.extensions:
                 return info

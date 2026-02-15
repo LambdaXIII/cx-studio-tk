@@ -10,12 +10,11 @@ from copy import copy
 from pathlib import Path
 from typing import IO
 
-from encodings.punycode import T
 from pyee import EventEmitter
 
 from cx_studio.core import CxTime, FileSize
-from cx_studio.path_expander import CmdFinder
-from cx_studio.utils import StreamUtils
+from cx_studio.filesystem import CmdFinder
+from cx_studio.iotools import StreamUtils
 from .cx_ff_errors import *
 from .cx_ff_infos import FFmpegCodingInfo
 

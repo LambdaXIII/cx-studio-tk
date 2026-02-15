@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Any, Self
+from typing import Any
 from cx_studio.core import CxTime, FileSize
 from pathlib import Path
 from datetime import datetime, timedelta

@@ -2,7 +2,7 @@ import sys
 from collections.abc import Iterable, Generator
 from pathlib import Path
 
-from cx_studio.utils import TextUtils
+from cx_studio import text as tt
 from cx_wealth import IndexedListPanel
 from .mission import Mission
 from ..appenv import appenv
@@ -22,7 +22,7 @@ class ScriptMaker:
             }
             for output_folder in output_folders:
                 if not output_folder.exists():
-                    yield f"{self._make_dir} {TextUtils.auto_quote(str(output_folder.resolve()))}"
+                    yield f"{self._make_dir} {tt.auto_quote(str(output_folder.resolve()))}"
                     folders.add(output_folder)
 
             es = [mission.ffmpeg]

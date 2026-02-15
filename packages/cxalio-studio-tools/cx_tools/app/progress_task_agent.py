@@ -1,12 +1,12 @@
 from rich.progress import Progress, TaskID
 
-from cx_studio.utils import TextUtils
+from cx_studio.text import random_string
 
 
 class ProgressTaskAgent:
     def __init__(self, progress: Progress | None = None, task_name: str | None = None):
         self._progress = progress
-        self._task_name: str = task_name or TextUtils.random_string(5)
+        self._task_name: str = task_name or random_string(5)
         self._task_id: TaskID | None = None
 
     @property

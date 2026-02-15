@@ -4,7 +4,8 @@ from pathlib import Path
 from rich.columns import Columns
 from rich.text import Text
 
-from cx_studio.utils import PathUtils, FunctionalUtils
+from cx_studio.collectiontools import flatten_list
+from cx_studio.filesystem import force_suffix
 from ..appenv import appenv
 from .preset import Preset
 
@@ -34,12 +35,12 @@ class InputScanner:
         if suffix == ".toml":
             return True
         if suffix == "":
-            p_path = PathUtils.force_suffix(path, ".toml")
+            p_path = force_suffix(path, ".toml")
             return p_path.exists()
         return False
 
     def add_inputs(self, *paths) -> "InputScanner":
-        for p in FunctionalUtils.flatten_list(*paths):
+        for p in flatten_list(*paths):
             self._inputs.append(p)
         return self
 

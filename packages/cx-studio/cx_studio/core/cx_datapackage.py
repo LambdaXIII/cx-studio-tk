@@ -2,8 +2,10 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Mapping, Sequence, Set, MutableMapping
 from typing import Any
+from warnings import deprecated
 
 
+@deprecated
 class DataPackage(MutableMapping):
 
     @staticmethod

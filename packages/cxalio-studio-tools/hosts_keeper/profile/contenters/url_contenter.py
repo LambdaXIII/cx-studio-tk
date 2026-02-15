@@ -4,7 +4,6 @@ import urllib.request
 from ..hostrecord import HostRecord
 from ..contenter_base import AbstractContenter, ContenterBase
 from box import Box
-from pathlib import Path
 
 
 class UrlContenter(AbstractContenter):

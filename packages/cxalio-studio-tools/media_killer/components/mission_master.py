@@ -6,13 +6,10 @@ from datetime import datetime
 from rich.progress import TaskID
 
 from cx_studio.ffmpeg import FFmpegAsync
-from cx_studio.utils.tools import AsyncCanceller
-from cx_studio.utils.tools.job_counter import JobCounter
+from cx_studio.tui import AsyncCanceller, JobCounter
 from .mission import Mission
 from .mission_runner import MissionRunner, MissionPretender
 from ..appenv import appenv
-
-from pathlib import Path
 
 
 class PoisonError(Exception):

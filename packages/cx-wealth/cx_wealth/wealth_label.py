@@ -2,7 +2,7 @@ from collections.abc import Generator
 from typing import Literal
 from typing import Protocol, runtime_checkable
 
-from cx_studio.utils import FunctionalUtils
+from cx_studio.collectiontools import iter_with_separator
 from . import rich_types as r
 
 
@@ -51,9 +51,7 @@ class WealthLabel:
             return r.Pretty(f"[{cls_name}] (instance)")
 
         elements = self.__unpack_item(self._obj)
-        elements_with_sep = list(
-            FunctionalUtils.iter_with_separator(elements, self._sep)
-        )
+        elements_with_sep = list(iter_with_separator(elements, self._sep))
         text = r.Text.assemble(
             *elements_with_sep,  # type:ignore
             tab_size=self._tab_size,

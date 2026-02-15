@@ -1,12 +1,11 @@
 import itertools
-from pathlib import Path
 import asyncio
-
-from cx_studio.ffmpeg import FFmpegAsync, FFmpegArgumentsPreProcessor
-from cx_studio.ffmpeg.cx_ff_infos import FFmpegCodingInfo
-from cx_tools.app.safe_error import SafeError
-from .appenv import appenv
+from pathlib import Path
 from cx_wealth import IndexedListPanel
+from cx_tools.app.safe_error import SafeError
+from cx_studio.ffmpeg.cx_ff_infos import FFmpegCodingInfo
+from cx_studio.ffmpeg import FFmpegAsync, FFmpegArgumentsPreProcessor
+from .appenv import appenv
 
 
 class Transcoder:

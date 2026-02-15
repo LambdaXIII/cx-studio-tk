@@ -1,4 +1,5 @@
 import tomllib
+
 # from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -6,7 +7,8 @@ from box import Box
 from pydantic import BaseModel, Field, ConfigDict
 from rich.columns import Columns
 
-from cx_studio.utils import PathUtils, TextUtils
+from cx_studio.filesystem import normalize_suffix, force_suffix
+from cx_studio import text as tt
 
 DefaultSuffixes = (
     ".mov .mp4 .mkv .avi .wmv .flv .webm "
@@ -54,18 +56,18 @@ class Preset(BaseModel):
             else set()
         )
         includes = {
-            PathUtils.normalize_suffix(s)
-            for s in TextUtils.auto_list(data.source.suffix_includes)  # type:ignore
+            normalize_suffix(s)
+            for s in tt.auto_list_text(data.source.suffix_includes)  # type:ignore
         }
         excludes = {
-            PathUtils.normalize_suffix(s)
-            for s in TextUtils.auto_list(data.source.suffix_excludes)  # type:ignore
+            normalize_suffix(s)
+            for s in tt.auto_list_text(data.source.suffix_excludes)  # type:ignore
         }
         return default_suffixes | includes - excludes
 
     @classmethod
     def load(cls, filename: Path | str):
-        filename = PathUtils.force_suffix(filename, ".toml")
+        filename = force_suffix(filename, ".toml")
         with open(filename, "rb") as f:
             toml = tomllib.load(f)
         # data = DataPackage(**toml)

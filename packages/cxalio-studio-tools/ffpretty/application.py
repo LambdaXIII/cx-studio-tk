@@ -1,16 +1,15 @@
-from collections.abc import Sequence
-from datetime import datetime
 import asyncio
-from cx_studio.core.cx_time import CxTime
-from cx_studio.ffmpeg import FFmpegArgumentsPreProcessor
-from cx_tools.app import IApplication, SafeError
-from cx_wealth.indexed_list_panel import IndexedListPanel
-from .mk_help_info import MKHelp
-from .appenv import appenv
 from pathlib import Path
-from cx_wealth import rich_types as r
+from datetime import datetime
+from cx_wealth.indexed_list_panel import IndexedListPanel
+from cx_tools.app import IApplication, SafeError
+from cx_studio.ffmpeg import FFmpegArgumentsPreProcessor
+from cx_studio.core.cx_time import CxTime
+from collections.abc import Sequence
 from .transcoder import Transcoder
 from .prober import Prober
+from .mk_help_info import MKHelp
+from .appenv import appenv
 
 
 class FFPrettyApp(IApplication):
@@ -109,17 +108,17 @@ class FFPrettyApp(IApplication):
             prober.probe(x)
 
     def run(self) -> bool:
+        if "-h" in self.arguments or "--help" in self.arguments:
+            help_info = MKHelp()
+            appenv.say(help_info)
+            return True
+
         # 验证参数
         if not appenv.ffmpeg_executable:
             raise SafeError("当前环境中未找到 [cx.filepath]ffmpeg[/] 可执行文件。")
 
         if not self.arguments:
             raise SafeError("未提供任何参数。")
-
-        if "-h" in self.arguments or "--help" in self.arguments:
-            help_info = MKHelp()
-            appenv.say(help_info)
-            return True
 
         # 开始检查输入输出
         io_processor = FFmpegArgumentsPreProcessor(self.arguments)

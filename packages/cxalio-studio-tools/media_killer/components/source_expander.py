@@ -1,7 +1,7 @@
 from collections.abc import Generator, Iterable
 from pathlib import Path, PurePath
 
-from cx_studio.path_expander import PathExpander, SuffixValidator
+from cx_studio.filesystem.path_expander import PathExpander, SuffixValidator
 from media_killer.appenv import appenv
 from media_scout.inspectors import (
     EDLInspector,

@@ -1,9 +1,8 @@
 from collections.abc import Generator
 from typing import Iterable, Mapping, Protocol, Sequence, runtime_checkable
 
-from rich.console import (
-    RenderableType,
-)
+from rich.console import RenderableType
+
 
 from . import rich_types as r
 from .common import RichPrettyMixin

@@ -6,7 +6,7 @@ from time import sleep
 
 from PIL import Image
 
-from cx_studio.utils import PathUtils
+from cx_studio.filesystem import ensure_new_file
 from cx_tools.app import SafeError
 from cx_wealth import WealthLabel
 from cx_wealth import rich_types as r
@@ -43,7 +43,7 @@ class MissionRunner:
                 if target == mission.source:
                     raise TargetingSourceFileError(f"目标文件 {target} 与源文件相同")
                 if not appenv.context.overwrite:
-                    target = PathUtils.ensure_new_file(target)
+                    target = ensure_new_file(target)
                     appenv.whisper(
                         f"[yellow]目标文件已存在，已自动重命名为{target.name}。[/]"
                     )
