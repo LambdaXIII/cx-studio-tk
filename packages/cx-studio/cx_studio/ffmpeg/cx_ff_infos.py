@@ -4,14 +4,14 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict
+# from pydantic import BaseModel, ConfigDict
 
 from cx_studio.core import CxTime, FileSize
 
 
-# @dataclass(frozen=True)
-class FFmpegFormatInfo(BaseModel):
-    model_config = ConfigDict(arbitrary_types_allowed=True, frozen=True)
+@dataclass(frozen=True)
+class FFmpegFormatInfo:
+    # model_config = ConfigDict(arbitrary_types_allowed=True, frozen=True)
     filename: Path
     streams: int | None = None
     format_name: str | None = None
@@ -40,11 +40,11 @@ class FFmpegFormatInfo(BaseModel):
 
 
 @dataclass
-class FFmpegProcessInfo(BaseModel):
-    model_config = ConfigDict(
-        arbitrary_types_allowed=True,
-        #   frozen=True
-    )
+class FFmpegProcessInfo:
+    # model_config = ConfigDict(
+    #     arbitrary_types_allowed=True,
+    #     #   frozen=True
+    # )
 
     bin: str
     args: list[str]
@@ -61,12 +61,12 @@ class FFmpegProcessInfo(BaseModel):
         return self.end_time is not None
 
 
-# @dataclass
-class FFmpegCodingInfo(BaseModel):
-    model_config = ConfigDict(
-        arbitrary_types_allowed=True,
-        #   frozen=True
-    )
+@dataclass
+class FFmpegCodingInfo:
+    # model_config = ConfigDict(
+    #     arbitrary_types_allowed=True,
+    #     #   frozen=True
+    # )
 
     current_frame: int = 0
     current_fps: float = 0

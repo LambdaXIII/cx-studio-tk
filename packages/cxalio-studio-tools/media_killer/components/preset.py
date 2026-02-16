@@ -1,9 +1,10 @@
 import tomllib
-# from dataclasses import dataclass, field
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from box import Box
-from pydantic import BaseModel, Field, ConfigDict
+
+# from pydantic import BaseModel, Field, ConfigDict
 from rich.columns import Columns
 
 from cx_studio import text as tt
@@ -25,9 +26,9 @@ DefaultSuffixes = (
 )
 
 
-# @dataclass(frozen=True)
-class Preset(BaseModel):
-    model_config = ConfigDict(arbitrary_types_allowed=True, frozen=True)
+@dataclass(frozen=True)
+class Preset:
+    # model_config = ConfigDict(arbitrary_types_allowed=True, frozen=True)
 
     id: str = ""
     name: str = ""
@@ -37,13 +38,13 @@ class Preset(BaseModel):
     overwrite: bool = False
     hardware_accelerate: str | None = "auto"
     options: str | list = ""
-    source_suffixes: set = Field(default_factory=set)
+    source_suffixes: set = field(default_factory=set)
     target_suffix: str = ""
     target_folder: Path = Path(".")
     keep_parent_level: int = 0
-    inputs: list = Field(default_factory=list)
-    outputs: list = Field(default_factory=list)
-    custom: dict = Field(default_factory=dict)
+    inputs: list = field(default_factory=list)
+    outputs: list = field(default_factory=list)
+    custom: dict = field(default_factory=dict)
     # raw: DataPackage = Field(default_factory=DataPackage)
     raw: Box = Box()
 

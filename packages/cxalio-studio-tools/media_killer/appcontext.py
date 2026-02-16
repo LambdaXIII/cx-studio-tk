@@ -2,8 +2,6 @@ from argparse import ArgumentParser
 from collections.abc import Sequence
 from typing import Literal
 
-from rich_argparse import RichHelpFormatter
-
 
 class AppContext:
     def __init__(self, **kwargs):
@@ -34,7 +32,7 @@ class AppContext:
         parser = ArgumentParser(
             # prog="MediaKiller",
             description="MediaKiller 是一个命令行多媒体文件批量处理工具。",
-            formatter_class=RichHelpFormatter,
+            # formatter_class=RichHelpFormatter,
             epilog="—— 来自 Cxalio 工作室工具集。",
             add_help=False,
         )

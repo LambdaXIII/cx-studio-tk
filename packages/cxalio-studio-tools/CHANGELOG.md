@@ -1,5 +1,10 @@
 # Change Log of Cxalio Studio Tools
 
+### v0.7.0
+
+- 重新调整部分代码以适应cx-studio的更新。
+- 去除了 dydantic 的依赖，重新使用轻量的 dataclass。
+
 ### v0.6.3.2
 
 - 增加了 HostsKeeper 工具保存 hosts 文件的方法，现在将在需要时调用管理员权限（仅支持sudo）

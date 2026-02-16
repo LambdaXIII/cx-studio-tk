@@ -2,16 +2,18 @@ import csv
 import importlib.resources
 from threading import Lock, Event
 
-from pydantic import BaseModel, Field
+# from pydantic import BaseModel, Field
 
 from cx_studio.filesystem import normalize_suffix
+from dataclasses import dataclass, field
 
 
-class FormatInfo(BaseModel):
+@dataclass(frozen=True)
+class FormatInfo:
     name: str
     extensions: list[str]
-    load_params: dict[str, str] = Field(default_factory=dict)
-    save_params: dict[str, str] = Field(default_factory=dict)
+    load_params: dict[str, str] = field(default_factory=dict)
+    save_params: dict[str, str] = field(default_factory=dict)
 
     @property
     def preferred_extension(self) -> str:

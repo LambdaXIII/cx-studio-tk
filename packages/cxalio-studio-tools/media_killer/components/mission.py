@@ -1,9 +1,10 @@
 from collections.abc import Generator
-# from dataclasses import dataclass, field
+from dataclasses import dataclass, field
 from pathlib import Path
 
 import ulid
-from pydantic import BaseModel, Field, ConfigDict
+
+# from pydantic import BaseModel, Field, ConfigDict
 
 from cx_studio.collectiontools import iter_with_separator
 from cx_studio.filesystem import get_basename, PathQuoteMode, quote_path
@@ -11,11 +12,11 @@ from cx_wealth import rich_types as r
 from .argument_group import ArgumentGroup
 
 
-# @dataclass(frozen=True)
-class Mission(BaseModel):
-    model_config = ConfigDict(arbitrary_types_allowed=True, frozen=True)
+@dataclass(frozen=True)
+class Mission:
+    # model_config = ConfigDict(arbitrary_types_allowed=True, frozen=True)
 
-    mission_id: ulid.ULID = Field(default_factory=ulid.new, kw_only=True)
+    mission_id: ulid.ULID = field(default_factory=ulid.new, kw_only=True)
 
     preset_id: str
     preset_name: str
@@ -25,9 +26,9 @@ class Mission(BaseModel):
     standard_target: Path
     overwrite: bool = False
     hardware_accelerate: str = "auto"
-    options: ArgumentGroup = Field(default_factory=ArgumentGroup)
-    inputs: list[ArgumentGroup] = []
-    outputs: list[ArgumentGroup] = []
+    options: ArgumentGroup = field(default_factory=ArgumentGroup)
+    inputs: list[ArgumentGroup] = field(default_factory=list)
+    outputs: list[ArgumentGroup] = field(default_factory=list)
 
     @property
     def name(self):
