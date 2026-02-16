@@ -1,10 +1,10 @@
 [project]
 name = "cx-studio-tk"
-version = "0.6.3.2"
+version = "0.7.0"
 description = "Add your description here"
 readme = "README.md"
 # requires-python = ">=3.12,<3.14"
-dependencies = ["cx-studio", "cxalio-studio-tools"]
+dependencies = ["cx-studio", "cx-wealth", "cxalio-studio-tools"]
 
 [tool.uv.sources]
 cx-studio = { workspace = true }
@@ -19,9 +19,9 @@ members = [
 ]
 
 [dependency-groups]
-dev = ["babel>=2.17.0", "black>=25.1.0", "pytest>=8.3.5"]
+dev = ["black>=25.1.0"]
 
-[tool.pytest.ini_options]
-minversion = "6.0"
-testpaths = ["tests"]
+# [tool.pytest.ini_options]
+# minversion = "6.0"
+# testpaths = ["tests"]
 # addopts = "-ra -q"
