@@ -1,21 +1,19 @@
+import os
+import subprocess
+import sys
+from collections.abc import Sequence
+from pathlib import Path
 from typing import override
 
-from hosts_keeper.profile.contenter_base import ContenterBase
-from media_scout.inspectors import edl_inspector
-
-from .profile_manager import ProfileManager
-from .appenv import appenv
-from collections.abc import Iterable, Sequence
-import sys
+from cx_studio.system import system_open
 from cx_tools.app import IApplication
-from .hosts_builder import HostsBuilder
-from cx_wealth import rich_types as r
 from cx_wealth import WealthDetailPanel, IndexedListPanel, WealthLabel
-import os, subprocess
-from .hosts_saver import HostsSaver
-from cx_studio.utils import SystemUtils
-from pathlib import Path
+from cx_wealth import rich_types as r
 from .app_help import AppHelp
+from .appenv import appenv
+from .hosts_builder import HostsBuilder
+from .hosts_saver import HostsSaver
+from .profile_manager import ProfileManager
 
 
 class Application(IApplication):
@@ -46,18 +44,18 @@ class Application(IApplication):
     def __open_file(file_path: Path):
         editor = os.environ.get("EDITOR", None)
         if editor:
-            subprocess.run(f"{editor} {filename}")
+            subprocess.run(f"{editor} {file_path.absolute()}", shell=True)
             return
 
         appenv.whisper(f"[cx.warning]未设置编辑器环境变量，尝试使用系统工具打开。")
-        result = SystemUtils.open(file_path)
+        result = system_open(file_path)
         if not result:
             url = f"file://{file_path.resolve()}"
             appenv.say(f"[cx.error]打开文件 [link={url}]{file_path.name}[/link] 失败。")
 
     @staticmethod
     def __open_dir(dir_path: Path):
-        result = SystemUtils.open(dir_path)
+        result = system_open(dir_path)
         if not result:
             url = f"file://{dir_path.resolve()}"
             appenv.say(f"[cx.error]打开目录 [link={url}]{dir_path.name}[/link] 失败。")

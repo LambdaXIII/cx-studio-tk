@@ -1,12 +1,15 @@
+import shutil
 import subprocess
-from .appenv import appenv
-from pathlib import Path
-from cx_studio.utils import SystemUtils, TextUtils
-from datetime import datetime
-import os, sys, shutil
+import sys
 from collections.abc import Iterable
+from datetime import datetime
+from pathlib import Path
 from tempfile import TemporaryDirectory
-from cx_studio.path_expander import CmdFinder
+
+from cx_studio import system
+from cx_studio.filesystem.path_expander import CmdFinder
+from cx_studio.text import random_string
+from .appenv import appenv
 
 
 class HostsSaver:
@@ -44,11 +47,7 @@ class HostsSaver:
             self._temp_dir = None
 
     def generate_backup_file_path(self) -> Path:
-        name = (
-            datetime.now().strftime("%Y%m%d_%H%M%S")
-            + TextUtils.random_string(5)
-            + ".bak"
-        )
+        name = datetime.now().strftime("%Y%m%d_%H%M%S") + random_string(5) + ".bak"
         return self.backup_dir / name
 
     def _generate_replace_script_pwsh(self, from_: Path, to_: Path) -> Path:
@@ -72,8 +71,7 @@ class HostsSaver:
             return self._generate_replace_script_bash(from_, to_)
 
     def _run_replace_script(self, script: Path, as_admin: bool = False) -> bool:
-        cmd = ["bash" if script.suffix == ".sh" else "pwsh"]
-        cmd.append(script.resolve())
+        cmd = ["bash" if script.suffix == ".sh" else "pwsh", script.resolve()]
 
         if as_admin:
             appenv.whisper(f"目标文件无写入权限，正查找 sudo 命令...")
@@ -131,7 +129,7 @@ class HostsSaver:
             return False
 
         script = self._generate_replace_script_auto(self.source_hosts, target)
-        as_admin = SystemUtils.check_permission(target)
+        as_admin = system.check_file_permission(target)
         run_result = self._run_replace_script(script, as_admin)
         if not run_result:
             appenv.say(f"[cx.warning]替换脚本执行失败，目标文件 {target} 未被修改。")

@@ -1,5 +1,6 @@
 import importlib.resources
-from cx_studio.utils import TextUtils
+
+from cx_studio import text as tt
 from cx_wealth import WealthHelp
 from cx_wealth import rich_types as r
 
@@ -24,7 +25,7 @@ class MKHelp(WealthHelp):
         trans_opts.add_action(
             "--sort",
             metavar="source|preset|target|x",
-            description=TextUtils.unwrap(
+            description=tt.auto_unwrap(
                 """设置任务的排序模式，在执行任务之前将会按照指定的模式进行排序。
             四种模式分别为[u]按源文件路径排序[/]、[u]按预设排序[/]、[u]按目标文件路径排序[/]、[u]按输入顺序排序[/]。"""
             ),
@@ -34,7 +35,7 @@ class MKHelp(WealthHelp):
             "-j",
             "--jobs" "--max-workers",
             metavar="NUM",
-            description=TextUtils.unwrap(
+            description=tt.auto_unwrap(
                 """
                 设置并行工作进程的数量，默认为 1 。
                 不建议设置大于 2 的数值，除非你知道你在干什么。
@@ -87,7 +88,7 @@ class MKHelp(WealthHelp):
             description="启用[bold blue]模拟运行模式[/]，不会进行任何文件操作。",
         )
 
-        self.description = TextUtils.unwrap(
+        self.description = tt.auto_unwrap(
             """本工具从用户提供的输入中识别[u]预设文件[/]和[u]媒体源文件[/]，
             并基于它们生成一系列任务，并调用 FFmpeg 进行转码。"""
         )

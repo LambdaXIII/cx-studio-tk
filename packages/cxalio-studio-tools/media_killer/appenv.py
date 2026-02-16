@@ -1,28 +1,26 @@
 import asyncio
-from datetime import datetime
 import importlib
 import importlib.resources
 import signal
 import time
 from collections.abc import Sequence
+from datetime import datetime
 from pathlib import Path
 
-from cx_studio.core.cx_filesize import FileSize
-from cx_studio.core.cx_time import CxTime
+from cx_studio.core import CxTime
+# from .mk_help_info import MKHelp
+from cx_tools import FileSizeCounter
 from cx_tools.app import IAppEnvironment, ConfigManager
 from cx_wealth import rich_types as r
 from media_killer.components.exception import SafeError
 from .appcontext import AppContext
-
-# from .mk_help_info import MKHelp
-from cx_tools import FileSizeCounter
 
 
 class AppEnv(IAppEnvironment):
     def __init__(self):
         super().__init__()
         self.app_name = "MediaKiller"
-        self.app_version = "0.5.1.4"
+        self.app_version = "0.7.0"
         self.app_description = "媒体文件批量操作工具"
         self.context: AppContext = AppContext()
         self.progress = r.Progress(

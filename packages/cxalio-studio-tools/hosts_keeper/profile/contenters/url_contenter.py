@@ -1,10 +1,11 @@
 import asyncio
-from typing import override, AsyncGenerator
 import urllib.request
-from ..hostrecord import HostRecord
-from ..contenter_base import AbstractContenter, ContenterBase
+from typing import override, AsyncGenerator
+
 from box import Box
-from pathlib import Path
+
+from ..contenter_base import AbstractContenter, ContenterBase
+from ..hostrecord import HostRecord
 
 
 class UrlContenter(AbstractContenter):

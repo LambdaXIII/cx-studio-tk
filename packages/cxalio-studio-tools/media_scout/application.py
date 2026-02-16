@@ -1,19 +1,18 @@
 import os
-from pathlib import Path, PurePath
 import time
-from cx_tools.app import IApplication
-import sys
 from collections.abc import Iterable
-from .appenv import appenv
-from media_scout.inspectors.filelist_inspector import FileListInspector
-from cx_studio.utils import PathUtils, TextUtils
+from pathlib import Path, PurePath
 
-from cx_wealth import WealthDetailPanel
 from rich.rule import Rule
 
+from cx_studio.filesystem import auto_suffix, quote_path
+from cx_tools.app import IApplication
+from cx_wealth import WealthDetailPanel
+from media_scout.inspectors.filelist_inspector import FileListInspector
+from .appenv import appenv
+from .arg_parser import MSHelp
 from .inspectors import (
     ResolveMetadataInspector,
-    MediaPathInspector,
     InspectorInfo,
     EDLInspector,
     LegacyXMLInspector,
@@ -21,7 +20,6 @@ from .inspectors import (
     FCPXMLDInspector,
     InspectorChain,
 )
-from .arg_parser import MSHelp
 
 
 class Application(IApplication):
@@ -49,7 +47,7 @@ class Application(IApplication):
             return None
         if appenv.context.auto_resolve:
             result = result.resolve()
-        return PathUtils.quote(result, appenv.context.quote_mode)
+        return quote_path(result, appenv.context.quote_mode)
 
     @staticmethod
     def auto_expand(path: os.PathLike, info: InspectorInfo) -> Iterable[PurePath]:
@@ -117,7 +115,7 @@ class Application(IApplication):
         appenv.say("[yellow]共找到 {} 个媒体路径。[/]".format(len(result)))
 
         if appenv.context.output:
-            output_file = PathUtils.auto_suffix(appenv.context.output, ".txt")
+            output_file = auto_suffix(appenv.context.output, ".txt")
             with open(output_file, "w") as fp:
                 for x in result:
                     fp.write(str(x) + "\n")

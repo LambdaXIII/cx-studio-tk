@@ -1,8 +1,9 @@
+import re
 from collections.abc import Iterable
+from pathlib import Path, PurePath
+
 from .inspector_info import InspectorInfo
 from .media_path_inspector import MediaPathInspector
-from pathlib import Path, PurePath
-import re
 
 
 class EDLInspector(MediaPathInspector):

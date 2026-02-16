@@ -1,6 +1,6 @@
+from collections.abc import Generator
 from operator import attrgetter
 from typing import Literal
-from collections.abc import Generator
 
 from cx_wealth.wealth_label import WealthLabel
 from media_killer.appenv import appenv

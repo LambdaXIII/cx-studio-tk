@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 from collections.abc import Sequence
 
-from cx_studio.utils import TextUtils
+from cx_studio import text as tt
 from cx_wealth import WealthHelp
 
 
@@ -106,7 +106,7 @@ class SimpleAppContext:
 class SimpleHelp(WealthHelp):
     def __init__(self):
         super().__init__(prog="jpegger")
-        self.description = TextUtils.unwrap(
+        self.description = tt.auto_unwrap(
             """Jpegger是一个简单的批量转换图片的命令行工具。
 
             使用选项可以简单地控制输出图片的尺寸、编码质量和色彩空间。

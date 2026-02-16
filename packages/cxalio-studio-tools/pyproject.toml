@@ -1,6 +1,6 @@
 [project]
 name = "cxalio-studio-tools"
-version = "0.6.3.2"
+version = "0.7.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12,<3.14"
@@ -9,10 +9,8 @@ dependencies = [
     "cx-studio",
     "cx-wealth",
     "pillow>=11.2.1",
-    "pydantic>=2.11.4",
     "python-box[all]~=7.0",
     "rich>=14.0.0",
-    "rich-argparse>=1.7.0",
     "ulid-py>=1.1.0",
 ]
 

@@ -1,7 +1,7 @@
 import datetime
 from pathlib import Path
 
-from cx_studio.utils import TextUtils
+from cx_studio.text import random_string
 
 
 class ConfigManager:
@@ -17,7 +17,7 @@ class ConfigManager:
         return self.config_dir / "logs"
 
     def new_log_file(self):
-        filename = f"{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}_{TextUtils.random_string(5)}.log"
+        filename = f"{datetime.datetime.now().strftime("%Y%m%d_%H%M%S")}_{random_string(5)}.log"
         self.log_dir.mkdir(parents=True, exist_ok=True)
         return self.log_dir / filename
 

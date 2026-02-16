@@ -1,15 +1,16 @@
-from typing import override
-from cx_tools.app import IAppEnvironment
-from cx_studio.path_expander import CmdFinder
-from cx_wealth import rich_types as r
 import signal
+from typing import override
+
+from cx_studio.filesystem.path_expander import CmdFinder
+from cx_tools.app import IAppEnvironment
+from cx_wealth import rich_types as r
 
 
 class AppEnv(IAppEnvironment):
     def __init__(self):
         super().__init__()
         self.app_name = "FFpretty"
-        self.app_version = "0.5.1.6"
+        self.app_version = "0.7.0"
         self.ffmpeg_executable = CmdFinder.which("ffmpeg")
         self.debug_mode = False
 

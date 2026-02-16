@@ -1,16 +1,12 @@
 import asyncio
-from abc import ABC, abstractmethod
+from abc import ABC
 
 from rich.console import Console
-
-from cx_studio.utils.tools import DoubleTrigger
-from cx_studio.utils import SystemUtils
-import cx_wealth.rich_types as r
-from typing import Union
-
 from rich.highlighter import RegexHighlighter
 
-import os, sys, ctypes
+import cx_wealth.rich_types as r
+from cx_studio import system
+from cx_studio.tui import DoubleTrigger
 
 DEFAULT_STYLES = {
     "cx.info": "blue",
@@ -116,4 +112,4 @@ class IAppEnvironment(ABC):
 
     @staticmethod
     def is_user_admin() -> bool:
-        return SystemUtils.is_user_admin()
+        return system.is_user_admin()

@@ -1,8 +1,9 @@
-from cx_studio.core.cx_filesize import FileSize
-from cx_studio.core.cx_time import CxTime
 from pathlib import Path
 from typing import Any
+
 import cx_wealth.rich_types as r
+from cx_studio.core.cx_filesize import FileSize
+from cx_studio.core.cx_time import CxTime
 
 
 class FormatInfo:

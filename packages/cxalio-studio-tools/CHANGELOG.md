@@ -1,34 +1,38 @@
 # Change Log of Cxalio Studio Tools
 
+### v0.7.0
+
+- 重新调整部分代码以适应cx-studio的更新。
+- 去除了 dydantic 的依赖，重新使用轻量的 dataclass。
 
 ### v0.6.3.2
 
- - 增加了 HostsKeeper 工具保存 hosts 文件的方法，现在将在需要时调用管理员权限（仅支持sudo）
- - 增加了 HostsKeeper 工具指定目标文件的参数，不指定的话仍然是系统hosts文件。
- - 修复了 帮助信息中的 typo
+- 增加了 HostsKeeper 工具保存 hosts 文件的方法，现在将在需要时调用管理员权限（仅支持sudo）
+- 增加了 HostsKeeper 工具指定目标文件的参数，不指定的话仍然是系统hosts文件。
+- 修复了 帮助信息中的 typo
 
 ### v0.6.2
 
- - 增加了 HostsKeeper 工具，用于管理 hosts 文件
- - 为 IAppEnvironment 增加了判断当前用户是否为管理员的方法
+- 增加了 HostsKeeper 工具，用于管理 hosts 文件
+- 为 IAppEnvironment 增加了判断当前用户是否为管理员的方法
 
 ### v0.5.1.6
 
- - 为 ffpretty 增加了取消操作的提示信息
- - 为 ffpretty 增加了查询模式
- - 为 ffpretty 增加了帮助信息
- - 为 ffpretty 清理了代码
+- 为 ffpretty 增加了取消操作的提示信息
+- 为 ffpretty 增加了查询模式
+- 为 ffpretty 增加了帮助信息
+- 为 ffpretty 清理了代码
 
 ### v0.5.1.4
 
- - 全面排查bug
- - 将默认样式定义为全局主题 cx_default_theme
- - 优化了 mediakiller 中的一些输出方式
+- 全面排查bug
+- 将默认样式定义为全局主题 cx_default_theme
+- 优化了 mediakiller 中的一些输出方式
 
 ### v0.5.1.3
 
- - 增加了 CxHighlighter 类，用于高亮显示 CX 相关的日志信息
- - 自动安装 CxHighlighter 作为全局输出的高粱显示工具，默认情况下不影响 WealthHelp 的输出
+- 增加了 CxHighlighter 类，用于高亮显示 CX 相关的日志信息
+- 自动安装 CxHighlighter 作为全局输出的高粱显示工具，默认情况下不影响 WealthHelp 的输出
 
 ### v0.5.1.2
 

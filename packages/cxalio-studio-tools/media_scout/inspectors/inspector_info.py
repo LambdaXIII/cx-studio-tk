@@ -1,10 +1,13 @@
+import io
+import os
 from collections import namedtuple
-import sys, os, io
-from pathlib import Path, PurePath
-from cx_studio.core import FileSize
-from chardet import UniversalDetector
-from cachetools import LRUCache
 from collections.abc import Iterable
+from pathlib import Path
+
+from cachetools import LRUCache
+from chardet import UniversalDetector
+
+from cx_studio.core import FileSize
 
 
 class InspectorInfo:

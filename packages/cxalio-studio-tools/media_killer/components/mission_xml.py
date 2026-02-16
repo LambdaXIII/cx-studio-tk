@@ -1,12 +1,12 @@
-from collections.abc import Iterable, Generator
 import xml.etree.ElementTree as ET
-
+from collections.abc import Iterable, Generator
+from pathlib import Path
 
 import ulid
-from .mission import Mission
-from pathlib import Path
+
+from cx_studio.filesystem import ensure_parents
 from .argument_group import ArgumentGroup
-from cx_studio.utils import PathUtils
+from .mission import Mission
 
 
 class MissionXML:
@@ -141,7 +141,7 @@ class MissionXML:
 
     def save(self, path: Path):
         tree = ET.ElementTree(self.root)
-        path = PathUtils.ensure_parents(path)
+        path = ensure_parents(path)
         tree.write(path, encoding="utf-8", xml_declaration=True)
 
     @classmethod

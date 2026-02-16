@@ -2,16 +2,18 @@ import csv
 import importlib.resources
 from threading import Lock, Event
 
-from pydantic import BaseModel, Field
+# from pydantic import BaseModel, Field
 
-from cx_studio.utils import PathUtils
+from cx_studio.filesystem import normalize_suffix
+from dataclasses import dataclass, field
 
 
-class FormatInfo(BaseModel):
+@dataclass(frozen=True)
+class FormatInfo:
     name: str
     extensions: list[str]
-    load_params: dict[str, str] = Field(default_factory=dict)
-    save_params: dict[str, str] = Field(default_factory=dict)
+    load_params: dict[str, str] = field(default_factory=dict)
+    save_params: dict[str, str] = field(default_factory=dict)
 
     @property
     def preferred_extension(self) -> str:
@@ -39,7 +41,7 @@ class FormatDB:
             for row in reader:
                 name = row["NAME"].strip().upper()
                 extensions = [
-                    PathUtils.normalize_suffix(ext.strip().lower())
+                    normalize_suffix(ext.strip().lower())
                     for ext in row["EXTENSIONS"].split(" ")
                 ]
                 info = FormatInfo(name=name, extensions=extensions)
@@ -52,7 +54,7 @@ class FormatDB:
 
     @classmethod
     def search_for_extension(cls, extension: str) -> FormatInfo | None:
-        extension = PathUtils.normalize_suffix(extension).lower()
+        extension = normalize_suffix(extension).lower()
         for info in cls.__data.values():
             if extension in info.extensions:
                 return info

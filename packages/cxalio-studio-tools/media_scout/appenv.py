@@ -1,7 +1,6 @@
-from typing import override
-from cx_studio.core import DataPackage
-from cx_tools.app import IAppEnvironment
 from rich.console import Console
+
+from cx_tools.app import IAppEnvironment
 from .arg_parser import AppContext
 
 
@@ -9,7 +8,7 @@ class AppEnv(IAppEnvironment):
     def __init__(self):
         super().__init__()
         self.app_name = "MediaScout"
-        self.app_version = "0.1.0"
+        self.app_version = "0.7.0"
         self.output_console = Console()
         self.context: AppContext
 

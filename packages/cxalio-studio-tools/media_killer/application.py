@@ -6,22 +6,19 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import override
 
-from cx_studio.utils import PathUtils
+from cx_studio.filesystem import force_suffix
 from cx_tools.app import IApplication
 from cx_wealth import DynamicColumns, IndexedListPanel, WealthDetailPanel
-
-
+from .appenv import appenv
+from .components.exception import SafeError
+from .components.input_scanner import InputScanner
+from .components.mission import Mission
+from .components.mission_arranger import MissionArranger
+from .components.mission_maker import MissionMaker
 from .components.mission_master import MissionMaster
 from .components.mission_xml import MissionXML
-from .components.script_maker import ScriptMaker
-from .components.input_scanner import InputScanner
-from .components.mission_maker import MissionMaker
-from .components.mission_arranger import MissionArranger
-from .components.mission import Mission
 from .components.preset import Preset
-from .components.exception import SafeError
-
-from .appenv import appenv
+from .components.script_maker import ScriptMaker
 from .mk_help_info import MKHelp
 
 
@@ -72,7 +69,7 @@ class Application(IApplication):
 
     @staticmethod
     def export_example_preset(filename: Path):
-        filename = Path(PathUtils.force_suffix(filename, ".toml"))
+        filename = Path(force_suffix(filename, ".toml"))
         appenv.check_overwritable_file(filename)
         with importlib.resources.open_text(
             "media_killer", "example_preset.toml"

@@ -1,4 +1,4 @@
-from cx_studio.utils import TextUtils
+from cx_studio import text as tt
 from cx_wealth import WealthHelp
 
 
@@ -6,7 +6,7 @@ class MKHelp(WealthHelp):
     def __init__(self, **kwargs):
         super().__init__(prog="ffpretty", **kwargs)
 
-        self.description = TextUtils.unwrap(
+        self.description = tt.auto_unwrap(
             """本工具直接转发 FFmpeg 的选项，并在后台调用，
             同时在前台输出美化过的转码信息。
             """

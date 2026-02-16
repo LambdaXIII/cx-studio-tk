@@ -1,12 +1,12 @@
-from collections.abc import AsyncGenerator, Iterable
-from pathlib import Path
-from .profile import Profile
-import os, sys
-from cx_studio.utils import EncodingUtils
-import re
 import asyncio
+import re
+from collections.abc import Iterable
+from pathlib import Path
+
+from cx_studio.collectiontools import flatten_list
+from cx_studio.filesystem import detect_file_encoding
 from .appenv import appenv
-from cx_studio.utils import FunctionalUtils
+from .profile import Profile
 
 
 class HostsBuilder:
@@ -23,7 +23,7 @@ class HostsBuilder:
     async def prepare_customed_lines(self) -> list[str]:
         async with self._semaphore:
             result = []
-            encoding = EncodingUtils.detect_encoding(self.hosts_file_path)
+            encoding = detect_file_encoding(self.hosts_file_path)
             profile_entered: bool = False
             with self.hosts_file_path.open("r", encoding=encoding) as f:
                 for line in f.readlines():
@@ -55,4 +55,4 @@ class HostsBuilder:
 
     def iter_lines(self, profiles: Iterable[Profile]) -> Iterable[str]:
         collection = asyncio.run(self.async_build_lines(profiles))
-        yield from FunctionalUtils.flatten_list(*collection)
+        yield from flatten_list(*collection)

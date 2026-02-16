@@ -1,9 +1,10 @@
 from abc import ABC, abstractmethod
-from box import Box
-from .hostrecord import HostRecord
+from pathlib import Path
 from typing import AsyncGenerator
 
-from pathlib import Path
+from box import Box
+
+from .hostrecord import HostRecord
 
 
 class AbstractContenter(ABC):

@@ -1,10 +1,9 @@
-from pathlib import PurePath
-from .media_path_inspector import MediaPathInspector
-from collections.abc import Iterable
-from typing import IO, AnyStr
 import csv
+from collections.abc import Iterable
+from pathlib import PurePath
 
 from .inspector_info import InspectorInfo
+from .media_path_inspector import MediaPathInspector
 
 
 class ResolveMetadataInspector(MediaPathInspector):

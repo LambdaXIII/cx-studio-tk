@@ -10,15 +10,15 @@ class ImageFilterChain(IImageFilter):
         super().__init__()
         self.filters = filters
 
-    def append(self, filter: IImageFilter):
-        if isinstance(filter, ImageFilterChain):
-            self.filters.extend(filter.filters)
+    def append(self, img_filter: IImageFilter):
+        if isinstance(img_filter, ImageFilterChain):
+            self.filters.extend(img_filter.filters)
         else:
-            self.filters.append(filter)
+            self.filters.append(img_filter)
 
     def run(self, image: Image) -> Image:
-        for filter in self.filters:
-            image = filter.run(image)
+        for img_filter in self.filters:
+            image = img_filter.run(image)
         return image
 
     @override

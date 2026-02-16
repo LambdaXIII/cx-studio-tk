@@ -9,8 +9,8 @@ from pathlib import Path
 from pyee.asyncio import AsyncIOEventEmitter
 
 from cx_studio.core import CxTime, FileSize
-from cx_studio.path_expander import CmdFinder
-from cx_studio.utils import AsyncStreamUtils
+from cx_studio.filesystem.path_expander import CmdFinder
+from cx_studio.iotools import AsyncStreamUtils
 from .cx_ff_infos import FFmpegCodingInfo
 
 

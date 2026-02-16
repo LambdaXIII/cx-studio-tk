@@ -1,20 +1,21 @@
-from typing import override
-from cx_tools.app import IAppEnvironment, ConfigManager
-from .appcontext import AppContext
-from cx_wealth import rich_types as r
-import signal
+import importlib.resources
+import os
+import sys
 from collections.abc import Sequence
 from pathlib import Path
-import sys, os
 from tempfile import TemporaryDirectory
-import importlib.resources
+from typing import override
+
+from cx_tools.app import IAppEnvironment, ConfigManager
+from cx_wealth import rich_types as r
+from .appcontext import AppContext
 
 
 class AppEnv(IAppEnvironment):
     def __init__(self):
         super().__init__()
         self.app_name = "HostsKeeper"
-        self.app_version = "0.6.3.2"
+        self.app_version = "0.7.0"
         self.app_description = "根据配置文件更新 hosts"
         self.context = AppContext()
 

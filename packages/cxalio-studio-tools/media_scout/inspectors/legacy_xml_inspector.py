@@ -1,13 +1,11 @@
-from pathlib import PurePath
 import re
-from typing import Iterable
-import xml.etree.ElementTree as ET
-
-
-from .media_path_inspector import MediaPathInspector
-from .inspector_info import InspectorInfo
-
 import urllib.parse
+import xml.etree.ElementTree as ET
+from pathlib import PurePath
+from typing import Iterable
+
+from .inspector_info import InspectorInfo
+from .media_path_inspector import MediaPathInspector
 
 
 class LegacyXMLInspector(MediaPathInspector):

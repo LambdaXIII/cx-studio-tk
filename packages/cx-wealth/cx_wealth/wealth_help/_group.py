@@ -3,7 +3,6 @@ from __future__ import annotations
 from collections.abc import Generator
 from typing import override
 
-from cx_wealth.rich_types import Text
 from ._action import _Action, _ActionNargs
 from ._node import _Node
 from ._note import _Note
@@ -63,7 +62,7 @@ class _Group(_Node):
                 yield from action.iter_actions()
 
     @override
-    def render_usage(self) -> Text:
+    def render_usage(self) -> r.Text:
         usages = [x.render_usage() for x in self.iter_actions()]
         return r.Text(" ").join(usages)
 
