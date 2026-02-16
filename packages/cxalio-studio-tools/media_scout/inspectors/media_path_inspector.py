@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from pathlib import Path, PurePath
 from collections.abc import Iterable
+from pathlib import PurePath
 
 from .inspector_info import InspectorInfo
 

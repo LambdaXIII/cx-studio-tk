@@ -1,7 +1,8 @@
+import importlib.resources
+
 from cx_studio import text as tt
 from cx_wealth import WealthHelp
 from cx_wealth import rich_types as r
-import importlib.resources
 
 
 class AppHelp(WealthHelp):
@@ -32,7 +33,7 @@ class AppHelp(WealthHelp):
             name="配置文件ID",
             optional=True,
             metavar="PROFILE_ID",
-            description=("配置文件的ID，在 show 和 edit 命令中必须要指定。"),
+            description="配置文件的ID，在 show 和 edit 命令中必须要指定。",
         )
 
         opt_group.add_action(
@@ -53,7 +54,7 @@ class AppHelp(WealthHelp):
             name="目标文件",
             optional=True,
             metavar="TARGET_HOSTS",
-            description=("指定目标 hosts 文件，默认值为系统 hosts 文件。"),
+            description="指定目标 hosts 文件，默认值为系统 hosts 文件。",
         )
 
         misc_opts = self.add_group("杂项")

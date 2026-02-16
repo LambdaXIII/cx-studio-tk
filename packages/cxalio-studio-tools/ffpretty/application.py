@@ -1,15 +1,16 @@
 import asyncio
-from pathlib import Path
-from datetime import datetime
-from cx_wealth.indexed_list_panel import IndexedListPanel
-from cx_tools.app import IApplication, SafeError
-from cx_studio.ffmpeg import FFmpegArgumentsPreProcessor
-from cx_studio.core.cx_time import CxTime
 from collections.abc import Sequence
-from .transcoder import Transcoder
-from .prober import Prober
-from .mk_help_info import MKHelp
+from datetime import datetime
+from pathlib import Path
+
+from cx_studio.core.cx_time import CxTime
+from cx_studio.ffmpeg import FFmpegArgumentsPreProcessor
+from cx_tools.app import IApplication, SafeError
+from cx_wealth.indexed_list_panel import IndexedListPanel
 from .appenv import appenv
+from .mk_help_info import MKHelp
+from .prober import Prober
+from .transcoder import Transcoder
 
 
 class FFPrettyApp(IApplication):
@@ -107,7 +108,7 @@ class FFPrettyApp(IApplication):
         for x in files:
             prober.probe(x)
 
-    def run(self) -> bool:
+    def run(self):
         if "-h" in self.arguments or "--help" in self.arguments:
             help_info = MKHelp()
             appenv.say(help_info)

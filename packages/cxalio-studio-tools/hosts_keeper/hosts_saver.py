@@ -1,12 +1,14 @@
+import shutil
 import subprocess
-import sys, shutil
-from tempfile import TemporaryDirectory
-from pathlib import Path
-from datetime import datetime
-from cx_studio.text import random_string
-from cx_studio.filesystem.path_expander import CmdFinder
-from cx_studio import system
+import sys
 from collections.abc import Iterable
+from datetime import datetime
+from pathlib import Path
+from tempfile import TemporaryDirectory
+
+from cx_studio import system
+from cx_studio.filesystem.path_expander import CmdFinder
+from cx_studio.text import random_string
 from .appenv import appenv
 
 
@@ -69,8 +71,7 @@ class HostsSaver:
             return self._generate_replace_script_bash(from_, to_)
 
     def _run_replace_script(self, script: Path, as_admin: bool = False) -> bool:
-        cmd = ["bash" if script.suffix == ".sh" else "pwsh"]
-        cmd.append(script.resolve())
+        cmd = ["bash" if script.suffix == ".sh" else "pwsh", script.resolve()]
 
         if as_admin:
             appenv.whisper(f"目标文件无写入权限，正查找 sudo 命令...")

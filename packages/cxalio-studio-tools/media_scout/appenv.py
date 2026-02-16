@@ -1,5 +1,6 @@
-from cx_tools.app import IAppEnvironment
 from rich.console import Console
+
+from cx_tools.app import IAppEnvironment
 from .arg_parser import AppContext
 
 

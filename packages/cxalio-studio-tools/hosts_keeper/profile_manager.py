@@ -1,9 +1,10 @@
-from .profile import Profile
-from pathlib import Path
-from .appenv import appenv
-from cx_studio.filesystem import force_suffix
-from collections.abc import Iterable
 import fnmatch
+from collections.abc import Iterable
+from pathlib import Path
+
+from cx_studio.filesystem import force_suffix
+from .appenv import appenv
+from .profile import Profile
 
 
 class ProfileManager:

@@ -1,6 +1,6 @@
+import sys
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
-import sys
 
 
 class IApplication(ABC):

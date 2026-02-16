@@ -61,7 +61,7 @@ class AutoResizeFilter(IImageFilter):
 
     def get_target_size(self, image: Image) -> tuple[int, int]:
         target_width, target_height = iw, ih = image.size
-        match (self.resizing_mode):
+        match self.resizing_mode:
             case "fixed":
                 target_width, target_height = self._width, self._height
             case "width_fixed":
@@ -88,7 +88,7 @@ class AutoResizeFilter(IImageFilter):
         yield f"[blue]({self._width or na}:{self._height or na})[/]"
 
     def __filter_description__(self) -> str:
-        match (self.resizing_mode):
+        match self.resizing_mode:
             case "fixed":
                 return f"调整图像分辨率至 {self._width}x{self._height}"
             case "width_fixed":

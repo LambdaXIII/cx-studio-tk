@@ -1,9 +1,10 @@
-from collections.abc import Iterable
-from .media_path_inspector import MediaPathInspector, InspectorInfo
-from pathlib import PurePath, Path
 import re
-import xml.etree.ElementTree as ET
 import urllib.parse
+import xml.etree.ElementTree as ET
+from collections.abc import Iterable
+from pathlib import PurePath, Path
+
+from .media_path_inspector import MediaPathInspector, InspectorInfo
 
 
 class FCPXMLInspector(MediaPathInspector):

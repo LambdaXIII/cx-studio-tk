@@ -1,10 +1,11 @@
-import itertools
 import asyncio
+import itertools
 from pathlib import Path
-from cx_wealth import IndexedListPanel
-from cx_tools.app.safe_error import SafeError
-from cx_studio.ffmpeg.cx_ff_infos import FFmpegCodingInfo
+
 from cx_studio.ffmpeg import FFmpegAsync, FFmpegArgumentsPreProcessor
+from cx_studio.ffmpeg.cx_ff_infos import FFmpegCodingInfo
+from cx_tools.app.safe_error import SafeError
+from cx_wealth import IndexedListPanel
 from .appenv import appenv
 
 

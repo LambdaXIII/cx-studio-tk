@@ -1,6 +1,7 @@
-from . import platform
 import os
 from pathlib import Path
+
+from . import platform
 
 
 def is_user_admin() -> bool:

@@ -1,17 +1,19 @@
+import os
+import subprocess
 import sys
-import os, subprocess
-from typing import override
+from collections.abc import Sequence
 from pathlib import Path
+from typing import override
+
+from cx_studio.system import system_open
+from cx_tools.app import IApplication
 from cx_wealth import WealthDetailPanel, IndexedListPanel, WealthLabel
 from cx_wealth import rich_types as r
-from cx_tools.app import IApplication
-from cx_studio.system import system_open
-from collections.abc import Sequence
-from .profile_manager import ProfileManager
-from .hosts_saver import HostsSaver
-from .hosts_builder import HostsBuilder
-from .appenv import appenv
 from .app_help import AppHelp
+from .appenv import appenv
+from .hosts_builder import HostsBuilder
+from .hosts_saver import HostsSaver
+from .profile_manager import ProfileManager
 
 
 class Application(IApplication):
@@ -42,7 +44,7 @@ class Application(IApplication):
     def __open_file(file_path: Path):
         editor = os.environ.get("EDITOR", None)
         if editor:
-            subprocess.run(f"{editor} {filename}")
+            subprocess.run(f"{editor} {file_path.absolute()}", shell=True)
             return
 
         appenv.whisper(f"[cx.warning]未设置编辑器环境变量，尝试使用系统工具打开。")

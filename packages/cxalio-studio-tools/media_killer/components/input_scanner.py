@@ -6,8 +6,8 @@ from rich.text import Text
 
 from cx_studio.collectiontools import flatten_list
 from cx_studio.filesystem import force_suffix
-from ..appenv import appenv
 from .preset import Preset
+from ..appenv import appenv
 
 
 class InputScanner:

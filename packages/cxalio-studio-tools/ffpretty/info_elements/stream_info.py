@@ -1,7 +1,8 @@
 from typing import Any, Iterable
+
+import cx_wealth.rich_types as r
 from cx_studio.core.cx_filesize import FileSize
 from cx_studio.core.cx_time import CxTime
-import cx_wealth.rich_types as r
 
 
 class StreamInfo:

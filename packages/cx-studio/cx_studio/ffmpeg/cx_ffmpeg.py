@@ -1,4 +1,3 @@
-from copy import copy
 import concurrent.futures as con_futures
 import io
 import signal

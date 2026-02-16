@@ -2,12 +2,11 @@ import asyncio
 from abc import ABC
 
 from rich.console import Console
-
-from cx_studio.tui import DoubleTrigger
-from cx_studio import system
-import cx_wealth.rich_types as r
-
 from rich.highlighter import RegexHighlighter
+
+import cx_wealth.rich_types as r
+from cx_studio import system
+from cx_studio.tui import DoubleTrigger
 
 DEFAULT_STYLES = {
     "cx.info": "blue",

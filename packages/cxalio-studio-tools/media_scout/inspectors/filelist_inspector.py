@@ -1,9 +1,10 @@
-from pathlib import PurePath
-from .inspector_info import InspectorInfo
-from .media_path_inspector import MediaPathInspector
-from collections.abc import Iterable
 import re
 import urllib.parse
+from collections.abc import Iterable
+from pathlib import PurePath
+
+from .inspector_info import InspectorInfo
+from .media_path_inspector import MediaPathInspector
 
 
 class FileListInspector(MediaPathInspector):

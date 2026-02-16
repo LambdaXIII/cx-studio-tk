@@ -1,5 +1,4 @@
 import tomllib
-
 # from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -7,8 +6,8 @@ from box import Box
 from pydantic import BaseModel, Field, ConfigDict
 from rich.columns import Columns
 
-from cx_studio.filesystem import normalize_suffix, force_suffix
 from cx_studio import text as tt
+from cx_studio.filesystem import normalize_suffix, force_suffix
 
 DefaultSuffixes = (
     ".mov .mp4 .mkv .avi .wmv .flv .webm "

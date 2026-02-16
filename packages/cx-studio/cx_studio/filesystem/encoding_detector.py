@@ -1,9 +1,9 @@
-from functools import lru_cache
-from chardet import UniversalDetector
-from lazy_object_proxy import Proxy
 import os
+from functools import lru_cache
 from pathlib import Path
 
+from chardet import UniversalDetector
+from lazy_object_proxy import Proxy
 
 __CHARDET = Proxy(UniversalDetector)
 

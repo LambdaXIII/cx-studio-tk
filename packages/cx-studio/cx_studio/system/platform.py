@@ -1,5 +1,5 @@
-from enum import StrEnum
 import sys
+from enum import StrEnum
 from typing import Self
 
 

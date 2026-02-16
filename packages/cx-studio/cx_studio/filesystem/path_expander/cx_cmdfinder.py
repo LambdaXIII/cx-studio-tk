@@ -4,28 +4,28 @@ import shutil
 from collections.abc import Generator, Collection, Iterable
 from pathlib import Path, PurePath
 
-from . import PathExpander
+from .cx_pathexpander import PathExpander
 
 
 class CmdFinder:
     def __init__(
         self,
         search_dirs: Collection | Iterable | None = None,
-        inlude_cwd: bool = False,
+        include_cmd: bool = False,
         include_env_paths: bool = True,
         expand_extensions: bool = True,
         recursive: bool = False,
         use_clue: bool = True,
     ):
         self._search_dirs = search_dirs or []
-        self._inlude_cwd = inlude_cwd
+        self._include_cmd = include_cmd
         self._include_env_paths = include_env_paths
         self._expand_extensions = expand_extensions
         self._recursive = recursive
         self._use_clue = use_clue
 
     def iter_included_dirs(self) -> Generator[Path, None, None]:
-        if self._inlude_cwd:
+        if self._include_cmd:
             yield Path.cwd()
         if self._include_env_paths:
             os_path = os.environ.get("PATH")

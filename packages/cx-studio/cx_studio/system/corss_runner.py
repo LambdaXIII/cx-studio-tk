@@ -1,6 +1,7 @@
-from typing import Callable
-from . import platform
 from typing import Any
+from typing import Callable
+
+from . import platform
 
 
 class CrossRunner:

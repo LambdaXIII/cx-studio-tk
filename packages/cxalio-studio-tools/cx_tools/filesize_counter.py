@@ -1,6 +1,7 @@
-from cx_studio.core import FileSize
-from pathlib import Path
 from collections.abc import Iterable
+from pathlib import Path
+
+from cx_studio.core import FileSize
 
 
 class FileSizeCounter:

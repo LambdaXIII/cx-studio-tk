@@ -1,15 +1,15 @@
 import asyncio
 import importlib
 import tomllib
+from dataclasses import dataclass, field
 from pathlib import Path
+from typing import AsyncGenerator, Self, Sequence
+
 from box import Box, BoxList
 
-from typing import AsyncGenerator, Self, Sequence
-from .hostrecord import HostRecord
-from dataclasses import dataclass, field
 from cx_studio.filesystem import force_suffix
-
 from .contenter_base import ContenterBase
+from .hostrecord import HostRecord
 
 
 @dataclass(frozen=True)
@@ -80,9 +80,9 @@ class Profile:
     async def async_iter_records(self) -> AsyncGenerator[HostRecord, None]:
         """迭代记录"""
 
-        async def expand_contenter(contenter: ContenterBase):
+        async def expand_contenter(_contenter: ContenterBase):
             result = []
-            async for record in contenter.iter_records():
+            async for record in _contenter.iter_records():
                 result.append(record)
             return result
 

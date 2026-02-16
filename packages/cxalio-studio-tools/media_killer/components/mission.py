@@ -1,5 +1,4 @@
 from collections.abc import Generator
-
 # from dataclasses import dataclass, field
 from pathlib import Path
 

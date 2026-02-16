@@ -1,8 +1,9 @@
-from typing import override
-from cx_tools.app import IAppEnvironment
-from cx_studio.filesystem.path_expander import CmdFinder
-from cx_wealth import rich_types as r
 import signal
+from typing import override
+
+from cx_studio.filesystem.path_expander import CmdFinder
+from cx_tools.app import IAppEnvironment
+from cx_wealth import rich_types as r
 
 
 class AppEnv(IAppEnvironment):

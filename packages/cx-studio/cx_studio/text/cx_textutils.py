@@ -1,6 +1,5 @@
 import re
 from collections.abc import Callable
-from typing import Any
 
 
 def quick_search_chars(text: str, chars: str) -> bool:

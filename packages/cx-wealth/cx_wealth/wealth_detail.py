@@ -3,7 +3,6 @@ from typing import Iterable, Mapping, Protocol, Sequence, runtime_checkable
 
 from rich.console import RenderableType
 
-
 from . import rich_types as r
 from .common import RichPrettyMixin
 from .indexed_list_panel import IndexedListPanel

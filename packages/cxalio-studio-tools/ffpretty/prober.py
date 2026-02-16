@@ -1,12 +1,13 @@
-import json
 import asyncio
-from typing import Any
+import json
 from pathlib import Path
-from cx_tools.app.safe_error import SafeError
+from typing import Any
+
 from cx_studio.filesystem.path_expander import CmdFinder
 from cx_studio.iotools import AsyncStreamUtils
-from .info_elements import MediaInfo
+from cx_tools.app.safe_error import SafeError
 from .appenv import appenv
+from .info_elements import MediaInfo
 
 
 class Prober:

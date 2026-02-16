@@ -1,11 +1,12 @@
-import re
 import asyncio
-from pathlib import Path
-from cx_studio.filesystem import detect_file_encoding
-from cx_studio.collectiontools import flatten_list
+import re
 from collections.abc import Iterable
-from .profile import Profile
+from pathlib import Path
+
+from cx_studio.collectiontools import flatten_list
+from cx_studio.filesystem import detect_file_encoding
 from .appenv import appenv
+from .profile import Profile
 
 
 class HostsBuilder:

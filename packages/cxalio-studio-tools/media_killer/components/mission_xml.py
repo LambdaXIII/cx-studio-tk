@@ -1,12 +1,12 @@
-from collections.abc import Iterable, Generator
 import xml.etree.ElementTree as ET
-
+from collections.abc import Iterable, Generator
+from pathlib import Path
 
 import ulid
-from .mission import Mission
-from pathlib import Path
-from .argument_group import ArgumentGroup
+
 from cx_studio.filesystem import ensure_parents
+from .argument_group import ArgumentGroup
+from .mission import Mission
 
 
 class MissionXML:

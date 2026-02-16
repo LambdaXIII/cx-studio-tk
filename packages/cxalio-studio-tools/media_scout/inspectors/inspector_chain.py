@@ -1,13 +1,10 @@
 import os
+from collections.abc import Iterable
 from pathlib import PurePath, Path
 from typing import Self
-from collections.abc import Iterable
+
 from media_scout.inspectors.media_path_inspector import MediaPathInspector
-from .edl_inspector import EDLInspector
-from .fcpxml_inspector import FCPXMLInspector, FCPXMLDInspector
 from .inspector_info import InspectorInfo
-from .legacy_xml_inspector import LegacyXMLInspector
-from .resolve_metadata_inspector import ResolveMetadataInspector
 
 
 class InspectorChain:
