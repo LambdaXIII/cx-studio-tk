@@ -1,5 +1,9 @@
 # Change Log of Cxalio Studio Tools
 
+### v0.7.1
+
+- 修复了 HostsKeeper 工具处理 URL 内容时的编码问题
+
 ### v0.7.0
 
 - 重新调整部分代码以适应cx-studio的更新。
