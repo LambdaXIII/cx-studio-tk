@@ -43,7 +43,7 @@ class Application(IApplication):
     def resolve(path: os.PathLike) -> str | None:
         result = Path(path)
         if appenv.context.existed_only and not result.exists():
-            appenv.whisper("[red]{} 不存在[/]".format(result))
+            appenv.whisper(f"[red]{result} 不存在[/]")
             return None
         if appenv.context.auto_resolve:
             result = result.resolve()
@@ -58,11 +58,11 @@ class Application(IApplication):
         if result.is_absolute() or not appenv.context.includes:
             yield result
         else:
-            appenv.whisper("[red]在搜索路径中搜索：{}[/]".format(result))
+            appenv.whisper(f"[red]在搜索路径中搜索：{result}[/]")
             for include in includes:
                 p = Path(include).absolute() / result
                 if p.exists():
-                    appenv.whisper("找到：{}".format(p))
+                    appenv.whisper(f"找到：{p}")
                     yield p
 
     def iter_results(self):
@@ -112,7 +112,7 @@ class Application(IApplication):
             result.append(x)
             appenv.print(x)
 
-        appenv.say("[yellow]共找到 {} 个媒体路径。[/]".format(len(result)))
+        appenv.say(f"[yellow]共找到 {len(result)} 个媒体路径。[/]")
 
         if appenv.context.output:
             output_file = auto_suffix(appenv.context.output, ".txt")
@@ -120,4 +120,4 @@ class Application(IApplication):
                 for x in result:
                     fp.write(str(x) + "\n")
 
-            appenv.say('[green]列表已保存到："{}"[/]'.format(output_file))
+            appenv.say(f'[green]列表已保存到："{output_file}"[/]')

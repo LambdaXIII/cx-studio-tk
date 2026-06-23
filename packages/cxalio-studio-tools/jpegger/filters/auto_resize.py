@@ -102,7 +102,7 @@ class AutoScaleFilter(IImageFilter):
     """AutoScaleFilter
 
     Same as AutoResizeFilter, but uses a factor instead of a size.
-    ** If the size is 1.0 or negative, the imgae remains.**
+    ** If the size is 1.0 or negative, the image remains.**
     """
 
     def __init__(self, factor: float = 1.0):

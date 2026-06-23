@@ -2,16 +2,14 @@ import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Self
 
-# from pydantic import BaseModel, ConfigDict
 
 from cx_studio.core import CxTime, FileSize
 
 
 @dataclass(frozen=True)
 class FFmpegFormatInfo:
-    # model_config = ConfigDict(arbitrary_types_allowed=True, frozen=True)
     filename: Path
     streams: int | None = None
     format_name: str | None = None
@@ -24,7 +22,7 @@ class FFmpegFormatInfo:
     tags: dict[str, str] = field(default_factory=dict)
 
     @classmethod
-    def from_format_dict(cls, data: dict):
+    def from_format_dict(cls, data: dict[str, Any]) -> Self:
         return cls(
             filename=Path(data["filename"]),
             streams=int(data["nb_streams"]),
@@ -41,10 +39,6 @@ class FFmpegFormatInfo:
 
 @dataclass
 class FFmpegProcessInfo:
-    # model_config = ConfigDict(
-    #     arbitrary_types_allowed=True,
-    #     #   frozen=True
-    # )
 
     bin: str
     args: list[str]
@@ -63,10 +57,6 @@ class FFmpegProcessInfo:
 
 @dataclass
 class FFmpegCodingInfo:
-    # model_config = ConfigDict(
-    #     arbitrary_types_allowed=True,
-    #     #   frozen=True
-    # )
 
     current_frame: int = 0
     current_fps: float = 0
@@ -80,14 +70,13 @@ class FFmpegCodingInfo:
     created: datetime = field(default_factory=lambda: datetime.now())
 
     @staticmethod
-    def parse_status_line(line: str) -> dict:
+    def parse_status_line(line: str) -> dict[str, Any]:
         datas: dict[str, Any] = {"raw_input": line.strip()}
 
         duration_match = re.search(
             r"Duration:\s*(?P<duration>\d+:\d+:\d+[:;.,]\d+)", line
         )
         if duration_match:
-            # print("Duration match")
             datas["total_time"] = CxTime.from_timestamp(
                 duration_match.group("duration")
             )
@@ -125,15 +114,15 @@ class FFmpegCodingInfo:
         return datas
 
     @classmethod
-    def from_status_line(cls, line: str) -> "FFmpegCodingInfo":
+    def from_status_line(cls, line: str) -> Self:
         datas = cls.parse_status_line(line)
         return cls(**datas)
 
-    def update_from_status_line(self, line: str) -> "FFmpegCodingInfo":
+    def update_from_status_line(self, line: str) -> Self:
         datas = self.parse_status_line(line)
         return self.update(**datas)
 
-    def update(self, **kwargs) -> "FFmpegCodingInfo":
+    def update(self, **kwargs: Any) -> Self:
         for key, value in kwargs.items():
             if hasattr(self, key):
                 setattr(self, key, value)

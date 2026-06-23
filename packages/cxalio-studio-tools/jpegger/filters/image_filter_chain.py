@@ -6,7 +6,7 @@ from .image_filter import IImageFilter
 
 
 class ImageFilterChain(IImageFilter):
-    def __init__(self, filters: list):
+    def __init__(self, filters: list[IImageFilter]):
         super().__init__()
         self.filters = filters
 
@@ -33,13 +33,13 @@ class ImageFilterChain(IImageFilter):
         yield f"[blue]({len(self.filters)}Filters)[/]"
 
     def __rich_detail__(self):
-        yield "Filter Chaing"
+        yield "Filter Chain"
         for i, f in enumerate(self.filters):
             yield f"[dim cyan]{i} {f.filter_name()}[/]", f.__filter_description__()
 
     def __filter_description__(self) -> str:
         descriptions = [f.__filter_description__() for f in self.filters]
-        return "；".join(descriptions)
+        return ";".join(descriptions)
 
     def step_descriptions(self) -> list[str]:
         return [f"{f.filter_name()}:{f.__filter_description__()}" for f in self.filters]

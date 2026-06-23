@@ -1,9 +1,10 @@
 from argparse import ArgumentParser
-from collections.abc import Sequence
+from collections.abc import Iterator, Sequence
+from typing import Any
 
 
 class AppContext:
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         self.command: str | None = None
 
         self.max_workers: int = 4
@@ -21,7 +22,7 @@ class AppContext:
             if k in self.__dict__:
                 self.__dict__[k] = v
 
-    def __rich_repr__(self):
+    def __rich_repr__(self) -> Iterator[tuple[str, Any]]:
         yield from self.__dict__.items()
 
     @classmethod

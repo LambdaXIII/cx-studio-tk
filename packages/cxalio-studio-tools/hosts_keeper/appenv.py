@@ -12,7 +12,7 @@ from .appcontext import AppContext
 
 
 class AppEnv(IAppEnvironment):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.app_name = "HostsKeeper"
         self.app_version = "0.7.1"
@@ -23,7 +23,7 @@ class AppEnv(IAppEnvironment):
         self._temp_dir: TemporaryDirectory | None = None
 
     @override
-    def start(self):
+    def start(self) -> None:
         self.show_banners()
         super().start()
         if self._temp_dir is None:
@@ -31,7 +31,7 @@ class AppEnv(IAppEnvironment):
             appenv.whisper(f"临时目录已创建：{self.temp_dir}")
 
     @override
-    def stop(self):
+    def stop(self) -> None:
         if self._temp_dir is not None:
             self._temp_dir.cleanup()
             self._temp_dir = None
@@ -48,7 +48,7 @@ class AppEnv(IAppEnvironment):
     def temp_hosts(self) -> Path:
         return self.temp_dir / "hosts"
 
-    def show_banners(self):
+    def show_banners(self) -> None:
         banners = []
         banner_text = importlib.resources.read_text(__package__, "banner.txt")
         banners.append(r.Align.center(banner_text))
@@ -57,13 +57,13 @@ class AppEnv(IAppEnvironment):
         group = r.Group(*banners)
         appenv.console.print(group, style="bold cyan", highlight=False)
 
-    def is_debug_mode_on(self):
+    def is_debug_mode_on(self) -> bool:
         return self.context.debug_mode
 
-    def is_pretending_mode_on(self):
+    def is_pretending_mode_on(self) -> bool:
         return self.context.pretending_mode
 
-    def load_arguments(self, arguments: Sequence[str] | None = None):
+    def load_arguments(self, arguments: Sequence[str] | None = None) -> None:
         self.context = AppContext.from_arguments(arguments)
 
     @staticmethod

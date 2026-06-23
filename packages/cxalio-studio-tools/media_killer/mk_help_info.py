@@ -6,7 +6,7 @@ from cx_wealth import rich_types as r
 
 
 class MKHelp(WealthHelp):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(prog="mediakiller")
 
         trans_opts = self.add_group("转码选项", "控制转码操作的选项")
@@ -35,12 +35,10 @@ class MKHelp(WealthHelp):
             "-j",
             "--jobs" "--max-workers",
             metavar="NUM",
-            description=tt.auto_unwrap(
-                """
+            description=tt.auto_unwrap("""
                 设置并行工作进程的数量，默认为 1 。
                 不建议设置大于 2 的数值，除非你知道你在干什么。
-                """
-            ),
+                """),
         )
 
         trans_opts.add_action(
@@ -98,11 +96,11 @@ class MKHelp(WealthHelp):
         )
 
     @staticmethod
-    def show_help(console: r.Console):
+    def show_help(console: r.Console) -> None:
         console.print(MKHelp())
 
     @staticmethod
-    def show_full_help(console: r.Console):
+    def show_full_help(console: r.Console) -> None:
         md = importlib.resources.read_text("media_killer", "help.md")
         content = r.Markdown(md, style="default")
         panel = r.Panel(

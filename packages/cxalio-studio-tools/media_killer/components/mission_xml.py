@@ -1,3 +1,4 @@
+from __future__ import annotations
 import xml.etree.ElementTree as ET
 from collections.abc import Iterable, Generator
 from pathlib import Path
@@ -28,7 +29,7 @@ class MissionXML:
         return node
 
     @staticmethod
-    def encode_mission_node(mission: Mission):
+    def encode_mission_node(mission: Mission) -> ET.Element:
         mission_node = ET.Element("mission")
         mission_node.set("mission_id", str(mission.mission_id))
         mission_node.set("preset_id", mission.preset_id)
@@ -65,15 +66,15 @@ class MissionXML:
 
         return mission_node
 
-    def add_mission(self, mission: Mission):
+    def add_mission(self, mission: Mission) -> None:
         mission_node = MissionXML.encode_mission_node(mission)
         self.root.append(mission_node)
 
-    def add_missions(self, missions: Iterable[Mission]):
+    def add_missions(self, missions: Iterable[Mission]) -> None:
         for mission in missions:
             self.add_mission(mission)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.root.findall("mission"))
 
     @staticmethod
@@ -136,16 +137,16 @@ class MissionXML:
         for mission_node in self.root.findall("mission"):
             yield MissionXML.decode_mission_node(mission_node)
 
-    def clear(self):
+    def clear(self) -> None:
         self.root.clear()
 
-    def save(self, path: Path):
+    def save(self, path: Path) -> None:
         tree = ET.ElementTree(self.root)
         path = ensure_parents(path)
         tree.write(path, encoding="utf-8", xml_declaration=True)
 
     @classmethod
-    def load(cls, path: Path):
+    def load(cls, path: Path) -> MissionXML:
         tree = ET.parse(path)
         root = tree.getroot()
         result = cls()

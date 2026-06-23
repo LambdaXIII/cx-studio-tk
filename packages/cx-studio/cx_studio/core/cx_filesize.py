@@ -13,7 +13,7 @@ class FileSize:
         upper = unit.upper()
         if upper == "B":
             return "B"
-        return f"{upper}{"B" if self.__standard == "binary" else "iB"}"
+        return f"{upper}{'B' if self.__standard == 'binary' else 'iB'}"
 
     def __init__(
         self,

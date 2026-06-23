@@ -1,7 +1,8 @@
+from __future__ import annotations
 import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
-
+from typing import Any
 from box import Box
 
 # from pydantic import BaseModel, Field, ConfigDict
@@ -37,14 +38,14 @@ class Preset:
     ffmpeg: str = "ffmpeg"
     overwrite: bool = False
     hardware_accelerate: str | None = "auto"
-    options: str | list = ""
-    source_suffixes: set = field(default_factory=set)
+    options: str | list[str] = ""
+    source_suffixes: set[str] = field(default_factory=set)
     target_suffix: str = ""
     target_folder: Path = Path(".")
     keep_parent_level: int = 0
-    inputs: list = field(default_factory=list)
-    outputs: list = field(default_factory=list)
-    custom: dict = field(default_factory=dict)
+    inputs: list[dict[str, Any]] = field(default_factory=list)
+    outputs: list[dict[str, Any]] = field(default_factory=list)
+    custom: dict[str, Any] = field(default_factory=dict)
     # raw: DataPackage = Field(default_factory=DataPackage)
     raw: Box = Box()
 
@@ -52,21 +53,21 @@ class Preset:
     def _get_source_suffixes(data: Box) -> set[str]:
         default_suffixes = (
             set(DefaultSuffixes.split())
-            if not data.source.ignore_default_suffixes  # type:ignore
+            if not data.source.ignore_default_suffixes  # type: ignore
             else set()
         )
         includes = {
             normalize_suffix(s)
-            for s in tt.auto_list_text(data.source.suffix_includes)  # type:ignore
+            for s in tt.auto_list_text(data.source.suffix_includes)  # type: ignore
         }
         excludes = {
             normalize_suffix(s)
-            for s in tt.auto_list_text(data.source.suffix_excludes)  # type:ignore
+            for s in tt.auto_list_text(data.source.suffix_excludes)  # type: ignore
         }
         return default_suffixes | includes - excludes
 
     @classmethod
-    def load(cls, filename: Path | str):
+    def load(cls, filename: Path | str) -> Preset:
         filename = force_suffix(filename, ".toml")
         with open(filename, "rb") as f:
             toml = tomllib.load(f)
@@ -74,21 +75,21 @@ class Preset:
         data = Box(toml)
 
         return cls(
-            id=data.general.preset_id,  # type:ignore
-            name=data.general.name,  # type:ignore
-            description=data.general.description,  # type:ignore
+            id=data.general.preset_id,  # type: ignore
+            name=data.general.name,  # type: ignore
+            description=data.general.description,  # type: ignore
             path=Path(filename).resolve(),
-            ffmpeg=data.general.ffmpeg,  # type:ignore
-            overwrite=data.general.overwrite,  # type:ignore
-            hardware_accelerate=data.general.hardware_accelerate,  # type:ignore
-            options=data.general.options,  # type:ignore
+            ffmpeg=data.general.ffmpeg,  # type: ignore
+            overwrite=data.general.overwrite,  # type: ignore
+            hardware_accelerate=data.general.hardware_accelerate,  # type: ignore
+            options=data.general.options,  # type: ignore
             source_suffixes=Preset._get_source_suffixes(data),
-            target_suffix=data.target.suffix,  # type:ignore
-            target_folder=data.target.folder,  # type:ignore
-            keep_parent_level=data.target.keep_parent_level,  # type:ignore
-            inputs=data.input,  # type:ignore
-            outputs=data.output,  # type:ignore
-            custom=data.custom.to_dict(),  # type:ignore
+            target_suffix=data.target.suffix,  # type: ignore
+            target_folder=data.target.folder,  # type: ignore
+            keep_parent_level=data.target.keep_parent_level,  # type: ignore
+            inputs=data.input,  # type: ignore
+            outputs=data.output,  # type: ignore
+            custom=data.custom.to_dict(),  # type: ignore
             raw=data,
         )
 

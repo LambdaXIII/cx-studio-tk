@@ -8,9 +8,8 @@ from .profile import Profile
 
 
 class ProfileManager:
-    # _FINDER = SuffixFinder(".toml")
 
-    def __init__(self, profile_dir: Path | None = None):
+    def __init__(self, profile_dir: Path | None = None) -> None:
         self.profile_dir = (
             profile_dir.resolve() if profile_dir else appenv.config_manager.config_dir
         )

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import re
 from typing import Literal, override
 
@@ -25,7 +27,7 @@ class _Action(_Node):
         self.nargs = nargs
         self.optional = optional
 
-    def _argument(self):
+    def _argument(self) -> str:
         return (
             self.metavar
             or (self.flags[0] if self.flags and self.is_positional() else None)

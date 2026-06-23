@@ -4,6 +4,7 @@ import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import AsyncGenerator, Self, Sequence
+from collections.abc import Generator
 
 from box import Box, BoxList
 
@@ -29,8 +30,8 @@ class Profile:
     def load(cls, filename: Path | str) -> Self | None:
         filename = force_suffix(filename, ".toml")
         with open(filename, "rb") as f:
-            toml = tomllib.load(f)
-        data = Box(toml)
+            toml_data = tomllib.load(f)
+        data = Box(toml_data)
 
         metadata = data.get("hosts_profile")
         if not metadata:
@@ -40,14 +41,14 @@ class Profile:
         packages_data.pop("hosts_profile")
 
         return cls(
-            id=metadata.profile_id,  # type:ignore
-            name=metadata.profile_name,  # type:ignore
-            description=metadata.description,  # type:ignore
+            id=metadata.profile_id,  # type: ignore
+            name=metadata.profile_name,  # type: ignore
+            description=metadata.description,  # type: ignore
             path=Path(filename).resolve(),
-            priority=metadata.priority,  # type:ignore
-            enabled=metadata.enabled,  # type:ignore
-            metadata=metadata,  # type:ignore
-            packages=packages_data,  # type:ignore
+            priority=metadata.priority,  # type: ignore
+            enabled=metadata.enabled,  # type: ignore
+            metadata=metadata,  # type: ignore
+            packages=packages_data,  # type: ignore
         )
 
     @staticmethod
@@ -117,7 +118,7 @@ class Profile:
             yield self.profile_end_marker
             yield ""
 
-    def __rich_label__(self) -> str:
+    def __rich_label__(self) -> Generator[str, None, None]:
         enabled = "✅" if self.enabled else "❌"
         yield enabled
         yield self.id

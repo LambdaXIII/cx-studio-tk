@@ -6,8 +6,8 @@ class FFmpegArgumentsPreProcessor:
     对FFmpeg命令行参数中的文件路径进行预处理
     """
 
-    def __init__(self, *arguments) -> None:
-        self._arguments = list(*arguments)
+    def __init__(self, *arguments: str) -> None:
+        self._arguments = list(arguments)
 
     def iter_input_files(self) -> Iterable[str]:
         """

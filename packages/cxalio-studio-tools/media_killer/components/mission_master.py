@@ -36,7 +36,7 @@ class MissionMaster:
         self._cancel_one = AsyncCanceller()
         self._cancel_all_event = asyncio.Event()
 
-    async def _build_mission_info(self, index):
+    async def _build_mission_info(self, index: int) -> None:
         mission = self._missions[index]
         ffmpeg = FFmpegAsync(mission.ffmpeg)
         basic_info = await ffmpeg.get_basic_info(mission.source)
@@ -55,7 +55,7 @@ class MissionMaster:
         if appenv.context.pretending_mode:
             await asyncio.sleep(0.1)
 
-    async def _run_mission(self, index: int):
+    async def _run_mission(self, index: int) -> None:
         async with self._semaphore:
             if self._cancel_all_event.is_set():
                 return
@@ -99,7 +99,7 @@ class MissionMaster:
                     await asyncio.sleep(0.2)
                 appenv.progress.stop_task(mission_info.task_id)
 
-    async def _update_tasks(self):
+    async def _update_tasks(self) -> None:
         mission_count = len(self._missions)
         total_time = completed_time = 0
         start_time = datetime.now()
@@ -150,10 +150,10 @@ class MissionMaster:
         )
 
     @staticmethod
-    async def _poison_task():
+    async def _poison_task() -> None:
         raise PoisonError()
 
-    async def run(self):
+    async def run(self) -> None:
         try:
             self._cancel_all_event.clear()
             # total_start_time = datetime.now()

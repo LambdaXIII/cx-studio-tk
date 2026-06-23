@@ -1,10 +1,11 @@
+from __future__ import annotations
 from argparse import ArgumentParser
-from collections.abc import Sequence
-from typing import Literal
+from collections.abc import Sequence, Generator
+from typing import Any, Literal
 
 
 class AppContext:
-    def __init__(self, **kwargs):
+    def __init__(self, **kwargs: Any) -> None:
         self.inputs: list[str] = []
         self.script_output: str | None = None
         self.pretending_mode: bool = False
@@ -17,14 +18,14 @@ class AppContext:
         self.force_overwrite: bool = False
         self.force_no_overwrite: bool = False
         self.output_dir: str | None = None
-        self.show_help = False
+        self.show_help: bool = False
         self.max_workers: int = 1
 
         for k, v in kwargs.items():
             if k in self.__dict__:
                 self.__dict__[k] = v
 
-    def __rich_repr__(self):
+    def __rich_repr__(self) -> Generator[tuple[str, Any], None, None]:
         yield from self.__dict__.items()
 
     @staticmethod
@@ -141,7 +142,7 @@ class AppContext:
         return parser
 
     @classmethod
-    def from_arguments(cls, arguments: Sequence[str] | None = None):
+    def from_arguments(cls, arguments: Sequence[str] | None = None) -> AppContext:
         parser = cls.__make_parser()
         args = parser.parse_args(arguments)
         return cls(**vars(args))

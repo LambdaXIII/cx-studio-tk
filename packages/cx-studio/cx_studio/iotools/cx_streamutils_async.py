@@ -7,7 +7,9 @@ from collections.abc import AsyncIterable, Awaitable
 from typing import Any
 
 
-def create_subprocess(*args: Any, **kwargs: Any) -> Awaitable[asyncio.subprocess.Process]:
+def create_subprocess(
+    *args: Any, **kwargs: Any
+) -> Awaitable[asyncio.subprocess.Process]:
     # On Windows, CREATE_NEW_PROCESS_GROUP flag is required to use CTRL_BREAK_EVENT signal,
     # which is required to gracefully terminate the FFmpeg process.
     # Reference: https://docs.python.org/3/library/subprocess.html#subprocess.Popen.send_signal
@@ -20,14 +22,16 @@ def create_subprocess(*args: Any, **kwargs: Any) -> Awaitable[asyncio.subprocess
 def wrap_io(stream: bytes | asyncio.StreamReader | None) -> asyncio.StreamReader:
     if isinstance(stream, asyncio.StreamReader):
         return stream
-    
+
     reader = asyncio.StreamReader()
     reader.feed_data(stream or b"")
     reader.feed_eof()
     return reader
 
 
-async def read_stream(stream: asyncio.StreamReader, size: int = -1) -> AsyncIterable[bytes]:
+async def read_stream(
+    stream: asyncio.StreamReader, size: int = -1
+) -> AsyncIterable[bytes]:
     while not stream.at_eof():
         chunk = await stream.read(size)
         if not chunk:
@@ -64,15 +68,12 @@ async def record_stream(stream: asyncio.StreamReader | None) -> bytes:
     return bytes(buffer)
 
 
-async def redirect_stream(stream_from: asyncio.StreamReader | None, stream_to: asyncio.StreamWriter | None):
+async def redirect_stream(
+    stream_from: asyncio.StreamReader | None, stream_to: asyncio.StreamWriter | None
+):
     if stream_from is None or stream_to is None:
         return
-    assert stream_from is not None
-    assert stream_to is not None
 
     async for chunk in read_stream(stream_from, io.DEFAULT_BUFFER_SIZE):
         stream_to.write(chunk)
         await stream_to.drain()
-
-
-    

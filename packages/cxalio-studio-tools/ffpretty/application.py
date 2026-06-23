@@ -68,9 +68,7 @@ class FFPrettyApp(IApplication):
         # 只有运行时间超过5秒才显示时间统计，避免频繁显示
         if time_span.total_seconds() > 5:
             appenv.say(
-                "执行结束，用时[cx.number]{}[/]。".format(
-                    CxTime.from_seconds(time_span.total_seconds()).pretty_string
-                )
+                f"执行结束，用时[cx.number]{CxTime.from_seconds(time_span.total_seconds()).pretty_string}[/]。"
             )
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -91,7 +89,7 @@ class FFPrettyApp(IApplication):
             pass
         elif issubclass(exc_type, SafeError):
             # 处理安全错误，显示错误信息
-            appenv.say("[cx.error]错误：{}[/]".format(exc_val))
+            appenv.say(f"[cx.error]错误：{exc_val}[/]")
             result = True
 
         # 无论如何都要停止应用
@@ -103,12 +101,12 @@ class FFPrettyApp(IApplication):
         with Transcoder(appenv.ffmpeg_executable) as transcoder:
             return asyncio.run(transcoder.run(self.arguments))
 
-    def run_probe(self, files: list[Path]):
+    def run_probe(self, files: list[Path]) -> None:
         prober = Prober()
         for x in files:
             prober.probe(x)
 
-    def run(self):
+    def run(self) -> bool:
         if "-h" in self.arguments or "--help" in self.arguments:
             help_info = MKHelp()
             appenv.say(help_info)

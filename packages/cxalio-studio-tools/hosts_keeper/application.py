@@ -3,7 +3,7 @@ import subprocess
 import sys
 from collections.abc import Sequence
 from pathlib import Path
-from typing import override
+from typing import Self, override
 
 from cx_studio.system import system_open
 from cx_tools.app import IApplication
@@ -17,13 +17,12 @@ from .profile_manager import ProfileManager
 
 
 class Application(IApplication):
-    def __init__(self, arguments: Sequence[str] | None = None):
+    def __init__(self, arguments: Sequence[str] | None = None) -> None:
         super().__init__(arguments or sys.argv[1:])
         self.profile_manager = ProfileManager()
 
     @override
-    def start(self):
-        appenv.load_arguments(self.sys_arguments)
+    def start(self) -> Self:
         appenv.start()
         if appenv.is_debug_mode_on():
             appenv.say("[cx.warning]调试模式已开启。")
@@ -36,12 +35,12 @@ class Application(IApplication):
         return self
 
     @override
-    def stop(self):
+    def stop(self) -> Self:
         appenv.stop()
         return self
 
     @staticmethod
-    def __open_file(file_path: Path):
+    def __open_file(file_path: Path) -> None:
         editor = os.environ.get("EDITOR", None)
         if editor:
             subprocess.run(f"{editor} {file_path.absolute()}", shell=True)
@@ -54,13 +53,13 @@ class Application(IApplication):
             appenv.say(f"[cx.error]打开文件 [link={url}]{file_path.name}[/link] 失败。")
 
     @staticmethod
-    def __open_dir(dir_path: Path):
+    def __open_dir(dir_path: Path) -> None:
         result = system_open(dir_path)
         if not result:
             url = f"file://{dir_path.resolve()}"
             appenv.say(f"[cx.error]打开目录 [link={url}]{dir_path.name}[/link] 失败。")
 
-    def command_new(self):
+    def command_new(self) -> None:
         profile_id = appenv.context.profile_id
         filename = self.profile_manager.generate_profile_path(profile_id)
         if filename.exists():
@@ -78,7 +77,7 @@ class Application(IApplication):
 
         self.__open_file(filename)
 
-    def command_list(self):
+    def command_list(self) -> None:
         table = r.Table(
             r.Column("ID", highlight=False, style="yellow"),
             r.Column("Name", highlight=False, style="cyan"),
@@ -102,7 +101,7 @@ class Application(IApplication):
             appenv.say(f"[cx.success]共找到 {table.row_count} 个配置文件。")
             appenv.say(f"[dim]可尝试使用 show 或 edit 命令查看或编辑配置文件。")
 
-    def command_show(self):
+    def command_show(self) -> None:
         profile = self.profile_manager.profiles.get(appenv.context.profile_id, None)
         if profile:
             appenv.say(WealthDetailPanel(profile, title=profile.id))
@@ -111,7 +110,7 @@ class Application(IApplication):
                 f"[cx.error]未找到 ID 为 {appenv.context.profile_id} 的配置文件。"
             )
 
-    def command_edit(self):
+    def command_edit(self) -> None:
         profile_id = appenv.context.profile_id
         profile = self.profile_manager.profiles.get(profile_id, None)
         file_path = (
@@ -127,7 +126,7 @@ class Application(IApplication):
         else:
             self.__open_file(file_path)
 
-    def command_update(self):
+    def command_update(self) -> None:
         appenv.whisper("update 模式已启动")
         builder = HostsBuilder()
         appenv.whisper("已构建 HostBuilder")
@@ -158,7 +157,7 @@ class Application(IApplication):
             appenv.say(f"[cx.success]已成功保存新的 hosts 文件。")
             self.show_refresh_tips()
 
-    def show_refresh_tips(self):
+    def show_refresh_tips(self) -> None:
         if sys.platform.startswith("win"):
             appenv.say(
                 "[cx.info]请在管理员权限下执行 ipconfig /flushdns 以刷新 DNS 缓存。"
@@ -166,10 +165,10 @@ class Application(IApplication):
         else:
             appenv.say("[cx.info]请别忘了刷新DNS缓存以应用新的 hosts 文件。")
 
-    def command_help(self):
+    def command_help(self) -> None:
         AppHelp.show_help(appenv.console)
 
-    def run(self):
+    def run(self) -> None:
         if appenv.context.command == "help" or appenv.context.show_help:
             self.command_help()
             return

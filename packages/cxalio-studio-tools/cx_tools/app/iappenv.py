@@ -1,5 +1,6 @@
 import asyncio
 from abc import ABC
+from typing import Self
 
 from rich.console import Console
 from rich.highlighter import RegexHighlighter
@@ -38,7 +39,7 @@ class CxHighlighter(RegexHighlighter):
 
 class IAppEnvironment(ABC):
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.app_name = ""
         self.app_version = ""
         self.highlighter = CxHighlighter()
@@ -67,30 +68,26 @@ class IAppEnvironment(ABC):
             # self.really_wanna_quit = True
             self.really_wanna_quit_event.set()
 
-    def handle_interrupt(self, _sig, _frame):
+    def handle_interrupt(self, _sig, _frame) -> None:
         self.interrupt_handler.trigger()
 
     # @abstractmethod
-    def is_debug_mode_on(self):
+    def is_debug_mode_on(self) -> bool:
         return False
 
     # @abstractmethod
-    def start(self):
-        self.whisper(
-            "{} v{} environment started.".format(self.app_name, self.app_version)
-        )
+    def start(self) -> None:
+        self.whisper(f"{self.app_name} v{self.app_version} environment started.")
 
     # @abstractmethod
-    def stop(self):
-        self.whisper(
-            "{} v{} environment stopped.".format(self.app_name, self.app_version)
-        )
+    def stop(self) -> None:
+        self.whisper(f"{self.app_name} v{self.app_version} environment stopped.")
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         self.start()
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type, exc_val, exc_tb) -> bool | None:
         self.stop()
         self.whisper("Bye ~")
         return False

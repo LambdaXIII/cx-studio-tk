@@ -6,7 +6,7 @@ from cx_wealth import rich_types as r
 
 
 class AppHelp(WealthHelp):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(prog="hostskeeper")
 
         opt_group = self.add_group("命令和参数")
@@ -17,15 +17,13 @@ class AppHelp(WealthHelp):
             nargs="?",
             optional=True,
             metavar="list|show|edit|update|help",
-            description=(
-                """\
+            description=("""\
 要执行的操作，可选值为：
  - [u]list[/]：列出所有配置文件。
  - [u]show[/]：显示当前配置文件的内容。
  - [u]edit[/]：编辑当前配置文件。
  - [u]update[/]：按照所有激活的配置文件更新hosts。
- - [u]help[/]：显示帮助信息。"""
-            ),
+ - [u]help[/]：显示帮助信息。"""),
         )
 
         opt_group.add_action(
@@ -89,11 +87,11 @@ class AppHelp(WealthHelp):
         )
 
     @staticmethod
-    def show_help(console: r.Console):
+    def show_help(console: r.Console) -> None:
         console.print(AppHelp())
 
     @staticmethod
-    def show_full_help(console: r.Console):
+    def show_full_help(console: r.Console) -> None:
         md = importlib.resources.read_text(__package__, "help.md")
         content = r.Markdown(md, style="default")
         panel = r.Panel(

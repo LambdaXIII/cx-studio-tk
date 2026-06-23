@@ -1,3 +1,6 @@
+from collections.abc import Generator
+from typing import Any, Self
+
 from argparse import ArgumentParser
 from collections.abc import Sequence
 
@@ -24,11 +27,11 @@ class SimpleAppContext:
             if k in self.__dict__:
                 self.__dict__[k] = v
 
-    def __rich_repr__(self):
+    def __rich_repr__(self) -> Generator[tuple[str, Any], None, None]:
         yield from self.__dict__.items()
 
     @classmethod
-    def from_arguments(cls, arguments: Sequence[str] | None = None):
+    def from_arguments(cls, arguments: Sequence[str] | None = None) -> Self:
         parser = cls.__make_parser()
         args = parser.parse_args(arguments)
         return cls(**vars(args))
@@ -43,7 +46,7 @@ class SimpleAppContext:
         parser.add_argument(
             "--help", "-h", action="store_true", help="显示帮助信息", dest="show_help"
         )
-        parser.add_argument("--scale", action="store", dest="scale_factor")
+        parser.add_argument("--scale", action="store", dest="scale_factor", type=float)
         parser.add_argument("--size", "-s", action="store", dest="size")
         parser.add_argument("--width", action="store", dest="width")
         parser.add_argument("--height", action="store", dest="height")
@@ -65,11 +68,11 @@ class SimpleAppContext:
         if self.scale_factor:
             yield "缩放因子", self.scale_factor
         if self.size:
-            yield f"缩放尺寸{ignore_text if self.scale_factor else ""}", self.size
+            yield f"缩放尺寸{ignore_text if self.scale_factor else ''}", self.size
         if self.width:
-            yield f"缩放宽度{ignore_text if self.scale_factor or self.size else ""}", self.width
+            yield f"缩放宽度{ignore_text if self.scale_factor or self.size else ''}", self.width
         if self.height:
-            yield f"缩放高度{ignore_text if self.scale_factor or self.size else ""}", self.height
+            yield f"缩放高度{ignore_text if self.scale_factor or self.size or self.width else ''}", self.height
         if self.color_space:
             yield "颜色空间", self.color_space
         if self.quality:

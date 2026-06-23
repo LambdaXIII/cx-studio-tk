@@ -65,7 +65,7 @@ class ContenterBase:
         package: Box | dict | None = None,
         profile_metadata: Box | dict | None = None,
         **kwargs,
-    ) -> type[AbstractContenter] | None:
+    ) -> AbstractContenter | None:
         """获取内容器"""
         return (
             ContenterBase.CONTENTERS.get(schema)(package, profile_metadata, **kwargs)

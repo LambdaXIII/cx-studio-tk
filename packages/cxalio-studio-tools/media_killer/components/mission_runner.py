@@ -13,7 +13,7 @@ from cx_studio.filesystem import is_executable
 from cx_wealth import rich_types as r
 from cx_wealth.indexed_list_panel import IndexedListPanel
 from cx_wealth.wealth_detail import WealthDetailPanel
-from media_killer.appenv import appenv
+from ..appenv import appenv
 from .exception import SafeError
 from .mission import Mission
 
@@ -76,10 +76,8 @@ class MissionRunner:
         return self._running_cond.locked()
 
     def make_line_report(self, right_side: str):
-        header = "[bright_black]M[/] [dim green][{i_count}->{o_count}][/] ".format(
-            i_count=len(self.mission.inputs), o_count=len(self.mission.outputs)
-        )
-        name = "[yellow]{}[/]".format(self.mission.name)
+        header = f"[bright_black]M[/] [dim green][{len(self.mission.inputs)}->{len(self.mission.outputs)}][/] "
+        name = f"[yellow]{self.mission.name}[/]"
 
         label = header + name
 
@@ -112,9 +110,7 @@ class MissionRunner:
         await self._clean_up()
 
     async def _on_canceled(self, reason: str | None = None):
-        appenv.say(
-            self.make_line_report("[bright_blue]{}[/]".format(reason or "被取消"))
-        )
+        appenv.say(self.make_line_report(f"[bright_blue]{reason or '被取消'}[/]"))
         await self._clean_up()
         if self._cancel_event.is_set():
             self._cancel_event.clear()
@@ -137,14 +133,14 @@ class MissionRunner:
             raise SafeError("检测到重叠的输入输出文件")
 
         if not is_executable(Path(self._ffmpeg.executable)):
-            raise SafeError("ffmpeg可执行文件无效:{}".format(self._ffmpeg.executable))
+            raise SafeError(f"ffmpeg可执行文件无效:{self._ffmpeg.executable}")
 
         no_existed_input_files = set(
             itertools.filterfalse(lambda a: a.exists(), self._input_files)
         )
         if no_existed_input_files:
             raise SafeError(
-                "输入文件不存在: {}".format(";".join(map(str, no_existed_input_files)))
+                f"输入文件不存在: {';'.join(map(str, no_existed_input_files))}"
             )
 
         o_dirs = set(map(lambda a: a.parent, self._output_files))
@@ -217,7 +213,7 @@ class MissionRunner:
 
 
 class MissionPretender(MissionRunner):
-    def _init__(self, mission: Mission):
+    def __init__(self, mission: Mission):
         super().__init__(mission)
 
     async def _pretending_prepare_mission(self):
@@ -231,7 +227,7 @@ class MissionPretender(MissionRunner):
         self._task_description = "检查ffmpeg可执行文件"
         await asyncio.sleep(0.3)
         if not is_executable(Path(self._ffmpeg.executable)):
-            raise SafeError("ffmpeg可执行文件无效:{}".format(self._ffmpeg.executable))
+            raise SafeError(f"ffmpeg可执行文件无效:{self._ffmpeg.executable}")
 
         self._task_description = "检查输入文件"
         await asyncio.sleep(0.5)
@@ -240,9 +236,7 @@ class MissionPretender(MissionRunner):
         )
         if no_existed_input_files:
             raise SafeError(
-                "输入文件不存在: {}".format(
-                    ";".join(map(saferepr, no_existed_input_files))
-                )
+                f"输入文件不存在: {';'.join(map(saferepr, no_existed_input_files))}"
             )
 
         self._task_description = "检查输出目录"

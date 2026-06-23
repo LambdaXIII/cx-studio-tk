@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from collections.abc import Iterator
 from typing import Self
 
 from .. import rich_types as r
@@ -18,7 +19,7 @@ class _Node:
         self.parent: _Node | None = None
         self._set_parent(parent)
 
-    def _set_parent(self, parent: _Node | None):
+    def _set_parent(self, parent: _Node | None) -> None:
         if self.parent is not None:
             self.parent.children.remove(self)
         self.parent = parent
@@ -29,7 +30,7 @@ class _Node:
         node._set_parent(self)
         return self
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[_Node]:
         yield from self.children
 
     @property

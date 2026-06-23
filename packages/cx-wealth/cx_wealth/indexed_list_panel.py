@@ -85,7 +85,7 @@ class IndexedListPanel:
         total = len(self._items)
         total_digits = len(str(total))
 
-        if self._max_lines <= 0 or self._max_lines + 1 >= total:
+        if self._max_lines <= 2 or self._max_lines + 1 >= total:
             for i, item in enumerate(self._items, start=self._start_index):
                 table.add_row(f"{i:>{total_digits}}", self.__check_item(item))
 
@@ -96,7 +96,7 @@ class IndexedListPanel:
                 table.add_row(f"{i:>{total_digits}}", self.__check_item(item))
             table.add_row(
                 f"[red][{'.'*total_digits}][/]",
-                f"[italic red]skipped {total - safe_lines } items...[/]",
+                f"[italic red]skipped {total - safe_lines} items...[/]",
             )
             last_row_number = total - self._start_index
             table.add_row(

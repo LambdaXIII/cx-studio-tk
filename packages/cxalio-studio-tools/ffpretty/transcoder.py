@@ -12,20 +12,20 @@ from .appenv import appenv
 class Transcoder:
     def __init__(self, ffmpeg_executable: str | Path | None = None):
         self._ffmpeg = FFmpegAsync(ffmpeg_executable)
-        self._taskID = None
+        self._task_id = None
         self._task_description = "Transcoding"
         self._ffmpeg_outputs = []
 
     def __enter__(self):
-        self._taskID = appenv.progress.add_task(
+        self._task_id = appenv.progress.add_task(
             description="[green]准备中...[/]", total=None
         )
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        if self._taskID is not None:
-            appenv.progress.remove_task(self._taskID)
-            self._taskID = None
+        if self._task_id is not None:
+            appenv.progress.remove_task(self._task_id)
+            self._task_id = None
         return False
 
     async def _on_verbose(self, line: str):
@@ -34,7 +34,7 @@ class Transcoder:
 
     async def _random_task_description(
         self, inputs: list[str] | None = None, outputs: list[str] | None = None
-    ):
+    ) -> None:
         """随机选择一个任务描述"""
         contents = []
         for x in inputs:
@@ -50,7 +50,7 @@ class Transcoder:
             self._task_description = t
             await asyncio.sleep(2)
 
-    async def run(self, arguments: list[str] | None = None):
+    async def run(self, arguments: list[str] | None = None) -> bool:
         """执行转码任务
 
         Args:
@@ -71,9 +71,9 @@ class Transcoder:
                 raise SafeError(f"输入文件 {i} 不存在。")
 
         # 检查输出文件是否已存在
-        existed_outputs = [x for x in outputs if Path(x).exists()]
-        if existed_outputs and "-y" not in arguments:
-            appenv.whisper(IndexedListPanel(existed_outputs, title="已存在的输出文件"))
+        existing_outputs = [x for x in outputs if Path(x).exists()]
+        if existing_outputs and "-y" not in arguments:
+            appenv.whisper(IndexedListPanel(existing_outputs, title="已存在的输出文件"))
             raise SafeError("请使用 -y 参数覆盖已存在的文件。")
 
         # 创建不存在的输出目录
@@ -96,11 +96,11 @@ class Transcoder:
             total = status.total_time.total_seconds if status.total_time else None
 
             # 格式化速度显示
-            speed = "[bright_black][{:.2f}x][/]".format(status.current_speed)
+            speed = f"[bright_black][{status.current_speed:.2f}x][/]"
 
             # 更新进度描述
             appenv.progress.update(
-                self._taskID,
+                self._task_id,
                 completed=current,
                 total=total,
                 description=f"{summary}{speed}[green]{self._task_description}[/]",
@@ -109,19 +109,19 @@ class Transcoder:
         @self._ffmpeg.on("started")
         def on_started():
             appenv.progress.update(
-                self._taskID, description=f"{summary}[cx.success]开始转码...[/]"
+                self._task_id, description=f"{summary}[cx.success]开始转码...[/]"
             )
 
         @self._ffmpeg.on("finished")
         def on_finished():
             appenv.progress.update(
-                self._taskID, description=f"{summary}[cx.success]转码完成[/]"
+                self._task_id, description=f"{summary}[cx.success]转码完成[/]"
             )
 
         @self._ffmpeg.on("terminated")
         def on_terminated():
             appenv.progress.update(
-                self._taskID, description=f"{summary}[cx.error]转码失败[/]"
+                self._task_id, description=f"{summary}[cx.error]转码失败[/]"
             )
             appenv.whisper(self._ffmpeg_outputs, title="FFmpeg 输出")
 
@@ -144,12 +144,9 @@ class Transcoder:
             self._ffmpeg.cancel()
             result = False
 
-        except SafeError:
-            raise
-
         except Exception as e:
             appenv.progress.update(
-                self._taskID, description=f"{summary}[cx.error]转码异常: {str(e)}[/]"
+                self._task_id, description=f"{summary}[cx.error]转码异常: {str(e)}[/]"
             )
             result = False
             raise SafeError(f"{str(e)}")

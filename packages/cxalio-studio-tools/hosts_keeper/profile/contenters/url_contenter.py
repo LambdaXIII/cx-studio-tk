@@ -19,7 +19,7 @@ class UrlContenter(AbstractContenter):
         self,
         package: Box | dict | None = None,
         profile_metadata: Box | dict | None = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         super().__init__(package, profile_metadata, **kwargs)
         self.url: str | None = self.package.get("url")
@@ -46,7 +46,9 @@ class UrlContenter(AbstractContenter):
             appenv.say(f"[cx.error]无法获取 URL 内容: {e}")
             return ""
         except UnicodeDecodeError:
-            appenv.whisper(f"[cx.info]使用配置编码 {self.encoding} 解码失败，尝试 utf-8 回退...")
+            appenv.whisper(
+                f"[cx.info]使用配置编码 {self.encoding} 解码失败，尝试 utf-8 回退..."
+            )
             try:
                 return content_bytes.decode("utf-8", errors="replace")
             except Exception:

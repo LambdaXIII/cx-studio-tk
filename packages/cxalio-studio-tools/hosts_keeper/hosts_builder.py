@@ -26,7 +26,7 @@ class HostsBuilder:
             encoding = detect_file_encoding(self.hosts_file_path)
             profile_entered: bool = False
             with self.hosts_file_path.open("r", encoding=encoding) as f:
-                for line in f.readlines():
+                for line in f:
                     await asyncio.sleep(0)
                     if self.PROFILE_START_MARKER.match(line):
                         profile_entered = True

@@ -21,7 +21,7 @@ class Mission:
     saving_options: dict = field(default_factory=dict)
 
     def __rich_label__(self):
-        yield f"[yellow][>{self.target_format or "auto"}][/]"
+        yield f'[yellow][>{self.target_format or "auto"}][/]'
         yield self.source.name
         yield f"[blue]=={len(self.filter_chain)}=>[/]"
         yield self.target.name

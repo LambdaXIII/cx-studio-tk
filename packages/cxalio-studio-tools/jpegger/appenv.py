@@ -9,7 +9,7 @@ class AppEnv(IAppEnvironment):
         self.app_version = "0.7.0"
         self.context: SimpleAppContext
 
-    def is_debug_mode_on(self):
+    def is_debug_mode_on(self) -> bool:
         return self.context.debug_mode
 
 

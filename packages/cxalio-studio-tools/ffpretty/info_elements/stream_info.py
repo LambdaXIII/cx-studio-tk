@@ -1,4 +1,6 @@
+from collections.abc import Generator
 from typing import Any, Iterable
+
 
 import cx_wealth.rich_types as r
 from cx_studio.core.cx_filesize import FileSize
@@ -27,7 +29,7 @@ class StreamInfo:
         c_long_name = self.data.get("codec_long_name", "")
         return c_long_name.split(" / ")
 
-    def __rich_label__(self):
+    def __rich_label__(self) -> Generator[r.Text, None, None]:
         index = self.stream_index
         s_type = self.codec_type
         match s_type:

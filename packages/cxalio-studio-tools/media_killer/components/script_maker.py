@@ -9,7 +9,7 @@ from ..appenv import appenv
 
 
 class ScriptMaker:
-    def __init__(self, missions: Iterable[Mission]):
+    def __init__(self, missions: Iterable[Mission]) -> None:
         self.missions = missions
         self._make_dir = "mkdir" if sys.platform == "win32" else "mkdir -p"
         self._default_suffix = ".ps1" if sys.platform == "win32" else ".sh"
@@ -29,7 +29,7 @@ class ScriptMaker:
             es.extend(mission.iter_arguments(quote_mode="auto"))
             yield " ".join(es)
 
-    def save(self, filename: str | Path):
+    def save(self, filename: str | Path) -> None:
         filename = Path(filename)
         if filename.suffix == "":
             filename = filename.with_suffix(self._default_suffix)

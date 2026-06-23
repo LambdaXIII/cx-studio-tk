@@ -34,7 +34,7 @@ class Mission:
     def name(self):
         return get_basename(self.source)
 
-    def __rich__(self):
+    def __rich__(self) -> r.Text:
         return r.Text.assemble(
             *[
                 r.Text.from_markup(x)
@@ -43,7 +43,7 @@ class Mission:
             overflow="crop",
         )
 
-    def __rich_label__(self):
+    def __rich_label__(self) -> Generator[r.RenderableType, None, None]:
         yield "[bold bright_black]M[/]"
         yield f"[dim green][[cyan]{self.preset_name}[/cyan]:{len(self.inputs)}->{len(self.outputs)}][/dim green]"
         yield f"[yellow]{self.name}[/]"
@@ -76,7 +76,7 @@ class Mission:
             yield from output_group.iter_arguments()
             yield quote_path(output_group.filename, quote_mode)
 
-    def __rich_detail__(self):
+    def __rich_detail__(self) -> Generator[tuple[str, object], None, None]:
         yield "名称", self.name
         yield "来源预设", f"{self.preset_name}({self.preset_name})"
         yield "来源文件路径", self.source

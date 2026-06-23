@@ -75,7 +75,6 @@ class WealthHelp:
             desc = r.Text.from_markup(
                 self.description, style="cx.help.group.description"
             )
-            # desc.no_wrap = True
             desc.overflow = "fold"
         elif isinstance(self.description, r.RenderableType):
             desc = self.description

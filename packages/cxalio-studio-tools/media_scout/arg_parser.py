@@ -127,7 +127,7 @@ class MSHelp(WealthHelp):
         o_group.add_action(
             "-q",
             "--quote-mode",
-            metavar="auto|force|excape|none",
+            metavar="auto|force|escape|none",
             description="指定对于包含空格的路径的处理方式",
         )
         o_group.add_action(

@@ -2,7 +2,7 @@ import re
 import urllib.parse
 import xml.etree.ElementTree as ET
 from pathlib import PurePath
-from typing import Iterable
+from collections.abc import Iterable
 
 from .inspector_info import InspectorInfo
 from .media_path_inspector import MediaPathInspector

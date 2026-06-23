@@ -98,15 +98,15 @@ class CxTime:
     def pretty_string(self):
         parts = []
         if self.days > 0:
-            parts.append(f"{self.days}{_("日")}")
+            parts.append(f"{self.days}{_('日')}")
         if self.hours > 0:
-            parts.append(f"{self.hours}{_("小时")}")
+            parts.append(f"{self.hours}{_('小时')}")
         if self.minutes > 0:
-            parts.append(f"{self.minutes}{_("分")}")
+            parts.append(f"{self.minutes}{_('分')}")
         if self.seconds > 0:
-            parts.append(f"{self.seconds}{_("秒")}")
+            parts.append(f"{self.seconds}{_('秒')}")
         if self.milliseconds > 0 > self.total_minutes:
-            parts.append(f"{self.milliseconds}{_("毫秒")}")
+            parts.append(f"{self.milliseconds}{_('毫秒')}")
         return "".join(parts)
 
     def __add__(self, other):

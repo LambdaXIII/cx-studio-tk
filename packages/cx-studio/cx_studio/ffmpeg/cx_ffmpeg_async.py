@@ -11,6 +11,7 @@ from pyee.asyncio import AsyncIOEventEmitter
 from cx_studio.core import CxTime, FileSize
 from cx_studio.filesystem.path_expander import CmdFinder
 from cx_studio.iotools import AsyncStreamUtils
+from typing import Any
 from .cx_ff_infos import FFmpegCodingInfo
 
 
@@ -59,7 +60,6 @@ class FFmpegAsync(AsyncIOEventEmitter):
 
             if "current_frame" in coding_info_dict:
                 self.emit("status_updated", copy(self._coding_info))
-        # for
 
     def is_running(self) -> bool:
         return self._is_running.locked()
@@ -75,7 +75,9 @@ class FFmpegAsync(AsyncIOEventEmitter):
         except asyncio.TimeoutError:
             self._process.terminate()
 
-    async def _redirect_input(self, input_stream: asyncio.StreamReader | bytes | None):
+    async def _redirect_input(
+        self, input_stream: asyncio.StreamReader | bytes | None
+    ) -> None:
         input_stream = AsyncStreamUtils.wrap_io(input_stream)
         if self._process.stdin is None:
             return
@@ -95,7 +97,6 @@ class FFmpegAsync(AsyncIOEventEmitter):
                 self._executable,
                 *args,
                 stdin=asyncio.subprocess.PIPE if input_stream else None,
-                # stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
             )
 
@@ -130,7 +131,6 @@ class FFmpegAsync(AsyncIOEventEmitter):
                 await asyncio.wait(tasks)
 
             except asyncio.CancelledError:
-                # self._canceled = True
                 self.cancel()
 
             finally:
@@ -147,11 +147,11 @@ class FFmpegAsync(AsyncIOEventEmitter):
 
     async def _parse_basic_info_from_stream(
         self, input_stream: asyncio.StreamReader
-    ) -> dict:
+    ) -> dict[str, Any]:
         result = {}
         streams = []
         async for line in AsyncStreamUtils.readlines_from_stream(input_stream):
-            line_str = line.decode()
+            line_str = line.decode("utf-8", errors="ignore")
             input_match = re.match(r"Input #0, (.+), from '(.+)':", line_str)
             if input_match:
                 result["format_name"] = input_match.group(1)
@@ -172,7 +172,7 @@ class FFmpegAsync(AsyncIOEventEmitter):
             if streams_match:
                 streams.append(line_str.strip())
                 continue
-        if len(streams) > 0:
+        if streams:
             result["streams"] = streams
         return result
 

@@ -1,8 +1,7 @@
+from collections.abc import Iterable, Sequence
 import asyncio
 import importlib.resources
-import importlib.resources
 import sys
-from collections.abc import Sequence
 from pathlib import Path
 from typing import override
 
@@ -23,26 +22,31 @@ from .mk_help_info import MKHelp
 
 
 class Application(IApplication):
-    def __init__(self, arguments: Sequence[str] | None = None):
+    def __init__(self, arguments: Sequence[str] | None = None) -> None:
         super().__init__(arguments or sys.argv[1:])
         self.presets: list[Preset] = []
         self.sources: list[Path] = []
         self.missions: list[Mission] = []
 
-    def start(self):
+    def start(self) -> None:
         appenv.load_arguments(self.sys_arguments)
         appenv.start()
         appenv.show_banner()
         return self
 
-    def stop(self):
+    def stop(self) -> None:
         if not appenv.context.continue_mode:
             self.save_missions(self.missions)
         appenv.whisper("Bye ~")
         appenv.stop()
 
     @override
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: object | None,
+    ) -> bool:
         result = super().__exit__(exc_type, exc_val, exc_tb)
         if exc_type is None:
             appenv.whisper("程序正常退出。")
@@ -81,14 +85,14 @@ class Application(IApplication):
             f"[cx.success]已生成示例配置文件：{filename}。[/][blink red]请在修改后使用！[/]"
         )
 
-    def _set_presets_and_sources(self, presets, sources):
+    def _set_presets_and_sources(
+        self, presets: Iterable[Preset], sources: Iterable[Path]
+    ) -> None:
         # 去除重复的配置文件
         preset_ids = set()
         for p in presets:
             if p.id in preset_ids:
-                appenv.say(
-                    "[cx.warning]发现重复的配置文件: [cx.warning]{}[/]".format(p.path)
-                )
+                appenv.say(f"[cx.warning]发现重复的配置文件: [cx.warning]{p.path}[/]")
                 continue
             preset_ids.add(p.id)
             self.presets.append(p)
@@ -102,12 +106,10 @@ class Application(IApplication):
 
         if self.presets or self.sources:
             appenv.say(
-                "已添加 {preset_count} 个配置文件和 {source_count} 个来源路径。".format(
-                    preset_count=len(self.presets), source_count=len(self.sources)
-                )
+                f"已添加 {len(self.presets)} 个配置文件和 {len(self.sources)} 个来源路径。"
             )
 
-    def _sort_and_set_missions(self, missions):
+    def _sort_and_set_missions(self, missions: Iterable[Mission]) -> None:
         self.missions = list(MissionArranger(missions, appenv.context.sort_mode))
         # 检查任务数量并判断是否运行
         if not self.missions:
@@ -116,15 +118,13 @@ class Application(IApplication):
         old_count, new_count = len(missions), len(self.missions)
         if old_count != new_count:
             appenv.say(
-                "[cx.warning]已自动过滤掉 {} 个重复任务，共 {} 个任务需要执行。[/]".format(
-                    old_count - new_count, new_count
-                )
+                f"[cx.warning]已自动过滤掉 {old_count - new_count} 个重复任务，共 {new_count} 个任务需要执行。[/]"
             )
         else:
             appenv.say("全部任务整理完毕，已按照设定方式排序。")
         appenv.whisper(IndexedListPanel(self.missions, "整理完的任务列表"))
 
-    def run(self):
+    def run(self) -> None:
         if appenv.context.show_help:
             MKHelp.show_help(appenv.console)
             return
@@ -141,9 +141,7 @@ class Application(IApplication):
                 if suffix == ".toml" or suffix == "":
                     self.export_example_preset(s)
                 else:
-                    appenv.whisper(
-                        "{filename} 并非合法的文件名，不予处理。".format(filename=s)
-                    )
+                    appenv.whisper(f"{s} 并非合法的文件名，不予处理。")
             return
 
         # 扫描输入文件
@@ -156,14 +154,14 @@ class Application(IApplication):
         missions = []
         if appenv.context.continue_mode:
             last_missions = self.load_missions()
-            appenv.say("从上次执行中恢复了 {} 个任务……".format(len(last_missions)))
+            appenv.say(f"从上次执行中恢复了 {len(last_missions)} 个任务……")
             missions.extend(last_missions)
 
         # 整理并生成任务序列
         output_dir = None
         if appenv.context.output_dir:
             output_dir = Path(appenv.context.output_dir).resolve()
-            appenv.say('输出目录将被替换为: "{}"'.format(output_dir))
+            appenv.say(f'输出目录将被替换为: "{output_dir}"')
 
         current_missions = asyncio.run(
             MissionMaker.auto_make_missions(
@@ -173,7 +171,7 @@ class Application(IApplication):
             )
         )
         if current_missions:
-            appenv.say("生成了 {} 个任务。".format(len(current_missions)))
+            appenv.say(f"生成了 {len(current_missions)} 个任务。")
         missions.extend(current_missions)
         self._sort_and_set_missions(missions)
 

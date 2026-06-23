@@ -43,7 +43,7 @@ class Prober:
         except json.JSONDecodeError as e:
             raise SafeError(f"解析ffprobe输出失败: {str(e)}")
 
-    def probe(self, file: Path) -> dict[str, Any]:
+    def probe(self, file: Path) -> None:
         """同步获取媒体文件的详细信息"""
         details = asyncio.run(self.get_details(file))
         media_info = MediaInfo(details)

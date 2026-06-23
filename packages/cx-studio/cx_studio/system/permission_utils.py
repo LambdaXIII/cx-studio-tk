@@ -15,7 +15,7 @@ def is_user_admin() -> bool:
         else:
             # Linux/macOS/WSL: 检查有效用户ID是否为0 (root)
             return os.geteuid() == 0
-    except:
+    except Exception:
         # 安全兜底：任何异常均视为无权限（避免程序崩溃）
         return False
 

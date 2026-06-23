@@ -1,5 +1,4 @@
 import asyncio
-import importlib
 import importlib.resources
 import signal
 import time
@@ -7,8 +6,6 @@ from collections.abc import Sequence
 from datetime import datetime
 from pathlib import Path
 
-from cx_studio.core import CxTime
-# from .mk_help_info import MKHelp
 from cx_tools import FileSizeCounter
 from cx_tools.app import IAppEnvironment, ConfigManager
 from cx_wealth import rich_types as r
@@ -17,7 +14,7 @@ from .appcontext import AppContext
 
 
 class AppEnv(IAppEnvironment):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.app_name = "MediaKiller"
         self.app_version = "0.7.0"
@@ -46,17 +43,17 @@ class AppEnv(IAppEnvironment):
         self.input_filesize_counter = FileSizeCounter()
         self.output_filesize_counter = FileSizeCounter()
 
-    def is_debug_mode_on(self):
+    def is_debug_mode_on(self) -> bool:
         return self.context.debug_mode
 
     def load_arguments(self, arguments: Sequence[str] | None = None):
         self.context = AppContext.from_arguments(arguments)
 
-    def start(self):
+    def start(self) -> None:
         self.progress.start()
         self._app_start_time = datetime.now()
 
-    def stop(self):
+    def stop(self) -> None:
         self.progress.refresh()
         time.sleep(0.1)
         self.progress.stop()
@@ -80,23 +77,21 @@ class AppEnv(IAppEnvironment):
         time_spent = datetime.now() - self._app_start_time
         if time_spent.total_seconds() > 5:
             self.say(
-                "[cx.whisper]总共耗时[cx.number]{}[/]。[/]".format(
-                    CxTime.from_seconds(time_spent.total_seconds()).pretty_string
-                )
+                f"[cx.whisper]总共耗时[cx.number]{CxTime.from_seconds(time_spent.total_seconds()).pretty_string}[/]。[/]"
             )
 
-    def pretending_sleep(self, interval: float = 0.2):
+    def pretending_sleep(self, interval: float = 0.2) -> None:
         if self.context.pretending_mode:
             time.sleep(interval)
 
-    async def pretending_asleep(self, interval: float = 0.2):
+    async def pretending_asleep(self, interval: float = 0.2) -> None:
         if self.context.pretending_mode:
             await asyncio.sleep(interval)
 
-    def add_garbage_files(self, *filenames: str | Path):
+    def add_garbage_files(self, *filenames: str | Path) -> None:
         self._garbage_files.extend(map(Path, filenames))
 
-    def clean_garbage_files(self):
+    def clean_garbage_files(self) -> None:
         if not self._garbage_files:
             return
         self.say("[dim]正在清理失败的目标文件...[/]")
@@ -105,13 +100,10 @@ class AppEnv(IAppEnvironment):
             self.whisper(f"  [cx.filepath]{filename}[/] [red]已删除[/red]")
             if self.context.debug_mode:
                 time.sleep(0.1)
-        if len(self._garbage_files) > 0:
-            self.say(f"[dim]已清理 {len(self._garbage_files)} 个目标文件。[/]")
-        else:
-            self.say("[dim cx.info]没有失败的目标文件需要清理。[/]")
+        self.say(f"[dim]已清理 {len(self._garbage_files)} 个目标文件。[/]")
         self._garbage_files.clear()
 
-    def show_banner(self):
+    def show_banner(self) -> None:
         banners = []
 
         with importlib.resources.open_text("media_killer", "banner.txt") as banner:

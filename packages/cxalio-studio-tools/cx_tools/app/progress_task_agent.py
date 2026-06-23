@@ -1,3 +1,5 @@
+from typing import Self
+
 from rich.progress import Progress, TaskID
 
 from cx_studio.text import random_string
@@ -21,39 +23,39 @@ class ProgressTaskAgent:
     def task_id(self) -> TaskID | None:
         return self._task_id
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> Self:
         if self._progress:
             self._task_id = self._progress.add_task(self._task_name)
         if self._progress and self._task_id:
             self._progress.update(self._task_id, visible=True)
         return self
 
-    async def __aexit__(self, exc_type, exc_value, traceback):
+    async def __aexit__(self, exc_type, exc_value, traceback) -> bool | None:
         if self._progress and self._task_id:
             self._progress.stop_task(self._task_id)
             self._progress.update(self._task_id, visible=False)
         self._task_id = None
         return False
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         if self._progress:
             self._task_id = self._progress.add_task(self._task_name)
         if self._progress and self._task_id:
             self._progress.update(self._task_id, visible=True)
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(self, exc_type, exc_value, traceback) -> bool | None:
         if self._progress and self._task_id:
             self._progress.stop_task(self._task_id)
             self._progress.update(self._task_id, visible=False)
         self._task_id = None
         return False
 
-    def start(self):
+    def start(self) -> None:
         if self._progress and self._task_id:
             self._progress.start_task(self._task_id)
 
-    def stop(self):
+    def stop(self) -> None:
         if self._progress and self._task_id:
             self._progress.stop_task(self._task_id)
 
@@ -81,34 +83,34 @@ class ProgressTaskAgent:
                 **fields,
             )
 
-    def advance(self, advance: float = 1.0):
+    def advance(self, advance: float = 1.0) -> None:
         if self._progress and self._task_id:
             self._progress.update(self._task_id, advance=advance)
 
-    def set_total(self, total: float | None):
+    def set_total(self, total: float | None) -> None:
         if self._progress and self._task_id:
             self._progress.update(self._task_id, total=total)
 
-    def set_description(self, description: str):
+    def set_description(self, description: str) -> None:
         if self._progress and self._task_id:
             self._progress.update(self._task_id, description=description)
 
-    def set_completed(self, completed: float):
+    def set_completed(self, completed: float) -> None:
         if self._progress and self._task_id:
             self._progress.update(self._task_id, completed=completed)
 
-    def set_progress(self, completed: float, total: float | None):
+    def set_progress(self, completed: float, total: float | None) -> None:
         if self._progress and self._task_id:
             self._progress.update(self._task_id, completed=completed, total=total)
 
-    def show(self):
+    def show(self) -> None:
         if self._progress and self._task_id:
             self._progress.update(self._task_id, visible=True)
 
-    def hide(self):
+    def hide(self) -> None:
         if self._progress and self._task_id:
             self._progress.update(self._task_id, visible=False)
 
-    def refresh(self):
+    def refresh(self) -> None:
         if self._progress and self._task_id:
             self._progress.update(self._task_id, refresh=True)

@@ -18,5 +18,5 @@ class FileSizeCounter:
     def total_size(self) -> FileSize:
         if not self._paths:
             return FileSize.from_bytes(0)
-        sizes = sum([x.stat().st_size if x.exists() else 0 for x in self._paths])
+        sizes = sum(x.stat().st_size if x.exists() else 0 for x in self._paths)
         return FileSize.from_bytes(sizes)

@@ -39,6 +39,4 @@ class DynamicColumns:
             if len(self._renderables) < self._max_columns
             else int(console.width / self._max_columns) - 1
         )
-        yield r.Columns(
-            self._renderables, expand=self._expand, equal=True, width=w
-        )
+        yield r.Columns(self._renderables, expand=self._expand, equal=True, width=w)

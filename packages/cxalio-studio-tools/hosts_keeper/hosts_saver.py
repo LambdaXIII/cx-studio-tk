@@ -41,13 +41,16 @@ class HostsSaver:
             self._temp_dir = TemporaryDirectory()
         return Path(self._temp_dir.name)
 
+    # TODO: __del__ is fragile (may not be called on interpreter shutdown or exception paths).
+    #       Consider using a context manager instead.
+
     def __del__(self):
         if self._temp_dir is not None:
             self._temp_dir.cleanup()
             self._temp_dir = None
 
     def generate_backup_file_path(self) -> Path:
-        name = datetime.now().strftime("%Y%m%d_%H%M%S") + random_string(5) + ".bak"
+        name = f"{datetime.now().strftime('%Y%m%d_%H%M%S')}{random_string(5)}.bak"
         return self.backup_dir / name
 
     def _generate_replace_script_pwsh(self, from_: Path, to_: Path) -> Path:
@@ -105,8 +108,8 @@ class HostsSaver:
 
     def _show_hosts_lines(self, hosts_file: Path) -> None:
         with hosts_file.open("r", encoding="utf-8") as f:
-            for line in f.readlines():
-                print(line.strip())
+            for line in f:
+                appenv.console.print(line.strip())
 
     def save(self, target: Path | None = None) -> bool:
         """

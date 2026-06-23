@@ -62,7 +62,7 @@ class MissionRunner:
         except Exception as e:
             appenv.say(f"[red]文件 {mission.source} 处理失败！[/]")
             appenv.say(e)
-            result_tag = "[red]UNKOWN ERROR[/]"
+            result_tag = "[red]UNKNOWN ERROR[/]"
         finally:
             appenv.say(r.Columns([WealthLabel(mission), result_tag], expand=True))
 
