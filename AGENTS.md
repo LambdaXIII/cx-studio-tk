@@ -4,9 +4,9 @@
 
 `cx-studio-tk` 是一个面向影视后期制作的 Python 工具集，采用 uv workspace 组织的 monorepo。包含三个包：
 
-- **cx-studio** (v0.7.0) — 基础设施类库，提供时间/文件大小/FFmpeg/IO/文本/系统抽象等基础能力
-- **cx-wealth** (v0.7.0) — Rich 终端的 UI 组件扩展（标签、详情面板、动态列、索引列表、帮助系统 DSL）
-- **cxalio-studio-tools** (v0.7.1) — 可直接使用的 CLI 工具集（媒体文件扫描/转码、图片批处理、Hosts 管理、FFmpeg 封装等）
+- **cx-studio** (v0.7.5) — 基础设施类库，提供时间/文件大小/FFmpeg/IO/文本/系统抽象等基础能力
+- **cx-wealth** (v0.7.5) — Rich 终端的 UI 组件扩展（标签、详情面板、动态列、索引列表、帮助系统 DSL）
+- **cxalio-studio-tools** (v0.7.5) — 可直接使用的 CLI 工具集（媒体文件扫描/转码、图片批处理、Hosts 管理、FFmpeg 封装等）
 
 依赖链：`cx-studio` ← `cx-wealth` ← `cxalio-studio-tools`。
 
@@ -263,3 +263,12 @@ uv run pytest tests/
 - 版本号全局跟踪 0.7.x，但 `cx-wealth` 的 CHANGELOG 停在 0.1.x
 - 许可证：GPLv3 + 附加条款（分发修改版本须改名、保留版权声明）
 - i18n：cx-studio 包含 Babel `.pot` 文件和 en_US 编译的 `.mo` 文件
+### 版本策略
+
+版本号遵循语义化版本（SemVer），但采用 monorepo 统一步调：
+  - 根 `pyproject.toml`（`cx-studio-tk`）持有**总体版本号**
+  - **任何代码库变更**（无论涉及哪个包）都触发总体版本号更新
+  - 本次有变更的包同步更新为总体版本号
+  - 未变更的包保持原有版本不变
+  - 版本号在当前序列中递增——无功能变更时跳 patch（如 `0.7.0 → 0.7.5`），有功能/破坏性变更时跳 minor/major
+  - 此策略确保所有包版本可互相追踪，同时避免不必要的全量发布
