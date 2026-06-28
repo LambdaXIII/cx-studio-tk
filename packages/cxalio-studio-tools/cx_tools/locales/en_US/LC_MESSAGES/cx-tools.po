@@ -1,0 +1,101 @@
+# English (United States) translations for cxalio-studio-tools.
+# Copyright (C) 2026 Cxalio
+# This file is distributed under the same license as the cxalio-studio-tools
+# project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: cxalio-studio-tools VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-06-28 22:30+0800\n"
+"PO-Revision-Date: 2026-06-28 22:30+0800\n"
+"Last-Translator: Cxalio <cxalio@example.com>\n"
+"Language: en_US\n"
+"Language-Team: en_US <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#: hosts_keeper/appcontext.py:49
+msgid "显示此帮助信息"
+msgstr "Show this help message"
+
+#: hosts_keeper/appcontext.py:59
+msgid "开启调试模式"
+msgstr "Enable debug mode"
+
+#: hosts_keeper/appcontext.py:78
+msgid "更新 hosts 文件"
+msgstr "Update hosts file"
+
+#: hosts_keeper/appcontext.py:111
+msgid "显示指定配置文件内容"
+msgstr "Show content of the specified profile"
+
+#: hosts_keeper/appcontext.py:125
+msgid "编辑指定配置文件"
+msgstr "Edit the specified profile"
+
+#: hosts_keeper/appenv.py:21
+msgid "根据配置文件更新 hosts"
+msgstr "Update hosts file based on profiles"
+
+#: hosts_keeper/appenv.py:61
+msgid "你的 hosts 由我来守护！"
+msgstr "Your hosts, guarded by me!"
+
+#: hosts_keeper/appenv.py:97
+#, python-brace-format
+msgid "不支持的操作系统：{system_system}。请手动提供 hosts 文件路径。"
+msgstr "Unsupported operating system: {system_system}. Please provide the hosts file path manually."
+
+#: hosts_keeper/application.py:31
+msgid "调试模式已开启。"
+msgstr "Debug mode is on."
+
+#: hosts_keeper/application.py:68
+#, python-brace-format
+msgid "配置文件 {name} 已存在。"
+msgstr "Profile {name} already exists."
+
+#: hosts_keeper/application.py:100
+msgid "未找到符合条件的配置文件。"
+msgstr "No matching profiles found."
+
+#: hosts_keeper/application.py:104
+msgid "可尝试使用 show 或 edit 命令查看或编辑配置文件。"
+msgstr "Try using 'show' or 'edit' commands to view or edit profiles."
+
+#: hosts_keeper/application.py:154
+#, python-brace-format
+msgid "已写入新的内容到临时文件 {path}"
+msgstr "Written new content to temp file {path}"
+
+#: hosts_keeper/application.py:163
+msgid "已成功保存新的 hosts 文件。"
+msgstr "Successfully saved the new hosts file."
+
+#: hosts_keeper/hosts_saver.py:52
+msgid "提权替换失败。"
+msgstr "Elevated replace failed."
+
+#: hosts_keeper/hosts_saver.py:154
+msgid "PowerShell UAC 提权替换失败。"
+msgstr "PowerShell UAC elevated replace failed."
+
+#: hosts_keeper/hosts_saver.py:194
+msgid "已刷新 DNS 缓存（ipconfig /flushdns）。"
+msgstr "DNS cache flushed (ipconfig /flushdns)."
+
+#: hosts_keeper/hosts_saver.py:329
+#, python-brace-format
+msgid "目标 hosts 文件 {path} 不存在，跳过备份。"
+msgstr "Target hosts file {path} does not exist, skipping backup."
+
+#: hosts_keeper/hosts_saver.py:336
+#, python-brace-format
+msgid "无法创建备份文件，错误：{error}"
+msgstr "Failed to create backup file, error: {error}"

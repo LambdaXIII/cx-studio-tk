@@ -1,3 +1,5 @@
+from cx_tools.i18n import _
+
 from argparse import ArgumentParser
 from collections.abc import Iterator, Sequence
 from typing import Any
@@ -44,7 +46,11 @@ class AppContext:
     def __global_parser() -> ArgumentParser:
         parser = ArgumentParser(add_help=False)
         parser.add_argument(
-            "-h", "--help", action="store_true", dest="show_help", help="显示此帮助信息"
+            "-h",
+            "--help",
+            action="store_true",
+            dest="show_help",
+            help=_("显示此帮助信息"),
         )
         parser.add_argument(
             "--tutorial",
@@ -54,7 +60,11 @@ class AppContext:
             help="显示详细教程",
         )
         parser.add_argument(
-            "--debug", "-d", action="store_true", dest="debug_mode", help="开启调试模式"
+            "--debug",
+            "-d",
+            action="store_true",
+            dest="debug_mode",
+            help=_("开启调试模式"),
         )
         parser.add_argument(
             "--pretend",
@@ -73,7 +83,7 @@ class AppContext:
         )
 
         update_parser = subparsers.add_parser(
-            "update", help="更新 hosts 文件", description="更新 hosts 文件"
+            "update", help=_("更新 hosts 文件"), description=_("更新 hosts 文件")
         )
         update_parser.add_argument(
             "--target",
@@ -106,7 +116,9 @@ class AppContext:
         )
 
         show_parser = subparsers.add_parser(
-            "show", help="显示指定配置文件内容", description="显示指定配置文件内容"
+            "show",
+            help=_("显示指定配置文件内容"),
+            description=_("显示指定配置文件内容"),
         )
         show_parser.add_argument(
             "profile_id", help="配置文件 ID", type=str, metavar="配置文件 ID"
@@ -120,7 +132,7 @@ class AppContext:
         )
 
         edit_parser = subparsers.add_parser(
-            "edit", help="编辑指定配置文件", description="编辑指定配置文件"
+            "edit", help=_("编辑指定配置文件"), description=_("编辑指定配置文件")
         )
         edit_parser.add_argument(
             "profile_id", help="配置文件 ID", type=str, metavar="配置文件 ID"

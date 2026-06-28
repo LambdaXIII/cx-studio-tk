@@ -1,3 +1,5 @@
+from cx_tools.i18n import _
+
 import os
 import subprocess
 import sys
@@ -26,7 +28,7 @@ class Application(IApplication):
         appenv.load_arguments(self.sys_arguments)
         appenv.start()
         if appenv.is_debug_mode_on():
-            appenv.say("[cx.warning]调试模式已开启。")
+            appenv.say(f"[cx.warning]{_('调试模式已开启。')}[/]")
             appenv.whisper(
                 IndexedListPanel(
                     [WealthLabel(x) for x in self.profile_manager.profiles.values()],
@@ -63,7 +65,9 @@ class Application(IApplication):
         assert profile_id is not None, "profile_id 不能为空"
         filename = self.profile_manager.generate_profile_path(profile_id)
         if filename.exists():
-            appenv.say(f"[cx.error]配置文件 {filename.name} 已存在。")
+            appenv.say(
+                f"[cx.error]{_('配置文件 {name} 已存在。').format(name=filename.name)}[/]"
+            )
             return
 
         filename = self.profile_manager.create_profile(profile_id, filename)
@@ -95,11 +99,13 @@ class Application(IApplication):
                 "[cx.success]YES[/]" if profile.enabled else "[cx.error]NO[/]",
             )
         if table.row_count == 0:
-            appenv.say("[cx.warning]未找到符合条件的配置文件。")
+            appenv.say(f"[cx.warning]{_('未找到符合条件的配置文件。')}[/]")
         else:
             appenv.say(table)
             appenv.say(f"[cx.success]共找到 {table.row_count} 个配置文件。")
-            appenv.say(f"[dim]可尝试使用 show 或 edit 命令查看或编辑配置文件。")
+            appenv.say(
+                f"[dim]{_('可尝试使用 show 或 edit 命令查看或编辑配置文件。')}[/]"
+            )
 
     def command_show(self) -> None:
         assert appenv.context.profile_id is not None, "profile_id 不能为空"
@@ -149,7 +155,9 @@ class Application(IApplication):
         with appenv.temp_hosts.open("w", encoding="utf-8") as f:
             for line in lines:
                 f.write(line + "\n")
-        appenv.whisper(f"已写入新的内容到临时文件 {appenv.temp_hosts}")
+        appenv.whisper(
+            _("已写入新的内容到临时文件 {path}").format(path=appenv.temp_hosts)
+        )
 
         saver = HostsSaver()
         save_target = None
@@ -158,7 +166,7 @@ class Application(IApplication):
             appenv.whisper(f"将保存到目标文件 {save_target}")
         saved = saver.save(save_target)
         if saved:
-            appenv.say(f"[cx.success]已成功保存新的 hosts 文件。")
+            appenv.say(f"[cx.success]{_('已成功保存新的 hosts 文件。')}[/]")
             if save_target is None:  # 仅系统 hosts 路径才需刷新 DNS 缓存
                 appenv.whisper(
                     f"准备刷新 DNS 缓存（skip_flush={appenv.context.skip_flush}）"

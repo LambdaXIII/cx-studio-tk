@@ -1,4 +1,4 @@
-import importlib.resources
+from cx_studio.i18n import load_localized_text
 
 from cx_studio import text as tt
 from cx_wealth import WealthHelp
@@ -101,7 +101,7 @@ class MKHelp(WealthHelp):
 
     @staticmethod
     def show_full_help(console: r.Console) -> None:
-        md = importlib.resources.read_text("media_killer", "help.md")
+        md = load_localized_text("media_killer", "help.md")
         content = r.Markdown(md, style="default")
         panel = r.Panel(
             content,

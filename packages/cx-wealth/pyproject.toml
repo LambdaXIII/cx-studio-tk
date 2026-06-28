@@ -13,3 +13,4 @@ cx-wealth = "cx_wealth:main"
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+

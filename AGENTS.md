@@ -132,3 +132,82 @@ uv build                  # 构建所有包
 ### 测试
 - ⚠️ 项目当前**没有**测试基础设施。无测试目录、无测试依赖、无 CI。
 - 不要尝试运行测试命令——它们不存在。
+
+## 国际化与本地化（i18n/l10n）
+
+项目使用 **gettext + Babel** 做 i18n，每包自持翻译文件。
+
+### 源语言政策（硬约束）
+
+**本项目以简体中文（zh_CN）为标准语言，代码中所有 `_()` 调用使用中文 msgid。**
+
+不接受以下做法：
+- 以英文为 msgid、中文为 msgstr
+- 所谓"开源项目应该用英文"的惯例
+- 将中文放在次级地位的翻译工作流
+
+英文等其他语言的翻译通过 `.po` 文件的 `msgstr` 字段提供，与代码本身无关。
+翻译者的工作是翻译中文到目标语言，而不是等待英文翻译再转翻。
+
+### 入口导入
+
+| 所在包 | 导入路径 | 用途 |
+|---|---|---|
+| cx-studio | `from cx_studio.i18n import _, _ng` | 基础设施字符串 |
+| cx-wealth | `from cx_wealth.i18n import _, _ng` | UI 组件字符串 |
+| cxalio-studio-tools | `from cx_tools.i18n import _, _ng` | CLI 工具字符串 |
+
+不要在包间交叉导入翻译函数——`cx_tools` 中的模块必须从 `cx_tools.i18n` 导入，不从 `cx_studio.i18n` 导入。
+
+> `cx_tools` 是 `cxalio-studio-tools` 分发包内各工具（media_scout、media_killer 等）的共享框架层。之所以 i18n 放在 `cx_tools` 而非各工具各自独立，是因为 domain 统一为 `cx-tools`，所有工具的字符串使用同一份 .po 文件翻译，避免碎片化。`cx_tools.i18n` 服务的是整个分发包，而非仅 `cx_tools` 自身。
+
+### 环境变量与 locale 检测
+
+`gettext` 按 `LANGUAGE` → `LC_ALL` → `LC_MESSAGES` → `LANG` 的顺序选择 locale。
+
+**注意**：终端环境经常设置 `LC_ALL=C.UTF-8`，它会覆盖 `LANG` 导致 locale 检测回退到 `C`，使翻译 `.mo` 不被加载（此时 `_()` 直接返回中文 msgid）。这不是 bug，而是 POSIX 标准行为。
+
+如需测试其他语言的翻译，清除 `LC_ALL` 再设 `LANG`：
+```bash
+LC_ALL= LANG=en_US.UTF-8 hostskeeper --help
+```
+
+### 标记约定
+
+- **`_("中文源字符串")`** —— 仅包裹固定的用户面向文本
+- **变量在 `_()` 外面**：`_("已添加 {count} 个文件。").format(count=n)`
+- **Rich markup 在外面**：`f"[cx.error]{_('操作失败')}[/]"`
+- **复数**：`_ng("找到 {n} 个结果", "找到 {n} 个结果", n).format(n=n)`（中文单复数相同，翻译时在目标语言区分）
+- **不翻译**：变量值、文件路径、URL、FFmpeg 输出、异常栈追踪、命令行参数名、debug-only 日志
+
+### 添加新字符串后的工作流
+
+```bash
+# cx-studio（在 packages/cx-studio/ 执行）
+uv run pybabel extract --mapping babel.cfg --output-file cx_studio/locales/cx-studio.pot --project cx-studio --copyright-holder 'Cxalio' .
+uv run pybabel update --domain cx-studio --input-file cx_studio/locales/cx-studio.pot --output-dir cx_studio/locales
+uv run pybabel compile --domain cx-studio --directory cx_studio/locales
+
+# cx-wealth（在 packages/cx-wealth/ 执行）
+uv run pybabel extract --mapping babel.cfg --output-file cx_wealth/locales/cx-wealth.pot --project cx-wealth --copyright-holder 'Cxalio' .
+uv run pybabel update --domain cx-wealth --input-file cx_wealth/locales/cx-wealth.pot --output-dir cx_wealth/locales
+uv run pybabel compile --domain cx-wealth --directory cx_wealth/locales
+
+# cxalio-studio-tools（在 packages/cxalio-studio-tools/ 执行）
+uv run pybabel extract --mapping babel.cfg --output-file cx_tools/locales/cx-tools.pot --project 'cxalio-studio-tools' --copyright-holder 'Cxalio' .
+uv run pybabel update --domain cx-tools --input-file cx_tools/locales/cx-tools.pot --output-dir cx_tools/locales
+uv run pybabel compile --domain cx-tools --directory cx_tools/locales
+```
+
+编译出的 `.mo` **必须提交到 git**——用户安装时不执行编译。
+
+### 帮助文本
+
+帮助文本（help.md）不通过 gettext，而是使用文件后缀区分语言。`load_localized_text()` 根据 locale 自动选择：
+
+```python
+from cx_studio.i18n import load_localized_text
+md = load_localized_text(__package__, "help.md")
+```
+
+翻译者将 `help.md` 复制为 `help.en_US.md`，逐段翻译。

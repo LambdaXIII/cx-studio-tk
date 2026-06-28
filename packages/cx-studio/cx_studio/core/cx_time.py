@@ -1,14 +1,7 @@
-import gettext
-import os
 import re
 
 from .cx_timebase import Timebase
-from .. import get_root
-
-__t = gettext.translation(
-    "messages", localedir=os.path.join(get_root(), "locales"), fallback=True
-)
-_ = __t.gettext
+from cx_studio.i18n import _
 
 
 class CxTime:

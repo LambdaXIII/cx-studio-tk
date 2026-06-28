@@ -19,9 +19,13 @@ members = [
 ]
 
 [dependency-groups]
-dev = ["black>=25.1.0"]
+dev = [
+    "babel>=2.18.0",
+    "black>=25.1.0",
+]
 
 # [tool.pytest.ini_options]
 # minversion = "6.0"
 # testpaths = ["tests"]
 # addopts = "-ra -q"
+

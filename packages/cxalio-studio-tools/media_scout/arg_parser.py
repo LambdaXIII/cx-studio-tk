@@ -1,4 +1,4 @@
-import importlib.resources
+from cx_studio.i18n import load_localized_text
 from argparse import ArgumentParser
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -151,7 +151,7 @@ class MSHelp(WealthHelp):
 
     @staticmethod
     def show_full_help(console: r.Console):
-        md = importlib.resources.read_text("media_scout", "help.md")
+        md = load_localized_text("media_scout", "help.md")
         content = r.Markdown(md, style="default")
         panel = r.Panel(
             content,

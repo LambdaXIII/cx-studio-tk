@@ -1,4 +1,6 @@
 import importlib.resources
+from cx_tools.i18n import _
+
 import os
 import sys
 from collections.abc import Sequence
@@ -16,7 +18,7 @@ class AppEnv(IAppEnvironment):
         super().__init__()
         self.app_name = "HostsKeeper"
         self.app_version = "0.7.1"
-        self.app_description = "根据配置文件更新 hosts"
+        self.app_description = _("根据配置文件更新 hosts")
         self.context = AppContext()
 
         self.config_manager = ConfigManager(self.app_name)
@@ -56,7 +58,7 @@ class AppEnv(IAppEnvironment):
             __package__, "banner.txt", encoding="utf-8"
         )
         banners.append(r.Align.center(banner_text))
-        banners.append(r.Align.center("你的 hosts 由我来守护！"))
+        banners.append(r.Align.center(_("你的 hosts 由我来守护！")))
         banners.append(r.Align.center("v" + self.app_version))
         group = r.Group(*banners)
         appenv.console.print(group, style="bold cyan", highlight=False)
@@ -92,8 +94,9 @@ class AppEnv(IAppEnvironment):
 
         # 无法识别的操作系统
         raise NotImplementedError(
-            f"Unsupported operating system: {system}. "
-            "Please provide the hosts file path manually."
+            _("不支持的操作系统：{system_system}。请手动提供 hosts 文件路径。").format(
+                system_system=system
+            )
         )
 
 

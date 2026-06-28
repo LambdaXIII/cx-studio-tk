@@ -1,4 +1,6 @@
 import shutil
+from cx_tools.i18n import _
+
 import subprocess
 import base64
 import shlex
@@ -47,7 +49,7 @@ def _elevated_replace_linux(source: Path, target: Path) -> bool:
         )
         return True
     except subprocess.CalledProcessError:
-        appenv.say("[cx.error]提权替换失败。")
+        appenv.say(f"[cx.error]{_('提权替换失败。')}[/]")
         return False
 
 
@@ -149,7 +151,7 @@ def _elevated_replace_windows(source: Path, target: Path) -> bool:
             )
             return True
         except subprocess.CalledProcessError:
-            appenv.say("[cx.error]PowerShell UAC 提权替换失败。")
+            appenv.say(f"[cx.error]{_('PowerShell UAC 提权替换失败。')}[/]")
             return False
         except (OSError, FileNotFoundError):
             pass
@@ -189,7 +191,7 @@ def _dns_flush_windows(skip_flush: bool = False) -> bool:
     # 优先直接尝试（可能已有管理员权限）
     try:
         subprocess.run(["ipconfig", "/flushdns"], check=True, timeout=30)
-        appenv.say("[cx.success]已刷新 DNS 缓存（ipconfig /flushdns）。")
+        appenv.say(f"[cx.success]{_('已刷新 DNS 缓存（ipconfig /flushdns）。')}[/]")
         return True
     except (subprocess.CalledProcessError, FileNotFoundError, OSError):
         pass
@@ -325,7 +327,7 @@ class HostsSaver:
     def _backup_target_hosts(self, target_hosts: Path) -> bool:
         if not target_hosts.exists():
             appenv.whisper(
-                f"Target hosts file {target_hosts} does not exist, skip backup."
+                _("目标 hosts 文件 {path} 不存在，跳过备份。").format(path=target_hosts)
             )
             return True
         backup_file = self.generate_backup_file_path()
@@ -333,7 +335,7 @@ class HostsSaver:
             backup_file.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy(target_hosts, backup_file)
         except Exception as e:
-            appenv.say(f"无法创建备份文件，错误：{e}")
+            appenv.say(_("无法创建备份文件，错误：{error}").format(error=e))
             return False
         return True
 
