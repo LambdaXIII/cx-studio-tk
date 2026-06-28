@@ -42,13 +42,17 @@ class NumberRange:
 
     def number_from_percent(self, percent: float | int) -> float | int:
         """将百分比映射到数值。要求 bottom 和 top 均非 None。"""
-        assert self.bottom is not None and self.top is not None, "Range bounds must be set"
+        assert (
+            self.bottom is not None and self.top is not None
+        ), "Range bounds must be set"
         result = self.bottom + (self.top - self.bottom) * percent  # type: ignore[operator]  # both None-checked above
         return self.__format_result(result)
 
     def percent_from_number(self, x: float | int) -> float | int:
         """将数值映射到百分比。要求 bottom 和 top 均非 None。"""
-        assert self.bottom is not None and self.top is not None, "Range bounds must be set"
+        assert (
+            self.bottom is not None and self.top is not None
+        ), "Range bounds must be set"
         result = (x - self.bottom) / (self.top - self.bottom)  # type: ignore[operator]  # both None-checked above
         return self.__format_result(result)
 

@@ -54,6 +54,12 @@ class AppHelp(WealthHelp):
             metavar="TARGET_HOSTS",
             description="指定目标 hosts 文件，默认值为系统 hosts 文件。",
         )
+        opt_group.add_action(
+            "--skip-flush",
+            name="跳过刷新",
+            optional=True,
+            description="更新 hosts 后跳过 DNS 缓存刷新，仅输出平台对应的手动命令提示。",
+        )
 
         misc_opts = self.add_group("杂项")
         misc_opts.add_action("-h", "--help", description="显示此帮助信息")
@@ -93,7 +99,7 @@ class AppHelp(WealthHelp):
     @staticmethod
     def show_full_help(console: r.Console) -> None:
         assert __package__ is not None, "AppHelp must be imported as part of a package"
-        md = importlib.resources.read_text(__package__, "help.md")
+        md = importlib.resources.read_text(__package__, "help.md", encoding="utf-8")
         content = r.Markdown(md, style="default")
         panel = r.Panel(
             content,

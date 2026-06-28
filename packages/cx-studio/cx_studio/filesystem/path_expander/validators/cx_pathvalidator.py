@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
 
+
 class IPathValidator(ABC):
     @abstractmethod
     def validate(self, path: str | Path) -> bool:

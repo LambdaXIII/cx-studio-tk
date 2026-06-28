@@ -33,9 +33,10 @@ class AppEnv(IAppEnvironment):
     @override
     def stop(self) -> None:
         if self._temp_dir is not None:
+            temp_path = Path(self._temp_dir.name)
             self._temp_dir.cleanup()
             self._temp_dir = None
-            appenv.whisper(f"临时目录已删除：{self.temp_dir}")
+            appenv.whisper(f"临时目录已删除：{temp_path}")
         super().stop()
 
     @property
@@ -51,7 +52,9 @@ class AppEnv(IAppEnvironment):
     def show_banners(self) -> None:
         banners = []
         assert __package__ is not None, "AppEnv must be imported as part of a package"
-        banner_text = importlib.resources.read_text(__package__, "banner.txt")
+        banner_text = importlib.resources.read_text(
+            __package__, "banner.txt", encoding="utf-8"
+        )
         banners.append(r.Align.center(banner_text))
         banners.append(r.Align.center("你的 hosts 由我来守护！"))
         banners.append(r.Align.center("v" + self.app_version))
@@ -95,5 +98,3 @@ class AppEnv(IAppEnvironment):
 
 
 appenv = AppEnv()
-
-# signal.signal(signal.SIGINT, appenv.handle_interrupt)

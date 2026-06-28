@@ -110,7 +110,9 @@ class Application(IApplication):
             )
 
     def _sort_and_set_missions(self, missions: Iterable[Mission]) -> None:
-        mission_list = list(missions)  # 转换为 list 以满足 MissionArranger 和 len 的类型要求
+        mission_list = list(
+            missions
+        )  # 转换为 list 以满足 MissionArranger 和 len 的类型要求
         self.missions = list(MissionArranger(mission_list, appenv.context.sort_mode))
         # 检查任务数量并判断是否运行
         if not self.missions:

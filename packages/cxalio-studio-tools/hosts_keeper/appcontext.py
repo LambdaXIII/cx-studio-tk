@@ -16,6 +16,7 @@ class AppContext:
         self.show_help = False
 
         self.debug_mode: bool = False
+        self.skip_flush: bool = False
         self.pretending_mode: bool = False
 
         for k, v in kwargs.items():
@@ -84,6 +85,12 @@ class AppContext:
             type=str,
             default=None,
         )
+        update_parser.add_argument(
+            "--skip-flush",
+            action="store_true",
+            dest="skip_flush",
+            help="更新后跳过 DNS 缓存刷新，仅提示手动命令",
+        )
 
         list_parser = subparsers.add_parser(
             "list", help="列出所有配置文件", description="列出所有配置文件"
@@ -95,7 +102,7 @@ class AppContext:
             dest="search_pattern",
             required=False,
             type=str,
-            default="",
+            default=None,
         )
 
         show_parser = subparsers.add_parser(

@@ -23,6 +23,7 @@ def detect_file_encoding(
                     break
                 __CHARDET.feed(line)
                 max_len -= len(line)
+            __CHARDET.close()
             result = __CHARDET.result
             return result["encoding"]
     except FileNotFoundError:

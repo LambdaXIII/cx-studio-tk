@@ -12,7 +12,7 @@ from cx_wealth import rich_types as r
 from .app_help import AppHelp
 from .appenv import appenv
 from .hosts_builder import HostsBuilder
-from .hosts_saver import HostsSaver
+from .hosts_saver import HostsSaver, dns_flush
 from .profile_manager import ProfileManager
 
 
@@ -23,6 +23,7 @@ class Application(IApplication):
 
     @override
     def start(self) -> None:
+        appenv.load_arguments(self.sys_arguments)
         appenv.start()
         if appenv.is_debug_mode_on():
             appenv.say("[cx.warning]调试模式已开启。")
@@ -32,12 +33,10 @@ class Application(IApplication):
                     title="已找到配置文件",
                 )
             )
-        return self  # type: ignore[return]  # 链式调用语法糖，基类契约返回 None
 
     @override
     def stop(self) -> None:
         appenv.stop()
-        return self  # type: ignore[return]  # 链式调用语法糖，基类契约返回 None
 
     @staticmethod
     def __open_file(file_path: Path) -> None:
@@ -116,12 +115,14 @@ class Application(IApplication):
         profile_id = appenv.context.profile_id
         assert profile_id is not None, "profile_id 不能为空"
         profile = self.profile_manager.profiles.get(profile_id, None)
-        file_path = (
-            profile.path.resolve() if profile else appenv.config_manager.config_dir
-        )
 
-        if not file_path or not file_path.exists():
+        if profile is None:
             appenv.say(f"[cx.error]未找到 ID 为 {profile_id} 的配置文件。")
+            return
+
+        file_path = profile.path.resolve()
+        if not file_path.exists():
+            appenv.say(f"[cx.error]配置文件 [filepath]{file_path}[/filepath] 不存在。")
             return
 
         if file_path.is_dir():
@@ -144,7 +145,7 @@ class Application(IApplication):
         appenv.whisper("开始构建 Hosts 文件内容")
         lines = builder.iter_lines(enabled_profiles)
 
-        # 保存临时文件
+        # 保存临时文件；使用不带 BOM 的 utf-8 写入，因为系统 DNS 解析器不期望 BOM
         with appenv.temp_hosts.open("w", encoding="utf-8") as f:
             for line in lines:
                 f.write(line + "\n")
@@ -158,15 +159,16 @@ class Application(IApplication):
         saved = saver.save(save_target)
         if saved:
             appenv.say(f"[cx.success]已成功保存新的 hosts 文件。")
-            self.show_refresh_tips()
-
-    def show_refresh_tips(self) -> None:
-        if sys.platform.startswith("win"):
-            appenv.say(
-                "[cx.info]请在管理员权限下执行 ipconfig /flushdns 以刷新 DNS 缓存。"
-            )
-        else:
-            appenv.say("[cx.info]请别忘了刷新DNS缓存以应用新的 hosts 文件。")
+            if save_target is None:  # 仅系统 hosts 路径才需刷新 DNS 缓存
+                appenv.whisper(
+                    f"准备刷新 DNS 缓存（skip_flush={appenv.context.skip_flush}）"
+                )
+                try:
+                    dns_flush(skip_flush=appenv.context.skip_flush)
+                except NotImplementedError:
+                    appenv.say(
+                        "[cx.info]hosts 文件已更新。当前平台不支持自动刷新 DNS 缓存。"
+                    )
 
     def command_help(self) -> None:
         AppHelp.show_help(appenv.console)

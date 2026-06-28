@@ -15,7 +15,7 @@ class DirectContenter(AbstractContenter):
         self,
         package: Box | dict | None = None,
         profile_metadata: Box | dict | None = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         super().__init__(package, profile_metadata, **kwargs)
         self.ip: str | None = self.package.get("ip") or None

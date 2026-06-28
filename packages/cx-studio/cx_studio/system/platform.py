@@ -2,7 +2,6 @@ import sys
 from enum import StrEnum
 
 
-
 class SystemType(StrEnum):
     UNKNOWN = "unknown"
     WINDOWS = "win"

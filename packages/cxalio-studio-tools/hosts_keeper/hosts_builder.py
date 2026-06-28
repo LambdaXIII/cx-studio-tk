@@ -1,4 +1,5 @@
 import asyncio
+import locale
 import re
 from collections.abc import Iterable
 from pathlib import Path
@@ -23,7 +24,7 @@ class HostsBuilder:
     async def prepare_customed_lines(self) -> list[str]:
         async with self._semaphore:
             result = []
-            encoding = detect_file_encoding(self.hosts_file_path)
+            encoding = detect_file_encoding(self.hosts_file_path) or locale.getpreferredencoding(False)
             profile_entered: bool = False
             with self.hosts_file_path.open("r", encoding=encoding) as f:
                 for line in f:

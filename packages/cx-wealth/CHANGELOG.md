@@ -1,5 +1,10 @@
 # Changelog
 
+### v0.7.5
+
+- 版本号对齐 monorepo 整体方案
+- 配置 pyright 类型检查并修复类型安全问题
+
 ### v0.1.1
 
 - 增加了 CxHighlighter 类，用于高亮显示 CX 相关的日志信息

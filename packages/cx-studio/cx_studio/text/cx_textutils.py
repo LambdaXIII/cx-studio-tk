@@ -10,7 +10,8 @@ def quick_search_chars(text: str, chars: str | Iterable[str]) -> bool:
 
 
 def auto_quote(
-    text: str, needs_quote: Callable[[str], bool] | str | Iterable[str] | bool | None = None
+    text: str,
+    needs_quote: Callable[[str], bool] | str | Iterable[str] | bool | None = None,
 ) -> str:
     needs_quote = needs_quote or [" "]  # type: ignore[assignment]  # or chain narrows to Iterable[str]
     quote = False

@@ -191,3 +191,8 @@ py.typed
 .continue/
 .codex/
 .codegraph/
+
+
+# Other files and directories
+*.log
+*.bak

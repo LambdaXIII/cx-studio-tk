@@ -34,7 +34,7 @@ class Profile:
         data = Box(toml_data)
 
         metadata = data.get("hosts_profile")
-        if not metadata:
+        if not metadata or not metadata.profile_id:
             return None
 
         packages_data = data.copy()
@@ -57,7 +57,9 @@ class Profile:
         target.parent.mkdir(parents=True, exist_ok=True)
 
         assert __package__ is not None, "Profile must be imported as part of a package"
-        example = importlib.resources.read_text(__package__, "example_profile.toml")
+        example = importlib.resources.read_text(
+            __package__, "example_profile.toml", encoding="utf-8"
+        )
         example = example.replace("example-id", profile_id)
 
         with open(target, "w", encoding="utf-8") as f:
@@ -89,6 +91,8 @@ class Profile:
             return result
 
         tasks = []
+
+        self.metadata.path = str(self.path)  # type: ignore[attr-defined]  # Box 动态属性注入，为 LocalContenter 提供 profile 所在目录
 
         for schema, packages in self.packages.items():
             if not isinstance(packages, list | BoxList):
