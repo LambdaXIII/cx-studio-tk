@@ -1,5 +1,10 @@
 # Changelog
 
+### v0.8.0.1
+
+- hotfix: wheel 构建缺少 packages 配置，导致所有 Python 模块未打包进 wheel
+- 补声明 cx-studio 为正式依赖项
+
 ### v0.7.5
 
 - 版本号对齐 monorepo 整体方案
