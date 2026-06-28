@@ -23,7 +23,7 @@ class DirectContenter(AbstractContenter):
         self.comment: str | None = self.package.get("comment") or None
 
     @override
-    async def iter_records(self) -> AsyncGenerator[HostRecord, None]:
+    async def iter_records(self) -> AsyncGenerator[HostRecord, None]:  # type: ignore[override]  # pyright async generator 覆盖类型推断限制
         yield HostRecord(self.ip, self.domains, self.comment)
 
 

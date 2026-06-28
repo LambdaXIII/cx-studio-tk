@@ -1,5 +1,5 @@
 import asyncio
-import importlib
+import importlib.resources
 import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -9,7 +9,7 @@ from collections.abc import Generator
 from box import Box, BoxList
 
 from cx_studio.filesystem import force_suffix
-from .contenter_base import ContenterBase
+from .contenter_base import ContenterBase, AbstractContenter
 from .hostrecord import HostRecord
 
 
@@ -56,6 +56,7 @@ class Profile:
         target = force_suffix(target, ".toml")
         target.parent.mkdir(parents=True, exist_ok=True)
 
+        assert __package__ is not None, "Profile must be imported as part of a package"
         example = importlib.resources.read_text(__package__, "example_profile.toml")
         example = example.replace("example-id", profile_id)
 
@@ -81,9 +82,9 @@ class Profile:
     async def async_iter_records(self) -> AsyncGenerator[HostRecord, None]:
         """迭代记录"""
 
-        async def expand_contenter(_contenter: ContenterBase):
+        async def expand_contenter(_contenter: AbstractContenter):
             result = []
-            async for record in _contenter.iter_records():
+            async for record in _contenter.iter_records():  # type: ignore[attr-defined]  # pyright 对抽象 async generator 类型推断限制
                 result.append(record)
             return result
 
@@ -100,7 +101,7 @@ class Profile:
                     continue
                 tasks.append(asyncio.create_task(expand_contenter(contenter)))
 
-        async for task in asyncio.as_completed(tasks):
+        async for task in asyncio.as_completed(tasks):  # type: ignore[arg-type]  # pyright 对 AsyncIterator 类型推断限制
             result = await task
             for record in result:
                 yield record

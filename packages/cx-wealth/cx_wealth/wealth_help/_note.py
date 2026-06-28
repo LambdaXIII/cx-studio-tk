@@ -13,7 +13,8 @@ class _Note(_Node):
         title: r.RenderableType | None = None,
         parent: _Node | None = None,
     ) -> None:
-        super().__init__(title, None, parent)
+        super().__init__(title, None, parent)  # type: ignore[arg-type]  # title 为 RenderableType，_Node 接受 str | None；运行时兼容
+
         self.title = title
         self.contents = list(contents)
 

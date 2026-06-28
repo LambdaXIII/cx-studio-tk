@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Mapping, Sequence, Set, MutableMapping
 from typing import Any
-from warnings import deprecated
+from typing_extensions import deprecated
 
 
-@deprecated
+@deprecated("DataPackage is deprecated; use standard dict/Mapping instead")
 class DataPackage(MutableMapping):
 
     @staticmethod
@@ -136,10 +136,10 @@ class DataPackage(MutableMapping):
     def clear(self):
         self.__internal_dict__.clear()
 
-    def update(self, **kwargs):
-        for key, value in kwargs.items():
+    def update(self, *args, **kwargs) -> None:
+        for key, value in dict(*args, **kwargs).items():
             self.__set_value(key, value)
-        return self
+        return self  # type: ignore[return]  # chainable: returns self per DataPackage convention
 
     def pop(self, key: Any, default: Any = None) -> Any:
         return self.__internal_dict__.pop(key, default)

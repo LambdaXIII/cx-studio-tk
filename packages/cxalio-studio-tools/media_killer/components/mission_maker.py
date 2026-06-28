@@ -32,14 +32,14 @@ class MissionMaker:
 
         inputs = []
         for g in self._preset.inputs:
-            x = ArgumentGroup()
+            x: ArgumentGroup = ArgumentGroup()
             x.filename = Path(replacer.read_value(g.filename))
             x.add_options(list(replacer.read_value_as_list(g.options)))
             inputs.append(x)
 
         outputs = []
         for g in self._preset.outputs:
-            x = ArgumentGroup()
+            x: ArgumentGroup = ArgumentGroup()
             x.filename = Path(replacer.read_value(g.filename))
             x.add_options(list(replacer.read_value_as_list(g.options)))
             outputs.append(x)

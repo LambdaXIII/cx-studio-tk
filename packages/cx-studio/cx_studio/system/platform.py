@@ -1,6 +1,6 @@
 import sys
 from enum import StrEnum
-from typing import Self
+
 
 
 class SystemType(StrEnum):
@@ -14,7 +14,7 @@ class SystemType(StrEnum):
     FREEBSD = "freebsd"
 
     @classmethod
-    def from_platform(cls, platform_code: str) -> Self:
+    def from_platform(cls, platform_code: str) -> "SystemType":
         if platform_code.startswith(cls.WINDOWS):
             return cls.WINDOWS
         elif platform_code.startswith(cls.LINUX):

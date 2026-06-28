@@ -32,7 +32,7 @@ class Application(IApplication):
         appenv.load_arguments(self.sys_arguments)
         appenv.start()
         appenv.show_banner()
-        return self
+        return self  # type: ignore[return]  # 链式调用语法糖，基类契约返回 None
 
     def stop(self) -> None:
         if not appenv.context.continue_mode:
@@ -53,7 +53,7 @@ class Application(IApplication):
         elif exc_type is SafeError:
             appenv.say(exc_val)
             result = True
-        return result
+        return result  # type: ignore[return]  # super().__exit__ 可能返回 None, 但我们的路径保证非 None
 
     @staticmethod
     def save_missions(missions: list[Mission]):
@@ -110,12 +110,13 @@ class Application(IApplication):
             )
 
     def _sort_and_set_missions(self, missions: Iterable[Mission]) -> None:
-        self.missions = list(MissionArranger(missions, appenv.context.sort_mode))
+        mission_list = list(missions)  # 转换为 list 以满足 MissionArranger 和 len 的类型要求
+        self.missions = list(MissionArranger(mission_list, appenv.context.sort_mode))
         # 检查任务数量并判断是否运行
         if not self.missions:
             raise SafeError("没有任务需要执行。")
         # 汇报任务数量
-        old_count, new_count = len(missions), len(self.missions)
+        old_count, new_count = len(mission_list), len(self.missions)
         if old_count != new_count:
             appenv.say(
                 f"[cx.warning]已自动过滤掉 {old_count - new_count} 个重复任务，共 {new_count} 个任务需要执行。[/]"

@@ -50,6 +50,7 @@ class AppEnv(IAppEnvironment):
 
     def show_banners(self) -> None:
         banners = []
+        assert __package__ is not None, "AppEnv must be imported as part of a package"
         banner_text = importlib.resources.read_text(__package__, "banner.txt")
         banners.append(r.Align.center(banner_text))
         banners.append(r.Align.center("你的 hosts 由我来守护！"))
@@ -64,7 +65,7 @@ class AppEnv(IAppEnvironment):
         return self.context.pretending_mode
 
     def load_arguments(self, arguments: Sequence[str] | None = None) -> None:
-        self.context = AppContext.from_arguments(arguments)
+        self.context = AppContext.from_arguments(arguments or [])
 
     @staticmethod
     def system_hosts_path() -> Path:

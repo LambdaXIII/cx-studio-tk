@@ -106,11 +106,11 @@ class FFPrettyApp(IApplication):
         for x in files:
             prober.probe(x)
 
-    def run(self) -> bool:
+    def run(self):
         if "-h" in self.arguments or "--help" in self.arguments:
             help_info = MKHelp()
             appenv.say(help_info)
-            return True
+            return
 
         # 验证参数
         if not appenv.ffmpeg_executable:
@@ -120,7 +120,7 @@ class FFPrettyApp(IApplication):
             raise SafeError("未提供任何参数。")
 
         # 开始检查输入输出
-        io_processor = FFmpegArgumentsPreProcessor(self.arguments)
+        io_processor = FFmpegArgumentsPreProcessor(*self.arguments)
         inputs = list(io_processor.iter_input_files())
         outputs = list(io_processor.iter_output_files())
         options = list(io_processor.iter_option_pairs())

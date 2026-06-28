@@ -55,7 +55,7 @@ class UrlContenter(AbstractContenter):
                 return ""
 
     @override
-    async def iter_records(self) -> AsyncGenerator[HostRecord, None]:
+    async def iter_records(self) -> AsyncGenerator[HostRecord, None]:  # type: ignore[override]  # pyright async generator 覆盖类型推断限制
         """迭代记录"""
         content = self.get_content()
         for line in content.splitlines():

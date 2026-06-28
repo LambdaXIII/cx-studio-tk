@@ -90,6 +90,7 @@ class IndexedListPanel:
                 table.add_row(f"{i:>{total_digits}}", self.__check_item(item))
 
         else:
+            item = None  # 可能不被 for 循环赋值的安全初始化
             safe_lines = self._max_lines - 2
             for i in range(self._start_index, self._start_index + safe_lines):
                 item = self._items[i]

@@ -14,7 +14,7 @@ def is_user_admin() -> bool:
             return ctypes.windll.shell32.IsUserAnAdmin() != 0
         else:
             # Linux/macOS/WSL: 检查有效用户ID是否为0 (root)
-            return os.geteuid() == 0
+            return os.geteuid() == 0  # type: ignore[attr-defined]  # 仅在非 Windows 平台调用
     except Exception:
         # 安全兜底：任何异常均视为无权限（避免程序崩溃）
         return False

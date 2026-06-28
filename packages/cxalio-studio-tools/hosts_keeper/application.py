@@ -22,7 +22,7 @@ class Application(IApplication):
         self.profile_manager = ProfileManager()
 
     @override
-    def start(self) -> Self:
+    def start(self) -> None:
         appenv.start()
         if appenv.is_debug_mode_on():
             appenv.say("[cx.warning]调试模式已开启。")
@@ -32,12 +32,12 @@ class Application(IApplication):
                     title="已找到配置文件",
                 )
             )
-        return self
+        return self  # type: ignore[return]  # 链式调用语法糖，基类契约返回 None
 
     @override
-    def stop(self) -> Self:
+    def stop(self) -> None:
         appenv.stop()
-        return self
+        return self  # type: ignore[return]  # 链式调用语法糖，基类契约返回 None
 
     @staticmethod
     def __open_file(file_path: Path) -> None:
@@ -61,6 +61,7 @@ class Application(IApplication):
 
     def command_new(self) -> None:
         profile_id = appenv.context.profile_id
+        assert profile_id is not None, "profile_id 不能为空"
         filename = self.profile_manager.generate_profile_path(profile_id)
         if filename.exists():
             appenv.say(f"[cx.error]配置文件 {filename.name} 已存在。")
@@ -102,9 +103,10 @@ class Application(IApplication):
             appenv.say(f"[dim]可尝试使用 show 或 edit 命令查看或编辑配置文件。")
 
     def command_show(self) -> None:
+        assert appenv.context.profile_id is not None, "profile_id 不能为空"
         profile = self.profile_manager.profiles.get(appenv.context.profile_id, None)
         if profile:
-            appenv.say(WealthDetailPanel(profile, title=profile.id))
+            appenv.say(WealthDetailPanel(profile, title=profile.id))  # type: ignore[arg-type]  # Profile 为 dataclass，运行时兼容 WealthDetailMixin
         else:
             appenv.say(
                 f"[cx.error]未找到 ID 为 {appenv.context.profile_id} 的配置文件。"
@@ -112,6 +114,7 @@ class Application(IApplication):
 
     def command_edit(self) -> None:
         profile_id = appenv.context.profile_id
+        assert profile_id is not None, "profile_id 不能为空"
         profile = self.profile_manager.profiles.get(profile_id, None)
         file_path = (
             profile.path.resolve() if profile else appenv.config_manager.config_dir

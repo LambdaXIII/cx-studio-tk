@@ -92,6 +92,7 @@ class AppHelp(WealthHelp):
 
     @staticmethod
     def show_full_help(console: r.Console) -> None:
+        assert __package__ is not None, "AppHelp must be imported as part of a package"
         md = importlib.resources.read_text(__package__, "help.md")
         content = r.Markdown(md, style="default")
         panel = r.Panel(

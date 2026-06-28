@@ -37,10 +37,12 @@ class Transcoder:
     ) -> None:
         """随机选择一个任务描述"""
         contents = []
-        for x in inputs:
-            contents.append(Path(x).name + " ->")
-        for x in outputs:
-            contents.append("-> " + Path(x).name)
+        if inputs:
+            for x in inputs:
+                contents.append(Path(x).name + " ->")
+        if outputs:
+            for x in outputs:
+                contents.append("-> " + Path(x).name)
         if not contents:
             contents.append("转码中……")
 
@@ -61,7 +63,7 @@ class Transcoder:
         """
         arguments = arguments or []
 
-        io_processor = FFmpegArgumentsPreProcessor(arguments)
+        io_processor = FFmpegArgumentsPreProcessor(*arguments)
         inputs = list(io_processor.iter_input_files())
         outputs = list(io_processor.iter_output_files())
 
@@ -98,9 +100,8 @@ class Transcoder:
             # 格式化速度显示
             speed = f"[bright_black][{status.current_speed:.2f}x][/]"
 
-            # 更新进度描述
             appenv.progress.update(
-                self._task_id,
+                self._task_id,  # type: ignore[arg-type]  # set in __enter__ before run
                 completed=current,
                 total=total,
                 description=f"{summary}{speed}[green]{self._task_description}[/]",
@@ -109,19 +110,19 @@ class Transcoder:
         @self._ffmpeg.on("started")
         def on_started():
             appenv.progress.update(
-                self._task_id, description=f"{summary}[cx.success]开始转码...[/]"
+                self._task_id, description=f"{summary}[cx.success]开始转码...[/]"  # type: ignore[arg-type]
             )
 
         @self._ffmpeg.on("finished")
         def on_finished():
             appenv.progress.update(
-                self._task_id, description=f"{summary}[cx.success]转码完成[/]"
+                self._task_id, description=f"{summary}[cx.success]转码完成[/]"  # type: ignore[arg-type]
             )
 
         @self._ffmpeg.on("terminated")
         def on_terminated():
             appenv.progress.update(
-                self._task_id, description=f"{summary}[cx.error]转码失败[/]"
+                self._task_id, description=f"{summary}[cx.error]转码失败[/]"  # type: ignore[arg-type]
             )
             appenv.whisper(self._ffmpeg_outputs, title="FFmpeg 输出")
 
@@ -146,7 +147,7 @@ class Transcoder:
 
         except Exception as e:
             appenv.progress.update(
-                self._task_id, description=f"{summary}[cx.error]转码异常: {str(e)}[/]"
+                self._task_id, description=f"{summary}[cx.error]转码异常: {str(e)}[/]"  # type: ignore[arg-type]
             )
             result = False
             raise SafeError(f"{str(e)}")

@@ -55,9 +55,9 @@ class ContenterBase:
     CONTENTERS: dict[str, type[AbstractContenter]] = {}
 
     @staticmethod
-    def register_contenter(cls: type[AbstractContenter]) -> None:
+    def register_contenter(contenter_cls: type[AbstractContenter]) -> None:
         """注册内容器"""
-        ContenterBase.CONTENTERS[cls.SCHEMA] = cls
+        ContenterBase.CONTENTERS[contenter_cls.SCHEMA] = contenter_cls
 
     @staticmethod
     def create_contenter(
@@ -67,8 +67,7 @@ class ContenterBase:
         **kwargs,
     ) -> AbstractContenter | None:
         """获取内容器"""
-        return (
-            ContenterBase.CONTENTERS.get(schema)(package, profile_metadata, **kwargs)
-            if schema in ContenterBase.CONTENTERS
-            else None
-        )
+        cls = ContenterBase.CONTENTERS.get(schema)
+        if cls is None:
+            return None
+        return cls(package, profile_metadata, **kwargs)

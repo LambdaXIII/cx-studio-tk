@@ -84,7 +84,7 @@ class AutoResizeFilter(IImageFilter):
 
     def __rich_label__(self):
         na = "[red]N/A[/red]"
-        yield super().__rich_label__()
+        yield from super().__rich_label__()
         yield f"[blue]({self._width or na}:{self._height or na})[/]"
 
     def __filter_description__(self) -> str:

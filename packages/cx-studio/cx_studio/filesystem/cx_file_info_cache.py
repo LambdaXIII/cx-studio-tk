@@ -125,6 +125,8 @@ class FileInfoCache:
             # 更新访问时间
             self._update_timestamp(abs_path)
             data = self._get_record(abs_path)
+            if data is None:
+                return None
             return data.get(key)
 
     def get_fields(self, file_path: str | Path, *keys: str) -> dict:
@@ -136,6 +138,8 @@ class FileInfoCache:
 
             self._update_timestamp(abs_path)
             data = self._get_record(abs_path)
+            if data is None:
+                return {}
             if not keys:
                 return data
             return {k: data.get(k) for k in keys}

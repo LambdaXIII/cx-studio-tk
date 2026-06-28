@@ -43,8 +43,8 @@ class Preset:
     target_suffix: str = ""
     target_folder: Path = Path(".")
     keep_parent_level: int = 0
-    inputs: list[dict[str, Any]] = field(default_factory=list)
-    outputs: list[dict[str, Any]] = field(default_factory=list)
+    inputs: list[Box] = field(default_factory=list)
+    outputs: list[Box] = field(default_factory=list)
     custom: dict[str, Any] = field(default_factory=dict)
     # raw: DataPackage = Field(default_factory=DataPackage)
     raw: Box = Box()

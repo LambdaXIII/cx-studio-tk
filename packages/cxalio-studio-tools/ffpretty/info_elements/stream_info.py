@@ -17,12 +17,12 @@ class StreamInfo:
 
     @property
     def codec_type(self) -> str:
-        c_type = self.data.get("codec_type", None)
+        c_type = self.data.get("codec_type", "")
         return c_type
 
     @property
     def codec_name(self) -> str:
-        return self.data.get("codec_name", None)
+        return self.data.get("codec_name", "")
 
     @property
     def codec_long_names(self) -> Iterable[str]:

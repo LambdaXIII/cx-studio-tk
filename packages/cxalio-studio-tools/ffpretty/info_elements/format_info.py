@@ -16,7 +16,7 @@ class FormatInfo:
 
     @property
     def format_long_name(self) -> str:
-        return self.data.get("format_long_name", None)
+        return self.data.get("format_long_name", "")
 
     @property
     def duration(self) -> CxTime | None:
