@@ -3,7 +3,7 @@ name = "cx-studio-tk"
 version = "0.7.5"
 description = "Add your description here"
 readme = "README.md"
-# requires-python = ">=3.12,<3.14"
+requires-python = ">=3.12,<3.15"
 dependencies = ["cx-studio", "cx-wealth", "cxalio-studio-tools"]
 
 [tool.uv.sources]

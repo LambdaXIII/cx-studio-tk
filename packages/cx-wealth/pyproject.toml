@@ -4,7 +4,7 @@ version = "0.7.5"
 description = "A lib of CLI gadgets extended from rich."
 readme = "README.md"
 authors = [{ name = "xiii_1991", email = "xiii_1991@163.com" }]
-requires-python = ">=3.12"
+requires-python = ">=3.12,<3.15"
 dependencies = ["rich>=14.0.0"]
 
 [project.scripts]
