@@ -131,7 +131,7 @@ requires-dist = [
 
 [[package]]
 name = "cx-studio-tk"
-version = "0.8.0.1"
+version = "0.0.0"
 source = { virtual = "." }
 dependencies = [
     { name = "cx-studio" },

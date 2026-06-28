@@ -31,7 +31,7 @@ uv build                  # 构建所有包
 
 ### Ask first
 - 添加新依赖（`uv add`）或修改 `pyproject.toml`
-- 修改版本号（`pyproject.toml` 或各包 `__init__.py` 中的 `__version__`）
+- 修改版本号（`pyproject.toml` 中的 `version`）
 - 修改分支策略相关配置（branch protection / CI workflow / git hooks）
 
 ### Never do
@@ -69,6 +69,7 @@ uv build                  # 构建所有包
 - **分级输出**：`IAppEnvironment` 提供 `say()`（始终显示）和 `whisper()`（仅 debug 模式）两个输出层级。
 
 ## Code Conventions
+**目标平台**：Windows / macOS / Linux。注意系统路径分隔符、换行符、编码、权限等差异。
 
 ### 命名约定
 - 类：PascalCase；函数/方法：snake_case
@@ -120,14 +121,15 @@ uv build                  # 构建所有包
 
 ### 版本策略
 - 格式：`major.minor.patch[.hotfix]`（SemVer + 热修复段）
-- monorepo 统一步调：根 `pyproject.toml` 持总体版本号，任何变更触发其更新；本次有变更的包同步更新，未变更的保持不变
-### 运行环境
-- **Python**: ≥3.12, <3.15
-- **Package manager**: `uv`（workspace 管理）
-- **Build system**: `hatchling`
-- **Formatter**: `black>=25.1.0`（唯一格式化工具）
-- **OS**: 跨平台（Windows/macOS/Linux）
-- **许可证**: GPLv3 + 附加条款（分发修改版本须改名、保留版权声明）
+- 迭代版本时须**同时**更新对应的 `pyproject.toml` 和 `CHANGELOG`
+- `cx-studio` 和 `cx-wealth`：各自 `pyproject.toml` 中独立管理版本号
+
+#### cxalio-studio-tools — 内部联动规则
+原先的版本联动规则降级至此分发包内部：
+- 内部工具（media_scout、media_killer、jpegger、ffpretty、hosts_keeper）任一发生变更时：
+  1. **先**修改该工具自身的版本号（`appenv.py` 中 `app_version` 属性，定义于 `IAppEnvironment`）
+  2. **然后**响应迭代 `cxalio-studio-tools` 的 `pyproject.toml` 版本号
+- 未变更的工具**不**同步修改其自身版本号
 
 ### 测试
 - ⚠️ 项目当前**没有**测试基础设施。无测试目录、无测试依赖、无 CI。

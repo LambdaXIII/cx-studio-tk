@@ -8,7 +8,7 @@ class AppEnv(IAppEnvironment):
     def __init__(self):
         super().__init__()
         self.app_name = "MediaScout"
-        self.app_version = "0.7.0"
+        self.app_version = "0.8.0"
         self.output_console = Console()
         self.context: AppContext
 

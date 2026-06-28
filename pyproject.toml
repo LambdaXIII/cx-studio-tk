@@ -1,10 +1,12 @@
 [project]
 name = "cx-studio-tk"
-version = "0.8.0.1"
-description = "Add your description here"
-readme = "README.md"
+description = "Cxalio 影视后期制作工具集 — workspace 容器"
 requires-python = ">=3.12,<3.15"
+version = "0.0.0"
 dependencies = ["cx-studio", "cx-wealth", "cxalio-studio-tools"]
+
+[tool.uv]
+package = false
 
 [tool.uv.sources]
 cx-studio = { workspace = true }
@@ -25,7 +27,6 @@ dev = [
 ]
 
 # [tool.pytest.ini_options]
-# minversion = "6.0"
+# minversion = "0.0.0"
 # testpaths = ["tests"]
 # addopts = "-ra -q"
-

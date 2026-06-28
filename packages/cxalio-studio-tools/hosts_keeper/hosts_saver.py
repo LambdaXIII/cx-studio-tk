@@ -409,7 +409,7 @@ class HostsSaver:
                     f"[cx.error]{_('目标文件 {path} 没有写入权限。').format(path=target)}"
                 )
                 appenv.say(
-                    f"[cx.info]{_('请自行处理目标文件的权限问题，或以管理员权限运行本程序。')}"
+                    f"[cx.error]{_('请自行处理目标文件的权限问题，或以管理员权限运行本程序。')}"
                 )
                 self._show_hosts_lines(self.source_hosts)
                 return False

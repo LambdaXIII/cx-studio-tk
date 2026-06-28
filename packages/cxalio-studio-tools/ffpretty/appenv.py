@@ -10,7 +10,7 @@ class AppEnv(IAppEnvironment):
     def __init__(self):
         super().__init__()
         self.app_name = "FFpretty"
-        self.app_version = "0.7.0"
+        self.app_version = "0.8.0"
         self.ffmpeg_executable = CmdFinder.which("ffmpeg")
         self.debug_mode = False
 
