@@ -207,7 +207,7 @@ class MissionRunner:
                 # await asyncio.wait([main_task])
                 self._end_time = datetime.now()
                 await self._ffmpeg.wait_for_complete()
-                return result
+            return result
 
         # running condition
 
@@ -289,4 +289,4 @@ class MissionPretender(MissionRunner):
                 await self._on_canceled(reason=e.message)
             finally:
                 self._end_time = datetime.now()
-                return True
+            return True
