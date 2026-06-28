@@ -1,4 +1,5 @@
 from collections.abc import Iterable
+from cx_tools.i18n import _
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from threading import Condition
@@ -28,7 +29,7 @@ class MissionRunner:
         with self.dir_condition:
             if parent.exists():
                 return
-            appenv.say(f"[yellow]创建目录 {parent}[/]")
+            appenv.say(f"[yellow]{_('创建目录')} {parent}[/]")
             parent.mkdir(parents=True, exist_ok=True)
 
     def run_mission(self, mission: Mission):
@@ -36,16 +37,20 @@ class MissionRunner:
         try:
 
             if not mission.source.exists():
-                raise NoSourceFileError(f"源文件 {mission.source} 不存在")
+                raise NoSourceFileError(
+                    _("源文件 {path} 不存在").format(path=mission.source)
+                )
 
             target = mission.target
             if target.exists():
                 if target == mission.source:
-                    raise TargetingSourceFileError(f"目标文件 {target} 与源文件相同")
+                    raise TargetingSourceFileError(
+                        _("目标文件 {path} 与源文件相同").format(path=target)
+                    )
                 if not appenv.context.overwrite:
                     target = ensure_new_file(target)
                     appenv.whisper(
-                        f"[yellow]目标文件已存在，已自动重命名为{target.name}。[/]"
+                        f"[yellow]{_('目标文件已存在，已自动重命名为{name}。').format(name=target.name)}[/]"
                     )
 
             self.check_parent(target)
@@ -54,20 +59,24 @@ class MissionRunner:
             img = mission.filter_chain.run(img)
             img.save(target, format=mission.target_format, **mission.saving_options)
         except Image.UnidentifiedImageError:
-            appenv.say(f"[red]文件 {mission.source} 无法识别，任务跳过！[/]")
+            appenv.say(
+                f"[red]{_('文件 {path} 无法识别，任务跳过！').format(path=mission.source)}[/]"
+            )
             result_tag = "[red]ERROR[/]"
         except SafeError as e:
             appenv.say(e.message, style=e.style)
             result_tag = "[yellow]SKIPPED[/]"
         except Exception as e:
-            appenv.say(f"[red]文件 {mission.source} 处理失败！[/]")
+            appenv.say(
+                f"[red]{_('文件 {path} 处理失败！').format(path=mission.source)}[/]"
+            )
             appenv.say(e)
             result_tag = "[red]UNKNOWN ERROR[/]"
         finally:
             appenv.say(r.Columns([WealthLabel(mission), result_tag], expand=True))
 
     def run(self):
-        with appenv.console.status("正在执行任务...") as status:
+        with appenv.console.status(_("正在执行任务...")) as status:
             with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
                 tasks = {
                     m.mission_id: executor.submit(self.run_mission, m)
@@ -78,5 +87,5 @@ class MissionRunner:
                     remains = len(tasks) - len(done)
                     if remains == 0:
                         break
-                    status.update(f"正在执行{remains}个任务...")
+                    status.update(_("正在执行{count}个任务...").format(count=remains))
                     sleep(0.05)

@@ -3,6 +3,7 @@ from collections.abc import Iterable, Generator
 from pathlib import Path
 
 from cx_studio import text as tt
+from cx_tools.i18n import _
 from cx_wealth import IndexedListPanel
 from .mission import Mission
 from ..appenv import appenv
@@ -44,4 +45,4 @@ class ScriptMaker:
                 f.write("\n")
 
         appenv.whisper(IndexedListPanel(lines, title=filename.name, max_lines=999))
-        appenv.say("已保存脚本到：{}".format(filename))
+        appenv.say(_("已保存脚本到：{name}").format(name=filename))

@@ -1,5 +1,7 @@
 # Cxalio Studio Tools
 
+**语言 / Languages**: [中文](README.md) | [English](README.en_US.md)
+
 包含 5 个命令行工具和一个通用的 CLI 应用框架。
 
 ## 工具

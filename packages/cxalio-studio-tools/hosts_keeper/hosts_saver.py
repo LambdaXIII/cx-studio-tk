@@ -37,8 +37,7 @@ def _elevated_replace_linux(source: Path, target: Path) -> bool:
             break
     else:
         appenv.say(
-            "[cx.error]当前平台未检测到可用的提权工具（sudo/doas/pkexec）。"
-            "请安装 sudo 或以 root 运行本程序。"
+            f"[cx.error]{_('当前平台未检测到可用的提权工具（sudo/doas/pkexec）。请安装 sudo 或以 root 运行本程序。')}"
         )
         return False
 
@@ -75,7 +74,7 @@ def _elevated_replace_macos(source: Path, target: Path) -> bool:
             )
             return True
         except subprocess.CalledProcessError:
-            appenv.say("[cx.error]提权替换失败。")
+            appenv.say(f"[cx.error]{_('提权替换失败。')}[/]")
             return False
 
     if shutil.which("osascript"):
@@ -89,15 +88,14 @@ def _elevated_replace_macos(source: Path, target: Path) -> bool:
             )
             return True
         except subprocess.CalledProcessError:
-            appenv.say("[cx.error]提权替换失败。")
+            appenv.say(f"[cx.error]{_('提权替换失败。')}[/]")
             return False
         except subprocess.TimeoutExpired:
-            appenv.say("[cx.error]提权替换超时：用户未在授权对话框中确认。")
+            appenv.say(f"[cx.error]{_('提权替换超时：用户未在授权对话框中确认。')}[/]")
             return False
 
     appenv.say(
-        "[cx.error]当前平台未检测到可用的提权工具（sudo/osascript）。"
-        "请安装 sudo 或以 root 运行本程序。"
+        f"[cx.error]{_('当前平台未检测到可用的提权工具（sudo/osascript）。请安装 sudo 或以 root 运行本程序。')}"
     )
     return False
 
@@ -128,7 +126,7 @@ def _elevated_replace_windows(source: Path, target: Path) -> bool:
             )
             return True
         except subprocess.CalledProcessError:
-            appenv.whisper("[cx.warning]sudo 提权失败，尝试 PowerShell UAC...")
+            appenv.whisper(f"[cx.warning]{_('sudo 提权失败，尝试 PowerShell UAC...')}")
 
     # PowerShell UAC
     if shutil.which("powershell.exe"):
@@ -156,15 +154,14 @@ def _elevated_replace_windows(source: Path, target: Path) -> bool:
         except (OSError, FileNotFoundError):
             pass
         except subprocess.TimeoutExpired:
-            appenv.say("[cx.error]提权替换超时：用户未在 UAC 对话框中确认。")
+            appenv.say(f"[cx.error]{_('提权替换超时：用户未在 UAC 对话框中确认。')}[/]")
             return False
 
     if sudo_attempted:
-        appenv.say("[cx.error]所有提权方式均失败。请检查权限设置。")
+        appenv.say(f"[cx.error]{_('所有提权方式均失败。请检查权限设置。')}[/]")
     else:
         appenv.say(
-            "[cx.error]当前平台未检测到可用的提权工具（sudo/powershell.exe）。"
-            "请以管理员权限运行本程序。"
+            f"[cx.error]{_('当前平台未检测到可用的提权工具（sudo/powershell.exe）。请以管理员权限运行本程序。')}"
         )
     return False
 
@@ -183,8 +180,7 @@ def _dns_flush_windows(skip_flush: bool = False) -> bool:
     """
     if skip_flush:
         appenv.say(
-            "[cx.info]未刷新 DNS 缓存，请自行刷新。以管理员身份运行："
-            "[bold]ipconfig /flushdns[/bold]"
+            f"[cx.info]{_('未刷新 DNS 缓存，请自行刷新。以管理员身份运行：')} [bold]ipconfig /flushdns[/bold]"
         )
         return False
 
@@ -212,19 +208,18 @@ def _dns_flush_windows(skip_flush: bool = False) -> bool:
                 check=True,
                 timeout=60,
             )
-            appenv.say("[cx.success]已刷新 DNS 缓存（ipconfig /flushdns）。")
+            appenv.say(f"[cx.success]{_('已刷新 DNS 缓存（ipconfig /flushdns）。')}[/]")
             return True
         except subprocess.CalledProcessError:
             pass
         except (OSError, FileNotFoundError):
             pass
         except subprocess.TimeoutExpired:
-            appenv.say("[cx.error]DNS 缓存刷新超时。")
+            appenv.say(f"[cx.error]{_('DNS 缓存刷新超时。')}[/]")
             return False
 
     appenv.say(
-        "[cx.warning]未能自动刷新 DNS 缓存。"
-        "请以管理员身份运行：[bold]ipconfig /flushdns[/bold]"
+        f"[cx.warning]{_('未能自动刷新 DNS 缓存。请以管理员身份运行：')} [bold]ipconfig /flushdns[/bold]"
     )
     return False
 
@@ -241,8 +236,7 @@ def _dns_flush_macos(skip_flush: bool = False) -> bool:
     """
     if skip_flush:
         appenv.say(
-            "[cx.info]未刷新 DNS 缓存，请自行刷新。手动执行："
-            "[bold]sudo killall -HUP mDNSResponder[/bold]"
+            f"[cx.info]{_('未刷新 DNS 缓存，请自行刷新。手动执行：')} [bold]sudo killall -HUP mDNSResponder[/bold]"
         )
         return False
 
@@ -257,18 +251,16 @@ def _dns_flush_macos(skip_flush: bool = False) -> bool:
             check=True,
             timeout=60,
         )
-        appenv.say("[cx.success]已刷新 DNS 缓存。")
+        appenv.say(f"[cx.success]{_('已刷新 DNS 缓存。')}[/]")
         return True
     except subprocess.CalledProcessError:
         appenv.say(
-            "[cx.warning]DNS 缓存刷新失败。请手动执行："
-            "[bold]sudo killall -HUP mDNSResponder[/bold]"
+            f"[cx.warning]{_('DNS 缓存刷新失败。请手动执行：')} [bold]sudo killall -HUP mDNSResponder[/bold]"
         )
         return False
     except subprocess.TimeoutExpired:
         appenv.say(
-            "[cx.warning]DNS 缓存刷新超时。请手动执行："
-            "[bold]sudo killall -HUP mDNSResponder[/bold]"
+            f"[cx.warning]{_('DNS 缓存刷新超时。请手动执行：')} [bold]sudo killall -HUP mDNSResponder[/bold]"
         )
         return False
 
@@ -282,7 +274,7 @@ def _dns_flush_linux(skip_flush: bool = False) -> bool:
     """
     if skip_flush:
         appenv.say(
-            "[cx.info]未刷新 DNS 缓存，请自行刷新。可尝试：\n"
+            f"[cx.info]{_('未刷新 DNS 缓存，请自行刷新。可尝试：')}\n"
             "  sudo systemctl restart systemd-resolved   # systemd-resolved\n"
             "  sudo systemctl restart nscd               # nscd\n"
             "  sudo systemctl restart dnsmasq             # dnsmasq"
@@ -290,7 +282,7 @@ def _dns_flush_linux(skip_flush: bool = False) -> bool:
         return False
 
     appenv.say(
-        "[cx.info]hosts 文件已更新。如需刷新 DNS 缓存，请手动执行：\n"
+        f"[cx.info]{_('hosts 文件已更新。如需刷新 DNS 缓存，请手动执行：')}\n"
         "  sudo systemctl restart systemd-resolved   # systemd-resolved\n"
         "  sudo systemctl restart nscd               # nscd\n"
         "  sudo systemctl restart dnsmasq             # dnsmasq"
@@ -368,7 +360,7 @@ class HostsSaver:
         """
         target = target or self.target_hosts
         if self.pretending_mode:
-            appenv.say(f"[cx.info]假装模式已开启，新的内容将输出到标准输出。")
+            appenv.say(f"[cx.info]{_('假装模式已开启，新的内容将输出到标准输出。')}")
             self._show_hosts_lines(self.source_hosts)
             return False
 
@@ -379,7 +371,7 @@ class HostsSaver:
             backup_result = self._backup_target_hosts(target)
             if not backup_result:
                 appenv.say(
-                    f"[cx.warning]目标文件已存在且无法备份，将直接输出生成的 hosts 内容。"
+                    f"[cx.warning]{_('目标文件已存在且无法备份，将直接输出生成的 hosts 内容。')}"
                 )
                 self._show_hosts_lines(self.source_hosts)
                 return False
@@ -390,7 +382,9 @@ class HostsSaver:
                     shutil.copyfile(self.source_hosts, target)
                     return True
                 except OSError:
-                    appenv.say(f"[cx.error]替换失败。目标文件 {target} 无法写入。")
+                    appenv.say(
+                        f"[cx.error]{_('替换失败。目标文件 {path} 无法写入。').format(path=target)}"
+                    )
                     return False
             else:
                 # 需提权替换
@@ -401,7 +395,7 @@ class HostsSaver:
                     return ok
                 except NotImplementedError:
                     appenv.say(
-                        "[cx.error]当前平台不支持自动提权替换。请以管理员权限运行本程序。"
+                        f"[cx.error]{_('当前平台不支持自动提权替换。请以管理员权限运行本程序。')}"
                     )
                     self._show_hosts_lines(self.source_hosts)
                     return False
@@ -412,10 +406,10 @@ class HostsSaver:
                 return True
             except PermissionError:
                 appenv.say(
-                    f"[cx.error]目标文件 [filepath]{target}[/filepath] 没有写入权限。"
+                    f"[cx.error]{_('目标文件 {path} 没有写入权限。').format(path=target)}"
                 )
                 appenv.say(
-                    "[cx.info]请自行处理目标文件的权限问题，或以管理员权限运行本程序。"
+                    f"[cx.info]{_('请自行处理目标文件的权限问题，或以管理员权限运行本程序。')}"
                 )
                 self._show_hosts_lines(self.source_hosts)
                 return False

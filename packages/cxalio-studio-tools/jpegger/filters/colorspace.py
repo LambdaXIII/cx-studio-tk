@@ -1,3 +1,5 @@
+from cx_tools.i18n import _
+
 from typing import Literal
 
 from PIL.Image import Image
@@ -44,4 +46,6 @@ class ColorSpaceFilter(IImageFilter):
         yield f"[blue]({param})[/]"
 
     def __filter_description__(self) -> str:
-        return f"将图像的色彩空间转换为 {self.colorspace or '默认'}"
+        return _("将图像的色彩空间转换为 {space}").format(
+            space=self.colorspace or _("默认")
+        )

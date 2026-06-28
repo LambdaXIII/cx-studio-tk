@@ -1,5 +1,7 @@
 # cx-studio-tk
 
+**语言 / Languages**: [中文](README.md) | [English](README.en_US.md)
+
 [![PyPI - Version](https://img.shields.io/pypi/v/cx-studio-tk)](https://pypi.org/project/cx-studio-tk/)
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/cx-studio-tk)](https://pypi.org/project/cx-studio-tk/)
 [![License](https://img.shields.io/github/license/LambdaXIII/cx-studio-tk)](LICENSE)

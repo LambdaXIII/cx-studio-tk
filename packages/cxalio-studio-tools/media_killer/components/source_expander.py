@@ -2,6 +2,7 @@ from collections.abc import Generator, Iterable
 from pathlib import Path, PurePath
 
 from cx_studio.filesystem.path_expander import PathExpander, SuffixValidator
+from cx_tools.i18n import _
 from ..appenv import appenv
 from media_scout.inspectors import (
     EDLInspector,
@@ -51,7 +52,7 @@ class SourceExpander:
                 wanna_quit = True
                 appenv.wanna_quit_event.clear()
             if wanna_quit:
-                appenv.whisper("接收到[bold]取消信号[/bold]，中断路径展开操作。")
+                appenv.whisper(_("接收到[bold]取消信号[/bold]，中断路径展开操作。"))
                 break
             for p in expander.expand(Path(source)):
                 if p in self._exported_paths:

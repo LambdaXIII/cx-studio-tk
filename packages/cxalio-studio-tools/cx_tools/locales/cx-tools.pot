@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cxalio-studio-tools VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-06-28 22:30+0800\n"
+"POT-Creation-Date: 2026-06-28 23:12+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,23 +18,149 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: hosts_keeper/appcontext.py:49
+#: cx_tools/app/iappenv.py:62
+msgid "触发中断信号…"
+msgstr ""
+
+#: cx_tools/app/iappenv.py:68
+msgid "检测到强制中断信号…"
+msgstr ""
+
+#: hosts_keeper/app_help.py:14
+msgid "命令和参数"
+msgstr ""
+
+#: hosts_keeper/app_help.py:18
+msgid "命令"
+msgstr ""
+
+#: hosts_keeper/app_help.py:22
+msgid ""
+"要执行的操作，可选值为：\n"
+" - [u]list[/]：列出所有配置文件。\n"
+" - [u]show[/]：显示当前配置文件的内容。\n"
+" - [u]edit[/]：编辑当前配置文件。\n"
+" - [u]update[/]：按照所有激活的配置文件更新hosts。\n"
+" - [u]help[/]：显示帮助信息。"
+msgstr ""
+
+#: hosts_keeper/app_help.py:33
+msgid "配置文件ID"
+msgstr ""
+
+#: hosts_keeper/app_help.py:36
+msgid "配置文件的ID，在 show 和 edit 命令中必须要指定。"
+msgstr ""
+
+#: hosts_keeper/app_help.py:42 hosts_keeper/appcontext.py:111
+msgid "搜索模式"
+msgstr ""
+
+#: hosts_keeper/app_help.py:46
+msgid ""
+"如果在 list 中指定了搜索模式，将只会显示符合条件的配置文件。搜索模式支持 glob "
+"形式的通配符，并会智能搜索配置文件的多种信息以找到符合条件的目标。"
+msgstr ""
+
+#: hosts_keeper/app_help.py:54
+msgid "目标文件"
+msgstr ""
+
+#: hosts_keeper/app_help.py:57
+msgid "指定目标 hosts 文件，默认值为系统 hosts 文件。"
+msgstr ""
+
+#: hosts_keeper/app_help.py:61
+msgid "跳过刷新"
+msgstr ""
+
+#: hosts_keeper/app_help.py:63
+msgid "更新 hosts 后跳过 DNS 缓存刷新，仅输出平台对应的手动命令提示。"
+msgstr ""
+
+#: hosts_keeper/app_help.py:66 media_killer/mk_help_info.py:78
+msgid "杂项"
+msgstr ""
+
+#: hosts_keeper/app_help.py:67 hosts_keeper/appcontext.py:53
+#: media_killer/appcontext.py:116 media_killer/mk_help_info.py:79
 msgid "显示此帮助信息"
 msgstr ""
 
-#: hosts_keeper/appcontext.py:59
+#: hosts_keeper/app_help.py:69 media_killer/mk_help_info.py:81
+msgid "显示完整的教程内容"
+msgstr ""
+
+#: hosts_keeper/app_help.py:72 media_killer/mk_help_info.py:84
+msgid "开启调试模式以观察更多的后台信息"
+msgstr ""
+
+#: hosts_keeper/app_help.py:77 media_killer/mk_help_info.py:89
+msgid "启用[bold blue]模拟运行模式[/]，不会进行任何文件操作。"
+msgstr ""
+
+#: hosts_keeper/app_help.py:82
+msgid "建议通过完整帮助信息学习更多使用技巧。"
+msgstr ""
+
+#: hosts_keeper/app_help.py:87
+msgid ""
+"本工具通过一系列配置文件自动编写操作系统的 hosts 文件。\n"
+"        配置文件可通过 [u]list[/] [u]show[/] [u]edit[/] 等命令进行管理。\n"
+"        执行 [u]update[/] 命令后，hosts 文件将被自动更新。\n"
+"        当然，编辑 hosts 文件需要以管理员权限运行。"
+msgstr ""
+
+#: hosts_keeper/app_help.py:108
+msgid "Hosts Keeper 教程"
+msgstr ""
+
+#: hosts_keeper/appcontext.py:60 media_killer/appcontext.py:125
+msgid "显示详细教程"
+msgstr ""
+
+#: hosts_keeper/appcontext.py:67 media_scout/arg_parser.py:139
 msgid "开启调试模式"
 msgstr ""
 
-#: hosts_keeper/appcontext.py:78
+#: hosts_keeper/appcontext.py:74
+msgid "假装执行，不实际更新 hosts 文件"
+msgstr ""
+
+#: hosts_keeper/appcontext.py:82
+msgid "子命令"
+msgstr ""
+
+#: hosts_keeper/appcontext.py:86
 msgid "更新 hosts 文件"
 msgstr ""
 
-#: hosts_keeper/appcontext.py:111
+#: hosts_keeper/appcontext.py:92
+msgid "指定 hosts 文件路径"
+msgstr ""
+
+#: hosts_keeper/appcontext.py:102
+msgid "更新后跳过 DNS 缓存刷新，仅提示手动命令"
+msgstr ""
+
+#: hosts_keeper/appcontext.py:106
+msgid "列出所有配置文件"
+msgstr ""
+
+#: hosts_keeper/appcontext.py:120 hosts_keeper/appcontext.py:121
 msgid "显示指定配置文件内容"
 msgstr ""
 
-#: hosts_keeper/appcontext.py:125
+#: hosts_keeper/appcontext.py:124 hosts_keeper/appcontext.py:131
+#: hosts_keeper/appcontext.py:138
+msgid "配置文件 ID"
+msgstr ""
+
+#: hosts_keeper/appcontext.py:128
+msgid "创建新配置文件"
+msgstr ""
+
+#: hosts_keeper/appcontext.py:135
 msgid "编辑指定配置文件"
 msgstr ""
 
@@ -55,47 +181,1018 @@ msgstr ""
 msgid "调试模式已开启。"
 msgstr ""
 
-#: hosts_keeper/application.py:68
+#: hosts_keeper/application.py:35
+msgid "已找到配置文件"
+msgstr ""
+
+#: hosts_keeper/application.py:50
+msgid "未设置编辑器环境变量，尝试使用系统工具打开。"
+msgstr ""
+
+#: hosts_keeper/application.py:54
+#, python-brace-format
+msgid "打开文件 {name} 失败。"
+msgstr ""
+
+#: hosts_keeper/application.py:61
+#, python-brace-format
+msgid "打开目录 {name} 失败。"
+msgstr ""
+
+#: hosts_keeper/application.py:65 hosts_keeper/application.py:111
+#: hosts_keeper/application.py:122
+msgid "profile_id 不能为空"
+msgstr ""
+
+#: hosts_keeper/application.py:69
 #, python-brace-format
 msgid "配置文件 {name} 已存在。"
 msgstr ""
 
-#: hosts_keeper/application.py:100
+#: hosts_keeper/application.py:76
+#, python-brace-format
+msgid "已创建配置文件: {name}"
+msgstr ""
+
+#: hosts_keeper/application.py:79
+msgid "创建配置文件失败。"
+msgstr ""
+
+#: hosts_keeper/application.py:102
 msgid "未找到符合条件的配置文件。"
 msgstr ""
 
-#: hosts_keeper/application.py:104
+#: hosts_keeper/application.py:105
+#, python-brace-format
+msgid "共找到 {count} 个配置文件。"
+msgstr ""
+
+#: hosts_keeper/application.py:107
 msgid "可尝试使用 show 或 edit 命令查看或编辑配置文件。"
 msgstr ""
 
-#: hosts_keeper/application.py:154
+#: hosts_keeper/application.py:117 hosts_keeper/application.py:126
+#, python-brace-format
+msgid "未找到 ID 为 {profile_id} 的配置文件。"
+msgstr ""
+
+#: hosts_keeper/application.py:131
+#, python-brace-format
+msgid "配置文件 {path} 不存在。"
+msgstr ""
+
+#: hosts_keeper/application.py:140
+msgid "update 模式已启动"
+msgstr ""
+
+#: hosts_keeper/application.py:142
+msgid "已构建 HostBuilder"
+msgstr ""
+
+#: hosts_keeper/application.py:147
+msgid "已启用配置文件"
+msgstr ""
+
+#: hosts_keeper/application.py:151
+msgid "开始构建 Hosts 文件内容"
+msgstr ""
+
+#: hosts_keeper/application.py:159
 #, python-brace-format
 msgid "已写入新的内容到临时文件 {path}"
 msgstr ""
 
-#: hosts_keeper/application.py:163
+#: hosts_keeper/application.py:166
+#, python-brace-format
+msgid "将保存到目标文件 {path}"
+msgstr ""
+
+#: hosts_keeper/application.py:169
 msgid "已成功保存新的 hosts 文件。"
 msgstr ""
 
-#: hosts_keeper/hosts_saver.py:52
+#: hosts_keeper/application.py:172
+msgid "准备刷新 DNS 缓存"
+msgstr ""
+
+#: hosts_keeper/application.py:178
+msgid "hosts 文件已更新。当前平台不支持自动刷新 DNS 缓存。"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:40
+msgid "当前平台未检测到可用的提权工具（sudo/doas/pkexec）。请安装 sudo 或以 root 运行本程序。"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:51 hosts_keeper/hosts_saver.py:77
+#: hosts_keeper/hosts_saver.py:91
 msgid "提权替换失败。"
 msgstr ""
 
-#: hosts_keeper/hosts_saver.py:154
+#: hosts_keeper/hosts_saver.py:94
+msgid "提权替换超时：用户未在授权对话框中确认。"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:98
+msgid "当前平台未检测到可用的提权工具（sudo/osascript）。请安装 sudo 或以 root 运行本程序。"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:129
+msgid "sudo 提权失败，尝试 PowerShell UAC..."
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:152
 msgid "PowerShell UAC 提权替换失败。"
 msgstr ""
 
-#: hosts_keeper/hosts_saver.py:194
+#: hosts_keeper/hosts_saver.py:157
+msgid "提权替换超时：用户未在 UAC 对话框中确认。"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:161
+msgid "所有提权方式均失败。请检查权限设置。"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:164
+msgid "当前平台未检测到可用的提权工具（sudo/powershell.exe）。请以管理员权限运行本程序。"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:183
+msgid "未刷新 DNS 缓存，请自行刷新。以管理员身份运行："
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:190 hosts_keeper/hosts_saver.py:211
 msgid "已刷新 DNS 缓存（ipconfig /flushdns）。"
 msgstr ""
 
-#: hosts_keeper/hosts_saver.py:329
+#: hosts_keeper/hosts_saver.py:218
+msgid "DNS 缓存刷新超时。"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:222
+msgid "未能自动刷新 DNS 缓存。请以管理员身份运行："
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:239
+msgid "未刷新 DNS 缓存，请自行刷新。手动执行："
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:254
+msgid "已刷新 DNS 缓存。"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:258
+msgid "DNS 缓存刷新失败。请手动执行："
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:263
+msgid "DNS 缓存刷新超时。请手动执行："
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:277
+msgid "未刷新 DNS 缓存，请自行刷新。可尝试："
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:285
+msgid "hosts 文件已更新。如需刷新 DNS 缓存，请手动执行："
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:322
 #, python-brace-format
 msgid "目标 hosts 文件 {path} 不存在，跳过备份。"
 msgstr ""
 
-#: hosts_keeper/hosts_saver.py:336
+#: hosts_keeper/hosts_saver.py:330
 #, python-brace-format
 msgid "无法创建备份文件，错误：{error}"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:363
+msgid "假装模式已开启，新的内容将输出到标准输出。"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:374
+msgid "目标文件已存在且无法备份，将直接输出生成的 hosts 内容。"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:385
+#, python-brace-format
+msgid "替换失败。目标文件 {path} 无法写入。"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:396
+msgid "当前平台不支持自动提权替换。请以管理员权限运行本程序。"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:407
+#, python-brace-format
+msgid "目标文件 {path} 没有写入权限。"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:410
+msgid "请自行处理目标文件的权限问题，或以管理员权限运行本程序。"
+msgstr ""
+
+#: hosts_keeper/profile_manager.py:31
+msgid "为非法配置文件，已跳过。"
+msgstr ""
+
+#: hosts_keeper/profile_manager.py:36
+#, python-brace-format
+msgid "配置文件 {id} 已经由 {old_name} 提供，将被 {new_name} 覆盖。"
+msgstr ""
+
+#: hosts_keeper/profile/contenters/url_contenter.py:48
+#, python-brace-format
+msgid "无法获取 URL 内容: {error}"
+msgstr ""
+
+#: hosts_keeper/profile/contenters/url_contenter.py:52
+#, python-brace-format
+msgid "使用配置编码 {encoding} 解码失败，尝试 utf-8 回退..."
+msgstr ""
+
+#: jpegger/simple_appcontext.py:43
+msgid "Jpegger 是一个简单的批量转换图片的命令行工具。"
+msgstr ""
+
+#: jpegger/simple_appcontext.py:48 jpegger/simple_appcontext.py:171
+#: media_scout/arg_parser.py:140
+msgid "显示帮助信息"
+msgstr ""
+
+#: jpegger/simple_appcontext.py:70
+msgid "缩放因子"
+msgstr ""
+
+#: jpegger/simple_appcontext.py:72
+msgid "缩放尺寸"
+msgstr ""
+
+#: jpegger/simple_appcontext.py:74
+msgid "缩放宽度"
+msgstr ""
+
+#: jpegger/simple_appcontext.py:76
+msgid "缩放高度"
+msgstr ""
+
+#: jpegger/simple_appcontext.py:78
+msgid "颜色空间"
+msgstr ""
+
+#: jpegger/simple_appcontext.py:80
+msgid "编码质量"
+msgstr ""
+
+#: jpegger/simple_appcontext.py:82 media_killer/appcontext.py:81
+msgid "输出目录"
+msgstr ""
+
+#: jpegger/simple_appcontext.py:84
+msgid "强制覆盖"
+msgstr ""
+
+#: jpegger/simple_appcontext.py:86
+msgid "调试模式"
+msgstr ""
+
+#: jpegger/simple_appcontext.py:107 media_killer/appcontext.py:47
+msgid "输入文件"
+msgstr ""
+
+#: jpegger/simple_appcontext.py:114
+msgid ""
+"Jpegger是一个简单的批量转换图片的命令行工具。\n"
+"\n"
+"            使用选项可以简单地控制输出图片的尺寸、编码质量和色彩空间。\n"
+"            本工具旨在快速地进行简单的批量处理，所以暂不提供更高级的客制化功能。\n"
+"            "
+msgstr ""
+
+#: jpegger/simple_appcontext.py:123
+msgid "基本选项"
+msgstr ""
+
+#: jpegger/simple_appcontext.py:125
+msgid "需要转码的文件"
+msgstr ""
+
+#: jpegger/simple_appcontext.py:131
+msgid "指定输出格式，默认沿用原始格式"
+msgstr ""
+
+#: jpegger/simple_appcontext.py:137
+msgid "指定输出质量，默认使用内置的常用质量设置"
+msgstr ""
+
+#: jpegger/simple_appcontext.py:140
+msgid "输出目录，默认为当前目录"
+msgstr ""
+
+#: jpegger/simple_appcontext.py:143
+msgid "图片处理"
+msgstr ""
+
+#: jpegger/simple_appcontext.py:143
+msgid "对图像进行处理"
+msgstr ""
+
+#: jpegger/simple_appcontext.py:145
+msgid "按比例缩放图片的尺寸"
+msgstr ""
+
+#: jpegger/simple_appcontext.py:151
+msgid "指定图片的尺寸，接受包含两个数字的表达式"
+msgstr ""
+
+#: jpegger/simple_appcontext.py:156
+msgid "指定图片的宽度，如果未指定高度则保持原始图像比例"
+msgstr ""
+
+#: jpegger/simple_appcontext.py:161
+msgid "指定图片的高度，如果未指定宽度则保持原始图像比例"
+msgstr ""
+
+#: jpegger/simple_appcontext.py:164
+msgid "其它选项"
+msgstr ""
+
+#: jpegger/simple_appcontext.py:168
+msgid "强制覆盖已存在的文件，未设置时将会自动重命名目标文件"
+msgstr ""
+
+#: jpegger/simple_appcontext.py:170 media_killer/appcontext.py:139
+msgid "显示调试信息"
+msgstr ""
+
+#: jpegger/simple_application.py:38
+msgid "未指定输入文件，无事可做"
+msgstr ""
+
+#: jpegger/components/errors.py:8
+msgid "未找到源文件"
+msgstr ""
+
+#: jpegger/components/errors.py:13
+msgid "源文件无法被目标文件所覆盖"
+msgstr ""
+
+#: jpegger/components/mission_runner.py:32
+msgid "创建目录"
+msgstr ""
+
+#: jpegger/components/mission_runner.py:40
+#, python-brace-format
+msgid "源文件 {path} 不存在"
+msgstr ""
+
+#: jpegger/components/mission_runner.py:45
+#, python-brace-format
+msgid "目标文件 {path} 与源文件相同"
+msgstr ""
+
+#: jpegger/components/mission_runner.py:49
+#, python-brace-format
+msgid "目标文件已存在，已自动重命名为{name}。"
+msgstr ""
+
+#: jpegger/components/mission_runner.py:58
+#, python-brace-format
+msgid "文件 {path} 无法识别，任务跳过！"
+msgstr ""
+
+#: jpegger/components/mission_runner.py:64
+#, python-brace-format
+msgid "文件 {path} 处理失败！"
+msgstr ""
+
+#: jpegger/components/mission_runner.py:71
+msgid "正在执行任务..."
+msgstr ""
+
+#: jpegger/components/mission_runner.py:82
+#, python-brace-format
+msgid "正在执行{count}个任务..."
+msgstr ""
+
+#: jpegger/filters/auto_resize.py:95
+#, python-brace-format
+msgid "调整图像分辨率至 {width}x{height}"
+msgstr ""
+
+#: jpegger/filters/auto_resize.py:97
+#, python-brace-format
+msgid "将图像宽度调整为 {width}，并保持原图比例缩放高度"
+msgstr ""
+
+#: jpegger/filters/auto_resize.py:99
+#, python-brace-format
+msgid "将图像高度调整为 {height}，并保持原图比例缩放宽度"
+msgstr ""
+
+#: jpegger/filters/auto_resize.py:100 jpegger/filters/auto_resize.py:133
+msgid "不对图像做任何处理"
+msgstr ""
+
+#: jpegger/filters/auto_resize.py:134
+#, python-brace-format
+msgid "将图像宽度和高度缩放 {factor} 倍"
+msgstr ""
+
+#: jpegger/filters/colorspace.py:49
+#, python-brace-format
+msgid "将图像的色彩空间转换为 {space}"
+msgstr ""
+
+#: jpegger/filters/colorspace.py:49
+msgid "默认"
+msgstr ""
+
+#: media_killer/appcontext.py:37
+msgid "MediaKiller 是一个命令行多媒体文件批量处理工具。"
+msgstr ""
+
+#: media_killer/appcontext.py:39
+msgid "—— 来自 Cxalio 工作室工具集。"
+msgstr ""
+
+#: media_killer/appcontext.py:45
+msgid "多个需要处理的文件路径[dim]（源文件或配置文件）"
+msgstr ""
+
+#: media_killer/appcontext.py:53
+msgid "生成新的预设文件示例"
+msgstr ""
+
+#: media_killer/appcontext.py:58
+msgid "将转码任务编写为脚本"
+msgstr ""
+
+#: media_killer/appcontext.py:63
+msgid "指定最大工作线程数"
+msgstr ""
+
+#: media_killer/appcontext.py:67
+msgid "线程数"
+msgstr ""
+
+#: media_killer/appcontext.py:73
+msgid "重新加载上次运行的任务"
+msgstr ""
+
+#: media_killer/appcontext.py:80
+msgid "指定一个输出目录"
+msgstr ""
+
+#: media_killer/appcontext.py:87
+msgid "指定任务排序方式"
+msgstr ""
+
+#: media_killer/appcontext.py:90
+msgid "排序方式代码"
+msgstr ""
+
+#: media_killer/appcontext.py:97
+msgid "强制覆盖所有输出文件"
+msgstr ""
+
+#: media_killer/appcontext.py:106
+msgid "强制启用安全模式（不覆盖已有文件）"
+msgstr ""
+
+#: media_killer/appcontext.py:132
+msgid "以[italic dim]假装模式[/]模拟运行 :)"
+msgstr ""
+
+#: media_killer/appenv.py:23
+msgid "媒体文件批量操作工具"
+msgstr ""
+
+#: media_killer/appenv.py:70
+msgid "输入文件总大小:"
+msgstr ""
+
+#: media_killer/appenv.py:74
+msgid "输出文件总大小:"
+msgstr ""
+
+#: media_killer/appenv.py:82
+#, python-brace-format
+msgid "总共耗时{time_str}。"
+msgstr ""
+
+#: media_killer/appenv.py:101
+msgid "正在清理失败的目标文件..."
+msgstr ""
+
+#: media_killer/appenv.py:104
+msgid "已删除"
+msgstr ""
+
+#: media_killer/appenv.py:107
+#, python-brace-format
+msgid "已清理 {count} 个目标文件。"
+msgstr ""
+
+#: media_killer/appenv.py:131
+msgid "模拟运行"
+msgstr ""
+
+#: media_killer/appenv.py:133
+msgid "安全模式"
+msgstr ""
+
+#: media_killer/appenv.py:135
+msgid "强制覆盖模式"
+msgstr ""
+
+#: media_killer/appenv.py:152
+#, python-brace-format
+msgid "文件 {name} 已存在，请取消 --force-no-overwrite 选项或指定其它文件名。"
+msgstr ""
+
+#: media_killer/appenv.py:154
+#, python-brace-format
+msgid "文件 {name} 已存在，请使用 --force-overwrite 选项尝试覆盖或指定其它文件名。"
+msgstr ""
+
+#: media_killer/appenv.py:155
+#, python-brace-format
+msgid "文件 {name} 已存在，或指定其它文件名。"
+msgstr ""
+
+#: media_killer/appenv.py:158
+#, python-brace-format
+msgid "文件 {name} 已存在，将强制覆盖。"
+msgstr ""
+
+#: media_killer/application.py:53
+msgid "程序正常退出。"
+msgstr ""
+
+#: media_killer/application.py:86
+#, python-brace-format
+msgid "已生成示例配置文件：{name}。"
+msgstr ""
+
+#: media_killer/application.py:86
+msgid "请在修改后使用！"
+msgstr ""
+
+#: media_killer/application.py:96
+msgid "发现重复的配置文件:"
+msgstr ""
+
+#: media_killer/application.py:106
+msgid "来源路径列表"
+msgstr ""
+
+#: media_killer/application.py:110
+#, python-brace-format
+msgid "已添加 {preset_count} 个配置文件和 {source_count} 个来源路径。"
+msgstr ""
+
+#: media_killer/application.py:122
+msgid "没有任务需要执行。"
+msgstr ""
+
+#: media_killer/application.py:127
+#, python-brace-format
+msgid "已自动过滤掉 {diff} 个重复任务，共 {total} 个任务需要执行。"
+msgstr ""
+
+#: media_killer/application.py:130
+msgid "全部任务整理完毕，已按照设定方式排序。"
+msgstr ""
+
+#: media_killer/application.py:131
+msgid "整理完的任务列表"
+msgstr ""
+
+#: media_killer/application.py:150
+msgid "并非合法的文件名，不予处理。"
+msgstr ""
+
+#: media_killer/application.py:164
+#, python-brace-format
+msgid "从上次执行中恢复了 {count} 个任务……"
+msgstr ""
+
+#: media_killer/application.py:172
+msgid "输出目录将被替换为:"
+msgstr ""
+
+#: media_killer/application.py:183
+#, python-brace-format
+msgid "生成了 {count} 个任务。"
+msgstr ""
+
+#: media_killer/application.py:197
+msgid "检测到[italic cyan underline]假装模式[/]，将不会真正执行任何操作。"
+msgstr ""
+
+#: media_killer/mk_help_info.py:13
+msgid "转码选项"
+msgstr ""
+
+#: media_killer/mk_help_info.py:13
+msgid "控制转码操作的选项"
+msgstr ""
+
+#: media_killer/mk_help_info.py:18
+msgid "指定（多个）需要处理的文件，包括[u]预设文件[/]和[u]源文件路径[/]。"
+msgstr ""
+
+#: media_killer/mk_help_info.py:24
+msgid "指定目标文件夹，如果不指定则默认为当前工作目录。"
+msgstr ""
+
+#: media_killer/mk_help_info.py:30
+msgid ""
+"设置任务的排序模式，在执行任务之前将会按照指定的模式进行排序。\n"
+"            "
+"四种模式分别为[u]按源文件路径排序[/]、[u]按预设排序[/]、[u]按目标文件路径排序[/]、[u]按输入顺序排序[/]。"
+msgstr ""
+
+#: media_killer/mk_help_info.py:40
+msgid ""
+"\n"
+"                设置并行工作进程的数量，默认为 1 。\n"
+"                不建议设置大于 2 的数值，除非你知道你在干什么。\n"
+"                "
+msgstr ""
+
+#: media_killer/mk_help_info.py:50
+msgid "启用[red bold]强制覆盖模式[/]后，将忽略配置文件中定义的覆盖选项。"
+msgstr ""
+
+#: media_killer/mk_help_info.py:55
+msgid "启用[green bold]安全模式[/]之后，将忽略一切覆盖选项，无论如何也不会覆盖目标文件。"
+msgstr ""
+
+#: media_killer/mk_help_info.py:58
+msgid "其它操作"
+msgstr ""
+
+#: media_killer/mk_help_info.py:58
+msgid "运行除了转码之外的操作"
+msgstr ""
+
+#: media_killer/mk_help_info.py:63
+msgid "以示例内容生成预设文件。[uu]示例文件不可直接运行！[/]"
+msgstr ""
+
+#: media_killer/mk_help_info.py:70
+msgid "保存转码任务为脚本文件，将不再主动进行转码操作。"
+msgstr ""
+
+#: media_killer/mk_help_info.py:75
+msgid ""
+"加载上次的[u]所有[/]转码任务并重新执行。\n"
+"如果想要继续运行未完成的任务，建议附加 -n 选项。"
+msgstr ""
+
+#: media_killer/mk_help_info.py:93
+msgid ""
+"本工具从用户提供的输入中识别[u]预设文件[/]和[u]媒体源文件[/]，\n"
+"            并基于它们生成一系列任务，并调用 FFmpeg 进行转码。"
+msgstr ""
+
+#: media_killer/components/input_scanner.py:17
+msgid "预处理输入项…"
+msgstr ""
+
+#: media_killer/components/input_scanner.py:51
+msgid "配置文件路径"
+msgstr ""
+
+#: media_killer/components/input_scanner.py:53
+msgid "媒体来源路径"
+msgstr ""
+
+#: media_killer/components/input_scanner.py:62
+msgid "检索待处理路径并从中解析配置文件..."
+msgstr ""
+
+#: media_killer/components/mission.py:81
+msgid "名称"
+msgstr ""
+
+#: media_killer/components/mission.py:82
+msgid "来源预设"
+msgstr ""
+
+#: media_killer/components/mission.py:83
+msgid "来源文件路径"
+msgstr ""
+
+#: media_killer/components/mission.py:84
+msgid "标准目标路径"
+msgstr ""
+
+#: media_killer/components/mission.py:85
+msgid "覆盖已存在的目标"
+msgstr ""
+
+#: media_killer/components/mission.py:85
+msgid "是"
+msgstr ""
+
+#: media_killer/components/mission.py:85
+msgid "否"
+msgstr ""
+
+#: media_killer/components/mission.py:86 media_killer/components/preset.py:112
+msgid "硬件加速模式"
+msgstr ""
+
+#: media_killer/components/mission.py:88
+msgid "通用参数（自定义）"
+msgstr ""
+
+#: media_killer/components/mission.py:91
+msgid "媒体输入组"
+msgstr ""
+
+#: media_killer/components/mission.py:92
+msgid "媒体输出组"
+msgstr ""
+
+#: media_killer/components/mission.py:94
+msgid "命令参数预览"
+msgstr ""
+
+#: media_killer/components/mission_maker.py:75
+msgid "预设"
+msgstr ""
+
+#: media_killer/components/mission_maker.py:75
+msgid "生成的任务列表"
+msgstr ""
+
+#: media_killer/components/mission_maker.py:81
+#, python-brace-format
+msgid "{count}个任务"
+msgstr ""
+
+#: media_killer/components/mission_master.py:35
+msgid "总进度"
+msgstr ""
+
+#: media_killer/components/mission_master.py:144
+msgid "总体进度"
+msgstr ""
+
+#: media_killer/components/mission_master.py:206
+msgid "剩余任务被取消"
+msgstr ""
+
+#: media_killer/components/mission_runner.py:92
+msgid "开始"
+msgstr ""
+
+#: media_killer/components/mission_runner.py:106
+msgid "完成"
+msgstr ""
+
+#: media_killer/components/mission_runner.py:109
+msgid "FFmpeg 输出"
+msgstr ""
+
+#: media_killer/components/mission_runner.py:110
+msgid "运行异常"
+msgstr ""
+
+#: media_killer/components/mission_runner.py:114
+msgid "被取消"
+msgstr ""
+
+#: media_killer/components/mission_runner.py:124
+msgid "未完成的目标文件"
+msgstr ""
+
+#: media_killer/components/mission_runner.py:133
+#: media_killer/components/mission_runner.py:229
+msgid "发现重叠文件"
+msgstr ""
+
+#: media_killer/components/mission_runner.py:134
+#: media_killer/components/mission_runner.py:230
+msgid "检测到重叠的输入输出文件"
+msgstr ""
+
+#: media_killer/components/mission_runner.py:138
+#: media_killer/components/mission_runner.py:236
+#, python-brace-format
+msgid "ffmpeg可执行文件无效: {path}"
+msgstr ""
+
+#: media_killer/components/mission_runner.py:146
+#: media_killer/components/mission_runner.py:246
+#, python-brace-format
+msgid "输入文件不存在: {files}"
+msgstr ""
+
+#: media_killer/components/mission_runner.py:159
+#: media_killer/components/mission_runner.py:262
+msgid "输出目录无效"
+msgstr ""
+
+#: media_killer/components/mission_runner.py:163
+msgid "创建目标文件夹"
+msgstr ""
+
+#: media_killer/components/mission_runner.py:167
+#: media_killer/components/mission_runner.py:273
+msgid "自动创建目标文件夹"
+msgstr ""
+
+#: media_killer/components/mission_runner.py:225
+msgid "检查输入输出文件"
+msgstr ""
+
+#: media_killer/components/mission_runner.py:232
+msgid "检查ffmpeg可执行文件"
+msgstr ""
+
+#: media_killer/components/mission_runner.py:239
+msgid "检查输入文件"
+msgstr ""
+
+#: media_killer/components/mission_runner.py:251
+msgid "检查输出目录"
+msgstr ""
+
+#: media_killer/components/mission_runner.py:261
+msgid "无效的输出目录"
+msgstr ""
+
+#: media_killer/components/mission_runner.py:264
+msgid "创建输出目录"
+msgstr ""
+
+#: media_killer/components/preset.py:106
+msgid "ID"
+msgstr ""
+
+#: media_killer/components/preset.py:107
+msgid "预设名称"
+msgstr ""
+
+#: media_killer/components/preset.py:108
+msgid "预设描述"
+msgstr ""
+
+#: media_killer/components/preset.py:109
+msgid "预设文件路径"
+msgstr ""
+
+#: media_killer/components/preset.py:110
+msgid "FFmpeg路径"
+msgstr ""
+
+#: media_killer/components/preset.py:111
+msgid "是否覆盖"
+msgstr ""
+
+#: media_killer/components/preset.py:113
+msgid "额外参数"
+msgstr ""
+
+#: media_killer/components/preset.py:114
+msgid "源文件扩展名"
+msgstr ""
+
+#: media_killer/components/preset.py:115
+msgid "目标文件扩展名"
+msgstr ""
+
+#: media_killer/components/preset.py:116
+msgid "目标文件夹"
+msgstr ""
+
+#: media_killer/components/preset.py:117
+msgid "保留父级层级"
+msgstr ""
+
+#: media_killer/components/preset.py:118
+msgid "输入参数"
+msgstr ""
+
+#: media_killer/components/preset.py:119
+msgid "输出参数"
+msgstr ""
+
+#: media_killer/components/preset.py:120
+msgid "自定义参数"
+msgstr ""
+
+#: media_killer/components/preset.py:121
+msgid "原始数据"
+msgstr ""
+
+#: media_killer/components/script_maker.py:48
+#, python-brace-format
+msgid "已保存脚本到：{name}"
+msgstr ""
+
+#: media_killer/components/source_expander.py:55
+msgid "接收到[bold]取消信号[/bold]，中断路径展开操作。"
+msgstr ""
+
+#: media_scout/application.py:36
+msgid "MediaScout 启动"
+msgstr ""
+
+#: media_scout/application.py:47
+msgid "不存在"
+msgstr ""
+
+#: media_scout/application.py:62
+msgid "在搜索路径中搜索："
+msgstr ""
+
+#: media_scout/application.py:66
+msgid "找到："
+msgstr ""
+
+#: media_scout/application.py:102
+msgid "允许输出重复项"
+msgstr ""
+
+#: media_scout/application.py:105
+msgid "自动整理或折叠路径"
+msgstr ""
+
+#: media_scout/application.py:108
+msgid "只输出存在的文件"
+msgstr ""
+
+#: media_scout/application.py:116
+#, python-brace-format
+msgid "共找到 {count} 个媒体路径。"
+msgstr ""
+
+#: media_scout/application.py:124
+#, python-brace-format
+msgid "列表已保存到：{path}"
+msgstr ""
+
+#: media_scout/arg_parser.py:108
+msgid ""
+"解析时间线、元数据表格等项目文件，从中提取包含的文件路径。支持干净的输出流或输出到文件。目前可以解析的类型包括：EDL表、FCP7 "
+"经典XML、FCP XML文件或包、Davinci Resolve 媒体池元数据、纯文本路径列表等。"
+msgstr ""
+
+#: media_scout/arg_parser.py:112
+msgid "文件输入"
+msgstr ""
+
+#: media_scout/arg_parser.py:112
+msgid "输入需要解析的文件，可以一次解析多个。"
+msgstr ""
+
+#: media_scout/arg_parser.py:114
+msgid "需要解析的文件"
+msgstr ""
+
+#: media_scout/arg_parser.py:117
+msgid "选项"
+msgstr ""
+
+#: media_scout/arg_parser.py:117
+msgid "对结果进行处理的若干选项"
+msgstr ""
+
+#: media_scout/arg_parser.py:123
+msgid "指定用于搜索无路径文件名的文件夹"
+msgstr ""
+
+#: media_scout/arg_parser.py:125
+msgid "仅输出已存在的文件路径"
+msgstr ""
+
+#: media_scout/arg_parser.py:126
+msgid "允许重复输出文件路径"
+msgstr ""
+
+#: media_scout/arg_parser.py:127
+msgid "自动解析并整理文件路径"
+msgstr ""
+
+#: media_scout/arg_parser.py:132
+msgid "指定对于包含空格的路径的处理方式"
+msgstr ""
+
+#: media_scout/arg_parser.py:135
+msgid "将文件列表保存到目标文件"
+msgstr ""
+
+#: media_scout/arg_parser.py:138
+msgid "其它"
+msgstr ""
+
+#: media_scout/arg_parser.py:142
+msgid "显示完整的帮助信息"
 msgstr ""
 

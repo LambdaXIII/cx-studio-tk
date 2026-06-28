@@ -5,6 +5,7 @@ from collections.abc import Sequence, Generator, Iterable
 from pathlib import Path
 
 from cx_tools.app import ProgressTaskAgent
+from cx_tools.i18n import _
 from cx_wealth import WealthLabel, IndexedListPanel
 from cx_wealth import rich_types as r
 from .argument_group import ArgumentGroup
@@ -71,13 +72,15 @@ class MissionMaker:
             appenv.whisper(
                 IndexedListPanel(
                     missions,
-                    title=f"预设 [red]{self._preset.name}[/red] 生成的任务列表",
+                    title=f"{_('预设')} [red]{self._preset.name}[/red] {_('生成的任务列表')}",
                 )
             )
 
             count = len(missions)
             preset_label = WealthLabel(self._preset, justify="left", overflow="crop")
-            missions_label = r.Text(f"{count}个任务", style="italic", justify="right")
+            missions_label = r.Text(
+                _("{count}个任务").format(count=count), style="italic", justify="right"
+            )
             appenv.say(r.Columns([preset_label, missions_label], expand=True))
 
     def expand_and_make_missions(

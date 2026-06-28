@@ -5,6 +5,7 @@ from typing import Self
 from rich.console import Console
 from rich.highlighter import RegexHighlighter
 
+from cx_tools.i18n import _
 import cx_wealth.rich_types as r
 from cx_studio import system
 from cx_studio.tui import DoubleTrigger
@@ -58,13 +59,13 @@ class IAppEnvironment(ABC):
 
         @self.interrupt_handler.on("first_triggered")
         def __when_wanna_quit():
-            self.whisper("[cx.error]触发中断信号…[/]")
+            self.whisper(f"[cx.error]{_('触发中断信号…')}[/]")
             # self.wanna_quit = True
             self.wanna_quit_event.set()
 
         @self.interrupt_handler.on("second_triggered")
         def __when_really_wanna_quit():
-            self.whisper("[cx.error]检测到强制中断信号…[/]")
+            self.whisper(f"[cx.error]{_('检测到强制中断信号…')}[/]")
             # self.really_wanna_quit = True
             self.really_wanna_quit_event.set()
 

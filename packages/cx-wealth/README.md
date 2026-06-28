@@ -1,5 +1,7 @@
 # cx-wealth
 
+**语言 / Languages**: [中文](README.md) | [English](README.en_US.md)
+
 基于 [Rich](https://github.com/Textualize/rich) 的终端 UI 组件库，为 CLI 应用提供声明式帮助系统、标签渲染、详情面板和自适应布局等扩展。
 
 ## 安装

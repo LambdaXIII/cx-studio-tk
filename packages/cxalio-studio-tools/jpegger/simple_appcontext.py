@@ -6,6 +6,7 @@ from collections.abc import Sequence
 
 from cx_studio import text as tt
 from cx_wealth import WealthHelp
+from cx_tools.i18n import _
 
 
 class SimpleAppContext:
@@ -39,12 +40,17 @@ class SimpleAppContext:
     @staticmethod
     def __make_parser() -> ArgumentParser:
         parser = ArgumentParser(
-            description="Jpegger 是一个简单的批量转换图片的命令行工具。", add_help=False
+            description=_("Jpegger 是一个简单的批量转换图片的命令行工具。"),
+            add_help=False,
         )
 
         parser.add_argument("inputs", nargs="*")
         parser.add_argument(
-            "--help", "-h", action="store_true", help="显示帮助信息", dest="show_help"
+            "--help",
+            "-h",
+            action="store_true",
+            help=_("显示帮助信息"),
+            dest="show_help",
         )
         parser.add_argument("--scale", action="store", dest="scale_factor", type=float)
         parser.add_argument("--size", "-s", action="store", dest="size")
@@ -66,23 +72,27 @@ class SimpleAppContext:
     def __rich_detail__(self):
         ignore_text = "[red](忽略)[/red]"
         if self.scale_factor:
-            yield "缩放因子", self.scale_factor
+            yield _("缩放因子"), self.scale_factor
         if self.size:
-            yield f"缩放尺寸{ignore_text if self.scale_factor else ''}", self.size
+            yield _("缩放尺寸") + (ignore_text if self.scale_factor else ""), self.size
         if self.width:
-            yield f"缩放宽度{ignore_text if self.scale_factor or self.size else ''}", self.width
+            yield _("缩放宽度") + (
+                ignore_text if self.scale_factor or self.size else ""
+            ), self.width
         if self.height:
-            yield f"缩放高度{ignore_text if self.scale_factor or self.size or self.width else ''}", self.height
+            yield _("缩放高度") + (
+                ignore_text if self.scale_factor or self.size or self.width else ""
+            ), self.height
         if self.color_space:
-            yield "颜色空间", self.color_space
+            yield _("颜色空间"), self.color_space
         if self.quality:
-            yield "编码质量", self.quality
+            yield _("编码质量"), self.quality
         if self.output_dir:
-            yield "输出目录", self.output_dir
+            yield _("输出目录"), self.output_dir
         if self.overwrite:
-            yield "强制覆盖", self.overwrite
+            yield _("强制覆盖"), self.overwrite
         if self.debug_mode:
-            yield "调试模式", self.debug_mode
+            yield _("调试模式"), self.debug_mode
 
         known_keys = [
             "inputs",
@@ -103,69 +113,69 @@ class SimpleAppContext:
         yield from other_values.items()
 
         if self.inputs:
-            yield "输入文件", self.inputs
+            yield _("输入文件"), self.inputs
 
 
 class SimpleHelp(WealthHelp):
     def __init__(self):
         super().__init__(prog="jpegger")
         self.description = tt.auto_unwrap(
-            """Jpegger是一个简单的批量转换图片的命令行工具。
+            _("""Jpegger是一个简单的批量转换图片的命令行工具。
 
             使用选项可以简单地控制输出图片的尺寸、编码质量和色彩空间。
             本工具旨在快速地进行简单的批量处理，所以暂不提供更高级的客制化功能。
-            """
+            """)
         )
         self.epilog = (
             "[link https://github.com/LambdaXIII/cx-studio-tk]Cxalio Studio Tools[/]"
         )
 
-        basic_opts = self.add_group("基本选项")
+        basic_opts = self.add_group(_("基本选项"))
         basic_opts.add_action(
-            "inputs", nargs="+", metavar="FILE", description="需要转码的文件"
+            "inputs", nargs="+", metavar="FILE", description=_("需要转码的文件")
         )
         basic_opts.add_action(
             "-f",
             "--format",
             metavar="FORMAT",
-            description="指定输出格式，默认沿用原始格式",
+            description=_("指定输出格式，默认沿用原始格式"),
         )
         basic_opts.add_action(
             "-q",
             "--quality",
             metavar="QUALITY",
-            description="指定输出质量，默认使用内置的常用质量设置",
+            description=_("指定输出质量，默认使用内置的常用质量设置"),
         )
         basic_opts.add_action(
-            "-o", "--output", metavar="DIR", description="输出目录，默认为当前目录"
+            "-o", "--output", metavar="DIR", description=_("输出目录，默认为当前目录")
         )
 
-        image_controls = self.add_group("图片处理", "对图像进行处理")
+        image_controls = self.add_group(_("图片处理"), _("对图像进行处理"))
         image_controls.add_action(
-            "--scale", metavar="FACTOR", description="按比例缩放图片的尺寸"
+            "--scale", metavar="FACTOR", description=_("按比例缩放图片的尺寸")
         )
         image_controls.add_action(
             "-s",
             "--size",
             metavar="WIDTHxHEIGHT",
-            description="指定图片的尺寸，接受包含两个数字的表达式",
+            description=_("指定图片的尺寸，接受包含两个数字的表达式"),
         )
         image_controls.add_action(
             "--width",
             metavar="WIDTH",
-            description="指定图片的宽度，如果未指定高度则保持原始图像比例",
+            description=_("指定图片的宽度，如果未指定高度则保持原始图像比例"),
         )
         image_controls.add_action(
             "--height",
             metavar="HEIGHT",
-            description="指定图片的高度，如果未指定宽度则保持原始图像比例",
+            description=_("指定图片的高度，如果未指定宽度则保持原始图像比例"),
         )
 
-        process_control = self.add_group("其它选项")
+        process_control = self.add_group(_("其它选项"))
         process_control.add_action(
             "--overwrite",
             "-y",
-            description="强制覆盖已存在的文件，未设置时将会自动重命名目标文件",
+            description=_("强制覆盖已存在的文件，未设置时将会自动重命名目标文件"),
         )
-        process_control.add_action("--debug", description="显示调试信息")
-        process_control.add_action("-h", "--help", description="显示帮助信息")
+        process_control.add_action("--debug", description=_("显示调试信息"))
+        process_control.add_action("-h", "--help", description=_("显示帮助信息"))

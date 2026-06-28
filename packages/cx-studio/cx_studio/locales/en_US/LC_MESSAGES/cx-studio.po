@@ -20,21 +20,21 @@ msgstr ""
 
 #: cx_studio/core/cx_time.py:93
 msgid "日"
-msgstr ""
+msgstr "d"
 
 #: cx_studio/core/cx_time.py:95
 msgid "小时"
-msgstr ""
+msgstr "h"
 
 #: cx_studio/core/cx_time.py:97
 msgid "分"
-msgstr ""
+msgstr "min"
 
 #: cx_studio/core/cx_time.py:99
 msgid "秒"
-msgstr ""
+msgstr "s"
 
 #: cx_studio/core/cx_time.py:101
 msgid "毫秒"
-msgstr ""
+msgstr "ms"
 

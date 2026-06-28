@@ -57,7 +57,7 @@ class AppContext:
             "--full-help",
             action="store_true",
             dest="show_full_help",
-            help="显示详细教程",
+            help=_("显示详细教程"),
         )
         parser.add_argument(
             "--debug",
@@ -71,7 +71,7 @@ class AppContext:
             "-p",
             action="store_true",
             dest="pretending_mode",
-            help="假装执行，不实际更新 hosts 文件",
+            help=_("假装执行，不实际更新 hosts 文件"),
         )
         return parser
 
@@ -79,7 +79,7 @@ class AppContext:
     def __command_parser() -> ArgumentParser:
         main_parser = ArgumentParser(add_help=False)
         subparsers = main_parser.add_subparsers(
-            dest="command", required=False, help="子命令"
+            dest="command", required=False, help=_("子命令")
         )
 
         update_parser = subparsers.add_parser(
@@ -89,7 +89,7 @@ class AppContext:
             "--target",
             "--to",
             "-t",
-            help="指定 hosts 文件路径",
+            help=_("指定 hosts 文件路径"),
             dest="save_target",
             required=False,
             type=str,
@@ -99,16 +99,16 @@ class AppContext:
             "--skip-flush",
             action="store_true",
             dest="skip_flush",
-            help="更新后跳过 DNS 缓存刷新，仅提示手动命令",
+            help=_("更新后跳过 DNS 缓存刷新，仅提示手动命令"),
         )
 
         list_parser = subparsers.add_parser(
-            "list", help="列出所有配置文件", description="列出所有配置文件"
+            "list", help=_("列出所有配置文件"), description=_("列出所有配置文件")
         )
         list_parser.add_argument(
             "--search",
             "-s",
-            help="搜索模式",
+            help=_("搜索模式"),
             dest="search_pattern",
             required=False,
             type=str,
@@ -121,21 +121,21 @@ class AppContext:
             description=_("显示指定配置文件内容"),
         )
         show_parser.add_argument(
-            "profile_id", help="配置文件 ID", type=str, metavar="配置文件 ID"
+            "profile_id", help=_("配置文件 ID"), type=str, metavar=_("配置文件 ID")
         )
 
         new_parser = subparsers.add_parser(
-            "new", help="创建新配置文件", description="创建新配置文件"
+            "new", help=_("创建新配置文件"), description=_("创建新配置文件")
         )
         new_parser.add_argument(
-            "profile_id", help="配置文件 ID", type=str, metavar="配置文件 ID"
+            "profile_id", help=_("配置文件 ID"), type=str, metavar=_("配置文件 ID")
         )
 
         edit_parser = subparsers.add_parser(
             "edit", help=_("编辑指定配置文件"), description=_("编辑指定配置文件")
         )
         edit_parser.add_argument(
-            "profile_id", help="配置文件 ID", type=str, metavar="配置文件 ID"
+            "profile_id", help=_("配置文件 ID"), type=str, metavar=_("配置文件 ID")
         )
 
         return main_parser

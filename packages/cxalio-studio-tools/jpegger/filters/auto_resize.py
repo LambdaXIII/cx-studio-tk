@@ -1,3 +1,5 @@
+from cx_tools.i18n import _
+
 from typing import Literal
 
 from PIL.Image import Image
@@ -90,12 +92,18 @@ class AutoResizeFilter(IImageFilter):
     def __filter_description__(self) -> str:
         match self.resizing_mode:
             case "fixed":
-                return f"调整图像分辨率至 {self._width}x{self._height}"
+                return _("调整图像分辨率至 {width}x{height}").format(
+                    width=self._width, height=self._height
+                )
             case "width_fixed":
-                return f"将图像宽度调整为 {self._width} ，并保持原图比例缩放高度"
+                return _("将图像宽度调整为 {width}，并保持原图比例缩放高度").format(
+                    width=self._width
+                )
             case "height_fixed":
-                return f"将图像高度调整为 {self._height} ，并保持原图比例缩放宽度"
-        return "不对图像做任何处理"
+                return _("将图像高度调整为 {height}，并保持原图比例缩放宽度").format(
+                    height=self._height
+                )
+        return _("不对图像做任何处理")
 
 
 class AutoScaleFilter(IImageFilter):
@@ -128,5 +136,5 @@ class AutoScaleFilter(IImageFilter):
 
     def __filter_description__(self) -> str:
         if self.factor == 1.0 or self.factor <= 0:
-            return "不对图像做任何处理"
-        return f"将图像宽度和高度缩放 {self.factor:.2f} 倍"
+            return _("不对图像做任何处理")
+        return _("将图像宽度和高度缩放 {factor} 倍").format(factor=f"{self.factor:.2f}")

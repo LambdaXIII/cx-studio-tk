@@ -7,6 +7,7 @@ from rich.progress import TaskID
 
 from cx_studio.ffmpeg import FFmpegAsync
 from cx_studio.tui import AsyncCanceller, JobCounter
+from cx_tools.i18n import _
 from .mission import Mission
 from .mission_runner import MissionRunner, MissionPretender
 from ..appenv import appenv
@@ -31,7 +32,7 @@ class MissionMaster:
         self._semaphore = asyncio.Semaphore(self._max_workers)
         self._info_lock = asyncio.Lock()
         self._running_cond = asyncio.Condition()
-        self._total_task = appenv.progress.add_task("总进度")
+        self._total_task = appenv.progress.add_task(_("总进度"))
 
         self._cancel_one = AsyncCanceller()
         self._cancel_all_event = asyncio.Event()
@@ -140,7 +141,7 @@ class MissionMaster:
                     completed_time += info.runner.task_total or 1
         # for
         speed = completed_time / (datetime.now() - start_time).total_seconds()
-        desc_str = "[bright_black][{:.2f}x][/][blue]总体进度[/]".format(speed)
+        desc_str = f"[bright_black][{speed:.2f}x][/][blue]{_('总体进度')}[/]"
 
         appenv.progress.update(
             self._total_task,
@@ -202,4 +203,4 @@ class MissionMaster:
                 # taskgroup
             # running Condition
         except* PoisonError:
-            appenv.say("剩余任务被取消")
+            appenv.say(_("剩余任务被取消"))

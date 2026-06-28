@@ -1,5 +1,7 @@
 # cx-studio
 
+**语言 / Languages**: [中文](README.md) | [English](README.en_US.md)
+
 基础设施库，为影视后期自动化工具的开发提供通用组件。
 
 ## 安装

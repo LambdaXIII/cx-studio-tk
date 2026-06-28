@@ -6,6 +6,7 @@ import ulid
 
 # from pydantic import BaseModel, Field, ConfigDict
 
+from cx_tools.i18n import _
 from cx_studio.collectiontools import iter_with_separator
 from cx_studio.filesystem import get_basename, PathQuoteMode, quote_path
 from cx_wealth import rich_types as r
@@ -77,20 +78,20 @@ class Mission:
             yield quote_path(output_group.filename, quote_mode)
 
     def __rich_detail__(self) -> Generator[tuple[str, object], None, None]:
-        yield "名称", self.name
-        yield "来源预设", f"{self.preset_name}({self.preset_name})"
-        yield "来源文件路径", self.source
-        yield "标准目标路径", self.standard_target
-        yield "覆盖已存在的目标", "是" if self.overwrite else "否"
-        yield "硬件加速模式", self.hardware_accelerate
+        yield _("名称"), self.name
+        yield _("来源预设"), f"{self.preset_name}({self.preset_name})"
+        yield _("来源文件路径"), self.source
+        yield _("标准目标路径"), self.standard_target
+        yield _("覆盖已存在的目标"), _("是") if self.overwrite else _("否")
+        yield _("硬件加速模式"), self.hardware_accelerate
         if self.options:
-            yield "通用参数（自定义）", r.Columns(
+            yield _("通用参数（自定义）"), r.Columns(
                 self.options.iter_arguments(position_for_position_arguments="front")
             )
-        yield "媒体输入组", self.inputs
-        yield "媒体输出组", self.outputs
+        yield _("媒体输入组"), self.inputs
+        yield _("媒体输出组"), self.outputs
 
-        yield "命令参数预览", " ".join(
+        yield _("命令参数预览"), " ".join(
             ["(ffmpeg)"] + list(self.iter_arguments(quote_mode="force"))
         )
 

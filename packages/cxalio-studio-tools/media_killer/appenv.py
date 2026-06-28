@@ -8,6 +8,7 @@ from pathlib import Path
 
 from cx_tools import FileSizeCounter
 from cx_tools.app import IAppEnvironment, ConfigManager
+from cx_tools.i18n import _
 from cx_studio.core.cx_time import CxTime
 from cx_wealth import rich_types as r
 from media_killer.components.exception import SafeError
@@ -19,7 +20,7 @@ class AppEnv(IAppEnvironment):
         super().__init__()
         self.app_name = "MediaKiller"
         self.app_version = "0.7.0"
-        self.app_description = "媒体文件批量操作工具"
+        self.app_description = _("媒体文件批量操作工具")
         self.context: AppContext = AppContext()
         self.progress = r.Progress(
             # RenderableColumn("[bright_black]M[/]"),
@@ -65,20 +66,20 @@ class AppEnv(IAppEnvironment):
         output_filesize = self.output_filesize_counter.total_size
         filesize_report = ""
         if input_filesize.total_bytes > 0:
-            filesize_report = (
-                f"[dim]输入文件总大小: [cx.nummber]{input_filesize.pretty_string}[/]"
-            )
+            filesize_report = f"[dim]{_('输入文件总大小:')} [cx.nummber]{input_filesize.pretty_string}[/]"
         if output_filesize.total_bytes > 0:
-            filesize_report += (
-                f"[dim] 输出文件总大小: [cx.number]{output_filesize.pretty_string}[/]"
-            )
+            filesize_report += f"[dim] {_('输出文件总大小:')} [cx.number]{output_filesize.pretty_string}[/]"
         if len(filesize_report) > 0:
             self.say(filesize_report)
 
         time_spent = datetime.now() - self._app_start_time
         if time_spent.total_seconds() > 5:
             self.say(
-                f"[cx.whisper]总共耗时[cx.number]{CxTime.from_seconds(time_spent.total_seconds()).pretty_string}[/]。[/]"
+                _("总共耗时{time_str}。").format(
+                    time_str=CxTime.from_seconds(
+                        time_spent.total_seconds()
+                    ).pretty_string
+                )
             )
 
     def pretending_sleep(self, interval: float = 0.2) -> None:
@@ -95,13 +96,15 @@ class AppEnv(IAppEnvironment):
     def clean_garbage_files(self) -> None:
         if not self._garbage_files:
             return
-        self.say("[dim]正在清理失败的目标文件...[/]")
+        self.say(f"[dim]{_('正在清理失败的目标文件...')}[/]")
         for filename in self._garbage_files:
             filename.unlink(missing_ok=True)
-            self.whisper(f"  [cx.filepath]{filename}[/] [red]已删除[/red]")
+            self.whisper(f"  [cx.filepath]{filename}[/] [red]{_('已删除')}[/red]")
             if self.context.debug_mode:
                 time.sleep(0.1)
-        self.say(f"[dim]已清理 {len(self._garbage_files)} 个目标文件。[/]")
+        self.say(
+            _("已清理 {count} 个目标文件。").format(count=len(self._garbage_files))
+        )
         self._garbage_files.clear()
 
     def show_banner(self) -> None:
@@ -125,11 +128,11 @@ class AppEnv(IAppEnvironment):
         description = r.Text(self.app_description, style="bright_black")
         tags = []
         if self.context.pretending_mode:
-            tags.append("[blue]模拟运行[/]")
+            tags.append(f"[blue]{_('模拟运行')}[/]")
         if self.context.force_no_overwrite:
-            tags.append("[green1]安全模式[/]")
+            tags.append(f"[green1]{_('安全模式')}[/]")
         elif self.context.force_overwrite:
-            tags.append("[red]强制覆盖模式[/]")
+            tags.append(f"[red]{_('强制覆盖模式')}[/]")
         if tags:
             description = "·".join(tags)
         banners.append(r.Align.center(description))
@@ -145,16 +148,26 @@ class AppEnv(IAppEnvironment):
             result = False
 
         if not check_only and not result:
-            msg = f"文件 {filename} 已存在，"
             if self.context.force_no_overwrite:
-                msg += "请取消 --force-no-overwrite 选项"
+                raise SafeError(
+                    _(
+                        "文件 {name} 已存在，请取消 --force-no-overwrite 选项或指定其它文件名。"
+                    ).format(name=filename)
+                )
             elif not self.context.force_overwrite:
-                msg += "请使用 --force-overwrite 选项尝试覆盖"
-            msg += "或指定其它文件名."
-            raise SafeError(msg)
+                raise SafeError(
+                    _(
+                        "文件 {name} 已存在，请使用 --force-overwrite 选项尝试覆盖或指定其它文件名。"
+                    ).format(name=filename)
+                )
+            raise SafeError(
+                _("文件 {name} 已存在，或指定其它文件名。").format(name=filename)
+            )
 
         if not check_only and result:
-            self.say(f"[dim red]文件 {filename} 已存在，将强制覆盖。[/]")
+            self.say(
+                f"[dim red]{_('文件 {name} 已存在，将强制覆盖。').format(name=filename)}[/]"
+            )
         return result
 
 

@@ -32,7 +32,7 @@ class Application(IApplication):
             appenv.whisper(
                 IndexedListPanel(
                     [WealthLabel(x) for x in self.profile_manager.profiles.values()],
-                    title="已找到配置文件",
+                    title=_("已找到配置文件"),
                 )
             )
 
@@ -47,22 +47,28 @@ class Application(IApplication):
             subprocess.run(f"{editor} {file_path.absolute()}", shell=True)
             return
 
-        appenv.whisper(f"[cx.warning]未设置编辑器环境变量，尝试使用系统工具打开。")
+        appenv.whisper(
+            f"[cx.warning]{_('未设置编辑器环境变量，尝试使用系统工具打开。')}"
+        )
         result = system_open(file_path)
         if not result:
             url = f"file://{file_path.resolve()}"
-            appenv.say(f"[cx.error]打开文件 [link={url}]{file_path.name}[/link] 失败。")
+            appenv.say(
+                f"[cx.error]{_('打开文件 {name} 失败。').format(name=file_path.name)}[/]"
+            )
 
     @staticmethod
     def __open_dir(dir_path: Path) -> None:
         result = system_open(dir_path)
         if not result:
             url = f"file://{dir_path.resolve()}"
-            appenv.say(f"[cx.error]打开目录 [link={url}]{dir_path.name}[/link] 失败。")
+            appenv.say(
+                f"[cx.error]{_('打开目录 {name} 失败。').format(name=dir_path.name)}[/]"
+            )
 
     def command_new(self) -> None:
         profile_id = appenv.context.profile_id
-        assert profile_id is not None, "profile_id 不能为空"
+        assert profile_id is not None, _("profile_id 不能为空")
         filename = self.profile_manager.generate_profile_path(profile_id)
         if filename.exists():
             appenv.say(
@@ -73,10 +79,10 @@ class Application(IApplication):
         filename = self.profile_manager.create_profile(profile_id, filename)
         if filename:
             appenv.say(
-                f"[cx.success]已创建配置文件: [link=file://{filename.resolve()}]{filename.name}[/link]"
+                f"[cx.success]{_('已创建配置文件: {name}').format(name=filename.name)}[/]"
             )
         else:
-            appenv.say(f"[cx.error]创建配置文件失败。")
+            appenv.say(f"[cx.error]{_('创建配置文件失败。')}[/]")
             return
 
         self.__open_file(filename)
@@ -102,33 +108,39 @@ class Application(IApplication):
             appenv.say(f"[cx.warning]{_('未找到符合条件的配置文件。')}[/]")
         else:
             appenv.say(table)
-            appenv.say(f"[cx.success]共找到 {table.row_count} 个配置文件。")
+            appenv.say(
+                f"[cx.success]{_('共找到 {count} 个配置文件。').format(count=table.row_count)}[/]"
+            )
             appenv.say(
                 f"[dim]{_('可尝试使用 show 或 edit 命令查看或编辑配置文件。')}[/]"
             )
 
     def command_show(self) -> None:
-        assert appenv.context.profile_id is not None, "profile_id 不能为空"
+        assert appenv.context.profile_id is not None, _("profile_id 不能为空")
         profile = self.profile_manager.profiles.get(appenv.context.profile_id, None)
         if profile:
             appenv.say(WealthDetailPanel(profile, title=profile.id))  # type: ignore[arg-type]  # Profile 为 dataclass，运行时兼容 WealthDetailMixin
         else:
             appenv.say(
-                f"[cx.error]未找到 ID 为 {appenv.context.profile_id} 的配置文件。"
+                f"[cx.error]{_('未找到 ID 为 {profile_id} 的配置文件。').format(profile_id=appenv.context.profile_id)}[/]"
             )
 
     def command_edit(self) -> None:
         profile_id = appenv.context.profile_id
-        assert profile_id is not None, "profile_id 不能为空"
+        assert profile_id is not None, _("profile_id 不能为空")
         profile = self.profile_manager.profiles.get(profile_id, None)
 
         if profile is None:
-            appenv.say(f"[cx.error]未找到 ID 为 {profile_id} 的配置文件。")
+            appenv.say(
+                f"[cx.error]{_('未找到 ID 为 {profile_id} 的配置文件。').format(profile_id=profile_id)}[/]"
+            )
             return
 
         file_path = profile.path.resolve()
         if not file_path.exists():
-            appenv.say(f"[cx.error]配置文件 [filepath]{file_path}[/filepath] 不存在。")
+            appenv.say(
+                f"[cx.error]{_('配置文件 {path} 不存在。').format(path=str(file_path))}[/]"
+            )
             return
 
         if file_path.is_dir():
@@ -137,18 +149,18 @@ class Application(IApplication):
             self.__open_file(file_path)
 
     def command_update(self) -> None:
-        appenv.whisper("update 模式已启动")
+        appenv.whisper(_("update 模式已启动"))
         builder = HostsBuilder()
-        appenv.whisper("已构建 HostBuilder")
+        appenv.whisper(_("已构建 HostBuilder"))
 
         enabled_profiles = list(self.profile_manager.enabled_profiles)
         appenv.whisper(
             IndexedListPanel(
-                [WealthLabel(x) for x in enabled_profiles], title="已启用配置文件"
+                [WealthLabel(x) for x in enabled_profiles], title=_("已启用配置文件")
             )
         )
 
-        appenv.whisper("开始构建 Hosts 文件内容")
+        appenv.whisper(_("开始构建 Hosts 文件内容"))
         lines = builder.iter_lines(enabled_profiles)
 
         # 保存临时文件；使用不带 BOM 的 utf-8 写入，因为系统 DNS 解析器不期望 BOM
@@ -163,19 +175,19 @@ class Application(IApplication):
         save_target = None
         if appenv.context.save_target:
             save_target = Path(appenv.context.save_target)
-            appenv.whisper(f"将保存到目标文件 {save_target}")
+            appenv.whisper(f"{_('将保存到目标文件 {path}').format(path=save_target)}")
         saved = saver.save(save_target)
         if saved:
             appenv.say(f"[cx.success]{_('已成功保存新的 hosts 文件。')}[/]")
             if save_target is None:  # 仅系统 hosts 路径才需刷新 DNS 缓存
                 appenv.whisper(
-                    f"准备刷新 DNS 缓存（skip_flush={appenv.context.skip_flush}）"
+                    f"{_('准备刷新 DNS 缓存')}（skip_flush={appenv.context.skip_flush}）"
                 )
                 try:
                     dns_flush(skip_flush=appenv.context.skip_flush)
                 except NotImplementedError:
                     appenv.say(
-                        "[cx.info]hosts 文件已更新。当前平台不支持自动刷新 DNS 缓存。"
+                        f"[cx.info]{_('hosts 文件已更新。当前平台不支持自动刷新 DNS 缓存。')}"
                     )
 
     def command_help(self) -> None:

@@ -8,6 +8,7 @@ from box import Box
 # from pydantic import BaseModel, Field, ConfigDict
 from rich.columns import Columns
 
+from cx_tools.i18n import _
 from cx_studio import text as tt
 from cx_studio.filesystem import normalize_suffix, force_suffix
 
@@ -102,22 +103,22 @@ class Preset:
         return hash(self.id) ^ hash(self.path) ^ hash("preset")
 
     def __rich_detail__(self):
-        yield "ID", self.id
-        yield "预设名称", self.name
-        yield "预设描述", self.description
-        yield "预设文件路径", str(self.path)
-        yield "FFmpeg路径", self.ffmpeg
-        yield "是否覆盖", str(self.overwrite)
-        yield "硬件加速模式", self.hardware_accelerate
-        yield "额外参数", self.options
-        yield "源文件扩展名", Columns(self.source_suffixes)
-        yield "目标文件扩展名", self.target_suffix
-        yield "目标文件夹", str(self.target_folder)
-        yield "保留父级层级", str(self.keep_parent_level)
-        yield "输入参数", self.inputs
-        yield "输出参数", self.outputs
-        yield "自定义参数", self.custom
-        yield "原始数据", self.raw
+        yield _("ID"), self.id
+        yield _("预设名称"), self.name
+        yield _("预设描述"), self.description
+        yield _("预设文件路径"), str(self.path)
+        yield _("FFmpeg路径"), self.ffmpeg
+        yield _("是否覆盖"), str(self.overwrite)
+        yield _("硬件加速模式"), self.hardware_accelerate
+        yield _("额外参数"), self.options
+        yield _("源文件扩展名"), Columns(self.source_suffixes)
+        yield _("目标文件扩展名"), self.target_suffix
+        yield _("目标文件夹"), str(self.target_folder)
+        yield _("保留父级层级"), str(self.keep_parent_level)
+        yield _("输入参数"), self.inputs
+        yield _("输出参数"), self.outputs
+        yield _("自定义参数"), self.custom
+        yield _("原始数据"), self.raw
 
     def __rich_label__(self):
         yield "[bold bright_black]P[/]"
