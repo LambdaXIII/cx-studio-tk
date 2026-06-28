@@ -1,5 +1,9 @@
 # Change logs of cx-studio
 
+### v0.8.0.1
+
+- hotfix: wheel 构建缺少 packages 配置，导致所有 Python 模块未打包进 wheel，运行时 ModuleNotFoundError
+
 ### v0.8.0
 
 - 修复了filesystem.encoding_detector在文件较小时输出none的问题。但低置信度下仍然可能输出none。
