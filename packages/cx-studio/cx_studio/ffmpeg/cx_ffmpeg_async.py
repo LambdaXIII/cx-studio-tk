@@ -142,7 +142,7 @@ class FFmpegAsync(AsyncIOEventEmitter):
                     self.emit("terminated")
                 else:
                     self.emit("finished")
-                return result
+            return result
         # running condition
 
     async def _parse_basic_info_from_stream(
