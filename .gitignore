@@ -129,6 +129,7 @@ celerybeat.pid
 # Environments
 .env
 .venv
+/.venv*/
 env/
 venv/
 ENV/
@@ -173,6 +174,8 @@ cython_debug/
 .pypirc
 
 
+/temp/
+py.typed
 # Agent & IDE directories
 .vscode/
 .idea/
