@@ -9,7 +9,7 @@ class AsyncCanceller:
     def cancel(self):
         self._cancel_event.set()
 
-    async def is_cancelling_async(self, auto_skip=False):
+    async def is_cancelling_async(self, auto_skip=False) -> bool:
         if auto_skip and self._checking_cond.locked():
             return False
 
@@ -18,7 +18,7 @@ class AsyncCanceller:
             result = self.is_cancelling()
         return result
 
-    def is_cancelling(self):
+    def is_cancelling(self) -> bool:
         result = False
         if self._cancel_event.is_set():
             result = True

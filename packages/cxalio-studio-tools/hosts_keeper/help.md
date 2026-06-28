@@ -136,6 +136,20 @@ hostskeeper update -d
 
 另外 update 命令提供一个 `--target` `-t` 参数，用于指定 hosts 文件路径。默认是系统 hosts 文件。
 
+另外 update 命令提供一个 `--skip-flush` 参数，用于在更新 hosts 后跳过 DNS 缓存刷新，
+仅提示各平台对应的手动刷新命令：
+
+```bash
+# 正常更新（自动刷新 DNS 缓存）
+hostskeeper update
+
+# 跳过自动刷新，仅提示手动命令
+hostskeeper update --skip-flush
+```
+
+> **注意**：Windows 上刷新 DNS 缓存需要管理员权限，程序会在更新 hosts 后自动尝试提权刷新。
+> macOS 需要 sudo 授权，Linux 不自动执行刷新但仍会给出提示。
+
 **update 命令将会自动识别是否需要调用管理员权限，但目前只支持 sudo。**
 
 ## 配置文件格式

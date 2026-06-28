@@ -4,6 +4,8 @@ import signal
 import subprocess
 import sys
 import threading
+import re
+
 from collections.abc import Iterable
 from copy import copy
 from pathlib import Path
@@ -92,11 +94,11 @@ class FFmpeg(EventEmitter):
             if streams_match:
                 streams.append(line_str.strip())
                 continue
-        if len(streams) > 0:
+        if streams:
             result["streams"] = streams
         return result
 
-    def _redirect_stdin(self, stream: IO[bytes] | None):
+    def _redirect_stdin(self, stream: IO[bytes] | None) -> None:
         if stream is None:
             return
 
@@ -119,31 +121,31 @@ class FFmpeg(EventEmitter):
         self._process.stdout.close()
         return bytes(buffer)
 
-    def _handle_stderr(self):
+    def _handle_stderr(self) -> str:
         assert self._process.stderr is not None
         line = b""
         for line in StreamUtils.readlines_from_stream(self._process.stderr):
             line_str = line.decode("utf-8", errors="ignore")
             self.emit("verbose", line_str)
 
-            conding_info_dict = FFmpegCodingInfo.parse_status_line(line_str)
+            coding_info_dict = FFmpegCodingInfo.parse_status_line(line_str)
 
-            self._coding_info.update(**conding_info_dict)
+            self._coding_info.update(**coding_info_dict)
 
-            if "current_time" in conding_info_dict or "total_time" in conding_info_dict:
+            if "current_time" in coding_info_dict or "total_time" in coding_info_dict:
                 self.emit(
                     "progress_updated",
                     self._coding_info.current_time,
                     self._coding_info.total_time,
                 )
 
-            if "current_frame" in conding_info_dict:
+            if "current_frame" in coding_info_dict:
                 self.emit("status_updated", copy(self._coding_info))
 
         self._process.stderr.close()
         return line.decode()
 
-    def _handle_cancel_event(self):
+    def _handle_cancel_event(self) -> None:
         while self._process.poll() is None:
             if self._cancel_event.wait(0.1):
                 self._canceled = True
@@ -193,14 +195,13 @@ class FFmpeg(EventEmitter):
                     )
 
                     for future in done:
-                        exs = future.exception()
-                        if exs is not None:
+                        exc = future.exception()
+                        if exc is not None:
                             self._process.terminate()
                             con_futures.wait(pending)
-                            raise exs
-            except:
-                pass
-            # finally:
+                            raise exc
+            except Exception as exc:
+                self.emit("verbose", f"Unexpected error during execution: {exc}")
             self._process.wait()
             result = self._process.returncode == 0
             if self._canceled:

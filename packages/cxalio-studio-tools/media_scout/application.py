@@ -4,6 +4,7 @@ from collections.abc import Iterable
 from pathlib import Path, PurePath
 
 from rich.rule import Rule
+from cx_tools.i18n import _
 
 from cx_studio.filesystem import auto_suffix, quote_path
 from cx_tools.app import IApplication
@@ -32,7 +33,7 @@ class Application(IApplication):
     def start(self):
         appenv.start()
         appenv.show_banner()
-        appenv.whisper("MediaScout 启动")
+        appenv.whisper(_("MediaScout 启动"))
         appenv.whisper(WealthDetailPanel(appenv.context))
 
     def stop(self):
@@ -43,7 +44,7 @@ class Application(IApplication):
     def resolve(path: os.PathLike) -> str | None:
         result = Path(path)
         if appenv.context.existed_only and not result.exists():
-            appenv.whisper("[red]{} 不存在[/]".format(result))
+            appenv.whisper(f"[red]{result} {_('不存在')}[/]")
             return None
         if appenv.context.auto_resolve:
             result = result.resolve()
@@ -58,11 +59,11 @@ class Application(IApplication):
         if result.is_absolute() or not appenv.context.includes:
             yield result
         else:
-            appenv.whisper("[red]在搜索路径中搜索：{}[/]".format(result))
+            appenv.whisper(f"[red]{_('在搜索路径中搜索：')}{result}[/]")
             for include in includes:
                 p = Path(include).absolute() / result
                 if p.exists():
-                    appenv.whisper("找到：{}".format(p))
+                    appenv.whisper(f"{_('找到：')}{p}")
                     yield p
 
     def iter_results(self):
@@ -98,13 +99,13 @@ class Application(IApplication):
             return
 
         if appenv.context.allow_duplicated:
-            appenv.say("[red]允许输出重复项[/]")
+            appenv.say(f"[red]{_('允许输出重复项')}[/]")
             time.sleep(0.5)
         if appenv.context.auto_resolve:
-            appenv.say("[yellow]自动整理或折叠路径[/]")
+            appenv.say(f"[yellow]{_('自动整理或折叠路径')}[/]")
             time.sleep(0.5)
         if appenv.context.existed_only:
-            appenv.say("[green]只输出存在的文件[/]")
+            appenv.say(f"[green]{_('只输出存在的文件')}[/]")
             time.sleep(0.5)
 
         result = []
@@ -112,7 +113,9 @@ class Application(IApplication):
             result.append(x)
             appenv.print(x)
 
-        appenv.say("[yellow]共找到 {} 个媒体路径。[/]".format(len(result)))
+        appenv.say(
+            f"[yellow]{_('共找到 {count} 个媒体路径。').format(count=len(result))}[/]"
+        )
 
         if appenv.context.output:
             output_file = auto_suffix(appenv.context.output, ".txt")
@@ -120,4 +123,6 @@ class Application(IApplication):
                 for x in result:
                     fp.write(str(x) + "\n")
 
-            appenv.say('[green]列表已保存到："{}"[/]'.format(output_file))
+            appenv.say(
+                f"[green]{_('列表已保存到：{path}').format(path=output_file)}[/]"
+            )

@@ -1,3 +1,5 @@
+from cx_tools.i18n import _
+
 import asyncio
 import urllib.error
 import urllib.request
@@ -19,7 +21,7 @@ class UrlContenter(AbstractContenter):
         self,
         package: Box | dict | None = None,
         profile_metadata: Box | dict | None = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         super().__init__(package, profile_metadata, **kwargs)
         self.url: str | None = self.package.get("url")
@@ -43,17 +45,19 @@ class UrlContenter(AbstractContenter):
                 return content_bytes.decode(self.encoding)
 
         except urllib.error.URLError as e:
-            appenv.say(f"[cx.error]无法获取 URL 内容: {e}")
+            appenv.say(f"[cx.error]{_('无法获取 URL 内容: {error}').format(error=e)}")
             return ""
         except UnicodeDecodeError:
-            appenv.whisper(f"[cx.info]使用配置编码 {self.encoding} 解码失败，尝试 utf-8 回退...")
+            appenv.whisper(
+                f"[cx.info]{_('使用配置编码 {encoding} 解码失败，尝试 utf-8 回退...').format(encoding=self.encoding)}"
+            )
             try:
                 return content_bytes.decode("utf-8", errors="replace")
             except Exception:
                 return ""
 
     @override
-    async def iter_records(self) -> AsyncGenerator[HostRecord, None]:
+    async def iter_records(self) -> AsyncGenerator[HostRecord, None]:  # type: ignore[override]  # pyright async generator 覆盖类型推断限制
         """迭代记录"""
         content = self.get_content()
         for line in content.splitlines():

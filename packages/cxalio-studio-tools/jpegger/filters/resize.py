@@ -10,8 +10,8 @@ class ResizeFilter(IImageFilter):
         self.height = height
 
     def run(self, image: Image) -> Image:
-        w = image.width if image.width > 0 else image.width
-        h = image.height if image.height > 0 else image.height
+        w = image.width
+        h = image.height
         return image.resize((w, h))
 
 
@@ -23,7 +23,7 @@ class FactorResizeFilter(IImageFilter):
 
     def run(self, image: Image) -> Image:
         wf = self.w_factor if self.w_factor > 0 else 1
-        wh = self.h_factor if self.h_factor > 0 else 1
+        hf = self.h_factor if self.h_factor > 0 else 1
         w = image.width * wf
-        h = image.height * wh
+        h = image.height * hf
         return image.resize((w, h))

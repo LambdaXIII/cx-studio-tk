@@ -1,9 +1,11 @@
 import asyncio
 from abc import ABC
+from typing import Self
 
 from rich.console import Console
 from rich.highlighter import RegexHighlighter
 
+from cx_tools.i18n import _
 import cx_wealth.rich_types as r
 from cx_studio import system
 from cx_studio.tui import DoubleTrigger
@@ -38,7 +40,7 @@ class CxHighlighter(RegexHighlighter):
 
 class IAppEnvironment(ABC):
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.app_name = ""
         self.app_version = ""
         self.highlighter = CxHighlighter()
@@ -57,40 +59,36 @@ class IAppEnvironment(ABC):
 
         @self.interrupt_handler.on("first_triggered")
         def __when_wanna_quit():
-            self.whisper("[cx.error]触发中断信号…[/]")
+            self.whisper(f"[cx.error]{_('触发中断信号…')}[/]")
             # self.wanna_quit = True
             self.wanna_quit_event.set()
 
         @self.interrupt_handler.on("second_triggered")
         def __when_really_wanna_quit():
-            self.whisper("[cx.error]检测到强制中断信号…[/]")
+            self.whisper(f"[cx.error]{_('检测到强制中断信号…')}[/]")
             # self.really_wanna_quit = True
             self.really_wanna_quit_event.set()
 
-    def handle_interrupt(self, _sig, _frame):
+    def handle_interrupt(self, _sig, _frame) -> None:
         self.interrupt_handler.trigger()
 
     # @abstractmethod
-    def is_debug_mode_on(self):
+    def is_debug_mode_on(self) -> bool:
         return False
 
     # @abstractmethod
-    def start(self):
-        self.whisper(
-            "{} v{} environment started.".format(self.app_name, self.app_version)
-        )
+    def start(self) -> None:
+        self.whisper(f"{self.app_name} v{self.app_version} environment started.")
 
     # @abstractmethod
-    def stop(self):
-        self.whisper(
-            "{} v{} environment stopped.".format(self.app_name, self.app_version)
-        )
+    def stop(self) -> None:
+        self.whisper(f"{self.app_name} v{self.app_version} environment stopped.")
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         self.start()
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, exc_type, exc_val, exc_tb) -> bool | None:
         self.stop()
         self.whisper("Bye ~")
         return False

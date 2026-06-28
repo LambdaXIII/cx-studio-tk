@@ -1,9 +1,9 @@
 [project]
 name = "cxalio-studio-tools"
-version = "0.7.1"
-description = "Cxalio Studio Tools"
+version = "0.8.0"
+description = "Cxalio CLI toolkit — practical tools for media post-production workflows and easy system administration."
 readme = "README.md"
-requires-python = ">=3.12,<3.14"
+requires-python = ">=3.12,<3.15"
 dependencies = [
     "cachetools>=5.5.2",
     "cx-studio",
@@ -34,6 +34,7 @@ packages = [
     "jpegger",
     "hosts_keeper",
 ]
+include = ["cx_tools/locales/**/*.mo"]
 
 [dependency-groups]
 dev = ["types-cachetools>=5.5.0.20240820"]

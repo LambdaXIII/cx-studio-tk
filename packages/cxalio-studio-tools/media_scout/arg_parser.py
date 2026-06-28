@@ -1,4 +1,5 @@
-import importlib.resources
+from cx_studio.i18n import load_localized_text
+from cx_tools.i18n import _
 from argparse import ArgumentParser
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -103,42 +104,49 @@ class MSHelp(WealthHelp):
     def __init__(self):
         super().__init__(
             prog="MediaScout",
-            description=(
+            description=_(
                 "解析时间线、元数据表格等项目文件，从中提取包含的文件路径。支持干净的输出流或输出到文件。"
                 "目前可以解析的类型包括：EDL表、FCP7 经典XML、FCP XML文件或包、Davinci Resolve 媒体池元数据、纯文本路径列表等。"
             ),
         )
-        p_group = self.add_group("文件输入", "输入需要解析的文件，可以一次解析多个。")
+        p_group = self.add_group(
+            _("文件输入"), _("输入需要解析的文件，可以一次解析多个。")
+        )
         p_group.add_action(
-            "inputs", metavar="FILE", nargs="*", description="需要解析的文件"
+            "inputs", metavar="FILE", nargs="*", description=_("需要解析的文件")
         )
 
-        o_group = self.add_group("选项", "对结果进行处理的若干选项")
+        o_group = self.add_group(_("选项"), _("对结果进行处理的若干选项"))
         o_group.add_action(
             "-i",
             "--include",
             metavar="DIR",
             nargs="**",
-            description="指定用于搜索无路径文件名的文件夹",
+            description=_("指定用于搜索无路径文件名的文件夹"),
         )
-        o_group.add_action("-e", "--existed-only", description="仅输出已存在的文件路径")
-        o_group.add_action("--allow-duplicated", description="允许重复输出文件路径")
-        o_group.add_action("--auto-resolve", description="自动解析并整理文件路径")
+        o_group.add_action(
+            "-e", "--existed-only", description=_("仅输出已存在的文件路径")
+        )
+        o_group.add_action("--allow-duplicated", description=_("允许重复输出文件路径"))
+        o_group.add_action("--auto-resolve", description=_("自动解析并整理文件路径"))
         o_group.add_action(
             "-q",
             "--quote-mode",
-            metavar="auto|force|excape|none",
-            description="指定对于包含空格的路径的处理方式",
+            metavar="auto|force|escape|none",
+            description=_("指定对于包含空格的路径的处理方式"),
         )
         o_group.add_action(
-            "-o", "--output", metavar="OUTPUT", description="将文件列表保存到目标文件"
+            "-o",
+            "--output",
+            metavar="OUTPUT",
+            description=_("将文件列表保存到目标文件"),
         )
 
-        x_group = self.add_group("其它")
-        x_group.add_action("-d", "--debug", description="开启调试模式")
-        x_group.add_action("-h", "--help", description="显示帮助信息")
+        x_group = self.add_group(_("其它"))
+        x_group.add_action("-d", "--debug", description=_("开启调试模式"))
+        x_group.add_action("-h", "--help", description=_("显示帮助信息"))
         x_group.add_action(
-            "--tutorial", "--full-help", description="显示完整的帮助信息"
+            "--tutorial", "--full-help", description=_("显示完整的帮助信息")
         )
 
         self.epilog = (
@@ -151,7 +159,7 @@ class MSHelp(WealthHelp):
 
     @staticmethod
     def show_full_help(console: r.Console):
-        md = importlib.resources.read_text("media_scout", "help.md")
+        md = load_localized_text("media_scout", "help.md")
         content = r.Markdown(md, style="default")
         panel = r.Panel(
             content,

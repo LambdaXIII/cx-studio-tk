@@ -17,7 +17,7 @@ class LocalContenter(AbstractContenter):
         self,
         package: Box | dict | None = None,
         profile_metadata: Box | dict | None = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         super().__init__(package, profile_metadata, **kwargs)
         self.file: str = self.package.get("file")
@@ -38,10 +38,10 @@ class LocalContenter(AbstractContenter):
         if profile_path is None:
             return path.resolve()
 
-        return (profile_path / path).resolve()
+        return (profile_path.parent / path).resolve()
 
     @override
-    async def iter_records(self) -> AsyncGenerator[HostRecord, None]:
+    async def iter_records(self) -> AsyncGenerator[HostRecord, None]:  # type: ignore[override]  # pyright async generator 覆盖类型推断限制
         """迭代记录"""
         file_path = self.file_path
         if file_path is None or not file_path.exists():

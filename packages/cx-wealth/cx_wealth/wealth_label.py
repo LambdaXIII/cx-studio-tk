@@ -28,7 +28,7 @@ class WealthLabel:
         self._overflow: Literal["ignore", "crop", "ellipsis", "fold"] = overflow
         self._justify: Literal["left", "center", "right"] = justify
 
-    def __unpack_item(self, item):
+    def __unpack_item(self, item) -> Generator[r.Text | str | r.Style, None, None]:
         if isinstance(item, WealthLabelMixin):
             for x in item.__rich_label__():
                 yield from self.__unpack_item(x)
@@ -45,7 +45,7 @@ class WealthLabel:
         else:
             yield str(item)
 
-    def __rich__(self):
+    def __rich__(self) -> r.RenderableType:
         if not isinstance(self._obj, WealthLabelMixin):
             cls_name = self._obj.__class__.__name__
             return r.Pretty(f"[{cls_name}] (instance)")
@@ -53,7 +53,7 @@ class WealthLabel:
         elements = self.__unpack_item(self._obj)
         elements_with_sep = list(iter_with_separator(elements, self._sep))
         text = r.Text.assemble(
-            *elements_with_sep,  # type:ignore
+            *elements_with_sep,  # type: ignore
             tab_size=self._tab_size,
             overflow=self._overflow,
             justify=self._justify,

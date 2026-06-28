@@ -52,7 +52,3 @@ class FFmpegNoExecutableError(FFmpegError):
 
 class FFmpegIsRunningError(FFmpegError):
     pass
-
-
-# class FFmpegCanceledError(FFmpegError):
-#     pass

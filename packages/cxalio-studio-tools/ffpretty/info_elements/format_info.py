@@ -11,29 +11,29 @@ class FormatInfo:
         self.data = data
 
     @property
-    def format_name(self) -> str:
+    def format_name(self) -> str | None:
         return self.data.get("format_name", None)
 
     @property
     def format_long_name(self) -> str:
-        return self.data.get("format_long_name", None)
+        return self.data.get("format_long_name", "")
 
     @property
-    def duration(self) -> CxTime:
+    def duration(self) -> CxTime | None:
         duration_text = self.data.get("duration", None)
         if duration_text:
             return CxTime.from_seconds(float(duration_text))
         return None
 
     @property
-    def bit_rate(self) -> FileSize:
+    def bit_rate(self) -> FileSize | None:
         bit_rate_text = self.data.get("bit_rate", None)
         if bit_rate_text:
             return FileSize.from_bytes(int(bit_rate_text))
         return None
 
     @property
-    def size(self) -> FileSize:
+    def size(self) -> FileSize | None:
         size_text = self.data.get("size", None)
         if size_text:
             return FileSize.from_bytes(int(size_text))
@@ -44,7 +44,7 @@ class FormatInfo:
         return self.data.get("nb_streams", 0)
 
     @property
-    def filename(self) -> str:
+    def filename(self) -> str | None:
         name = self.data.get("filename", None)
         if not name:
             return None

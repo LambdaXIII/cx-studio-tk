@@ -4,7 +4,8 @@ import xml.etree.ElementTree as ET
 from collections.abc import Iterable
 from pathlib import PurePath, Path
 
-from .media_path_inspector import MediaPathInspector, InspectorInfo
+from .inspector_info import InspectorInfo
+from .media_path_inspector import MediaPathInspector
 
 
 class FCPXMLInspector(MediaPathInspector):

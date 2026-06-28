@@ -1,18 +1,17 @@
-# English (United States) translations for PROJECT.
+# Translations template for PROJECT.
 # Copyright (C) 2025 ORGANIZATION
 # This file is distributed under the same license as the PROJECT project.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
 #
+#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2025-04-22 22:41+0800\n"
-"PO-Revision-Date: 2025-04-22 22:42+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language: en_US\n"
-"Language-Team: en_US <LL@li.org>\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -20,21 +19,21 @@ msgstr ""
 
 #: cx_studio/core/cx_time.py:97
 msgid "日"
-msgstr "Day"
+msgstr ""
 
 #: cx_studio/core/cx_time.py:99
 msgid "小时"
-msgstr "Hours"
+msgstr ""
 
 #: cx_studio/core/cx_time.py:101
 msgid "分"
-msgstr "Minutes"
+msgstr ""
 
 #: cx_studio/core/cx_time.py:103
 msgid "秒"
-msgstr "Seconds"
+msgstr ""
 
 #: cx_studio/core/cx_time.py:105
 msgid "毫秒"
-msgstr "Milliseconds"
+msgstr ""
 

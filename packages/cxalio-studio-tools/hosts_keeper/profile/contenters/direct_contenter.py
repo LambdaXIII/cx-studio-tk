@@ -15,7 +15,7 @@ class DirectContenter(AbstractContenter):
         self,
         package: Box | dict | None = None,
         profile_metadata: Box | dict | None = None,
-        **kwargs
+        **kwargs,
     ) -> None:
         super().__init__(package, profile_metadata, **kwargs)
         self.ip: str | None = self.package.get("ip") or None
@@ -23,7 +23,7 @@ class DirectContenter(AbstractContenter):
         self.comment: str | None = self.package.get("comment") or None
 
     @override
-    async def iter_records(self) -> AsyncGenerator[HostRecord, None]:
+    async def iter_records(self) -> AsyncGenerator[HostRecord, None]:  # type: ignore[override]  # pyright async generator 覆盖类型推断限制
         yield HostRecord(self.ip, self.domains, self.comment)
 
 

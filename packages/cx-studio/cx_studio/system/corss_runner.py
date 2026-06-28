@@ -1,14 +1,15 @@
-from typing import Any
-from typing import Callable
+from typing import Any, Callable
 
 from . import platform
 
 
 class CrossRunner:
     def __init__(self):
-        self.function_map: dict[platform.SystemType, Callable] = {}
+        self.function_map: dict[platform.SystemType, Callable[..., Any]] = {}
 
-    def register_function(self, system_type: platform.SystemType, f: Callable):
+    def register_function(
+        self, system_type: platform.SystemType, f: Callable[..., Any]
+    ):
         self.function_map[system_type] = f
 
     def unregister_function(self, system_type: platform.SystemType):
@@ -23,7 +24,7 @@ class CrossRunner:
         return f(*args, **kwds)
 
     def for_system(self, system_type: platform.SystemType):
-        def decorator(f: Callable):
+        def decorator(f: Callable[..., Any]):
             self.register_function(system_type, f)
             return f
 

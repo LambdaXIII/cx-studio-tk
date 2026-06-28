@@ -1,8 +1,8 @@
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 
 
-def quick_search_chars(text: str, chars: str) -> bool:
+def quick_search_chars(text: str, chars: str | Iterable[str]) -> bool:
     for x in chars:
         if x in text:
             return True
@@ -10,14 +10,15 @@ def quick_search_chars(text: str, chars: str) -> bool:
 
 
 def auto_quote(
-    text: str, needs_quote: Callable[[str], bool] | str | bool | None = None
+    text: str,
+    needs_quote: Callable[[str], bool] | str | Iterable[str] | bool | None = None,
 ) -> str:
-    needs_quote = needs_quote or [" "]
+    needs_quote = needs_quote or [" "]  # type: ignore[assignment]  # or chain narrows to Iterable[str]
     quote = False
     if isinstance(needs_quote, Callable):
         quote = needs_quote(text)
     else:
-        quote = quick_search_chars(text, needs_quote)
+        quote = quick_search_chars(text, needs_quote)  # type: ignore[arg-type]  # narrowed to str|Iterable[str] after Callable check
     return f'"{text}"' if quote else text
 
 

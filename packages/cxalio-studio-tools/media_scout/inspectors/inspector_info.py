@@ -60,7 +60,7 @@ class InspectorInfo:
                     continue
                 yield line
                 n += 1
-                if 0 > n >= lines:
+                if 0 < lines <= n:
                     break
 
     def peek_first_line(self) -> str:
@@ -73,8 +73,7 @@ class InspectorInfo:
         for x in self.sample.splitlines(keepends=False):
             if ignore_empty_lines and not x.strip():
                 continue
-            if x.strip():
-                yield x.decode(self.encoding)
+            yield x.decode(self.encoding)
 
     def is_decodable(self) -> bool:
         try:

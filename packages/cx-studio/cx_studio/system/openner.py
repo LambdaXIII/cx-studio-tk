@@ -10,9 +10,9 @@ system_open = CrossRunner()
 
 @system_open.for_system(SystemType.WINDOWS)
 def __open_windows(path: Path) -> bool:
+    """Windows 打开文件"""
     import os
 
-    """Windows 打开文件"""
     if not path.exists():
         return False
     try:
@@ -26,9 +26,9 @@ def __open_windows(path: Path) -> bool:
 
 @system_open.for_system(SystemType.MACOS)
 def __open_macos(path: Path) -> bool:
+    """macOS 打开文件"""
     import subprocess
 
-    """macOS 打开文件"""
     if not path.exists():
         return False
     try:
@@ -45,9 +45,9 @@ def __open_macos(path: Path) -> bool:
 
 @system_open.for_system(SystemType.LINUX)
 def __open_linux(path: Path) -> bool:
+    """Linux 打开文件"""
     import subprocess
 
-    """Linux 打开文件"""
     if not path.exists():
         return False
     try:

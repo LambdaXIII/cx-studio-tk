@@ -7,6 +7,7 @@ from rich.progress import TaskID
 
 from cx_studio.ffmpeg import FFmpegAsync
 from cx_studio.tui import AsyncCanceller, JobCounter
+from cx_tools.i18n import _
 from .mission import Mission
 from .mission_runner import MissionRunner, MissionPretender
 from ..appenv import appenv
@@ -31,12 +32,12 @@ class MissionMaster:
         self._semaphore = asyncio.Semaphore(self._max_workers)
         self._info_lock = asyncio.Lock()
         self._running_cond = asyncio.Condition()
-        self._total_task = appenv.progress.add_task("总进度")
+        self._total_task = appenv.progress.add_task(_("总进度"))
 
         self._cancel_one = AsyncCanceller()
         self._cancel_all_event = asyncio.Event()
 
-    async def _build_mission_info(self, index):
+    async def _build_mission_info(self, index: int) -> None:
         mission = self._missions[index]
         ffmpeg = FFmpegAsync(mission.ffmpeg)
         basic_info = await ffmpeg.get_basic_info(mission.source)
@@ -55,7 +56,7 @@ class MissionMaster:
         if appenv.context.pretending_mode:
             await asyncio.sleep(0.1)
 
-    async def _run_mission(self, index: int):
+    async def _run_mission(self, index: int) -> None:
         async with self._semaphore:
             if self._cancel_all_event.is_set():
                 return
@@ -99,7 +100,7 @@ class MissionMaster:
                     await asyncio.sleep(0.2)
                 appenv.progress.stop_task(mission_info.task_id)
 
-    async def _update_tasks(self):
+    async def _update_tasks(self) -> None:
         mission_count = len(self._missions)
         total_time = completed_time = 0
         start_time = datetime.now()
@@ -140,7 +141,7 @@ class MissionMaster:
                     completed_time += info.runner.task_total or 1
         # for
         speed = completed_time / (datetime.now() - start_time).total_seconds()
-        desc_str = "[bright_black][{:.2f}x][/][blue]总体进度[/]".format(speed)
+        desc_str = f"[bright_black][{speed:.2f}x][/][blue]{_('总体进度')}[/]"
 
         appenv.progress.update(
             self._total_task,
@@ -150,10 +151,10 @@ class MissionMaster:
         )
 
     @staticmethod
-    async def _poison_task():
+    async def _poison_task() -> None:
         raise PoisonError()
 
-    async def run(self):
+    async def run(self) -> None:
         try:
             self._cancel_all_event.clear()
             # total_start_time = datetime.now()
@@ -202,4 +203,4 @@ class MissionMaster:
                 # taskgroup
             # running Condition
         except* PoisonError:
-            appenv.say("剩余任务被取消")
+            appenv.say(_("剩余任务被取消"))

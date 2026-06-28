@@ -6,6 +6,7 @@ from rich.text import Text
 
 from cx_studio.collectiontools import flatten_list
 from cx_studio.filesystem import force_suffix
+from cx_tools.i18n import _
 from .preset import Preset
 from ..appenv import appenv
 
@@ -13,7 +14,7 @@ from ..appenv import appenv
 class InputScanner:
     def __init__(self, inputs: Collection[str | Path]):
         self._inputs: list[str | Path] = list(inputs)
-        self._task_id = appenv.progress.add_task("预处理输入项…", visible=False)
+        self._task_id = appenv.progress.add_task(_("预处理输入项…"), visible=False)
 
     def __enter__(self):
         appenv.progress.update(self._task_id, visible=True)
@@ -47,9 +48,9 @@ class InputScanner:
     @staticmethod
     def _print_result(source: str | Path, is_preset: bool):
         result = (
-            Text("配置文件路径", style="cyan", justify="right")
+            Text(_("配置文件路径"), style="cyan", justify="right")
             if is_preset
-            else Text("媒体来源路径", style="green", justify="right")
+            else Text(_("媒体来源路径"), style="green", justify="right")
         )
         path = Text(str(source), style="yellow", justify="left")
         appenv.whisper(Columns([path, result], expand=True))
@@ -58,7 +59,7 @@ class InputScanner:
         presets: list[Preset] = []
         sources: list[Path] = []
 
-        appenv.whisper("检索待处理路径并从中解析配置文件...")
+        appenv.whisper(_("检索待处理路径并从中解析配置文件..."))
 
         for input_path in appenv.progress.track(self._inputs, task_id=self._task_id):
             if self.is_preset(input_path):

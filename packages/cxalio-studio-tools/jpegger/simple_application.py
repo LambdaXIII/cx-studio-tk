@@ -1,4 +1,5 @@
 import sys
+from cx_tools.i18n import _
 from collections.abc import Sequence
 
 from cx_tools.app import IApplication
@@ -34,7 +35,7 @@ class JpeggerApp(IApplication):
         appenv.whisper(WealthDetailPanel(filter_chain, title="过滤器链"))
 
         if not appenv.context.inputs:
-            appenv.say("未指定输入文件，无事可做")
+            appenv.say(_("未指定输入文件，无事可做"))
             return
 
         builder = SimpleMissionBuilder(filter_chain, appenv.context)

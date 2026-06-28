@@ -1,13 +1,13 @@
+from collections.abc import Iterable, Sequence
 import asyncio
 import importlib.resources
-import importlib.resources
 import sys
-from collections.abc import Sequence
 from pathlib import Path
 from typing import override
 
 from cx_studio.filesystem import force_suffix
 from cx_tools.app import IApplication
+from cx_tools.i18n import _
 from cx_wealth import DynamicColumns, IndexedListPanel, WealthDetailPanel
 from .appenv import appenv
 from .components.exception import SafeError
@@ -23,33 +23,38 @@ from .mk_help_info import MKHelp
 
 
 class Application(IApplication):
-    def __init__(self, arguments: Sequence[str] | None = None):
+    def __init__(self, arguments: Sequence[str] | None = None) -> None:
         super().__init__(arguments or sys.argv[1:])
         self.presets: list[Preset] = []
         self.sources: list[Path] = []
         self.missions: list[Mission] = []
 
-    def start(self):
+    def start(self) -> None:
         appenv.load_arguments(self.sys_arguments)
         appenv.start()
         appenv.show_banner()
-        return self
+        return self  # type: ignore[return]  # 链式调用语法糖，基类契约返回 None
 
-    def stop(self):
+    def stop(self) -> None:
         if not appenv.context.continue_mode:
             self.save_missions(self.missions)
         appenv.whisper("Bye ~")
         appenv.stop()
 
     @override
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: object | None,
+    ) -> bool:
         result = super().__exit__(exc_type, exc_val, exc_tb)
         if exc_type is None:
-            appenv.whisper("程序正常退出。")
+            appenv.whisper(_("程序正常退出。"))
         elif exc_type is SafeError:
             appenv.say(exc_val)
             result = True
-        return result
+        return result  # type: ignore[return]  # super().__exit__ 可能返回 None, 但我们的路径保证非 None
 
     @staticmethod
     def save_missions(missions: list[Mission]):
@@ -78,16 +83,18 @@ class Application(IApplication):
                 f.write(example.read())
 
         appenv.say(
-            f"[cx.success]已生成示例配置文件：{filename}。[/][blink red]请在修改后使用！[/]"
+            f"[cx.success]{_('已生成示例配置文件：{name}。').format(name=filename)}[/][blink red]{_('请在修改后使用！')}[/]"
         )
 
-    def _set_presets_and_sources(self, presets, sources):
+    def _set_presets_and_sources(
+        self, presets: Iterable[Preset], sources: Iterable[Path]
+    ) -> None:
         # 去除重复的配置文件
         preset_ids = set()
         for p in presets:
             if p.id in preset_ids:
                 appenv.say(
-                    "[cx.warning]发现重复的配置文件: [cx.warning]{}[/]".format(p.path)
+                    f"[cx.warning]{_('发现重复的配置文件:')} [cx.warning]{p.path}[/]"
                 )
                 continue
             preset_ids.add(p.id)
@@ -98,33 +105,34 @@ class Application(IApplication):
         )
 
         self.sources += list(sources)
-        appenv.whisper(IndexedListPanel(self.sources, "来源路径列表"))
+        appenv.whisper(IndexedListPanel(self.sources, _("来源路径列表")))
 
         if self.presets or self.sources:
             appenv.say(
-                "已添加 {preset_count} 个配置文件和 {source_count} 个来源路径。".format(
-                    preset_count=len(self.presets), source_count=len(self.sources)
-                )
+                _(
+                    "已添加 {preset_count} 个配置文件和 {source_count} 个来源路径。"
+                ).format(preset_count=len(self.presets), source_count=len(self.sources))
             )
 
-    def _sort_and_set_missions(self, missions):
-        self.missions = list(MissionArranger(missions, appenv.context.sort_mode))
+    def _sort_and_set_missions(self, missions: Iterable[Mission]) -> None:
+        mission_list = list(
+            missions
+        )  # 转换为 list 以满足 MissionArranger 和 len 的类型要求
+        self.missions = list(MissionArranger(mission_list, appenv.context.sort_mode))
         # 检查任务数量并判断是否运行
         if not self.missions:
-            raise SafeError("没有任务需要执行。")
+            raise SafeError(_("没有任务需要执行。"))
         # 汇报任务数量
-        old_count, new_count = len(missions), len(self.missions)
+        old_count, new_count = len(mission_list), len(self.missions)
         if old_count != new_count:
             appenv.say(
-                "[cx.warning]已自动过滤掉 {} 个重复任务，共 {} 个任务需要执行。[/]".format(
-                    old_count - new_count, new_count
-                )
+                f"[cx.warning]{_('已自动过滤掉 {diff} 个重复任务，共 {total} 个任务需要执行。').format(diff=old_count - new_count, total=new_count)}[/]"
             )
         else:
-            appenv.say("全部任务整理完毕，已按照设定方式排序。")
-        appenv.whisper(IndexedListPanel(self.missions, "整理完的任务列表"))
+            appenv.say(_("全部任务整理完毕，已按照设定方式排序。"))
+        appenv.whisper(IndexedListPanel(self.missions, _("整理完的任务列表")))
 
-    def run(self):
+    def run(self) -> None:
         if appenv.context.show_help:
             MKHelp.show_help(appenv.console)
             return
@@ -141,9 +149,7 @@ class Application(IApplication):
                 if suffix == ".toml" or suffix == "":
                     self.export_example_preset(s)
                 else:
-                    appenv.whisper(
-                        "{filename} 并非合法的文件名，不予处理。".format(filename=s)
-                    )
+                    appenv.whisper(f"{s} {_('并非合法的文件名，不予处理。')}")
             return
 
         # 扫描输入文件
@@ -156,14 +162,18 @@ class Application(IApplication):
         missions = []
         if appenv.context.continue_mode:
             last_missions = self.load_missions()
-            appenv.say("从上次执行中恢复了 {} 个任务……".format(len(last_missions)))
+            appenv.say(
+                _("从上次执行中恢复了 {count} 个任务……").format(
+                    count=len(last_missions)
+                )
+            )
             missions.extend(last_missions)
 
         # 整理并生成任务序列
         output_dir = None
         if appenv.context.output_dir:
             output_dir = Path(appenv.context.output_dir).resolve()
-            appenv.say('输出目录将被替换为: "{}"'.format(output_dir))
+            appenv.say(f"{_('输出目录将被替换为:')} \"{output_dir}\"")
 
         current_missions = asyncio.run(
             MissionMaker.auto_make_missions(
@@ -173,7 +183,7 @@ class Application(IApplication):
             )
         )
         if current_missions:
-            appenv.say("生成了 {} 个任务。".format(len(current_missions)))
+            appenv.say(_("生成了 {count} 个任务。").format(count=len(current_missions)))
         missions.extend(current_missions)
         self._sort_and_set_missions(missions)
 
@@ -186,7 +196,7 @@ class Application(IApplication):
         # 执行转码任务
         if appenv.context.pretending_mode:
             appenv.say(
-                "[dim]检测到[italic cyan underline]假装模式[/]，将不会真正执行任何操作。[/]"
+                f"[dim]{_('检测到[italic cyan underline]假装模式[/]，将不会真正执行任何操作。')}[/]"
             )
 
         mm = MissionMaster(self.missions, appenv.context.max_workers)

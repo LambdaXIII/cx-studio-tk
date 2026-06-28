@@ -1,9 +1,10 @@
 from abc import ABC, abstractmethod
+from pathlib import Path
 
 
 class IPathValidator(ABC):
     @abstractmethod
-    def validate(self, path: str) -> bool:
+    def validate(self, path: str | Path) -> bool:
         pass
 
 
@@ -19,7 +20,7 @@ class ChainValidator(IPathValidator):
         self.__validators.remove(validator)
         return self
 
-    def validate(self, path: str) -> bool:
+    def validate(self, path: str | Path) -> bool:
         return (
             True
             if len(self.__validators) == 0

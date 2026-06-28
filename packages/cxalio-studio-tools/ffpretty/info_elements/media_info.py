@@ -1,3 +1,5 @@
+from typing import Any
+
 import cx_wealth.rich_types as r
 from cx_wealth import WealthDetailTable, WealthLabel
 from .format_info import FormatInfo
@@ -5,7 +7,7 @@ from .stream_info import StreamInfo
 
 
 class MediaInfo:
-    def __init__(self, data: dict):
+    def __init__(self, data: dict[str, Any]):
         self.data = data
         self.format_info = FormatInfo(data.get("format", {}))
         self.stream_infos = [StreamInfo(stream) for stream in data.get("streams", [])]

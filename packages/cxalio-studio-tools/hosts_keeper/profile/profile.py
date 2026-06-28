@@ -1,14 +1,15 @@
 import asyncio
-import importlib
+import importlib.resources
 import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import AsyncGenerator, Self, Sequence
+from collections.abc import Generator
 
 from box import Box, BoxList
 
 from cx_studio.filesystem import force_suffix
-from .contenter_base import ContenterBase
+from .contenter_base import ContenterBase, AbstractContenter
 from .hostrecord import HostRecord
 
 
@@ -29,25 +30,25 @@ class Profile:
     def load(cls, filename: Path | str) -> Self | None:
         filename = force_suffix(filename, ".toml")
         with open(filename, "rb") as f:
-            toml = tomllib.load(f)
-        data = Box(toml)
+            toml_data = tomllib.load(f)
+        data = Box(toml_data)
 
         metadata = data.get("hosts_profile")
-        if not metadata:
+        if not metadata or not metadata.profile_id:
             return None
 
         packages_data = data.copy()
         packages_data.pop("hosts_profile")
 
         return cls(
-            id=metadata.profile_id,  # type:ignore
-            name=metadata.profile_name,  # type:ignore
-            description=metadata.description,  # type:ignore
+            id=metadata.profile_id,  # type: ignore
+            name=metadata.profile_name,  # type: ignore
+            description=metadata.description,  # type: ignore
             path=Path(filename).resolve(),
-            priority=metadata.priority,  # type:ignore
-            enabled=metadata.enabled,  # type:ignore
-            metadata=metadata,  # type:ignore
-            packages=packages_data,  # type:ignore
+            priority=metadata.priority,  # type: ignore
+            enabled=metadata.enabled,  # type: ignore
+            metadata=metadata,  # type: ignore
+            packages=packages_data,  # type: ignore
         )
 
     @staticmethod
@@ -55,7 +56,10 @@ class Profile:
         target = force_suffix(target, ".toml")
         target.parent.mkdir(parents=True, exist_ok=True)
 
-        example = importlib.resources.read_text(__package__, "example_profile.toml")
+        assert __package__ is not None, "Profile must be imported as part of a package"
+        example = importlib.resources.read_text(
+            __package__, "example_profile.toml", encoding="utf-8"
+        )
         example = example.replace("example-id", profile_id)
 
         with open(target, "w", encoding="utf-8") as f:
@@ -80,13 +84,15 @@ class Profile:
     async def async_iter_records(self) -> AsyncGenerator[HostRecord, None]:
         """迭代记录"""
 
-        async def expand_contenter(_contenter: ContenterBase):
+        async def expand_contenter(_contenter: AbstractContenter):
             result = []
-            async for record in _contenter.iter_records():
+            async for record in _contenter.iter_records():  # type: ignore[attr-defined]  # pyright 对抽象 async generator 类型推断限制
                 result.append(record)
             return result
 
         tasks = []
+
+        self.metadata.path = str(self.path)  # type: ignore[attr-defined]  # Box 动态属性注入，为 LocalContenter 提供 profile 所在目录
 
         for schema, packages in self.packages.items():
             if not isinstance(packages, list | BoxList):
@@ -99,7 +105,7 @@ class Profile:
                     continue
                 tasks.append(asyncio.create_task(expand_contenter(contenter)))
 
-        async for task in asyncio.as_completed(tasks):
+        async for task in asyncio.as_completed(tasks):  # type: ignore[arg-type]  # pyright 对 AsyncIterator 类型推断限制
             result = await task
             for record in result:
                 yield record
@@ -117,7 +123,7 @@ class Profile:
             yield self.profile_end_marker
             yield ""
 
-    def __rich_label__(self) -> str:
+    def __rich_label__(self) -> Generator[str, None, None]:
         enabled = "✅" if self.enabled else "❌"
         yield enabled
         yield self.id

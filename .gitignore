@@ -51,9 +51,6 @@ coverage.xml
 .pytest_cache/
 cover/
 
-# Translations
-*.mo
-*.pot
 
 # Django stuff:
 *.log
@@ -98,7 +95,6 @@ Pipfile.lock
 #   Similar to Pipfile.lock, it is generally recommended to include uv.lock in version control.
 #   This is especially recommended for binary packages to ensure reproducibility, and is more
 #   commonly ignored for libraries.
-uv.lock
 
 # poetry
 #   Similar to Pipfile.lock, it is generally recommended to include poetry.lock in version control.
@@ -130,6 +126,7 @@ celerybeat.pid
 # Environments
 .env
 .venv
+/.venv*/
 env/
 venv/
 ENV/
@@ -173,14 +170,26 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
+
+/temp/
+py.typed
+# Agent & IDE directories
 .vscode/
 .idea/
 .vs/
 .qoder/
 .trae/
-
-/temp/
-
-py.typed
-
+.claude/
+.cursor/
+.windsurf/
+.cline/
+.roo/
+.aider/
+.continue/
+.codex/
 .codegraph/
+
+
+# Other files and directories
+*.log
+*.bak

@@ -1,5 +1,5 @@
 from collections.abc import Generator
-from typing import Iterable, Mapping, Protocol, Sequence, runtime_checkable
+from typing import Any, Iterable, Mapping, Protocol, Sequence, runtime_checkable
 
 from rich.console import RenderableType
 
@@ -18,7 +18,7 @@ class WealthDetail:
     def __init__(self, item: WealthDetailMixin):
         self._item = item
 
-    def __rich_repr__(self):
+    def __rich_repr__(self) -> Generator[tuple[str, Any], None, None]:
         yield from self._item.__rich_detail__()
 
 
@@ -36,10 +36,7 @@ class WealthDetailTable:
         self._list_max_lines = list_max_lines
 
     def make_table(self, item):
-        table = r.Table(
-            show_header=False,
-            box=None,
-        )
+        table = r.Table(show_header=False, box=None)
         table.add_column("key", justify="left", style="italic yellow", no_wrap=True)
         table.add_column("value", justify="left", overflow="fold", highlight=True)
 
@@ -119,7 +116,7 @@ class WealthDetailPanel:
         border_style: r.StyleType | None = None,
         sub_box: bool = True,
         limit_list_lines: bool = True,
-    ):
+    ) -> None:
         self._item = item
         self._title = title
         self._border_style = border_style or "none"

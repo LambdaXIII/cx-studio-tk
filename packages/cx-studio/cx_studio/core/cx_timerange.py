@@ -59,8 +59,14 @@ class TimeRange(ITimeRange):
     def end(self, end: CxTime):
         self.__duration = end - self.start
 
-    def __eq__(self, other: "ITimeRange") -> bool:
+    def __eq__(self, other: object) -> bool:
+        """同类型且起止时间相等视为相等。对非 ITimeRange 类型返回 NotImplemented。"""
+        if not isinstance(other, ITimeRange):
+            return NotImplemented
         return self.start == other.start and self.duration == other.duration
 
-    def __ne__(self, other: "ITimeRange") -> bool:
+    def __ne__(self, other: object) -> bool:
+        """__eq__ 的逆。对非 ITimeRange 类型返回 NotImplemented。"""
+        if not isinstance(other, ITimeRange):
+            return NotImplemented
         return self.start != other.start or self.duration != other.duration

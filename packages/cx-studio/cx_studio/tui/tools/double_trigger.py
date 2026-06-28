@@ -11,11 +11,11 @@ class DoubleTrigger(EventEmitter):
         self._last_time = None
 
     @property
-    def is_pending(self):
+    def is_pending(self) -> bool:
         if self._last_time is None:
             return False
         span = datetime.now() - self._last_time
-        return span.seconds < self._delay
+        return span.total_seconds() < self._delay
 
     def trigger(self):
         self.emit("triggered")

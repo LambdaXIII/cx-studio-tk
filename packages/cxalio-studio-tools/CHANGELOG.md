@@ -1,5 +1,20 @@
 # Change Log of Cxalio Studio Tools
 
+### v0.8.0
+
+- HostsKeeper 更新 hosts 后自动执行平台对应的 DNS 缓存刷新（Windows ipconfig /flushdns、macOS killall -HUP mDNSResponder、Linux 提示手动命令）
+- 新增 `--skip-flush` 参数，跳过自动刷新仅给出平台特定的手动命令提示
+- 帮助文档（--help / --tutorial）中补充 `--skip-flush` 说明
+- 所有提示信息仅在系统 hosts 路径更新时触发，自定义 `-t` 路径不触发
+
+- 修复多处 hosts 文件编码处理问题（移除冗余的 platform encoding 检测、强制关闭 BOM 写入、补齐 importlib.resources 显式编码参数）
+
+### v0.7.5
+
+- 修复 MediaKiller 任务执行器中 finally 块的 return 语句问题
+- 配置 pyright 类型检查并修复类型安全问题
+- 扩展 Python 版本支持范围至 <3.15
+
 ### v0.7.1
 
 - 修复了 HostsKeeper 工具处理 URL 内容时的编码问题

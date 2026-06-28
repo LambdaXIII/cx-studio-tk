@@ -3,13 +3,14 @@ from collections.abc import Iterable, Generator
 from pathlib import Path
 
 from cx_studio import text as tt
+from cx_tools.i18n import _
 from cx_wealth import IndexedListPanel
 from .mission import Mission
 from ..appenv import appenv
 
 
 class ScriptMaker:
-    def __init__(self, missions: Iterable[Mission]):
+    def __init__(self, missions: Iterable[Mission]) -> None:
         self.missions = missions
         self._make_dir = "mkdir" if sys.platform == "win32" else "mkdir -p"
         self._default_suffix = ".ps1" if sys.platform == "win32" else ".sh"
@@ -29,7 +30,7 @@ class ScriptMaker:
             es.extend(mission.iter_arguments(quote_mode="auto"))
             yield " ".join(es)
 
-    def save(self, filename: str | Path):
+    def save(self, filename: str | Path) -> None:
         filename = Path(filename)
         if filename.suffix == "":
             filename = filename.with_suffix(self._default_suffix)
@@ -44,4 +45,4 @@ class ScriptMaker:
                 f.write("\n")
 
         appenv.whisper(IndexedListPanel(lines, title=filename.name, max_lines=999))
-        appenv.say("已保存脚本到：{}".format(filename))
+        appenv.say(_("已保存脚本到：{name}").format(name=filename))

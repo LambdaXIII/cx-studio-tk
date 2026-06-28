@@ -17,7 +17,7 @@ class HostRecord:
         """
         判断是否为有效记录。
         """
-        is_useful = (self.ip is not None) and self.domains
+        is_useful = bool((self.ip is not None) and self.domains)
         return is_useful or self.is_pure_comment()
 
     @classmethod

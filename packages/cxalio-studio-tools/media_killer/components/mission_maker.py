@@ -5,6 +5,7 @@ from collections.abc import Sequence, Generator, Iterable
 from pathlib import Path
 
 from cx_tools.app import ProgressTaskAgent
+from cx_tools.i18n import _
 from cx_wealth import WealthLabel, IndexedListPanel
 from cx_wealth import rich_types as r
 from .argument_group import ArgumentGroup
@@ -32,14 +33,14 @@ class MissionMaker:
 
         inputs = []
         for g in self._preset.inputs:
-            x = ArgumentGroup()
+            x: ArgumentGroup = ArgumentGroup()
             x.filename = Path(replacer.read_value(g.filename))
             x.add_options(list(replacer.read_value_as_list(g.options)))
             inputs.append(x)
 
         outputs = []
         for g in self._preset.outputs:
-            x = ArgumentGroup()
+            x: ArgumentGroup = ArgumentGroup()
             x.filename = Path(replacer.read_value(g.filename))
             x.add_options(list(replacer.read_value_as_list(g.options)))
             outputs.append(x)
@@ -66,18 +67,20 @@ class MissionMaker:
     def expand_sources(self, sources: Iterable[str | Path]) -> Generator[Path]:
         yield from self._source_expander.expand(*sources)
 
-    def report(self, missions: list):
+    def report(self, missions: list[Mission]) -> None:
         with self._lock:
             appenv.whisper(
                 IndexedListPanel(
                     missions,
-                    title="预设 [red]{}[/red] 生成的任务列表".format(self._preset.name),
+                    title=f"{_('预设')} [red]{self._preset.name}[/red] {_('生成的任务列表')}",
                 )
             )
 
             count = len(missions)
             preset_label = WealthLabel(self._preset, justify="left", overflow="crop")
-            missions_label = r.Text(f"{count}个任务", style="italic", justify="right")
+            missions_label = r.Text(
+                _("{count}个任务").format(count=count), style="italic", justify="right"
+            )
             appenv.say(r.Columns([preset_label, missions_label], expand=True))
 
     def expand_and_make_missions(
@@ -112,7 +115,7 @@ class MissionMaker:
                 Path(external_output_dir).resolve() if external_output_dir else None
             )
             result = []
-            appenv.whisper("开始为预设<{}>扫描源文件并创建任务…".format(_preset.name))
+            appenv.whisper(f"开始为预设<{_preset.name}>扫描源文件并创建任务…")
             async with ProgressTaskAgent(
                 appenv.progress, task_name=_preset.name
             ) as task_agent:
@@ -127,9 +130,7 @@ class MissionMaker:
                         appenv.really_wanna_quit_event.clear()
                     if wanna_quit:
                         appenv.say(
-                            "用户中断，[red]未为预设[cyan]{}[/]生成全部任务[/red]".format(
-                                _preset.name
-                            )
+                            f"用户中断，[red]未为预设[cyan]{_preset.name}[/]生成全部任务[/red]"
                         )
                         break
                     m = maker.make_mission(Path(s), external_dir)

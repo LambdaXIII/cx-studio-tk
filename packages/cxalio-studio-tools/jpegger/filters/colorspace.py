@@ -1,3 +1,5 @@
+from cx_tools.i18n import _
+
 from typing import Literal
 
 from PIL.Image import Image
@@ -15,7 +17,7 @@ class SimpleBlackWhiteFilter(IImageFilter):
 
 
 class ColorSpaceFilter(IImageFilter):
-    colorspace_type = Literal["RGB", "L", "CMYK"]
+    color_space_type = Literal["RGB", "L", "CMYK"]
 
     def __init__(self, colorspace: str | None):
         super().__init__()
@@ -44,4 +46,6 @@ class ColorSpaceFilter(IImageFilter):
         yield f"[blue]({param})[/]"
 
     def __filter_description__(self) -> str:
-        return f"将图像的色彩空间转换为 {self.colorspace}"
+        return _("将图像的色彩空间转换为 {space}").format(
+            space=self.colorspace or _("默认")
+        )

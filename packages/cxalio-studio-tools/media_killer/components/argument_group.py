@@ -1,7 +1,7 @@
 from collections import defaultdict
 from collections.abc import Generator, Iterable
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 from rich.columns import Columns
 
@@ -9,10 +9,10 @@ from rich.columns import Columns
 class ArgumentGroup:
     def __init__(
         self,
-        options: dict | str | list | None = None,
+        options: dict[str, str] | str | list[str] | None = None,
         filename: Path | None = None,
-        **kwargs,
-    ):
+        **kwargs: str,
+    ) -> None:
         self.filename: Path | None = filename
         self._options: dict[str, list[str]] = defaultdict(list)
         self._position_arguments: list[str] = []
@@ -21,7 +21,9 @@ class ArgumentGroup:
         self.add_options(**kwargs)
 
     @staticmethod
-    def __iter_pairs_from_list(args: list) -> Generator[tuple[str | None, str | None]]:
+    def __iter_pairs_from_list(
+        args: list[str],
+    ) -> Generator[tuple[str | None, str | None], None, None]:
         prev = None
         for x in args:
             x = str(x)
@@ -33,7 +35,9 @@ class ArgumentGroup:
                 yield prev, x
                 prev = None
 
-    def __add_options_from_pairs(self, pairs: Iterable[tuple[str | None, str | None]]):
+    def __add_options_from_pairs(
+        self, pairs: Iterable[tuple[str | None, str | None]]
+    ) -> None:
         for k, v in pairs:
             # print(k, v)
             k = self._clean_up_key(k)
@@ -50,7 +54,7 @@ class ArgumentGroup:
                 self._position_arguments.append(v)
 
     def __make_pairs(
-        self, options: str | list | dict
+        self, options: str | list[str] | dict[str, str]
     ) -> Iterable[tuple[str | None, str | None]]:
         pairs = []
         if isinstance(options, dict):
@@ -62,7 +66,7 @@ class ArgumentGroup:
         return pairs
 
     def add_options(
-        self, options: str | list | dict | None = None, *args, **kwargs
+        self, options: str | list[str] | dict[str, str] | None = None, *args, **kwargs
     ) -> "ArgumentGroup":
         pair_iterators = []
         if options:
@@ -90,7 +94,7 @@ class ArgumentGroup:
         result = key[1:] if key.startswith("-") else key
         return result if len(result) > 0 else None
 
-    def items(self) -> Generator[tuple[str, list]]:
+    def items(self) -> Generator[tuple[str, list[str]], None, None]:
         for k, v in self._options.items():
             yield self._format_key(k), v
 
@@ -115,7 +119,7 @@ class ArgumentGroup:
         if position_for_position_arguments == "back":
             yield from self._position_arguments
 
-    def __rich_repr__(self):
+    def __rich_repr__(self) -> Generator[tuple[str, Any], None, None]:
         if self._position_arguments:
             yield "位置参数", Columns(self._position_arguments)
         if self._options:

@@ -34,4 +34,4 @@ class JobCounter:
         return self.format()
 
     def __repr__(self) -> str:
-        return "[bright_black]{}[/]".format(self.format())
+        return f"[bright_black]{self.format()}[/]"

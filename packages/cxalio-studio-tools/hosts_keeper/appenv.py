@@ -1,4 +1,6 @@
 import importlib.resources
+from cx_tools.i18n import _
+
 import os
 import sys
 from collections.abc import Sequence
@@ -12,18 +14,18 @@ from .appcontext import AppContext
 
 
 class AppEnv(IAppEnvironment):
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.app_name = "HostsKeeper"
         self.app_version = "0.7.1"
-        self.app_description = "根据配置文件更新 hosts"
+        self.app_description = _("根据配置文件更新 hosts")
         self.context = AppContext()
 
         self.config_manager = ConfigManager(self.app_name)
         self._temp_dir: TemporaryDirectory | None = None
 
     @override
-    def start(self):
+    def start(self) -> None:
         self.show_banners()
         super().start()
         if self._temp_dir is None:
@@ -31,11 +33,12 @@ class AppEnv(IAppEnvironment):
             appenv.whisper(f"临时目录已创建：{self.temp_dir}")
 
     @override
-    def stop(self):
+    def stop(self) -> None:
         if self._temp_dir is not None:
+            temp_path = Path(self._temp_dir.name)
             self._temp_dir.cleanup()
             self._temp_dir = None
-            appenv.whisper(f"临时目录已删除：{self.temp_dir}")
+            appenv.whisper(f"临时目录已删除：{temp_path}")
         super().stop()
 
     @property
@@ -48,23 +51,26 @@ class AppEnv(IAppEnvironment):
     def temp_hosts(self) -> Path:
         return self.temp_dir / "hosts"
 
-    def show_banners(self):
+    def show_banners(self) -> None:
         banners = []
-        banner_text = importlib.resources.read_text(__package__, "banner.txt")
+        assert __package__ is not None, "AppEnv must be imported as part of a package"
+        banner_text = importlib.resources.read_text(
+            __package__, "banner.txt", encoding="utf-8"
+        )
         banners.append(r.Align.center(banner_text))
-        banners.append(r.Align.center("你的 hosts 由我来守护！"))
+        banners.append(r.Align.center(_("你的 hosts 由我来守护！")))
         banners.append(r.Align.center("v" + self.app_version))
         group = r.Group(*banners)
         appenv.console.print(group, style="bold cyan", highlight=False)
 
-    def is_debug_mode_on(self):
+    def is_debug_mode_on(self) -> bool:
         return self.context.debug_mode
 
-    def is_pretending_mode_on(self):
+    def is_pretending_mode_on(self) -> bool:
         return self.context.pretending_mode
 
-    def load_arguments(self, arguments: Sequence[str] | None = None):
-        self.context = AppContext.from_arguments(arguments)
+    def load_arguments(self, arguments: Sequence[str] | None = None) -> None:
+        self.context = AppContext.from_arguments(arguments or [])
 
     @staticmethod
     def system_hosts_path() -> Path:
@@ -88,11 +94,10 @@ class AppEnv(IAppEnvironment):
 
         # 无法识别的操作系统
         raise NotImplementedError(
-            f"Unsupported operating system: {system}. "
-            "Please provide the hosts file path manually."
+            _("不支持的操作系统：{system_system}。请手动提供 hosts 文件路径。").format(
+                system_system=system
+            )
         )
 
 
 appenv = AppEnv()
-
-# signal.signal(signal.SIGINT, appenv.handle_interrupt)

@@ -1,5 +1,17 @@
 # Change logs of cx-studio
 
+### v0.8.0
+
+- 修复了filesystem.encoding_detector在文件较小时输出none的问题。但低置信度下仍然可能输出none。
+
+### v0.7.5
+
+- 新增 CxFileInfoCache 文件信息缓存类
+- 修复 FFmpegAsync 中 finally 块内的 return 语句问题
+- 全量补充类型注解，清理死代码
+- 配置 pyright 类型检查并修复类型安全问题
+- 扩展 Python 版本支持范围至 <3.15
+
 ### v0.7.0
 
 - 拆分了utils，进行了大量模块层级改动
