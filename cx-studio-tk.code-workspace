@@ -1,23 +1,26 @@
 {
-	"folders": [
-		{
-			"path": "."
-		}
-	],
-	"settings": {
-		"files.exclude":{
-			"**/.git": true,
-			"**/.svn": true,
-			"**/.hg": true,
-			"**/.DS_Store": true,
-			"**/Thumbs.db": true,
-			"**/__pycache__": true,
-			".venv":true,
-			"**/.pytest_cache": true,
-			".idea":true,
-			".vscode":true,
-			".qoder":true,
-			".trae":true,
-		}
-	}
+  "folders": [
+    {
+      "path": ".",
+    },
+  ],
+  "settings": {
+    "files.exclude": {
+      "**/.git": true,
+      "**/.svn": true,
+      "**/.hg": true,
+      "**/.DS_Store": true,
+      "**/Thumbs.db": true,
+      "**/__pycache__": true,
+      ".venv": true,
+      "**/.pytest_cache": true,
+      ".idea": true,
+      ".vscode": true,
+      ".qoder": true,
+      ".trae": true,
+      ".codegraph": true,
+      "temp": true,
+      "dist": true,
+    },
+  },
 }
