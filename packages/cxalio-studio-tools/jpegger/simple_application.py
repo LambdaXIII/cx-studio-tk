@@ -48,7 +48,11 @@ class JpeggerApp(IApplication):
 
         # 帮助分支。
         if appenv.context.show_help:
-            appenv.say(SimpleHelp())
+            SimpleHelp.show_help(appenv.console)
+            return
+
+        if appenv.context.show_full_help:
+            SimpleHelp.show_full_help(appenv.console)
             return
 
         # 在调试模式下展示解析后的参数。
