@@ -1,5 +1,15 @@
 # Change Log of Cxalio Studio Tools
 
+### v0.8.1
+
+- Jpegger 迭代至 0.8.1
+- 修复 `ResizeFilter` 与 `FactorResizeFilter` 的缩放逻辑：按目标尺寸/缩放因子计算宽高，避免原图尺寸覆盖或传入浮点数导致 `Image.resize` 失败
+- 修复 `Mission.filter_chain` 默认共享可变对象的问题，确保每个任务实例拥有独立的过滤器链
+- 为 Jpegger 各模块、类、方法补充文档字符串，并在关键执行路径增加说明，提升可维护性
+- 修复 `IAppEnvironment` 未从 `cx_tools.app` 正确导出的问题
+- 在分发包 `pyproject.toml` 中配置 basedpyright，关闭 `reportUnknownMemberType` 与 `reportExplicitAny` 规则
+- 在代码注释中说明：GIF 仅处理第 1 帧为期望行为，Jpegger 的定位是单帧图片处理
+
 ### v0.8.0
 
 - HostsKeeper 更新 hosts 后自动执行平台对应的 DNS 缓存刷新（Windows ipconfig /flushdns、macOS killall -HUP mDNSResponder、Linux 提示手动命令）
