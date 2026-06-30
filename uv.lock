@@ -7,6 +7,7 @@ members = [
     "cx-studio",
     "cx-studio-tk",
     "cx-wealth",
+    "cx-wealthy",
     "cxalio-studio-tools",
 ]
 
@@ -114,7 +115,7 @@ wheels = [
 
 [[package]]
 name = "cx-studio"
-version = "0.8.0.1"
+version = "0.8.0.2"
 source = { editable = "packages/cx-studio" }
 dependencies = [
     { name = "chardet" },
@@ -136,6 +137,7 @@ source = { virtual = "." }
 dependencies = [
     { name = "cx-studio" },
     { name = "cx-wealth" },
+    { name = "cx-wealthy" },
     { name = "cxalio-studio-tools" },
 ]
 
@@ -149,6 +151,7 @@ dev = [
 requires-dist = [
     { name = "cx-studio", editable = "packages/cx-studio" },
     { name = "cx-wealth", editable = "packages/cx-wealth" },
+    { name = "cx-wealthy", editable = "packages/cx-wealthy" },
     { name = "cxalio-studio-tools", editable = "packages/cxalio-studio-tools" },
 ]
 
@@ -172,6 +175,17 @@ requires-dist = [
     { name = "cx-studio", editable = "packages/cx-studio" },
     { name = "rich", specifier = ">=14.0.0" },
 ]
+
+[[package]]
+name = "cx-wealthy"
+version = "0.1.0"
+source = { editable = "packages/cx-wealthy" }
+dependencies = [
+    { name = "rich" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "rich", specifier = ">=14.0.0" }]
 
 [[package]]
 name = "cxalio-studio-tools"
