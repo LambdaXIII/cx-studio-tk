@@ -1,5 +1,10 @@
 # Change logs of cx-studio
 
+### v0.8.0.2
+
+- 修复 detect_locale() 环境变量检测顺序与 GNU gettext 标准不一致的问题：补充 LANGUAGE、LC_MESSAGES 检测，正确顺序为 LANGUAGE → LC_ALL → LC_MESSAGES → LANG
+- LANGUAGE 支持 ":" 分隔的列表，取第一项
+
 ### v0.8.0.1
 
 - hotfix: wheel 构建缺少 packages 配置，导致所有 Python 模块未打包进 wheel，运行时 ModuleNotFoundError

@@ -1,6 +1,6 @@
 [project]
 name = "cx-studio"
-version = "0.8.0.1"
+version = "0.8.0.2"
 description = "Cxalio infrastructure library — core abstractions and utilities for post-production tooling."
 readme = "README.md"
 requires-python = ">=3.12,<3.15"
