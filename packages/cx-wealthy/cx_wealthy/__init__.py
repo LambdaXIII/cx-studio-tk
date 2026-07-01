@@ -1,7 +1,4 @@
-"""cx-wealthy: Rich 终端结构化文档与 UI 组件库。
-
-本包是 cx-wealth 的继任者。完整设计文档见根目录 DESIGN.md。
-"""
+"""cx-wealthy: Rich 终端结构化文档与 UI 组件库。"""
 
 __version__ = "0.1.0"
 
