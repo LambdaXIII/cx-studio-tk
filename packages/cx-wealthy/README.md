@@ -1,194 +1,118 @@
+[English](README.en.md) | 简体中文
+
 # cx-wealthy
 
 基于 [Rich](https://github.com/Textualize/rich) 的终端结构化文档与 UI 组件库。
 
-提供两种核心能力：
-
-1. **结构化的文档系统** — 声明式复合树构建 + 主题化渲染，从帮助系统到任意分类文档都可使用
-2. **双渲染协议** — `__rich_label__`(紧凑标签) + `__rich_detail__`(键值面板)，通过 mixin 让领域对象自身可渲染
+为领域对象提供标签与详情两种渲染模式，让结构化输出声明式构建——不手写 Table/Panel 拼装，不继承 Rich 内部协议。
 
 ## 安装
+
+```bash
+pip install cx-wealthy
+```
+
+在 uv 项目中引入：
 
 ```bash
 uv add cx-wealthy
 ```
 
-要求 Python >= 3.12。
+## 核心概念
 
-**唯一依赖**：`rich>=14.0.0`。不依赖 cx-studio 或其他包。
+### 标签与详情渲染协议
 
-## 快速开始
-
-### 标签渲染协议
-
-让任意对象直接支持 Rich 渲染，输出紧凑标签行。
-
-**继承 mixin（推荐，协议即渲染）：**
+cx-wealthy 为 Rich 扩展了两种渲染模式：`__rich_label__`（紧凑标签，用于行内摘要）和 `__rich_detail__`（键值面板，用于结构化详情）。继承对应的 mixin 后，`console.print()` 自动以该模式渲染——无需在调用点手动包装。
 
 ```python
-from cx_wealthy import RichLabelMixin
+from cx_wealthy import RichLabelMixin, RichDetailMixin, WealthDetailPanel
 from rich.console import Console
 
 console = Console()
 
-class Mission(RichLabelMixin):
-    def __init__(self, name: str, target: str) -> None:
+class Mission(RichLabelMixin, RichDetailMixin):
+    def __init__(self, name, source, overwrite=False):
         self.name = name
-        self.target = target
+        self.source = source
+        self.overwrite = overwrite
 
     def __rich_label__(self):
         yield "[bold]M[/]"
         yield self.name
-        yield f"-> {self.target}"
-
-console.print(Mission("encode", "output.mp4"))
-# 输出： M encode -> output.mp4
-```
-
-**使用包装器（不愿继承时）：**
-
-```python
-from cx_wealthy import RichLabel
-
-# 包装任意实现了 __rich_label__() 的对象
-console.print(RichLabel(some_object, overflow="ellipsis"))
-```
-
-**自定义渲染（覆盖 mixin 默认实现）：**
-
-```python
-class Stream(RichLabelMixin):
-    def __rich_label__(self):
-        yield ...
-    def __rich__(self):          # 覆盖默认，使用自定义渲染
-        return custom_render(self)
-```
-
-### 详情渲染协议
-
-将对象渲染为带键值对表格的面板，支持递归嵌套。
-
-**继承 mixin：**
-
-```python
-from cx_wealthy import RichDetailMixin
-from rich.console import Console
-
-console = Console()
-
-class Mission(RichDetailMixin):
-    def __init__(self):
-        self.source = "/path/to/input.mp4"
-        self.target_format = "mp4"
-        self.overwrite = False
-        self.filter_chain = ["crop", "scale"]
+        yield f"→ {self.source}"
 
     def __rich_detail__(self):
+        yield "名称", self.name
         yield "源文件", str(self.source)
-        yield "目标格式", self.target_format
-        yield "覆盖", self.overwrite, False   # (key, value, default) 三元组
-        yield "过滤器链", self.filter_chain     # 自动渲染为 IndexedListPanel
+        yield "覆盖", self.overwrite, False        # 三元组：值等于默认时不显示
 
-console.print(Mission())
+console.print(Mission("encode", "input.mp4"))
+# 输出标签：M encode → input.mp4
+
+console.print(WealthDetailPanel(Mission("encode", "input.mp4")))
+# 输出键值面板，"覆盖"行因 overwrite==False 被去重隐藏
 ```
 
-**`__rich_detail__` 支持的 yield 格式：**
+不愿继承时，用包装器 `RichLabel(obj)` / `WealthDetailPanel(obj)` 渲染任意实现了协议的对象。
+
+**`__rich_detail__` yield 格式：**
 
 | 元组形态 | 效果 |
 |---|---|
 | `(key, value)` | 显示 `key = value` |
-| `(key, value, default)` | 当 `value == default` 时该行不显示（去重） |
+| `(key, value, default)` | `value == default` 时该行不显示 |
 | `(value,)` | 仅显示值，key 列为空 |
 | `(key, *values)` | value 为列表 |
 
-**使用包装器：**
+`__rich_detail__` 与 Rich 原生 `__rich_repr__` 语义不同：后者是 debug repr（raw 值 + Pretty 渲染），前者是展示视角（value 可预格式化、支持递归嵌套 sub-panel、列表自动渲染为 `IndexedListPanel`）。
+
+### 声明式文档构建
+
+通过 `Node` → `Group` + `Note` 的复合树构建结构化文档，`WealthyDocument` 组织渲染。帮助系统是其中的特化层——`WealthyHelp` 继承 `WealthyDocument`，增加 `Action` 节点和 usage/details 渲染。
 
 ```python
-from cx_wealthy import WealthDetailPanel
+from cx_wealthy import WealthyHelp
 
-console.print(WealthDetailPanel(mission, title="任务详情"))
+help = WealthyHelp(prog="myapp", description="CLI 工具说明")
+help.add_action("--input", metavar="FILE", description="输入文件路径")
+help.add_action("--output", metavar="FILE", description="输出文件路径")
+help.add_action("--verbose", description="详细输出")
+help.add_note("使用 --help 查看完整用法。")
+console.print(help)
 ```
 
-### 结构化文档系统
+`WealthyHelp` 自动渲染 usage 行（选项按可选/位置分组）、参数详情表格、epilog 尾部。
 
-通用文档树：`Node`（基类）→ `Group`（容器）+ `Note`（内容），通过 `WealthyDocument` 组织输出。
+`WealthyDocument` 不限于帮助系统——任何"分组 + 条目 + 注释"的结构化输出都可以用它构建。
 
-```python
-from cx_wealthy import WealthyDocument, WealthyHelp, Action
+## 辅助组件
 
-# 通用结构化文档
-doc = WealthyDocument(prog="myapp", description="工具说明")
-doc.add_group("输入").add_note("支持格式：mp4, mkv, avi")
-doc.add_group("输出").add_note("默认输出到当前目录")
-console.print(doc)
-
-# 帮助系统特化
-help_doc = WealthyHelp(prog="myapp", description="CLI 工具说明")
-help_doc.add_action("--input", metavar="FILE", description="输入文件路径")
-help_doc.add_action("--output", metavar="FILE", description="输出文件路径")
-help_doc.add_action("--verbose", description="详细输出")
-help_doc.add_note("使用 --help 查看完整用法。")
-console.print(help_doc)
-```
-
-`WealthyHelp` 自动渲染三部分：usage 行（选项按可选/位置分组排列）、参数详情表格、epilog 尾部。
-
-### 索引列表面板
-
-带行号索引的列表展示，支持截断。
+| 组件 | 用途 |
+|---|---|
+| `IndexedListPanel` | 带行号索引的列表面板，支持截断（`max_lines=None` 不限） |
+| `MaxColumnsLayout` | 固定最大列数的多列布局 |
+| `render_tutorial()` | 按 locale 加载 Markdown 教程文件并渲染为 Panel |
 
 ```python
-from cx_wealthy import IndexedListPanel
+from cx_wealthy import IndexedListPanel, MaxColumnsLayout, render_tutorial
 
-# 基本用法
 console.print(IndexedListPanel(["a", "b", "c"], title="文件列表"))
-
-# 不截断
-console.print(IndexedListPanel(large_list, max_lines=None))
-
-# 0-based 索引
-console.print(IndexedListPanel(items, start_index=0))
-```
-
-### 固定列数布局
-
-按最大列数平均分配宽度的多列布局。
-
-```python
-from cx_wealthy import MaxColumnsLayout
-
-items = [renderable1, renderable2, renderable3, renderable4]
-console.print(MaxColumnsLayout(items, max_columns=3, column_gap=2))
-```
-
-### 本地化教程渲染
-
-按 locale 自动选择 Markdown 教程文件，加载并渲染为 Panel 包裹的 Markdown。
-
-```python
-from cx_wealthy import render_tutorial
-
-# 自动检测 locale，优先加载 help.en_US.md，回退 help.md
+console.print(MaxColumnsLayout(["one", "two", "three", "four"], max_columns=3))
 console.print(render_tutorial(__package__, "help.md", title="教程"))
 ```
 
-加载逻辑：先尝试 `<stem>.<locale><ext>`（如 `help.en_US.md`），失败则回退到基础文件名。不依赖 cx-studio，自行检测环境变量 `LANGUAGE` → `LC_ALL` → `LC_MESSAGES` → `LANG`。
+## 主题预设
 
-### 主题预设
-
-`cx.*` 命名空间的主题样式，供全局使用。
+`cx.*` 命名空间的 Rich 主题样式。
 
 ```python
-from cx_wealthy.theme import default_theme, CX_STYLES
+from cx_wealthy.theme import default_theme
+from rich.console import Console
 
 console = Console(theme=default_theme)
 console.print("[cx.success]操作成功[/]")
 console.print("[cx.error]操作失败[/]")
-console.print("[cx.warning]注意[/]")
-console.print("[cx.info]信息[/]")
 ```
-
-可用样式：
 
 | 样式 | 效果 |
 |---|---|
@@ -199,9 +123,7 @@ console.print("[cx.info]信息[/]")
 | `cx.whisper` | 暗色 |
 | `cx.number` | 青色 |
 
-### Rich 类型便利出口
-
-使用 `rich_types` 作为 Rich 高频类型的别名入口。
+## Rich 类型便利出口
 
 ```python
 from cx_wealthy import rich_types as r
@@ -211,22 +133,20 @@ table.add_column(r.Column("名称"))
 r.Console().print(table)
 ```
 
-内部使用（在 cx-wealthy 自身的模块中）始终使用 `from rich.xxx import Yyy` 真实路径，`rich_types` 仅对外。
-
 ## 模块索引
 
-| 模块 | 内容 |
+| 模块 | 导出 |
 |---|---|
-| `theme` | `cx.*` 主题样式预设 |
-| `rich_types` | Rich 高频类型便利出口 |
-| `label` | `RichLabelMixin` + `RichLabel` |
-| `detail` | `RichDetailMixin` + `WealthDetailPanel` + `WealthDetailTable` |
-| `document` | `Node` / `Group` / `Note` / `WealthyDocument` |
-| `help` | `Action` / `WealthyHelp` |
+| `label` | `RichLabelMixin` · `RichLabel` |
+| `detail` | `RichDetailMixin` · `WealthDetailTable` · `WealthDetailPanel` |
+| `document` | `Node` · `Group` · `Note` · `WealthyDocument` |
+| `help` | `Action` · `WealthyHelp` |
 | `indexed_list` | `IndexedListPanel` |
 | `columns` | `MaxColumnsLayout` |
-| `tutorial` | `render_tutorial()` |
+| `tutorial` | `render_tutorial` |
+| `theme` | `CX_STYLES` · `HELP_STYLES` · `default_theme` |
+| `rich_types` | Rich 高频类型别名出口 |
 
-## 开源协议
+## 协议
 
 MIT
