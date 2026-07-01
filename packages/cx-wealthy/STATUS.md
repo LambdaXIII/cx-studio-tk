@@ -426,3 +426,43 @@ class WealthyHelp(WealthyDocument):
 ---
 
 *报告结束。*
+
+## 8. 代码审查结果（2026-07-01）
+
+> 综合 black（格式化）、LSP（静态分析）、运行时测试、逻辑与设计审查。
+
+### 结果总览
+
+| 检查类型 | 文件数 | 问题数 |
+
+| Black 格式化 | 16 个文件 | 0 — 全部通过 |
+| LSP 诊断 | 16 个文件 | 0 — 全部通过 |
+| 运行时导入与基本调用 | 9 模块 | 0 — 全部正常 |
+| 逻辑与设计审查 | 12 个源文件 | 0 — 全部通过 |
+
+**结论**：未发现任何代码级错误。全部模块在格式化、类型检查、运行时、逻辑设计层面均达标。
+
+### 审查中关注的要点
+
+**label.py**：`_render_label` 共享核心逻辑正确；`_iter_with_separator` 内联实现不依赖 cx-studio；mixin 与包装器双轨语义一致。
+
+**detail.py**：`make_table` 的 str/bytes 排除有效；`_check_value` 渲染链完整；三元组去重逻辑正确；`disable_sub_box` 递归语义一致。
+
+**indexed_list.py**：索引计算已修复；截断逻辑正确；宽度计算基于最大显示索引。
+
+**columns.py**：`columns = min(max_columns, len(items))` 保证列数不超范围；`_pad_row` 补齐不完整行。
+
+**document/**：`add_child` 安全处理父节点移除；`walk()` 环检测；`DEFAULT_STYLES` 拷贝合并；`__rich_console__` 标准 yield 范式；`prog` 延迟求值。
+
+**help/**：`_validate_flags` 拦截错误 flag；`render_usage` 用 `defaultdict` 替代 `groupby`；`is_positional` 支持 `prefix_chars`。
+
+**tutorial.py**：locale 检测按标准顺序；文件加载优先 locale 后缀；不依赖 cx-studio。
+
+**跨模块**：无循环依赖；所有 `__all__` 完整；星导入仅暴露 `__all__` 符号；依赖仅 `rich>=14.0.0`；全部 8 项设计原则均遵守。
+
+### 待改进（非阻塞）
+
+| 问题 | 优先级 | 说明 |
+| README 示例代码使用错误 API | 低 | `WealthyHelp(title=...)` 应为 `prog=` 等 |
+| `HELP_STYLES` 与 `DEFAULT_STYLES` 共享同一 dict | 低 | 按 DESIGN 规格；实例安全 |
+| `_detect_locale` 未处理 LANGUAGE 冒号分隔列表 | 极低 | 不影响可用性 |

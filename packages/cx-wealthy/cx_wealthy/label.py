@@ -46,11 +46,11 @@ class RichLabel:
         justify: Literal["left", "center", "right"] = "left",
     ) -> None:
         self.obj = obj
+        self.overflow: Literal["ignore", "crop", "ellipsis", "fold"] = overflow
+        self.justify: Literal["left", "center", "right"] = justify
         self.markup = markup
         self.sep = sep
         self.tab_size = tab_size
-        self.overflow = overflow
-        self.justify = justify
 
     def __rich__(self) -> RenderableType:
         return _render_label(
