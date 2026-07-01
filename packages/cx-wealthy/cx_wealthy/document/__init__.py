@@ -1,4 +1,8 @@
-"""通用结构化文档核心：Node / Group / Note / WealthyDocument。
+"""通用结构化文档核心：Node / Group / Note / WealthyDocument。"""
 
-详见根目录 DESIGN.md「通用文档核心」一节。
-"""
+from .document import WealthyDocument
+from .group import Group
+from .node import Node
+from .note import Note
+
+__all__ = ["Node", "Group", "Note", "WealthyDocument"]
