@@ -26,6 +26,7 @@ uv build                  # 构建所有包
 ## Boundaries
 
 ### Always do
+- 处理 `packages/` 下某个 workspace 的内容时，先阅读该 workspace 目录下的 `AGENTS.md`（如有）。它与本文件叠加生效——本文件是全局基线，workspace 级文件补充该工作区独有的约定、偏离点和防回退记录
 - 修改代码后运行 `uv run black .`
 - 为新公共函数/类添加 docstring
 
