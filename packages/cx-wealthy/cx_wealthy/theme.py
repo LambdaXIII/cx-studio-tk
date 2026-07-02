@@ -6,8 +6,7 @@
 
 from rich.theme import Theme
 
-# cx.* 样式定义（被 cxalio-studio-tools 的 IAppEnvironment 使用）
-CX_STYLES: dict[str, str] = {
+BASE_STYLES: dict[str, str] = {
     "cx.success": "bold green",
     "cx.error": "bold red",
     "cx.warning": "bold yellow",
@@ -16,7 +15,8 @@ CX_STYLES: dict[str, str] = {
     "cx.number": "cyan",
 }
 
-# WealthyHelp 的帮助样式
+CX_STYLES: dict[str, str] = BASE_STYLES
+
 HELP_STYLES: dict[str, str] = {
     "cx.help.usage.title": "green",
     "cx.help.usage.prog": "orange1",
@@ -30,6 +30,36 @@ HELP_STYLES: dict[str, str] = {
     "cx.help.epilog": "dim italic default",
 }
 
-default_theme = Theme({**CX_STYLES, **HELP_STYLES})
+DETAIL_STYLES: dict[str, str] = {
+    "cx.detail.key": "bold",
+    "cx.detail.none": "dim",
+    "cx.detail.sub_box_border": "grey70",
+    "cx.detail.empty": "dim yellow",
+}
 
-__all__ = ["CX_STYLES", "HELP_STYLES", "default_theme"]
+INDEXED_LIST_STYLES: dict[str, str] = {
+    "cx.indexed_list.index": "cyan",
+    "cx.indexed_list.empty": "dim",
+    "cx.indexed_list.subtitle": "dim",
+}
+
+FULL_HELP_STYLES: dict[str, str] = {**BASE_STYLES, **HELP_STYLES}
+
+default_theme = Theme(
+    {
+        **BASE_STYLES,
+        **HELP_STYLES,
+        **DETAIL_STYLES,
+        **INDEXED_LIST_STYLES,
+    }
+)
+
+__all__ = [
+    "BASE_STYLES",
+    "CX_STYLES",
+    "HELP_STYLES",
+    "DETAIL_STYLES",
+    "INDEXED_LIST_STYLES",
+    "FULL_HELP_STYLES",
+    "default_theme",
+]

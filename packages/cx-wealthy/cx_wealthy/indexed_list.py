@@ -65,15 +65,26 @@ class IndexedListPanel:
         - 列表下标 = k（0-based）
         """
         total = len(self._items)
-        total_digits = len(str(total - 1 + self._start_index)) if total > 0 else 1
+        total_digits = (
+            max(
+                len(str(self._start_index)),
+                len(str(total - 1 + self._start_index)),
+            )
+            if total > 0
+            else 1
+        )
         table = Table(show_header=False, box=None)
         table.add_column(
-            "#", justify="right", style="cyan", no_wrap=True, width=total_digits
+            "#",
+            justify="right",
+            style="cx.indexed_list.index",
+            no_wrap=True,
+            width=total_digits,
         )
         table.add_column("Item")
 
         if total == 0:
-            table.add_row("", "(empty)")
+            table.add_row("", Text("(empty)", style="cx.indexed_list.empty"))
             return table
 
         def add_row(index: int | str, item: Any) -> None:
@@ -85,6 +96,9 @@ class IndexedListPanel:
         if self._max_lines is None or self._max_lines >= total:
             for k, item in enumerate(self._items):
                 add_row(k + self._start_index, item)
+        elif self._max_lines <= 2:
+            for k in range(self._max_lines):
+                add_row(k + self._start_index, self._items[k])
         else:
             head = self._max_lines - 2
             for k in range(head):
@@ -96,8 +110,11 @@ class IndexedListPanel:
         return table
 
     def __rich__(self) -> Panel:
+        total = len(self._items)
         return Panel(
             self.get_table(),
             title=self._title,
+            subtitle=f"{total} items",
+            subtitle_align="right",
             border_style=self._border_style or "none",
         )

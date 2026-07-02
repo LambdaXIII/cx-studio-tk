@@ -50,7 +50,7 @@ class WealthDetailTable:
     （str/bytes 显式排除，不走 Iterable 分支）
     """
 
-    _SUB_BOX_BORDER_STYLE = "grey70"
+    _SUB_BOX_BORDER_STYLE = "cx.detail.sub_box_border"
 
     def __init__(
         self,
@@ -86,13 +86,15 @@ class WealthDetailTable:
     def _make_table_from_rows(self, rows: Iterable[tuple[str, Any]]) -> RenderableType:
         """将 (key, value) 行序列组装为 Table。"""
         table = Table(show_header=False, box=None)
-        table.add_column("Key", style="bold", ratio=1)
+        table.add_column("Key", style="cx.detail.key", ratio=1)
         table.add_column("Value", ratio=3)
         for key, value in rows:
             rendered = self._check_value(value)
             if rendered is None:
                 continue
             table.add_row(Text(str(key)), rendered)
+        if table.row_count == 0:
+            return Text("(empty)", style="cx.detail.empty")
         return table
 
     def _iter_tuples(
@@ -126,7 +128,7 @@ class WealthDetailTable:
         自定义类型的渲染规则。当前为内置 if-elif 链。
         """
         if value is None:
-            return Text("None", style="dim")
+            return Text("None", style="cx.detail.none")
         if isinstance(value, (str, bytes)):
             return Text(str(value))
         if hasattr(value, "__rich_detail__") or hasattr(value, "__rich_repr__"):
@@ -142,8 +144,22 @@ class WealthDetailTable:
                 sub_box=self._sub_box,
                 list_max_lines=self._list_max_lines,
             ).make_table(value)
+        if isinstance(value, Mapping):
+            if self._sub_box and not disable_sub_box:
+                return WealthDetailPanel(
+                    value,
+                    sub_box=self._sub_box,
+                    list_max_lines=self._list_max_lines,
+                    border_style=self._SUB_BOX_BORDER_STYLE,
+                )
+            return WealthDetailTable(
+                value,
+                sub_box=self._sub_box,
+                list_max_lines=self._list_max_lines,
+            ).make_table(value)
         if isinstance(value, (list, tuple)):
-            return IndexedListPanel(value, max_lines=self._list_max_lines)
+            rendered_items = [self._check_value(v, disable_sub_box=True) for v in value]
+            return IndexedListPanel(rendered_items, max_lines=self._list_max_lines)
         if hasattr(value, "__rich_label__"):
             return RichLabel(value).__rich__()
         try:

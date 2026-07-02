@@ -8,6 +8,7 @@ import sys
 from rich.console import Console, ConsoleOptions, RenderableType
 from rich.theme import Theme
 
+from ..theme import BASE_STYLES
 from .group import Group
 from .note import Note
 
@@ -21,14 +22,7 @@ class WealthyDocument:
     并覆盖 render() 以追加专属输出。
     """
 
-    DEFAULT_STYLES: dict[str, str] = {
-        "cx.success": "bold green",
-        "cx.error": "bold red",
-        "cx.warning": "bold yellow",
-        "cx.info": "cyan",
-        "cx.whisper": "dim",
-        "cx.number": "cyan",
-    }
+    DEFAULT_STYLES: dict[str, str] = dict(BASE_STYLES)
 
     def __init__(
         self,

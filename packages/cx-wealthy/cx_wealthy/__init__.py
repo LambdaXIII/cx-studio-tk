@@ -8,7 +8,15 @@ from .document import Group, Node, Note, WealthyDocument
 from .help import Action, WealthyHelp
 from .indexed_list import IndexedListPanel
 from .label import RichLabel, RichLabelMixin
-from .theme import CX_STYLES, HELP_STYLES, default_theme
+from .theme import (
+    BASE_STYLES,
+    CX_STYLES,
+    DETAIL_STYLES,
+    FULL_HELP_STYLES,
+    HELP_STYLES,
+    INDEXED_LIST_STYLES,
+    default_theme,
+)
 from .tutorial import render_tutorial
 from . import rich_types
 
@@ -33,8 +41,12 @@ __all__ = [
     # 教程
     "render_tutorial",
     # 主题
+    "BASE_STYLES",
     "CX_STYLES",
     "HELP_STYLES",
+    "DETAIL_STYLES",
+    "INDEXED_LIST_STYLES",
+    "FULL_HELP_STYLES",
     "default_theme",
     # 对外便利
     "rich_types",

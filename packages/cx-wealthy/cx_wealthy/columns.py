@@ -32,6 +32,10 @@ class MaxColumnsLayout:
             expand: 是否扩展填充终端宽度
             column_gap: 列间距
         """
+        if max_columns < 1:
+            raise ValueError("max_columns must be >= 1")
+        if column_gap < 0:
+            raise ValueError("column_gap must be >= 0")
         self._renderables = list(renderables)
         self._max_columns = max_columns
         self._expand = expand

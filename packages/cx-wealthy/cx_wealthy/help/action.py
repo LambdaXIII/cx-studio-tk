@@ -76,55 +76,125 @@ class Action(Node):
         """是否为可选参数。
 
         若构造时显式传入 ``optional`` 则使用显式值，否则按 ``is_positional`` 推断。
+        位置参数若 nargs 为 ``"?"`` 也视为可选。
         """
         if self.optional is not None:
             return self.optional
-        return not self.is_positional()
+        return not self.is_positional() or self.nargs == "?"
 
     def _format_argument(self, metavar: str, index: int) -> str:
         """生成带索引的参数占位符字符串，使用 f-string 避免 ``{`` 被误解析。"""
         return f"{metavar}{index + 1}"
 
+    def _make_optional(self, text: Text) -> Text:
+        """用方括号包裹文本，表示可选。"""
+        result = Text()
+        result.append("[", style="cx.help.usage.bracket")
+        result.append_text(text)
+        result.append("]", style="cx.help.usage.bracket")
+        return result
+
+    def _format_option(self, flag: str) -> Text:
+        """格式化 flag 文本。"""
+        return Text(flag, style="cx.help.usage.option")
+
     def _usage_argument_text(self) -> Text | None:
-        """生成 usage 中的参数占位符部分。"""
+        """生成 usage 中的参数占位符部分。
+
+        注：nargs="**" 的渲染逻辑在 render_usage() 中专门处理，不在此处。
+        """
         if self.is_optional() and self.metavar is None and self.nargs is None:
             return None
 
         metavar = self.metavar or self.name or ("VAL" if self.is_optional() else "ARG")
         style = "cx.help.usage.argument"
+        sep_style = "cx.help.usage.bracket"
 
         if isinstance(self.nargs, int):
             count = max(0, self.nargs)
             if count == 0:
                 return None
-            return Text(" ").join(
+            parts = [
                 Text(self._format_argument(metavar, i), style=style)
                 for i in range(count)
-            )
+            ]
+            result = Text()
+            for i, part in enumerate(parts):
+                if i:
+                    result.append(", ", style=sep_style)
+                result.append_text(part)
+            return result
 
-        if self.nargs in ("+", "*", "**"):
-            return Text(f"{metavar}...", style=style)
+        if self.nargs == "+":
+            result = Text()
+            result.append(self._format_argument(metavar, 0), style=style)
+            for i in range(1, 3):
+                part = Text()
+                part.append(", ", style=sep_style)
+                part.append(self._format_argument(metavar, i), style=style)
+                result.append_text(self._make_optional(part))
+            more = Text()
+            more.append(", ", style=sep_style)
+            more.append(f"{metavar}...", style=style)
+            result.append_text(self._make_optional(more))
+            return result
+
+        if self.nargs == "*":
+            result = self._make_optional(
+                Text(self._format_argument(metavar, 0), style=style)
+            )
+            for i in range(1, 3):
+                part = Text()
+                part.append(", ", style=sep_style)
+                part.append(self._format_argument(metavar, i), style=style)
+                result.append_text(self._make_optional(part))
+            more = Text()
+            more.append(", ", style=sep_style)
+            more.append(f"{metavar}...", style=style)
+            result.append_text(self._make_optional(more))
+            return result
 
         if self.nargs == "?":
             return Text(self._format_argument(metavar, 0), style=style)
 
         return Text(metavar, style=style)
 
+    def _build_flags_text(self) -> Text:
+        """构建 flags 文本（用 | 分隔多个 flag）。"""
+        result = Text()
+        for i, flag in enumerate(self.flags):
+            if i:
+                result.append("|", style="cx.help.usage.bracket")
+            result.append_text(self._format_option(flag))
+        return result
+
     def render_usage(self) -> Text:
         """渲染 usage 行片段。"""
         usage = Text()
         arg_text = self._usage_argument_text()
 
+        if self.nargs == "**" and not self.is_positional():
+            flags_text = self._build_flags_text()
+            metavar = self.metavar or self.name or "VAL"
+            base = Text()
+            base.append_text(flags_text)
+            base.append(" ")
+            base.append(metavar, style="cx.help.usage.argument")
+            repeat = Text()
+            repeat.append_text(flags_text)
+            repeat.append(" ...")
+            usage.append_text(self._make_optional(base))
+            usage.append(" ")
+            usage.append_text(self._make_optional(repeat))
+            return usage
+
         if self.is_optional():
-            usage.append("[", style="cx.help.usage.bracket")
-            for i, flag in enumerate(self.flags):
-                if i:
-                    usage.append("|", style="cx.help.usage.bracket")
-                usage.append(flag, style="cx.help.usage.option")
+            inner = Text()
+            inner.append_text(self._build_flags_text())
             if arg_text is not None:
-                usage.append(" ")
-                usage.append_text(arg_text)
-            usage.append("]", style="cx.help.usage.bracket")
+                inner.append(" ")
+                inner.append_text(arg_text)
+            usage.append_text(self._make_optional(inner))
         else:
             if arg_text is not None:
                 usage.append_text(arg_text)

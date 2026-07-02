@@ -6,12 +6,14 @@ from collections import defaultdict
 from collections.abc import Generator
 from typing import Literal, override
 
-from rich import box
+from rich.align import Align
 from rich.console import Group as RichGroup, RenderableType
+from rich.padding import Padding
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
+from ..theme import BASE_STYLES, HELP_STYLES
 from ..document.document import WealthyDocument
 from ..document.note import Note
 from .action import Action
@@ -26,20 +28,7 @@ class WealthyHelp(WealthyDocument):
     ``render_usage()``、``render_details()``、``render_epilog()``。
     """
 
-    HELP_STYLES: dict[str, str] = {
-        **WealthyDocument.DEFAULT_STYLES,
-        "cx.help.usage.title": "green",
-        "cx.help.usage.prog": "orange1",
-        "cx.help.usage.bracket": "bright_black",
-        "cx.help.usage.option": "cyan",
-        "cx.help.usage.argument": "italic yellow",
-        "cx.help.group.title": "orange1",
-        "cx.help.group.description": "italic dim default",
-        "cx.help.details.box": "blue",
-        "cx.help.details.description": "italic default",
-        "cx.help.epilog": "dim italic default",
-    }
-    DEFAULT_STYLES = HELP_STYLES
+    DEFAULT_STYLES: dict[str, str] = {**BASE_STYLES, **HELP_STYLES}
 
     def __init__(
         self,
@@ -109,41 +98,88 @@ class WealthyHelp(WealthyDocument):
                 buckets["other"].append(action.render_usage())
 
         usage = Text()
-        usage.append("用法：", style="cx.help.usage.title")
-        usage.append(self.prog, style="cx.help.usage.prog")
-
         for key in ("optional", "positional", "other"):
             for fragment in buckets[key]:
                 usage.append(" ")
                 usage.append_text(fragment)
 
-        return usage
+        table = Table(box=None, show_header=False, padding=(0, 0))
+        table.add_column(style="cx.help.usage.prog", justify="left", no_wrap=True)
+        table.add_column(ratio=1)
+        table.add_row(Text(self.prog, style="cx.help.usage.prog"), usage)
 
-    def render_details(self) -> RenderableType:
-        """渲染参数详情表格。"""
-        actions = [node for node in self.root.walk() if isinstance(node, Action)]
-        if not actions:
-            return Text("")
+        parts: list[RenderableType] = [table]
 
-        table = Table(
-            show_header=True,
-            box=box.SIMPLE_HEAD,
-            border_style="cx.help.details.box",
-        )
-        table.add_column("参数", style="cx.help.usage.option")
-        table.add_column("占位符", style="cx.help.usage.argument")
-        table.add_column("说明", style="cx.help.details.description")
+        if self.description is not None:
+            if isinstance(self.description, str):
+                desc_renderable = Text.from_markup(self.description)
+            else:
+                desc_renderable = self.description
+            parts.append(Padding(desc_renderable, pad=(1, 0, 0, 2)))
 
-        for action in actions:
-            flags = ", ".join(action.flags) if action.flags else ""
-            table.add_row(
-                flags,
-                action.metavar or "",
-                action.description or "",
-            )
+        content = RichGroup(*parts) if len(parts) > 1 else parts[0]
 
         return Panel(
-            table,
+            content,
+            title=Text("用法", style="cx.help.usage.title"),
+            border_style="cx.help.details.box",
+        )
+
+    def render_details(self) -> RenderableType:
+        """渲染参数详情，按 Group 分组。"""
+        from ..document.group import Group
+
+        all_actions = [node for node in self.root.walk() if isinstance(node, Action)]
+        if not all_actions:
+            return Text("")
+
+        parts: list[RenderableType] = []
+
+        ungrouped_actions: list[Action] = []
+        for child in self.root.iter_children():
+            if isinstance(child, Action):
+                ungrouped_actions.append(child)
+
+        for action in ungrouped_actions:
+            parts.append(action.render_details())
+
+        for child in self.root.iter_children():
+            if isinstance(child, Group):
+                group_parts: list[RenderableType] = []
+
+                if child.name:
+                    title_text = Text(child.name, style="cx.help.group.title")
+                    title_text.stylize("bold")
+                    group_parts.append(title_text)
+
+                if child.description:
+                    group_parts.append(
+                        Padding(
+                            Text(child.description, style="cx.help.group.description"),
+                            pad=(0, 0, 0, 2),
+                        )
+                    )
+
+                group_actions: list[Action] = []
+                for group_child in child.iter_children():
+                    if isinstance(group_child, Action):
+                        group_actions.append(group_child)
+
+                if group_actions:
+                    action_lines = [a.render_details() for a in group_actions]
+                    group_parts.append(
+                        Padding(RichGroup(*action_lines), pad=(0, 0, 0, 4))
+                    )
+
+                if group_parts:
+                    if parts:
+                        parts.append(Text(""))
+                    parts.append(RichGroup(*group_parts))
+
+        content = RichGroup(*parts) if len(parts) > 1 else parts[0]
+
+        return Panel(
+            content,
             title="参数详情",
             border_style="cx.help.details.box",
         )
@@ -154,7 +190,8 @@ class WealthyHelp(WealthyDocument):
 
         if self.epilog is not None:
             if isinstance(self.epilog, str):
-                parts.append(Text(self.epilog, style="cx.help.epilog"))
+                epilog_text = Text.from_markup(self.epilog, style="cx.help.epilog")
+                parts.append(Align.right(epilog_text))
             else:
                 parts.append(self.epilog)
 
