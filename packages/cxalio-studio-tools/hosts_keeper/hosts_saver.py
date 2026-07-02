@@ -121,7 +121,7 @@ def _elevated_replace_windows(source: Path, target: Path) -> bool:
         sudo_attempted = True
         try:
             subprocess.run(
-                ["sudo", "cp", "-f", str(source.resolve()), str(target.resolve())],
+                ["sudo", "copy", "/Y", str(source.resolve()), str(target.resolve())],
                 check=True,
             )
             return True

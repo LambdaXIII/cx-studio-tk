@@ -11,6 +11,7 @@ priority = -1
 [[url_content]]
 # 从网络直接获取内容，如 github hosts
 # url = 'https://raw.githubusercontent.com/racaljk/hosts/master/hosts'
+# url = 'https://raw.githubusercontent.com/pboymt/Steam520/main/hosts'
 # description = '从 github hosts 获取内容'
 # encoding = 'utf-8'
 
