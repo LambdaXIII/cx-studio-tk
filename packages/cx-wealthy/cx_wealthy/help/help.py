@@ -13,10 +13,10 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
-from ..theme import BASE_STYLES, HELP_STYLES
 from ..document.document import WealthyDocument
 from ..document.note import Note
 from .action import Action
+from .action_group import ActionGroup
 
 __all__ = ["WealthyHelp"]
 
@@ -26,9 +26,10 @@ class WealthyHelp(WealthyDocument):
 
     继承 :class:`WealthyDocument` 的通用文档能力，增加 ``add_action()``、
     ``render_usage()``、``render_details()``、``render_epilog()``。
-    """
 
-    DEFAULT_STYLES: dict[str, str] = {**BASE_STYLES, **HELP_STYLES}
+    主题透明：组件内 ``style="cx.help.*"`` 等样式名是约定，由调用方
+    通过 ``Console(theme=...)`` 决定是否应用 :data:`cx_wealthy.default_theme`。
+    """
 
     def __init__(
         self,
@@ -36,18 +37,28 @@ class WealthyHelp(WealthyDocument):
         prog: str | None = None,
         description: RenderableType | None = None,
         epilog: RenderableType | None = None,
-        styles: dict[str, str] | None = None,
     ) -> None:
         """
         Args:
             prog: 程序名；None 时在 render 阶段延迟取 ``sys.argv[0]``。
             description: 文档描述。
             epilog: 尾部内容。
-            styles: 样式覆盖（合并到默认样式的拷贝，不污染类属性）。
         """
-        super().__init__(
-            prog=prog, description=description, epilog=epilog, styles=styles
-        )
+        super().__init__(prog=prog, description=description, epilog=epilog)
+
+    @override
+    def add_group(
+        self,
+        name: str | None = None,
+        description: str | None = None,
+    ) -> ActionGroup:
+        """添加子 Group，返回 :class:`ActionGroup` 以支持 ``add_action``。
+
+        覆盖 :meth:`WealthyDocument.add_group`：在帮助场景下，子 Group 通常
+        用于分组 :class:`Action`，故返回 :class:`ActionGroup` 提供便利方法。
+        若需纯通用 :class:`Group`，可显式使用 ``Group(...)`` 构造。
+        """
+        return ActionGroup(name=name, description=description, parent=self.root)
 
     def add_action(
         self,

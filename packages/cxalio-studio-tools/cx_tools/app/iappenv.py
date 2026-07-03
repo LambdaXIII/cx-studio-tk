@@ -6,24 +6,9 @@ from rich.console import Console
 from rich.highlighter import RegexHighlighter
 
 from cx_tools.i18n import _
-import cx_wealth.rich_types as r
+from cx_wealthy import default_theme as cx_default_theme
 from cx_studio import system
 from cx_studio.tui import DoubleTrigger
-
-DEFAULT_STYLES = {
-    "cx.info": "blue",
-    "cx.debug": "bright_black",
-    "cx.warning": "yellow",
-    "cx.error": "red",
-    "cx.argument": "bold green1",
-    "cx.success": "green1",
-    "cx.whisper": "dim",
-    "cx.number": "yellow",
-    "cx.brackets": "magenta",
-    "cx.quotes": "light_pink1",
-    "cx.filepath": "bold cyan underline",
-}
-cx_default_theme = r.Theme(DEFAULT_STYLES)
 
 
 class CxHighlighter(RegexHighlighter):

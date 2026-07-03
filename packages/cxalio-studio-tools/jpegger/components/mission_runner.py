@@ -15,8 +15,8 @@ from PIL import Image
 from cx_studio.filesystem import ensure_new_file
 from cx_tools.app import SafeError
 from cx_tools.i18n import _
-from cx_wealth import WealthLabel
-from cx_wealth import rich_types as r
+from cx_wealthy import RichLabel
+from cx_wealthy import rich_types as r
 
 from ..appenv import appenv
 from .errors import NoSourceFileError, TargetingSourceFileError
@@ -116,7 +116,7 @@ class MissionRunner:
             appenv.say(e)
             result_tag = "[red]UNKNOWN ERROR[/]"
         finally:
-            appenv.say(r.Columns([WealthLabel(mission), result_tag], expand=True))
+            appenv.say(r.Columns([RichLabel(mission), result_tag], expand=True))
 
     def run(self) -> None:
         """启动线程池并等待所有任务完成。"""

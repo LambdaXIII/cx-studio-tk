@@ -13,8 +13,8 @@ from typing import Any
 from cx_studio import text as tt
 from cx_studio.i18n import load_localized_text
 from cx_tools.i18n import _
-from cx_wealth import WealthHelp
-from cx_wealth import rich_types as r
+from cx_wealthy import WealthyHelp
+from cx_wealthy import rich_types as r
 
 
 class SimpleAppContext:
@@ -172,7 +172,7 @@ class SimpleAppContext:
             yield _("输入文件"), self.inputs
 
 
-class SimpleHelp(WealthHelp):
+class SimpleHelp(WealthyHelp):
     """Jpegger 的中文帮助文档。"""
 
     description: str

@@ -1,5 +1,15 @@
 # Change Log of Cxalio Studio Tools
 
+### v0.8.2
+
+- Jpegger 迭代至 0.8.2
+- 将 Jpegger 的 Rich UI 依赖从 `cx-wealth` 迁移至 `cx-wealthy`（其余 4 个工具仍在 cx-wealth 上，渐进迁移）
+- 在 `cxalio-studio-tools` 的 `dependencies` 中新增 `cx-wealthy`，保留 `cx-wealth`
+- 在 `IAppEnvironment` 中合并 `cx_wealthy.default_theme`，使应用框架层支持 cx_wealthy 组件渲染
+- 修复迁移过程中发现的 cx_wealthy 阻塞性问题（详见 spec 同目录 `audit.md`）：
+  - `Group` 类新增 `add_action` 便利方法（延迟导入保持分层）
+  - `Action._validate_flags` 放宽校验，支持位置参数名与含连字符的 flag（如 `--force-overwrite`）
+
 ### v0.8.1
 
 - Jpegger 迭代至 0.8.1

@@ -25,7 +25,7 @@ class AppEnv(IAppEnvironment):
     def __init__(self):
         super().__init__()
         self.app_name = "Jpegger"
-        self.app_version = "0.8.1"
+        self.app_version = "0.8.2"
         self.context: SimpleAppContext | None = None
 
     @override

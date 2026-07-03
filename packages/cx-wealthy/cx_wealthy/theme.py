@@ -2,17 +2,26 @@
 
 供 cxalio-studio-tools 使用，定义 cx.* 命名空间的样式。
 纯数据，不引入依赖。
+
+设计意图：cx_wealthy 提供一套 cx 主题作为 tools 的统一预设，
+但主体功能仍是 Rich 原生能力——第三方使用方可选择是否应用 ``default_theme``。
 """
 
 from rich.theme import Theme
 
 BASE_STYLES: dict[str, str] = {
-    "cx.success": "bold green",
-    "cx.error": "bold red",
-    "cx.warning": "bold yellow",
-    "cx.info": "cyan",
+    # 基础接口样式（原 iappenv.py DEFAULT_STYLES，统一来源避免接口分裂）
+    "cx.info": "blue",
+    "cx.debug": "bright_black",
+    "cx.warning": "yellow",
+    "cx.error": "red",
+    "cx.argument": "bold green1",
+    "cx.success": "green1",
     "cx.whisper": "dim",
-    "cx.number": "cyan",
+    "cx.number": "yellow",
+    "cx.brackets": "magenta",
+    "cx.quotes": "light_pink1",
+    "cx.filepath": "bold cyan underline",
 }
 
 CX_STYLES: dict[str, str] = BASE_STYLES

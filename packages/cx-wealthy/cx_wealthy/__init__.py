@@ -1,11 +1,11 @@
 """cx-wealthy: Rich 终端结构化文档与 UI 组件库。"""
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 from .columns import MaxColumnsLayout
 from .detail import RichDetailMixin, WealthDetailPanel, WealthDetailTable
 from .document import Group, Node, Note, WealthyDocument
-from .help import Action, WealthyHelp
+from .help import Action, ActionGroup, WealthyHelp
 from .indexed_list import IndexedListPanel
 from .label import RichLabel, RichLabelMixin
 from .theme import (
@@ -34,6 +34,7 @@ __all__ = [
     "WealthyDocument",
     # 帮助特化
     "Action",
+    "ActionGroup",
     "WealthyHelp",
     # 组件
     "IndexedListPanel",

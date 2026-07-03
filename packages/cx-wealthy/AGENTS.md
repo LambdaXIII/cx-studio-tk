@@ -119,9 +119,14 @@ Protocol-only 不可取：Protocol 不允许带方法体，"协议即渲染"无�
 
 内部辅助方法用单下划线前缀（如 `_render_label`、`_check_value`），不用双下划线。双下划线触发 name mangling，子类无法 override。
 
-### 类常量拷贝
+### 主题透明性
 
-`DEFAULT_STYLES` 等类常量在 `__init__` 中通过 `{**cls.DEFAULT_STYLES, **(overrides or {})}` 拷贝到实例，绝不直接引用类属性——避免实例间共享污染。
+组件不持有主题——`WealthyDocument` / `WealthyHelp` 均无 `styles` / `theme` / `DEFAULT_STYLES` 属性。组件内 `style="cx.*"` 等样式名是**约定**，由调用方通过 `Console(theme=...)` 决定是否应用 `default_theme`。
+
+- **cxalio tools**：在 `IAppEnvironment` 中 `Console(theme=cx_default_theme)` 应用 cx 主题
+- **第三方使用方**：不设主题时组件仍可渲染（`cx.*` 样式无效则降级为无样式），保持透明兼容
+
+`default_theme` 与 `BASE_STYLES` / `HELP_STYLES` / `DETAIL_STYLES` / `INDEXED_LIST_STYLES` 等常量在 `theme.py` 定义并对外导出，供调用方按需引用或覆盖。
 
 ### `prog` 延迟求值
 

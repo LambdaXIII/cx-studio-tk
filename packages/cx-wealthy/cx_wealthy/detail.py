@@ -92,7 +92,9 @@ class WealthDetailTable:
             rendered = self._check_value(value)
             if rendered is None:
                 continue
-            table.add_row(Text(str(key)), rendered)
+            # 与 value 渲染路径一致：用 from_markup 解析 key 中的 markup，
+            # 与 console.print(str) 的默认行为对齐。
+            table.add_row(Text.from_markup(str(key)), rendered)
         if table.row_count == 0:
             return Text("(empty)", style="cx.detail.empty")
         return table
@@ -130,7 +132,10 @@ class WealthDetailTable:
         if value is None:
             return Text("None", style="cx.detail.none")
         if isinstance(value, (str, bytes)):
-            return Text(str(value))
+            # 用 from_markup 解析 str value 中的 markup 标记，
+            # 与 console.print(str) 的默认行为对齐。
+            # 无效样式名不会抛异常，仅在渲染时忽略该样式。
+            return Text.from_markup(str(value))
         if hasattr(value, "__rich_detail__") or hasattr(value, "__rich_repr__"):
             if self._sub_box and not disable_sub_box:
                 return WealthDetailPanel(

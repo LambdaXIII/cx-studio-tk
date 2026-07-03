@@ -10,7 +10,7 @@ from typing import override
 
 from cx_tools.app import IApplication
 from cx_tools.i18n import _
-from cx_wealth import IndexedListPanel, WealthDetailPanel, WealthLabel
+from cx_wealthy import IndexedListPanel, WealthDetailPanel, RichLabel
 
 from .appenv import appenv
 from .components.mission_runner import MissionRunner
@@ -72,7 +72,7 @@ class JpeggerApp(IApplication):
         missions = builder.make_missions(appenv.context.inputs)
 
         appenv.whisper(
-            IndexedListPanel([WealthLabel(x) for x in missions], title="任务列表")
+            IndexedListPanel([RichLabel(x) for x in missions], title="任务列表")
         )
 
         runner = MissionRunner(missions)

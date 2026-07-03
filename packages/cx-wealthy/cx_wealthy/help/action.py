@@ -52,16 +52,29 @@ class Action(Node):
     def _validate_flags(self) -> None:
         r"""校验每个 flag 格式。
 
-        非空 flag 必须以 ``prefix_chars`` 中的字符开头，并且整体符合
-        ``^[prefix_chars]+\w+``；拦截 ``--jobs--max-workers``、``foo bar`` 等错误。
+        允许两类 flag：
+
+        - **选项**：以 ``prefix_chars`` 中的字符开头，主体以 word 字符
+          开头并允许 word 字符与连字符（如 ``-h``、``--help``、
+          ``--force-overwrite``）
+        - **位置参数名**：不以 ``prefix_chars`` 开头，整体符合
+          ``^\w[\w-]*$``（如 ``inputs``、``path``）
+
+        拦截 ``foo bar``（含空格）、``--123``（数字开头）等错误。
+        与 :meth:`is_positional` 的设计对齐——不以 ``prefix_chars``
+        开头的 flag 被视为位置参数名而非错误。
         """
         escaped = re.escape(self.prefix_chars)
-        pattern = re.compile(rf"^[{escaped}]+\w+$")
+        option_pat = re.compile(rf"^[{escaped}]+\w[\w-]*$")
+        positional_pat = re.compile(r"^\w[\w-]*$")
         for flag in self.flags:
             if not flag:
                 continue
-            if flag[0] not in self.prefix_chars or not pattern.match(flag):
-                raise ValueError(f"Invalid flag: {flag!r}")
+            if flag[0] in self.prefix_chars:
+                if not option_pat.match(flag):
+                    raise ValueError(f"Invalid option flag: {flag!r}")
+            elif not positional_pat.match(flag):
+                raise ValueError(f"Invalid positional name: {flag!r}")
 
     def is_positional(self) -> bool:
         """是否为位置参数。
