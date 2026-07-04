@@ -48,7 +48,7 @@ class HostsBuilder:
             # 统计 contenter 数量以决定进度模式（与 Profile.async_iter_records 的收集逻辑一致）
             contenter_count = profile.count_contenters()
             task_id = appenv.progress.add_task(
-                profile.id,
+                profile.name,
                 total=contenter_count if contenter_count > 1 else None,
             )
             result = []
@@ -69,25 +69,28 @@ class HostsBuilder:
                         )
 
                 async for line in profile.async_iter_lines(
-                    on_contenter_status=on_contenter_status
+                    on_contenter_status=on_contenter_status,
+                    pretend_delay=4.0 if appenv.context.pretending_mode else None,
                 ):
                     result.append(line)
                 # 完成
                 if contenter_count > 1:
                     appenv.progress.update(
                         task_id,
-                        description=f"[cx.success]{profile.id} ✓[/]",
+                        description=f"[cx.success]{profile.name} ✓[/]",
                         completed=contenter_count,
                     )
                 else:
                     appenv.progress.update(
                         task_id,
-                        description=f"[cx.success]{profile.id} ✓[/]",
+                        description=f"[cx.success]{profile.name} ✓[/]",
+                        total=1,
+                        completed=1,
                     )
             except Exception as e:
                 appenv.progress.update(
                     task_id,
-                    description=f"[cx.error]{profile.id} ✗ {e}[/]",
+                    description=f"[cx.error]{profile.name} ✗ {e}[/]",
                 )
                 raise
             finally:

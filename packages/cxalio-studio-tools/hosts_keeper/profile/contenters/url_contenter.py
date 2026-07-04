@@ -36,11 +36,12 @@ class UrlContenter(AbstractContenter):
         if self.url is None:
             return ""
 
+        url = self.url  # url 在 _fetch 闭包中类型收窄
         loop = asyncio.get_running_loop()
-        self.status_text = _("正在下载 {url}").format(url=self.url)
+        self.status_text = _("正在下载 {url}").format(url=url)
 
         def _fetch() -> str:
-            with urllib.request.urlopen(self.url, timeout=10) as response:
+            with urllib.request.urlopen(url, timeout=10) as response:
                 content_bytes = response.read()
                 content_type = response.headers.get_content_charset()
                 if content_type:

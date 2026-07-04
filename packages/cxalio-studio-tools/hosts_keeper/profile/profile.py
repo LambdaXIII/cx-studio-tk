@@ -1,4 +1,5 @@
 from collections.abc import Callable
+import asyncio
 import importlib.resources
 import tomllib
 from dataclasses import dataclass, field
@@ -97,6 +98,7 @@ class Profile:
         on_contenter_status: (
             Callable[[AbstractContenter, int, int], None] | None
         ) = None,
+        pretend_delay: float | None = None,
     ) -> AsyncGenerator[HostRecord, None]:
         """迭代记录。
 
@@ -104,6 +106,8 @@ class Profile:
             on_contenter_status: 可选回调，每个 contenter 开始处理前调用。
                 参数为 (contenter, current_index, total_count)。
                 回调可读取 contenter.status_text 获取动态状态文本。
+            pretend_delay: 假装模式下每个 contenter 处理前的固定模拟延迟（秒）。
+                None 表示不延迟。
         """
         self.metadata.path = str(self.path)  # type: ignore[attr-defined]  # Box 动态属性注入
 
@@ -122,7 +126,9 @@ class Profile:
         for index, contenter in enumerate(contenters):
             if on_contenter_status is not None:
                 on_contenter_status(contenter, index + 1, len(contenters))
-            async for record in contenter.iter_records():
+            if pretend_delay is not None:
+                await asyncio.sleep(pretend_delay)
+            async for record in contenter.iter_records():  # type: ignore[arg-type]  # pyright 对抽象 async generator 的类型推断限制
                 yield record
 
     async def async_iter_lines(
@@ -131,13 +137,15 @@ class Profile:
         on_contenter_status: (
             Callable[[AbstractContenter, int, int], None] | None
         ) = None,
+        pretend_delay: float | None = None,
     ) -> AsyncGenerator[str, None]:
         """迭代行"""
         if include_markers:
             yield ""
             yield self.profile_start_marker
         async for record in self.async_iter_records(
-            on_contenter_status=on_contenter_status
+            on_contenter_status=on_contenter_status,
+            pretend_delay=pretend_delay,
         ):
             yield str(record)
         if include_markers:
