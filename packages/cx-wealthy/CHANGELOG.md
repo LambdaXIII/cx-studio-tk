@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.2
+
+修正 0.1.1 引入的问题：
+
+- **detail str 语义**：`_check_value` 和 `_make_table_from_rows` 不再用 `Text.from_markup` 解析 `str` 类型 key/value。`str` = 数据（逐字显示），`Text` = 富文本（保留样式）。避免用户数据中匹配 Rich 样式名的 `[...]` 被当作样式标签消费。
+- **移除私有 API**：`WealthyDocument.__rich_console__` 不再访问 `console._theme_stack`（Rich 私有属性），不再做主题兜底补全。组件完全主题透明——调用方通过 `Console(theme=default_theme)` 提供样式。
+- **BASE_STYLES 值恢复**：`cx.info`/`cx.success`/`cx.error`/`cx.warning`/`cx.number` 恢复为 0.1.0 的设计值（bold 变体、cyan 色调），不再从 iappenv 复制。
+
 ## 0.1.1
 
 基于 jpegger 迁移审计反馈的修正：

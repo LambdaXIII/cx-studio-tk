@@ -1,6 +1,6 @@
 """cx-wealthy: Rich 终端结构化文档与 UI 组件库。"""
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 
 from .columns import MaxColumnsLayout
 from .detail import RichDetailMixin, WealthDetailPanel, WealthDetailTable

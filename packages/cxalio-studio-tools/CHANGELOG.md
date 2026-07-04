@@ -1,5 +1,10 @@
 # Change Log of Cxalio Studio Tools
 
+### v0.8.3
+
+- Jpegger 迭代至 0.8.3
+- 配合 cx-wealthy 0.1.2 的 `__rich_detail__` str/Text 语义变更：`ImageFilterChain.__rich_detail__` 的 key 改为 yield `Text.from_markup(...)` 对象，保持彩色标签显示
+
 ### v0.8.2
 
 - Jpegger 迭代至 0.8.2

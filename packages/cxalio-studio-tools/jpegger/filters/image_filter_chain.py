@@ -5,6 +5,7 @@
 """
 
 from collections.abc import Generator, Sequence
+from cx_wealthy import rich_types as r
 from typing import override
 
 from PIL.Image import Image
@@ -61,10 +62,12 @@ class ImageFilterChain(IImageFilter):
         yield from super().__rich_label__()
         yield f"[blue]({len(self.filters)}Filters)[/]"
 
-    def __rich_detail__(self) -> Generator[tuple[str, str], None, None]:
+    def __rich_detail__(self) -> Generator[tuple[r.Text, str], None, None]:
         """为详情面板列出每一步过滤器及其描述。"""
         for i, f in enumerate(self.filters):
-            yield f"[cyan]#{i} {f.filter_name()}[/]", f.__filter_description__()
+            yield r.Text.from_markup(
+                f"[cyan]#{i} {f.filter_name()}[/]"
+            ), f.__filter_description__()
 
     @override
     def __filter_description__(self) -> str:

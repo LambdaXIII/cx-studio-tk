@@ -64,6 +64,8 @@ When inheritance is not an option, use wrappers `RichLabel(obj)` / `WealthDetail
 | `(value,)` | Value only, empty key column |
 | `(key, *values)` | Value as list |
 
+**Strings and markup**: `str` keys/values are displayed literally (no markup parsing); for markup formatting, yield `Text.from_markup(...)`.
+
 `__rich_detail__` differs from Rich's native `__rich_repr__`: the latter is a debug repr (raw values + Pretty rendering), while the former is a presentation view (values can be pre-formatted, supports recursive sub-panel nesting, lists auto-rendered as `IndexedListPanel`).
 
 ### Declarative Document Construction

@@ -6,9 +6,7 @@ from collections.abc import Generator
 import sys
 
 from rich.console import Console, ConsoleOptions, RenderableType
-from rich.theme import Theme
 
-from ..theme import default_theme
 from .group import Group
 from .note import Note
 
@@ -23,18 +21,9 @@ class WealthyDocument:
 
     主题透明性
     ----------
-    组件不持有主题，``style="cx.*"`` 等样式名是**约定**，由调用方通过
-    ``Console(theme=...)`` 决定是否应用 :data:`cx_wealthy.default_theme`。
-
-    渲染时**兜底补全**调用方未定义的 ``cx.*`` 样式——不覆盖调用方已有
-    定义，仅在缺失时用 :data:`default_theme` 填充。这保证：
-
-    - **cxalio tools**：``IAppEnvironment`` 设了 ``default_theme`` → 全部
-      ``cx.*`` 已存在 → 不补全 → 用调用方定义
-    - **第三方不设主题**：全部 ``cx.*`` 缺失 → 补全基础样式 → 组件可用
-    - **第三方设自己的主题**：调用方定义优先，仅补全缺失项
-
-    主体功能仍是 Rich 原生能力，组件对调用方主题透明兼容。
+    组件不持有主题，也不在渲染时导入或补全任何主题。``style="cx.*"``
+    等样式名是**约定**，由调用方通过 ``Console(theme=...)`` 决定样式值。
+    不设主题时 ``cx.*`` 样式静默不生效（Rich 默认行为），内容仍完整可读。
     """
 
     def __init__(
@@ -88,19 +77,5 @@ class WealthyDocument:
     def __rich_console__(
         self, console: Console, options: ConsoleOptions
     ) -> Generator[RenderableType, None, None]:
-        """标准 Rich 渲染钩子。
-
-        透明兼容：补全调用方未定义的 ``cx.*`` 样式，不覆盖已有定义。
-        """
-        # ThemeStack.get 返回 None 表示样式未定义
-        ts = console._theme_stack
-        missing = {
-            name: value
-            for name, value in default_theme.styles.items()
-            if ts.get(name) is None
-        }
-        if missing:
-            with console.use_theme(Theme(missing)):
-                yield from self.render()
-        else:
-            yield from self.render()
+        """标准 Rich 渲染钩子。"""
+        yield from self.render()

@@ -10,15 +10,15 @@
 from rich.theme import Theme
 
 BASE_STYLES: dict[str, str] = {
-    # 基础接口样式（原 iappenv.py DEFAULT_STYLES，统一来源避免接口分裂）
-    "cx.info": "blue",
+    # cx 系列基础接口样式（info/debug/warning/error 等公共约定）
+    "cx.info": "cyan",
     "cx.debug": "bright_black",
-    "cx.warning": "yellow",
-    "cx.error": "red",
+    "cx.warning": "bold yellow",
+    "cx.error": "bold red",
     "cx.argument": "bold green1",
-    "cx.success": "green1",
+    "cx.success": "bold green",
     "cx.whisper": "dim",
-    "cx.number": "yellow",
+    "cx.number": "cyan",
     "cx.brackets": "magenta",
     "cx.quotes": "light_pink1",
     "cx.filepath": "bold cyan underline",

@@ -64,6 +64,8 @@ console.print(WealthDetailPanel(Mission("encode", "input.mp4")))
 | `(value,)` | 仅显示值，key 列为空 |
 | `(key, *values)` | value 为列表 |
 
+**字符串与 markup**：`str` 类型的 key/value 逐字显示（不解析 markup）；需要 markup 格式时 yield `Text.from_markup(...)`。
+
 `__rich_detail__` 与 Rich 原生 `__rich_repr__` 语义不同：后者是 debug repr（raw 值 + Pretty 渲染），前者是展示视角（value 可预格式化、支持递归嵌套 sub-panel、列表自动渲染为 `IndexedListPanel`）。
 
 ### 声明式文档构建

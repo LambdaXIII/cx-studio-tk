@@ -67,6 +67,14 @@ Protocol-only 不可取：Protocol 不允许带方法体，"协议即渲染"无�
 - value 若实现同协议则自动嵌套渲染为 sub-panel；value 为列表自动渲染为 `IndexedListPanel`
 - `RichDetailMixin` 提供默认 `__rich__`（包装为 `WealthDetailPanel`），`WealthDetailPanel`/`WealthDetailTable` 是包装器
 
+**key/value 的字符串语义**：
+
+- `str` 类型的 key/value → 逐字显示，不解析 markup（数据安全）
+- `Text` 类型的 key/value → 保留已有样式（用于需要 markup 的展示标签）
+- 需要 markup 格式的 key/value，yield `Text.from_markup(...)` 而非裸字符串
+
+这与 `__rich_label__` 的默认行为不同——label 的片段是展示字符串（`_fragment_to_text` 默认解析 markup），detail 的 value 是领域数据（默认逐字显示）。
+
 ### `__rich_detail__` ≠ `__rich_repr__`
 
 两者不互相替代，语义不同：
@@ -121,12 +129,14 @@ Protocol-only 不可取：Protocol 不允许带方法体，"协议即渲染"无�
 
 ### 主题透明性
 
-组件不持有主题——`WealthyDocument` / `WealthyHelp` 均无 `styles` / `theme` / `DEFAULT_STYLES` 属性。组件内 `style="cx.*"` 等样式名是**约定**，由调用方通过 `Console(theme=...)` 决定是否应用 `default_theme`。
+组件不持有主题——`WealthyDocument` / `WealthyHelp` 均无 `styles` / `theme` / `DEFAULT_STYLES` 属性，也不在渲染时导入或补全任何主题。组件内 `style="cx.*"` 等样式名是**约定**，由调用方通过 `Console(theme=...)` 决定样式值。
 
 - **cxalio tools**：在 `IAppEnvironment` 中 `Console(theme=cx_default_theme)` 应用 cx 主题
-- **第三方使用方**：不设主题时组件仍可渲染（`cx.*` 样式无效则降级为无样式），保持透明兼容
+- **第三方使用方**：不设主题时 `cx.*` 样式静默不生效（Rich 默认行为），内容仍完整可读；需样式时导入 `default_theme` 设为 Console 主题
 
 `default_theme` 与 `BASE_STYLES` / `HELP_STYLES` / `DETAIL_STYLES` / `INDEXED_LIST_STYLES` 等常量在 `theme.py` 定义并对外导出，供调用方按需引用或覆盖。
+
+组件**不使用** Rich 私有 API（如 `console._theme_stack`）。曾考虑在 `__rich_console__` 中检测缺失样式并兜底补全，但因依赖私有 API 被否决——没有公开 API 能实现"选择性补全缺失样式但不覆盖用户定义"，而无条件的 `console.use_theme(default_theme)` 会覆盖调用方自定义的 `cx.*` 样式，违反透明性。
 
 ### `prog` 延迟求值
 

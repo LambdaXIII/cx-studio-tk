@@ -83,7 +83,7 @@ class WealthDetailTable:
             return IndexedListPanel(item, max_lines=self._list_max_lines)
         return Pretty(item)
 
-    def _make_table_from_rows(self, rows: Iterable[tuple[str, Any]]) -> RenderableType:
+    def _make_table_from_rows(self, rows: Iterable[tuple[Any, Any]]) -> RenderableType:
         """将 (key, value) 行序列组装为 Table。"""
         table = Table(show_header=False, box=None)
         table.add_column("Key", style="cx.detail.key", ratio=1)
@@ -92,16 +92,21 @@ class WealthDetailTable:
             rendered = self._check_value(value)
             if rendered is None:
                 continue
-            # 与 value 渲染路径一致：用 from_markup 解析 key 中的 markup，
-            # 与 console.print(str) 的默认行为对齐。
-            table.add_row(Text.from_markup(str(key)), rendered)
+            # str → 逐字显示（数据安全）；Text → 保留已有样式；其他 → 兜底转文本
+            if isinstance(key, str):
+                key_text = Text(str(key))
+            elif isinstance(key, Text):
+                key_text = key
+            else:
+                key_text = Text(str(key))
+            table.add_row(key_text, rendered)
         if table.row_count == 0:
             return Text("(empty)", style="cx.detail.empty")
         return table
 
     def _iter_tuples(
         self, generator: Generator[tuple[Any, ...], None, None]
-    ) -> Generator[tuple[str, Any], None, None]:
+    ) -> Generator[tuple[Any, Any], None, None]:
         """解析 __rich_detail__ / __rich_repr__ 产生的元组。"""
         for entry in generator:
             if not isinstance(entry, tuple):
@@ -109,14 +114,14 @@ class WealthDetailTable:
             if len(entry) == 1:
                 yield "", entry[0]
             elif len(entry) == 2:
-                yield str(entry[0]), entry[1]
+                yield entry[0], entry[1]
             elif len(entry) == 3:
                 key, value, default = entry
                 if value == default:
                     continue
-                yield str(key), value
+                yield key, value
             else:
-                yield str(entry[0]), list(entry[1:])
+                yield entry[0], list(entry[1:])
 
     def _check_value(
         self,
@@ -132,10 +137,9 @@ class WealthDetailTable:
         if value is None:
             return Text("None", style="cx.detail.none")
         if isinstance(value, (str, bytes)):
-            # 用 from_markup 解析 str value 中的 markup 标记，
-            # 与 console.print(str) 的默认行为对齐。
-            # 无效样式名不会抛异常，仅在渲染时忽略该样式。
-            return Text.from_markup(str(value))
+            # str/bytes 是数据，逐字显示，不解析 markup。
+            # 需要 markup 格式的 value 应直接 yield Text 对象。
+            return Text(str(value))
         if hasattr(value, "__rich_detail__") or hasattr(value, "__rich_repr__"):
             if self._sub_box and not disable_sub_box:
                 return WealthDetailPanel(
