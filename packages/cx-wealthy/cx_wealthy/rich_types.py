@@ -18,6 +18,16 @@ from rich.table import Column, Table
 from rich.text import Text
 from rich.theme import Theme
 
+from rich.progress import (
+    Progress,
+    TaskID,
+    SpinnerColumn,
+    TextColumn,
+    BarColumn,
+    TaskProgressColumn,
+    TimeRemainingColumn,
+)
+
 __all__ = [
     "Console",
     "Group",
@@ -36,4 +46,11 @@ __all__ = [
     "Measurement",
     "Segment",
     "protocol",
+    "Progress",
+    "TaskID",
+    "SpinnerColumn",
+    "TextColumn",
+    "BarColumn",
+    "TaskProgressColumn",
+    "TimeRemainingColumn",
 ]

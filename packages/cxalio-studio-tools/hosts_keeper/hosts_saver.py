@@ -305,6 +305,8 @@ class HostsSaver:
         elif isinstance(source_hosts, Path):
             self.source_hosts = source_hosts
         else:
+            # source_hosts 是 Iterable[str]，写入临时文件
+            self.source_hosts = appenv.temp_hosts
             # 写入用 utf-8（不产生 BOM），系统 DNS 解析器不期望 BOM
             with self.source_hosts.open("w", encoding="utf-8") as f:
                 f.writelines(source_hosts)

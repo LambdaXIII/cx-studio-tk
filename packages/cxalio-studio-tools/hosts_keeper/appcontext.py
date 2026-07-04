@@ -15,7 +15,7 @@ class AppContext:
         self.save_target: str | None = None
 
         self.show_full_help: bool = False
-        self.show_help = False
+        self.show_help: bool = False
 
         self.debug_mode: bool = False
         self.skip_flush: bool = False

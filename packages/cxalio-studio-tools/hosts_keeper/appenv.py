@@ -9,7 +9,7 @@ from tempfile import TemporaryDirectory
 from typing import override
 
 from cx_tools.app import IAppEnvironment, ConfigManager
-from cx_wealth import rich_types as r
+from cx_wealthy import rich_types as r
 from .appcontext import AppContext
 
 
@@ -17,11 +17,25 @@ class AppEnv(IAppEnvironment):
     def __init__(self) -> None:
         super().__init__()
         self.app_name = "HostsKeeper"
-        self.app_version = "0.8.0"
+        self.app_version = "0.8.4"
         self.app_description = _("根据配置文件更新 hosts")
         self.context = AppContext()
 
         self.config_manager = ConfigManager(self.app_name)
+
+        self.progress = r.Progress(
+            r.SpinnerColumn(),
+            r.TextColumn(
+                "[progress.description]{task.description}",
+                table_column=r.Column(ratio=60, no_wrap=True),
+            ),
+            r.BarColumn(table_column=r.Column(ratio=40)),
+            r.TaskProgressColumn(justify="right"),
+            r.TimeRemainingColumn(compact=True),
+            expand=True,
+            console=self.console,
+            transient=False,
+        )
         self._temp_dir: TemporaryDirectory | None = None
 
     @override
@@ -30,15 +44,18 @@ class AppEnv(IAppEnvironment):
         super().start()
         if self._temp_dir is None:
             self._temp_dir = TemporaryDirectory()
-            appenv.whisper(f"临时目录已创建：{self.temp_dir}")
+            appenv.whisper(f"{_('临时目录已创建')}：{self.temp_dir}")
+        self.progress.start()
 
     @override
     def stop(self) -> None:
+        self.progress.refresh()
+        self.progress.stop()
         if self._temp_dir is not None:
             temp_path = Path(self._temp_dir.name)
             self._temp_dir.cleanup()
             self._temp_dir = None
-            appenv.whisper(f"临时目录已删除：{temp_path}")
+            appenv.whisper(f"{_('临时目录已删除')}：{temp_path}")
         super().stop()
 
     @property

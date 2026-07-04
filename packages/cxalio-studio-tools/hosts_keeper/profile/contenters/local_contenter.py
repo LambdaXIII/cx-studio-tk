@@ -1,4 +1,6 @@
 import asyncio
+from cx_tools.i18n import _
+
 from pathlib import Path
 from typing import override, AsyncGenerator
 
@@ -23,6 +25,12 @@ class LocalContenter(AbstractContenter):
         self.file: str = self.package.get("file")
         self.description: str | None = self.package.get("description")
         self.encoding: str = self.package.get("encoding") or "utf-8"
+
+        self.status_text = (
+            _("正在读取 {file}").format(file=self.file)
+            if self.file
+            else _("等待文件配置")
+        )
 
     @property
     def file_path(self) -> Path | None:

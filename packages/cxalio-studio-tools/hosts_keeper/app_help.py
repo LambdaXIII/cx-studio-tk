@@ -3,11 +3,11 @@ from cx_tools.i18n import _
 from cx_studio.i18n import load_localized_text
 
 from cx_studio import text as tt
-from cx_wealth import WealthHelp
-from cx_wealth import rich_types as r
+from cx_wealthy import WealthyHelp
+from cx_wealthy import rich_types as r
 
 
-class AppHelp(WealthHelp):
+class AppHelp(WealthyHelp):
     def __init__(self) -> None:
         super().__init__(prog="hostskeeper")
 

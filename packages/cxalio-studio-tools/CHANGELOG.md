@@ -1,5 +1,19 @@
 # Change Log of Cxalio Studio Tools
 
+### v0.8.4
+
+- HostsKeeper 迭代至 0.8.4
+- **重构并发模型**：移除 contenter 级并发（原 `asyncio.as_completed` 因同步 `urlopen` 阻塞事件循环形同虚设），简化为 profile 级并发（`max_workers` 控制同时处理的 profile 数），profile 内 contenter 顺序处理
+- **解除 URL 阻塞**：`UrlContenter.get_content()` 改为 async，通过 `run_in_executor` 将 `urlopen` 移出事件循环，使多 profile 并行下载真正生效
+- **Progress 实时追踪**：`hostskeeper update` 集成 Rich Progress 面板，单 contenter 用回转 spinner，多 contenter 用进度条，实时显示每个 profile 的处理状态
+- **迁移至 cx_wealthy**：hosts_keeper 的 TUI 依赖从 `cx-wealth` 完整迁移至 `cx-wealthy`（`WealthLabel`→`RichLabel`、`WealthHelp`→`WealthyHelp`），样式通过 `default_theme` 机制注入
+- **cx_wealthy.rich_types 补充**：新增 `Progress`、`TaskID`、`SpinnerColumn`、`TextColumn`、`BarColumn`、`TaskProgressColumn`、`TimeRemainingColumn` 导出
+- **contenter 动态状态文本**：`AbstractContenter` 新增 `status_text` 属性，contenter 在处理过程中自行更新，外部通过回调读取以实时更新 progress description
+- **修复 HostsSaver 先使用后赋值 bug**：`__init__` 中 else 分支（`source_hosts` 为 `Iterable[str]` 时）先写入临时文件再赋值
+- **修复 i18n 遗漏**：`appenv.py` 中 2 处临时目录提示文字、`application.py` 中 `command_list` 表头（ID/Name/Description/Enabled）
+- **修复拼写错误**：`prepare_customed_lines` → `prepare_custom_lines`
+- **修复缺失类型标注**：`AppContext.show_help`
+- **删除死代码**：`application.py` 中未使用的 `url = f"file://{file_path.resolve()}"`
 ### v0.8.3
 
 - Jpegger 迭代至 0.8.3

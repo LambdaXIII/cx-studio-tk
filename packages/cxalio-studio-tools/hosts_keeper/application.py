@@ -9,8 +9,8 @@ from typing import Self, override
 
 from cx_studio.system import system_open
 from cx_tools.app import IApplication
-from cx_wealth import WealthDetailPanel, IndexedListPanel, WealthLabel
-from cx_wealth import rich_types as r
+from cx_wealthy import WealthDetailPanel, IndexedListPanel, RichLabel
+from cx_wealthy import rich_types as r
 from .app_help import AppHelp
 from .appenv import appenv
 from .hosts_builder import HostsBuilder
@@ -31,7 +31,7 @@ class Application(IApplication):
             appenv.say(f"[cx.warning]{_('调试模式已开启。')}[/]")
             appenv.whisper(
                 IndexedListPanel(
-                    [WealthLabel(x) for x in self.profile_manager.profiles.values()],
+                    [RichLabel(x) for x in self.profile_manager.profiles.values()],
                     title=_("已找到配置文件"),
                 )
             )
@@ -52,7 +52,6 @@ class Application(IApplication):
         )
         result = system_open(file_path)
         if not result:
-            url = f"file://{file_path.resolve()}"
             appenv.say(
                 f"[cx.error]{_('打开文件 {name} 失败。').format(name=file_path.name)}[/]"
             )
@@ -89,10 +88,10 @@ class Application(IApplication):
 
     def command_list(self) -> None:
         table = r.Table(
-            r.Column("ID", highlight=False, style="yellow"),
-            r.Column("Name", highlight=False, style="cyan"),
-            r.Column("Description", highlight=False, style="green"),
-            r.Column("Enabled", highlight=False),
+            r.Column(_("ID"), highlight=False, style="yellow"),
+            r.Column(_("Name"), highlight=False, style="cyan"),
+            r.Column(_("Description"), highlight=False, style="green"),
+            r.Column(_("Enabled"), highlight=False),
             box=r.box.HORIZONTALS,
             border_style="dim blue",
             header_style="bold blue",
@@ -156,7 +155,7 @@ class Application(IApplication):
         enabled_profiles = list(self.profile_manager.enabled_profiles)
         appenv.whisper(
             IndexedListPanel(
-                [WealthLabel(x) for x in enabled_profiles], title=_("已启用配置文件")
+                [RichLabel(x) for x in enabled_profiles], title=_("已启用配置文件")
             )
         )
 
