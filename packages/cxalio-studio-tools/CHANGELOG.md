@@ -4,6 +4,7 @@
 
 - Jpegger 迭代至 0.8.3
 - 配合 cx-wealthy 0.1.2 的 `__rich_detail__` str/Text 语义变更：`ImageFilterChain.__rich_detail__` 的 key 改为 yield `Text.from_markup(...)` 对象，保持彩色标签显示
+- 修复 jpegger 输出文件重名时的行为：不再自动下划线重命名，改为跳过并警告
 
 ### v0.8.2
 

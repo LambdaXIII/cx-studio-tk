@@ -12,7 +12,6 @@ from threading import Lock
 
 from PIL import Image
 
-from cx_studio.filesystem import ensure_new_file
 from cx_tools.app import SafeError
 from cx_tools.i18n import _
 from cx_wealthy import RichLabel
@@ -79,7 +78,7 @@ class MissionRunner:
                     _("源文件 {path} 不存在").format(path=mission.source)
                 )
 
-            # 2. 确认目标路径，必要时自动重命名。
+            # 2. 确认目标路径，必要时跳过。
             target = mission.target
             if target.exists():
                 if target == mission.source:
@@ -87,9 +86,9 @@ class MissionRunner:
                         _("目标文件 {path} 与源文件相同").format(path=target)
                     )
                 if not appenv.context.overwrite:
-                    target = ensure_new_file(target)
-                    appenv.whisper(
-                        f"[yellow]{_('目标文件已存在，已自动重命名为{name}。').format(name=target.name)}[/]"
+                    raise SafeError(
+                        _("目标文件 {name} 已存在，跳过。").format(name=target.name),
+                        style="yellow",
                     )
 
             # 3. 确保目标目录存在。

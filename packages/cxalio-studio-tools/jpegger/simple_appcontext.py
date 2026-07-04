@@ -7,7 +7,7 @@
 """
 
 from collections.abc import Generator, Sequence
-from argparse import ArgumentParser
+from argparse import ArgumentParser, ArgumentTypeError
 from typing import Any
 
 from cx_studio import text as tt
@@ -15,6 +15,29 @@ from cx_studio.i18n import load_localized_text
 from cx_tools.i18n import _
 from cx_wealthy import WealthyHelp
 from cx_wealthy import rich_types as r
+
+from .components.format_database import FormatDB
+
+# argparse choices= 与 SimpleHelp 描述共用，防止两处漂移。
+_COLOR_SPACE_CHOICES = ["RGB", "L", "CMYK"]
+
+
+def _validate_format(value: str) -> str:
+    """argparse type 函数：校验 --format 输入是否为 FormatDB 已注册的格式。
+
+    接受格式名（JPEG、jpeg）和扩展名（.jpg、jpg），均不区分大小写——
+    与 FormatDB.search() 的现有行为一致。校验通过后返回原始输入字符串
+    （不规范化），保持 SimpleMissionBuilder 现有扩展名推导行为不变。
+
+    无效输入抛出 ArgumentTypeError，argparse 自动终止并打印错误。
+    """
+    if FormatDB.search(value) is None:
+        raise ArgumentTypeError(
+            _("不支持的格式：{value}。可用格式：{formats}").format(
+                value=value, formats=", ".join(FormatDB.formats())
+            )
+        )
+    return value
 
 
 class SimpleAppContext:
@@ -107,9 +130,18 @@ class SimpleAppContext:
         parser.add_argument("--width", action="store", dest="width", type=int)
         parser.add_argument("--height", action="store", dest="height", type=int)
         parser.add_argument(
-            "--color-space", "-c", choices=["RGB", "L", "CMYK"], dest="color_space"
+            "--color-space",
+            "-c",
+            choices=_COLOR_SPACE_CHOICES,
+            dest="color_space",
         )
-        parser.add_argument("--format", "-f", action="store", dest="target_format")
+        parser.add_argument(
+            "--format",
+            "-f",
+            action="store",
+            dest="target_format",
+            type=_validate_format,
+        )
         parser.add_argument("--quality", "-q", action="store", dest="quality", type=int)
         parser.add_argument("--output", "-o", action="store", dest="output_dir")
         parser.add_argument(
@@ -200,7 +232,9 @@ class SimpleHelp(WealthyHelp):
             "-f",
             "--format",
             metavar="FORMAT",
-            description=_("指定输出格式，默认沿用原始格式"),
+            description=_(
+                "指定输出格式（名称或扩展名，不区分大小写），默认沿用原始格式。可用：{formats}"
+            ).format(formats=", ".join(FormatDB.formats())),
         )
         basic_opts.add_action(
             "-q",
@@ -232,12 +266,20 @@ class SimpleHelp(WealthyHelp):
             metavar="HEIGHT",
             description=_("指定图片的高度，如果未指定宽度则保持原始图像比例"),
         )
+        image_controls.add_action(
+            "-c",
+            "--color-space",
+            metavar="SPACE",
+            description=_("设置目标色彩空间，可用：{choices}").format(
+                choices=", ".join(_COLOR_SPACE_CHOICES)
+            ),
+        )
 
         process_control = self.add_group(_("其它选项"))
         process_control.add_action(
             "--force-overwrite",
             "-y",
-            description=_("强制覆盖已存在的文件，未设置时将会自动重命名目标文件"),
+            description=_("强制覆盖已存在的文件，未设置时将会跳过"),
         )
         process_control.add_action("--debug", description=_("显示调试信息"))
         process_control.add_action("-h", "--help", description=_("显示帮助信息"))

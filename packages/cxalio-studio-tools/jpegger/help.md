@@ -99,7 +99,7 @@ jpegger "图片.png" -q 75
 
 ### `-y|--force-overwrite`
 
-强制覆盖已存在的目标文件。未指定时，jpegger 会自动对重名文件进行重命名。
+强制覆盖已存在的目标文件。
 
 ### `-d|--debug`
 

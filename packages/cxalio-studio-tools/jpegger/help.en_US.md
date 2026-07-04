@@ -99,7 +99,7 @@ Specify the output directory. Defaults to the current working directory.
 
 ### `-y|--force-overwrite`
 
-Force overwriting existing target files. When not set, jpegger will automatically rename files with conflicting names.
+Force overwriting existing target files.
 
 ### `-d|--debug`
 
