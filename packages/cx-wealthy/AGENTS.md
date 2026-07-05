@@ -138,9 +138,6 @@ Protocol-only 不可取：Protocol 不允许带方法体，"协议即渲染"无�
 
 组件**不使用** Rich 私有 API（如 `console._theme_stack`）。曾考虑在 `__rich_console__` 中检测缺失样式并兜底补全，但因依赖私有 API 被否决——没有公开 API 能实现"选择性补全缺失样式但不覆盖用户定义"，而无条件的 `console.use_theme(default_theme)` 会覆盖调用方自定义的 `cx.*` 样式，违反透明性。
 
-### `prog` 延迟求值
-
-`WealthyDocument.prog` 在 `__init__` 时不求值 `sys.argv[0]`，在 `render()` 时才取。避免构造时副作用。
 
 ## 扩展判断原则
 

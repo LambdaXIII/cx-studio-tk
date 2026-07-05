@@ -15,43 +15,39 @@ class AppHelp(WealthyHelp):
         # 直接运行（无子命令）—— 显示帮助
         self.add_group(
             _("直接运行"),
-            description=_("不带任何子命令运行时，显示此帮助信息。"),
+            detail=_("不带任何子命令运行时，显示此帮助信息。"),
         )
 
         # 子命令
         commands = self.add_group(_("子命令"))
 
-        list_cmd = commands.add_command("list", description=_("列出所有配置文件。"))
+        list_cmd = commands.add_command("list", detail=_("列出所有配置文件。"))
         list_cmd.add_action(
             "-s",
             "--search",
             name=_("搜索模式"),
             metavar="SEARCH_PATTERN",
-            description=_(
-                "搜索模式，支持 glob 形式的通配符，智能搜索配置文件的多种信息。"
-            ),
+            detail=_("搜索模式，支持 glob 形式的通配符，智能搜索配置文件的多种信息。"),
         )
 
-        show_cmd = commands.add_command(
-            "show", description=_("显示指定配置文件的内容。")
-        )
+        show_cmd = commands.add_command("show", detail=_("显示指定配置文件的内容。"))
         show_cmd.add_action(
             "PROFILE_ID",
             name=_("配置文件ID"),
             metavar="PROFILE_ID",
-            description=_("配置文件的ID。"),
+            detail=_("配置文件的ID。"),
         )
 
-        edit_cmd = commands.add_command("edit", description=_("编辑指定配置文件。"))
+        edit_cmd = commands.add_command("edit", detail=_("编辑指定配置文件。"))
         edit_cmd.add_action(
             "PROFILE_ID",
             name=_("配置文件ID"),
             metavar="PROFILE_ID",
-            description=_("配置文件的ID。"),
+            detail=_("配置文件的ID。"),
         )
 
         update_cmd = commands.add_command(
-            "update", description=_("按照所有激活的配置文件更新hosts。")
+            "update", detail=_("按照所有激活的配置文件更新hosts。")
         )
         update_cmd.add_action(
             "--target",
@@ -59,37 +55,35 @@ class AppHelp(WealthyHelp):
             "-t",
             name=_("目标文件"),
             metavar="TARGET_HOSTS",
-            description=_("指定目标 hosts 文件，默认值为系统 hosts 文件。"),
+            detail=_("指定目标 hosts 文件，默认值为系统 hosts 文件。"),
         )
         update_cmd.add_action(
             "--skip-flush",
             name=_("跳过刷新"),
-            description=_(
-                "更新 hosts 后跳过 DNS 缓存刷新，仅输出平台对应的手动命令提示。"
-            ),
+            detail=_("更新 hosts 后跳过 DNS 缓存刷新，仅输出平台对应的手动命令提示。"),
         )
 
-        new_cmd = commands.add_command("new", description=_("创建新的配置文件。"))
+        new_cmd = commands.add_command("new", detail=_("创建新的配置文件。"))
         new_cmd.add_action(
             "PROFILE_ID",
             name=_("配置文件ID"),
             metavar="PROFILE_ID",
-            description=_("配置文件的ID。"),
+            detail=_("配置文件的ID。"),
         )
 
         # 杂项（全局选项）—— 移至末尾
         misc_opts = self.add_group(_("杂项"))
-        misc_opts.add_action("-h", "--help", description=_("显示此帮助信息"))
+        misc_opts.add_action("-h", "--help", detail=_("显示此帮助信息"))
         misc_opts.add_action(
-            "--tutorial", "--full-help", description=_("显示完整的教程内容")
+            "--tutorial", "--full-help", detail=_("显示完整的教程内容")
         )
         misc_opts.add_action(
-            "-d", "--debug", description=_("开启调试模式以观察更多的后台信息")
+            "-d", "--debug", detail=_("开启调试模式以观察更多的后台信息")
         )
         misc_opts.add_action(
             "-p",
             "--pretend",
-            description=_("启用[bold blue]模拟运行模式[/]，不会进行任何文件操作。"),
+            detail=_("启用[bold blue]模拟运行模式[/]，不会进行任何文件操作。"),
         )
 
         misc_opts.add_note(

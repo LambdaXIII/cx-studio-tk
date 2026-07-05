@@ -226,13 +226,13 @@ class SimpleHelp(WealthyHelp):
 
         basic_opts = self.add_group(_("基本选项"))
         basic_opts.add_action(
-            "inputs", nargs="*", metavar="FILE", description=_("需要转码的文件")
+            "inputs", nargs="*", metavar="FILE", detail=_("需要转码的文件")
         )
         basic_opts.add_action(
             "-f",
             "--format",
             metavar="FORMAT",
-            description=_(
+            detail=_(
                 "指定输出格式（名称或扩展名，不区分大小写），默认沿用原始格式。可用：{formats}"
             ).format(formats=", ".join(FormatDB.formats())),
         )
@@ -240,37 +240,37 @@ class SimpleHelp(WealthyHelp):
             "-q",
             "--quality",
             metavar="QUALITY",
-            description=_("指定输出质量，默认使用内置的常用质量设置"),
+            detail=_("指定输出质量，默认使用内置的常用质量设置"),
         )
         basic_opts.add_action(
-            "-o", "--output", metavar="DIR", description=_("输出目录，默认为当前目录")
+            "-o", "--output", metavar="DIR", detail=_("输出目录，默认为当前目录")
         )
 
         image_controls = self.add_group(_("图片处理"), _("对图像进行处理"))
         image_controls.add_action(
-            "--scale", metavar="FACTOR", description=_("按比例缩放图片的尺寸")
+            "--scale", metavar="FACTOR", detail=_("按比例缩放图片的尺寸")
         )
         image_controls.add_action(
             "-s",
             "--size",
             metavar="WIDTHxHEIGHT",
-            description=_("指定图片的尺寸，接受包含两个数字的表达式"),
+            detail=_("指定图片的尺寸，接受包含两个数字的表达式"),
         )
         image_controls.add_action(
             "--width",
             metavar="WIDTH",
-            description=_("指定图片的宽度，如果未指定高度则保持原始图像比例"),
+            detail=_("指定图片的宽度，如果未指定高度则保持原始图像比例"),
         )
         image_controls.add_action(
             "--height",
             metavar="HEIGHT",
-            description=_("指定图片的高度，如果未指定宽度则保持原始图像比例"),
+            detail=_("指定图片的高度，如果未指定宽度则保持原始图像比例"),
         )
         image_controls.add_action(
             "-c",
             "--color-space",
             metavar="SPACE",
-            description=_("设置目标色彩空间，可用：{choices}").format(
+            detail=_("设置目标色彩空间，可用：{choices}").format(
                 choices=", ".join(_COLOR_SPACE_CHOICES)
             ),
         )
@@ -279,14 +279,14 @@ class SimpleHelp(WealthyHelp):
         process_control.add_action(
             "--force-overwrite",
             "-y",
-            description=_("强制覆盖已存在的文件，未设置时将会跳过"),
+            detail=_("强制覆盖已存在的文件，未设置时将会跳过"),
         )
-        process_control.add_action("--debug", description=_("显示调试信息"))
-        process_control.add_action("-h", "--help", description=_("显示帮助信息"))
+        process_control.add_action("--debug", detail=_("显示调试信息"))
+        process_control.add_action("-h", "--help", detail=_("显示帮助信息"))
         process_control.add_action(
             "--tutorial",
             "--full-help",
-            description=_("显示完整的教程内容"),
+            detail=_("显示完整的教程内容"),
         )
 
     @staticmethod

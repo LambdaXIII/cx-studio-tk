@@ -5,7 +5,8 @@ from __future__ import annotations
 import re
 from typing import Literal
 
-from rich.console import RenderableType
+from rich.console import Group as RichGroup, RenderableType
+from rich.padding import Padding
 from rich.text import Text
 
 from ..document.node import Node
@@ -16,6 +17,10 @@ __all__ = ["Action"]
 class Action(Node):
     """帮助特化节点：表示一个命令行选项 / 位置参数。
 
+    ``detail`` 即参数说明文本；``detailer`` 默认渲染为
+    ``cx.help.details.description`` 样式；可经 ``**kwargs`` 传入
+    自定义 ``detailer`` 覆盖默认。
+
     继承通用 :class:`Node`，增加 flags、nargs、metavar 等 help 特化概念。
     """
 
@@ -23,7 +28,7 @@ class Action(Node):
         self,
         *flags: str,
         name: str | None = None,
-        description: str | None = None,
+        detail: str | None = None,
         metavar: str | None = None,
         nargs: int | Literal["?", "+", "*", "**"] | None = None,
         optional: bool | None = None,
@@ -34,7 +39,7 @@ class Action(Node):
         Args:
             flags: 选项标志（如 ``-h``、``--help``）；空表示位置参数。
             name: 参数名（用于详情展示）。
-            description: 参数说明。
+            detail: 参数说明。
             metavar: 占位符（如 FILE、DIR）。
             nargs: 参数数量；整数或 ``?``(0或1) / ``+``(1+) / ``*``(0+) / ``**``(可重复)。
             optional: 是否可选；None 时自动推断。
@@ -47,7 +52,13 @@ class Action(Node):
         self.optional = optional
         self.prefix_chars = prefix_chars
         self._validate_flags()
-        super().__init__(name=name, description=description, parent=parent)
+        super().__init__(name=name, detail=detail, parent=parent)
+
+    def _default_detailer(self) -> RenderableType | None:
+        """默认描述渲染：带 cx.help.details.description 样式。"""
+        if self.detail is None:
+            return None
+        return Text(self.detail, style="cx.help.details.description")
 
     def _validate_flags(self) -> None:
         r"""校验每个 flag 格式。
@@ -227,6 +238,11 @@ class Action(Node):
         line.append(flags_text, style="cx.help.usage.option")
         if self.metavar:
             line.append(f"  {self.metavar}", style="cx.help.usage.argument")
-        if self.description:
-            line.append(f"  {self.description}", style="cx.help.details.description")
+        desc = self.description
+        if desc is not None:
+            if isinstance(desc, Text):
+                line.append("  ")
+                line.append_text(desc)
+            else:
+                return RichGroup(line, Padding(desc, pad=(0, 0, 0, 4)))
         return line

@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.3.1
+
+### 展示字段重命名与语义统一
+
+- **`descriptor` → `detailer` 全量重命名**：统一「渲染器」命名（`titler` / `detailer` 对称），覆盖
+  `Node`、`Group`、`Action`、`HelpGroup` 四个类的属性名、方法名（`_default_descriptor` → `_default_detailer`）、
+  kwargs key（`"descriptor"` → `"detailer"`）及所有 docstring 引用。
+- **公共 API 参数 `description=` → `detail=`**：`add_group` / `add_command` / `add_action` 的
+  描述参数从 `description=` 统一改为 `detail=`，与 `Node.detail` 语义字段同名，消除「对外叫 description、
+  内部叫 detail」的双轨命名。
+- **`add_note` 透传支持**：`Group.add_note` / `WealthyDocument.add_note` 增加 `**kwargs`
+  参数，支持透传 `titler` / `detailer`，与 `add_group` 等接口对齐。
+- **Node 类 docstring 重写**：完整说明 `name`/`detail`（语义字段）、`titler`/`detailer`（渲染器）、
+  `title`/`description`（计算属性）六者关系，以及 `title`/`description` 的三条计算路径（显式 None / 非 callable 回退 /
+  callable 替代）。
+
+### 调用方迁移
+
+- **hosts_keeper `app_help.py`**：16 处 `description=` → `detail=`
+- **jpegger `simple_appcontext.py`**：13 处 `description=` → `detail=`（argparse 的 `description=`
+  保留不变）
+
+### 禁止范围
+
+- `media_killer`、`media_scout`、`ffpretty`、`cx_wealth`（旧包）均未触碰，仍使用旧版接口。
 
 ## 0.3.0
 

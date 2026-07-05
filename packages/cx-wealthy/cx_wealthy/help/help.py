@@ -1,6 +1,6 @@
 """帮助系统特化文档：WealthyHelp。"""
 
-from __future__ import annotations
+import sys
 
 from collections.abc import Generator
 from typing import Literal, override
@@ -44,26 +44,34 @@ class WealthyHelp(WealthyDocument):
             description: 文档描述。
             epilog: 尾部内容。
         """
-        super().__init__(prog=prog, description=description, epilog=epilog)
+        super().__init__(description=description, epilog=epilog)
+        self._prog = prog
+
+    @property
+    def prog(self) -> str:
+        """程序名；未显式传入时延迟取 sys.argv[0]。"""
+        if self._prog is None:
+            return sys.argv[0]
+        return self._prog
 
     @override
     def add_group(
         self,
         name: str | None = None,
-        description: str | None = None,
+        detail: str | None = None,
+        **kwargs: object,
     ) -> HelpGroup:
-        """添加子 Group，返回 :class:`HelpGroup` 以支持 add_action / add_command。
+        """添加子 Group，返回 :class:`HelpGroup`。
 
-        覆盖 WealthyDocument.add_group：在帮助场景下，子 Group 分组 Action 或
-        组织子命令区块，故返回 HelpGroup 提供便利方法。
+        ``**kwargs`` 可接收 ``titler`` / ``detailer``，透传给底层。
         """
-        return HelpGroup(name=name, description=description, parent=self.root)
+        return HelpGroup(name=name, detail=detail, parent=self.root, **kwargs)
 
     def add_action(
         self,
         *flags: str,
         name: str | None = None,
-        description: str | None = None,
+        detail: str | None = None,
         metavar: str | None = None,
         nargs: int | Literal["?", "+", "*", "**"] | None = None,
         optional: bool | None = None,
@@ -73,7 +81,7 @@ class WealthyHelp(WealthyDocument):
         return Action(
             *flags,
             name=name,
-            description=description,
+            detail=detail,
             metavar=metavar,
             nargs=nargs,
             optional=optional,
@@ -85,14 +93,16 @@ class WealthyHelp(WealthyDocument):
         self,
         *keywords: str,
         name: str | None = None,
-        description: str | None = None,
+        detail: str | None = None,
+        **kwargs: object,
     ) -> HelpGroup:
         """创建顶层命令 HelpGroup（commands 非空）并添加到 root。
 
-        返回的 HelpGroup 可继续 add_action（专有参数）、add_command（嵌套子命令）。
+        返回的 HelpGroup 可继续 add_action、add_command。
+        ``**kwargs`` 可接收 ``titler`` / ``detailer``。
         """
         return HelpGroup(
-            *keywords, name=name, description=description, parent=self.root
+            *keywords, name=name, detail=detail, parent=self.root, **kwargs
         )
 
     @override
@@ -126,15 +136,15 @@ class WealthyHelp(WealthyDocument):
         for line in usage_lines[1:]:
             table.add_row("", line)
 
-        # 给 Table 加左 padding，与下方 description 的 2 格左 padding 对齐
-        parts: list[RenderableType] = [Padding(table, pad=(0, 0, 0, 2))]
+        # 无额外左 padding——与 render_details 的 Panel 内容对齐一致
+        parts: list[RenderableType] = [table]
 
         if self.description is not None:
             if isinstance(self.description, str):
                 desc_renderable = Text.from_markup(self.description)
             else:
                 desc_renderable = self.description
-            parts.append(Padding(desc_renderable, pad=(1, 0, 0, 2)))
+            parts.append(Padding(desc_renderable, pad=(1, 0, 0, 0)))
 
         content = RichGroup(*parts) if len(parts) > 1 else parts[0]
 
@@ -282,18 +292,14 @@ class WealthyHelp(WealthyDocument):
                 continue
             group_parts: list[RenderableType] = []
 
-            if child.name:
-                title_text = Text(child.name, style="cx.help.group.title")
-                title_text.stylize("bold")
+            if child.title is not None:
+                title_text = child.title
+                if isinstance(title_text, Text):
+                    title_text.stylize("bold")
                 group_parts.append(title_text)
 
-            if child.description:
-                group_parts.append(
-                    Padding(
-                        Text(child.description, style="cx.help.group.description"),
-                        pad=(0, 0, 0, 2),
-                    )
-                )
+            if child.description is not None:
+                group_parts.append(Padding(child.description, pad=(0, 0, 0, 2)))
 
             group_actions: list[Action] = []
             for group_child in child.iter_children():
@@ -363,11 +369,13 @@ class WealthyHelp(WealthyDocument):
                 if j:
                     cmd_label.append(", ")
                 cmd_label.append(kw, style="cx.help.usage.command")
-            if cmd_group.description:
-                cmd_label.append(
-                    f"  {cmd_group.description}",
-                    style="cx.help.details.description",
-                )
+            if cmd_group.description is not None:
+                desc = cmd_group.description
+                if isinstance(desc, Text):
+                    cmd_label.append("  ")
+                    cmd_label.append_text(desc)
+                else:
+                    cmd_parts.append(desc)
             cmd_parts.append(cmd_label)
 
             # 该命令的专有参数（Action）
@@ -389,21 +397,14 @@ class WealthyHelp(WealthyDocument):
             parts.append(RichGroup(*cmd_parts))
         else:
             # 纯容器：标题 + 其下每个命令的详情
-            if cmd_group.name:
-                title_text = Text(cmd_group.name, style="cx.help.group.title")
-                title_text.stylize("bold")
+            if cmd_group.title is not None:
+                title_text = cmd_group.title
+                if isinstance(title_text, Text):
+                    title_text.stylize("bold")
                 parts.append(title_text)
 
-            if cmd_group.description:
-                parts.append(
-                    Padding(
-                        Text(
-                            cmd_group.description,
-                            style="cx.help.group.description",
-                        ),
-                        pad=(0, 0, 0, 2),
-                    )
-                )
+            if cmd_group.description is not None:
+                parts.append(Padding(cmd_group.description, pad=(0, 0, 0, 2)))
 
             # 容器下的每个命令
             for child in cmd_group.iter_children():

@@ -178,7 +178,7 @@ requires-dist = [
 
 [[package]]
 name = "cx-wealthy"
-version = "0.3.0"
+version = "0.3.1"
 source = { editable = "packages/cx-wealthy" }
 dependencies = [
     { name = "rich" },

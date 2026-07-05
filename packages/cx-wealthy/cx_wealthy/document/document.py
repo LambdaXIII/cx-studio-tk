@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Generator
-import sys
+from typing import Any
 
 from rich.console import Console, ConsoleOptions, RenderableType
 
@@ -29,21 +29,12 @@ class WealthyDocument:
     def __init__(
         self,
         *,
-        prog: str | None = None,
         description: RenderableType | None = None,
         epilog: RenderableType | None = None,
     ) -> None:
-        self._prog = prog
         self.description = description
         self.epilog = epilog
         self._root = Group(name="root")
-
-    @property
-    def prog(self) -> str:
-        """程序名；未显式传入时延迟取 sys.argv[0]。"""
-        if self._prog is None:
-            return sys.argv[0]
-        return self._prog
 
     @property
     def root(self) -> Group:
@@ -51,16 +42,28 @@ class WealthyDocument:
         return self._root
 
     def add_group(
-        self, name: str | None = None, description: str | None = None
+        self,
+        name: str | None = None,
+        detail: str | None = None,
+        **kwargs: Any,
     ) -> Group:
-        """代理到 root.add_group。"""
-        return self._root.add_group(name, description)
+        """代理到 root.add_group。
+
+        ``**kwargs`` 可接收 ``titler`` / ``detailer``，透传给底层。
+        """
+        return self._root.add_group(name=name, detail=detail, **kwargs)
 
     def add_note(
-        self, *contents: RenderableType, title: RenderableType | None = None
+        self,
+        *contents: RenderableType,
+        title: RenderableType | None = None,
+        **kwargs: Any,
     ) -> Note:
-        """代理到 root.add_note。"""
-        return self._root.add_note(*contents, title=title)
+        """代理到 root.add_note。
+
+        ``**kwargs`` 可接收 ``titler`` / ``detailer``，透传给 Note。
+        """
+        return self._root.add_note(*contents, title=title, **kwargs)
 
     def render(self) -> Generator[RenderableType, None, None]:
         """yield 文档各部分。"""

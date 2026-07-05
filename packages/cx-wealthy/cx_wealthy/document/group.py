@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator
-from typing import override
+
+from typing import Any, override
 
 from rich.console import Group as RichGroup, RenderableType
 from rich.text import Text
@@ -20,32 +20,48 @@ class Group(Node):
     def add_group(
         self,
         name: str | None = None,
-        description: str | None = None,
+        detail: str | None = None,
+        **kwargs: Any,
     ) -> Group:
-        """添加子 Group。"""
-        return Group(name=name, description=description, parent=self)
+        """添加子 Group。
+        ``**kwargs`` 可接收 ``titler`` / ``detailer``，
+        直接透传给 :class:`Node` 构造器。
+        """
+        return Group(name=name, detail=detail, parent=self, **kwargs)
 
     def add_note(
         self,
         *contents: RenderableType,
         title: RenderableType | None = None,
+        **kwargs: Any,
     ) -> Note:
-        """添加 Note 子节点。"""
-        return Note(*contents, title=title, parent=self)
+        """添加 Note 子节点。
 
-    def iter_nodes(self) -> Iterator[Node]:
-        """迭代直接子节点（同 iter_children）。"""
-        yield from self.iter_children()
+        ``**kwargs`` 可接收 ``titler`` / ``detailer``，透传给 Note。
+        """
+        return Note(*contents, title=title, parent=self, **kwargs)
+
+    @override
+    def _default_titler(self) -> RenderableType | None:
+        if self.name is None:
+            return None
+        return Text(self.name, style="cx.info")
+
+    @override
+    def _default_detailer(self) -> RenderableType | None:
+        if self.detail is None:
+            return None
+        return Text(self.detail, style="cx.whisper")
 
     @override
     def render(self) -> RenderableType:
-        """渲染 name（如有）+ description（如有）+ children 的 Group。"""
+        """渲染 title（如有）+ description（如有）+ children 的 Group。"""
         parts: list[RenderableType] = []
 
-        if self.name:
-            parts.append(Text(self.name, style="cx.info"))
-        if self.description:
-            parts.append(Text(self.description, style="cx.whisper"))
+        if self.title is not None:
+            parts.append(self.title)
+        if self.description is not None:
+            parts.append(self.description)
 
         for child in self._children:
             parts.append(child.render())

@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 from collections.abc import Generator
-from typing import Literal
+from typing import Literal, override
+
+from rich.console import RenderableType
+from rich.text import Text
 
 from ..document.group import Group
 from ..document.node import Node
@@ -27,31 +30,44 @@ class HelpGroup(Group):
         self,
         *commands: str,
         name: str | None = None,
-        description: str | None = None,
+        detail: str | None = None,
         parent: Node | None = None,
+        **kwargs: object,
     ) -> None:
         """初始化 HelpGroup。
 
         Args:
-            *commands: 命令关键词（支持别名，如 "ls", "list"）。
-                       空表示纯参数分组容器，非空表示命令本身。
-            name: 节点名称（渲染分组区块时用作标题）。
-            description: 描述文本。
+            *commands: 命令关键词。空表示容器，非空表示命令本身。
+            name: 节点名称。
+            detail: 描述文本。
             parent: 父节点。
+            **kwargs: 可接收 ``titler`` / ``detailer``，透传给 Node。
         """
         self.commands = tuple(commands)
-        super().__init__(name=name, description=description, parent=parent)
+        super().__init__(name=name, detail=detail, parent=parent, **kwargs)
 
     @property
     def is_command(self) -> bool:
         """是否为命令本身（commands 非空），而非纯参数分组。"""
         return bool(self.commands)
 
+    @override
+    def _default_titler(self) -> RenderableType | None:
+        if self.name is None:
+            return None
+        return Text(self.name, style="cx.help.group.title")
+
+    @override
+    def _default_detailer(self) -> RenderableType | None:
+        if self.detail is None:
+            return None
+        return Text(self.detail, style="cx.help.group.description")
+
     def add_action(
         self,
         *flags: str,
         name: str | None = None,
-        description: str | None = None,
+        detail: str | None = None,
         metavar: str | None = None,
         nargs: int | Literal["?", "+", "*", "**"] | None = None,
         optional: bool | None = None,
@@ -61,7 +77,7 @@ class HelpGroup(Group):
         return Action(
             *flags,
             name=name,
-            description=description,
+            detail=detail,
             metavar=metavar,
             nargs=nargs,
             optional=optional,
@@ -73,10 +89,14 @@ class HelpGroup(Group):
         self,
         *keywords: str,
         name: str | None = None,
-        description: str | None = None,
+        detail: str | None = None,
+        **kwargs: object,
     ) -> "HelpGroup":
-        """添加子命令 HelpGroup（commands 非空）并返回，支持链式构建。"""
-        return HelpGroup(*keywords, name=name, description=description, parent=self)
+        """添加子命令并返回，支持链式构建。
+
+        ``**kwargs`` 可接收 ``titler`` / ``detailer``。
+        """
+        return HelpGroup(*keywords, name=name, detail=detail, parent=self, **kwargs)
 
     def iter_commands(self) -> Generator["HelpGroup", None, None]:
         """递归穿透非命令 HelpGroup，收集所有 is_command=True 的子孙。

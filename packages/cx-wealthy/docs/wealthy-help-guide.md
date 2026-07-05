@@ -302,7 +302,7 @@ basic.add_action("INPUT", description="输入文件")
 basic.add_action("-f", "--format", metavar="FORMAT", description="输出格式")
 
 proc = help.add_group("图片处理")
-proc.description = "对图像进行处理"
+proc.detail = "对图像进行处理"
 proc.add_action("--scale", metavar="FACTOR", description="缩放比例")
 
 other = help.add_group("其它选项")
