@@ -83,6 +83,10 @@ class WealthDetailTable:
             return IndexedListPanel(item, max_lines=self._list_max_lines)
         return Pretty(item)
 
+    def __rich__(self) -> RenderableType:
+        """直接渲染时委托给 make_table。"""
+        return self.make_table(self._item)
+
     def _make_table_from_rows(self, rows: Iterable[tuple[Any, Any]]) -> RenderableType:
         """将 (key, value) 行序列组装为 Table。"""
         table = Table(show_header=False, box=None)
@@ -171,6 +175,8 @@ class WealthDetailTable:
             return IndexedListPanel(rendered_items, max_lines=self._list_max_lines)
         if hasattr(value, "__rich_label__"):
             return RichLabel(value).__rich__()
+        if isinstance(value, RenderableType):
+            return value
         try:
             return Pretty(value)
         except Exception:  # pragma: no cover - defensive fallback
