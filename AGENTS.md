@@ -68,6 +68,7 @@ uv build                  # 构建所有包
 - **帮助系统**：每个工具使用 `WealthHelp` DSL（`add_group`/`add_action`/`add_note` 声明式构建），帮助文件通过 `importlib.resources.read_text()` 加载。
 - **异常体系**：`SafeError`（可恢复应用异常，带 style）由 `Application.__exit__` 捕获；`FFmpegError` 子类通过正则自动匹配工厂 `create(msg)`。
 - **分级输出**：`IAppEnvironment` 提供 `say()`（始终显示）和 `whisper()`（仅 debug 模式）两个输出层级。
+  - **输出通道**：`IAppEnvironment.console` 初始化为 `stderr=True`，因此 `say()`/`whisper()` 均走 **stderr**。stdout 仅供**用户可能需要管道重定向的数据输出**（如 pretend 模式下的 hosts 内容），此时应使用 Python 内置 `print()` 而非 `say()`/`console.print()`。
 
 ## Code Conventions
 **目标平台**：Windows / macOS / Linux。注意系统路径分隔符、换行符、编码、权限等差异。

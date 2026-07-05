@@ -36,6 +36,7 @@ HELP_STYLES: dict[str, str] = {
     "cx.help.group.description": "italic dim default",
     "cx.help.details.box": "blue",
     "cx.help.details.description": "italic default",
+    "cx.help.usage.command": "bold magenta",
     "cx.help.epilog": "dim italic default",
 }
 

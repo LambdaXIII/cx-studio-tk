@@ -87,6 +87,23 @@ console.print(help)
 
 `WealthyDocument` 不限于帮助系统——任何"分组 + 条目 + 注释"的结构化输出都可以用它构建。
 
+### 子命令结构
+
+对于有子命令的 CLI 工具（如 `git`/`docker` 风格），使用 `HelpGroup` 表达：
+
+```python
+commands = help.add_group("子命令")
+list_cmd = commands.add_command("list", description="列出所有项")
+list_cmd.add_action("-s", "--search", metavar="PATTERN", description="搜索过滤")
+
+update_cmd = commands.add_command("update", description="更新")
+update_cmd.add_action("--force", description="强制更新")
+```
+
+`WealthyHelp` 自动渲染多行 usage（简版总览 + 每个子命令详版）和按命令分组的参数详情。
+
+详见 [WealthyHelp 完整用法文档](docs/wealthy-help-guide.md)。
+
 ## 辅助组件
 
 | 组件 | 用途 |
@@ -142,7 +159,7 @@ r.Console().print(table)
 | `label` | `RichLabelMixin` · `RichLabel` |
 | `detail` | `RichDetailMixin` · `WealthDetailTable` · `WealthDetailPanel` |
 | `document` | `Node` · `Group` · `Note` · `WealthyDocument` |
-| `help` | `Action` · `WealthyHelp` |
+| `help` | `Action` · `HelpGroup` · `WealthyHelp` |
 | `indexed_list` | `IndexedListPanel` |
 | `columns` | `MaxColumnsLayout` |
 | `tutorial` | `render_tutorial` |

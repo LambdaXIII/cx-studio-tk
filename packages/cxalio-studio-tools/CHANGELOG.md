@@ -1,5 +1,12 @@
 # Change Log of Cxalio Studio Tools
 
+
+### v0.8.5
+
+- HostsKeeper 迭代至 0.8.5
+- **帮助系统重构**：`app_help.py` 从扁平参数结构迁移至 `CommandGroup`，usage 行正确展示子命令列表（`list|show|edit|update|new`），每个子命令的专有参数正确归属
+- **修复遗漏**：补充 `new` 命令的帮助定义（此前 parser 支持但 help 未显示）
+- **修复命名不一致**：搜索参数名从 `--search-pattern` 修正为 `-s, --search`（与 `appcontext.py` 一致）
 ### v0.8.4
 
 - HostsKeeper 迭代至 0.8.4

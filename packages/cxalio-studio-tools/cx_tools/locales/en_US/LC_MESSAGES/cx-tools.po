@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cxalio-studio-tools VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-05 05:38+0800\n"
+"POT-Creation-Date: 2026-07-05 08:52+0800\n"
 "PO-Revision-Date: 2026-06-28 22:30+0800\n"
 "Last-Translator: Cxalio <cxalio@example.com>\n"
 "Language: en_US\n"
@@ -27,98 +27,105 @@ msgstr "Interrupt signal triggered…"
 msgid "检测到强制中断信号…"
 msgstr "Forced interrupt signal detected…"
 
-#: hosts_keeper/app_help.py:14
-msgid "命令和参数"
-msgstr "Commands & Arguments"
-
-#: hosts_keeper/app_help.py:18
-msgid "命令"
-msgstr "Commands"
-
-#: hosts_keeper/app_help.py:22
-msgid ""
-"要执行的操作，可选值为：\n"
-" - [u]list[/]：列出所有配置文件。\n"
-" - [u]show[/]：显示当前配置文件的内容。\n"
-" - [u]edit[/]：编辑当前配置文件。\n"
-" - [u]update[/]：按照所有激活的配置文件更新hosts。\n"
-" - [u]help[/]：显示帮助信息。"
-msgstr ""
-"Operation to perform. Options:\n"
-" - [u]list[/]: List all profiles.\n"
-" - [u]show[/]: Show current profile content.\n"
-" - [u]edit[/]: Edit the current profile.\n"
-" - [u]update[/]: Update hosts with all active profiles.\n"
-" - [u]help[/]: Show help."
-
-#: hosts_keeper/app_help.py:33
-msgid "配置文件ID"
-msgstr "Profile ID"
-
-#: hosts_keeper/app_help.py:36
-msgid "配置文件的ID，在 show 和 edit 命令中必须要指定。"
-msgstr "The profile ID, required for the show and edit commands."
-
-#: hosts_keeper/app_help.py:42 hosts_keeper/appcontext.py:111
-msgid "搜索模式"
-msgstr "Search Pattern"
-
-#: hosts_keeper/app_help.py:46
-msgid ""
-"如果在 list 中指定了搜索模式，将只会显示符合条件的配置文件。搜索模式支持 glob "
-"形式的通配符，并会智能搜索配置文件的多种信息以找到符合条件的目标。"
-msgstr ""
-"If a search pattern is specified with list, only matching profiles will "
-"be shown. The search pattern supports glob wildcards and searches "
-"multiple profile fields."
-
-#: hosts_keeper/app_help.py:54 jpegger/components/mission.py:55
-msgid "目标文件"
-msgstr "Target File"
-
-#: hosts_keeper/app_help.py:57
-msgid "指定目标 hosts 文件，默认值为系统 hosts 文件。"
-msgstr "Specify the target hosts file; defaults to the system hosts file."
-
-#: hosts_keeper/app_help.py:61
-msgid "跳过刷新"
-msgstr "Skip Flush"
-
-#: hosts_keeper/app_help.py:64
-msgid "更新 hosts 后跳过 DNS 缓存刷新，仅输出平台对应的手动命令提示。"
-msgstr ""
-"Skip DNS cache flush after updating hosts; only output platform-specific "
-"manual command hints."
-
-#: hosts_keeper/app_help.py:68 media_killer/mk_help_info.py:86
+#: hosts_keeper/app_help.py:15 media_killer/mk_help_info.py:86
 msgid "杂项"
 msgstr "Misc"
 
-#: hosts_keeper/app_help.py:69 hosts_keeper/appcontext.py:53
+#: hosts_keeper/app_help.py:16 hosts_keeper/appcontext.py:53
 #: media_killer/appcontext.py:116 media_killer/mk_help_info.py:87
 msgid "显示此帮助信息"
 msgstr "Show this help message"
 
-#: hosts_keeper/app_help.py:71 jpegger/simple_appcontext.py:289
+#: hosts_keeper/app_help.py:18 jpegger/simple_appcontext.py:289
 #: media_killer/mk_help_info.py:89
 msgid "显示完整的教程内容"
 msgstr "Show full tutorial"
 
-#: hosts_keeper/app_help.py:74 media_killer/mk_help_info.py:92
+#: hosts_keeper/app_help.py:21 media_killer/mk_help_info.py:92
 msgid "开启调试模式以观察更多的后台信息"
 msgstr "Enable debug mode to see more background information"
 
-#: hosts_keeper/app_help.py:79 media_killer/mk_help_info.py:97
+#: hosts_keeper/app_help.py:26 media_killer/mk_help_info.py:97
 msgid "启用[bold blue]模拟运行模式[/]，不会进行任何文件操作。"
 msgstr ""
 "Enable [bold blue]pretending mode[/], no file operations will be "
 "performed."
 
-#: hosts_keeper/app_help.py:84
+#: hosts_keeper/app_help.py:30 hosts_keeper/appcontext.py:82
+msgid "子命令"
+msgstr "Subcommands"
+
+#: hosts_keeper/app_help.py:32
+#, fuzzy
+msgid "列出所有配置文件。"
+msgstr "List all profiles"
+
+#: hosts_keeper/app_help.py:36 hosts_keeper/appcontext.py:111
+msgid "搜索模式"
+msgstr "Search Pattern"
+
+#: hosts_keeper/app_help.py:39
+#, fuzzy
+msgid "搜索模式，支持 glob 形式的通配符，智能搜索配置文件的多种信息。"
+msgstr ""
+"If a search pattern is specified with list, only matching profiles will "
+"be shown. The search pattern supports glob wildcards and searches "
+"multiple profile fields."
+
+#: hosts_keeper/app_help.py:44
+#, fuzzy
+msgid "显示指定配置文件的内容。"
+msgstr "Show content of the specified profile"
+
+#: hosts_keeper/app_help.py:48 hosts_keeper/app_help.py:58
+#: hosts_keeper/app_help.py:85
+msgid "配置文件ID"
+msgstr "Profile ID"
+
+#: hosts_keeper/app_help.py:50 hosts_keeper/app_help.py:60
+#: hosts_keeper/app_help.py:87
+#, fuzzy
+msgid "配置文件的ID。"
+msgstr "Profile ID"
+
+#: hosts_keeper/app_help.py:54
+#, fuzzy
+msgid "编辑指定配置文件。"
+msgstr "Edit the specified profile"
+
+#: hosts_keeper/app_help.py:64
+#, fuzzy
+msgid "按照所有激活的配置文件更新hosts。"
+msgstr "Update hosts file based on profiles"
+
+#: hosts_keeper/app_help.py:70 jpegger/components/mission.py:55
+msgid "目标文件"
+msgstr "Target File"
+
+#: hosts_keeper/app_help.py:72
+msgid "指定目标 hosts 文件，默认值为系统 hosts 文件。"
+msgstr "Specify the target hosts file; defaults to the system hosts file."
+
+#: hosts_keeper/app_help.py:76
+msgid "跳过刷新"
+msgstr "Skip Flush"
+
+#: hosts_keeper/app_help.py:78
+msgid "更新 hosts 后跳过 DNS 缓存刷新，仅输出平台对应的手动命令提示。"
+msgstr ""
+"Skip DNS cache flush after updating hosts; only output platform-specific "
+"manual command hints."
+
+#: hosts_keeper/app_help.py:82
+#, fuzzy
+msgid "创建新的配置文件。"
+msgstr "Create new profile"
+
+#: hosts_keeper/app_help.py:92
 msgid "建议通过完整帮助信息学习更多使用技巧。"
 msgstr "Learn more usage tips from the full help information."
 
-#: hosts_keeper/app_help.py:89
+#: hosts_keeper/app_help.py:98
 msgid ""
 "本工具通过一系列配置文件自动编写操作系统的 hosts 文件。\n"
 "        配置文件可通过 [u]list[/] [u]show[/] [u]edit[/] 等命令进行管理。\n"
@@ -131,7 +138,7 @@ msgstr ""
 "automatically.\n"
 "        Editing the hosts file requires administrator privileges."
 
-#: hosts_keeper/app_help.py:110
+#: hosts_keeper/app_help.py:120
 msgid "Hosts Keeper 教程"
 msgstr "Hosts Keeper Tutorial"
 
@@ -146,10 +153,6 @@ msgstr "Enable debug mode"
 #: hosts_keeper/appcontext.py:74
 msgid "假装执行，不实际更新 hosts 文件"
 msgstr "Pretend execution, do not actually update hosts file"
-
-#: hosts_keeper/appcontext.py:82
-msgid "子命令"
-msgstr "Subcommands"
 
 #: hosts_keeper/appcontext.py:86
 msgid "更新 hosts 文件"
@@ -188,11 +191,20 @@ msgstr "Edit the specified profile"
 msgid "根据配置文件更新 hosts"
 msgstr "Update hosts file based on profiles"
 
-#: hosts_keeper/appenv.py:61
+#: hosts_keeper/appenv.py:47
+msgid "临时目录已创建"
+msgstr ""
+
+#: hosts_keeper/appenv.py:58
+#, fuzzy
+msgid "临时目录已删除"
+msgstr "Deleted"
+
+#: hosts_keeper/appenv.py:78
 msgid "你的 hosts 由我来守护！"
 msgstr "Your hosts, guarded by me!"
 
-#: hosts_keeper/appenv.py:97
+#: hosts_keeper/appenv.py:114
 #, python-brace-format
 msgid "不支持的操作系统：{system_system}。请手动提供 hosts 文件路径。"
 msgstr ""
@@ -211,93 +223,109 @@ msgstr "Profiles found"
 msgid "未设置编辑器环境变量，尝试使用系统工具打开。"
 msgstr "No editor environment variable set, trying system tools."
 
-#: hosts_keeper/application.py:57
+#: hosts_keeper/application.py:56
 #, python-brace-format
 msgid "打开文件 {name} 失败。"
 msgstr "Failed to open file {name}."
 
-#: hosts_keeper/application.py:66
+#: hosts_keeper/application.py:65
 #, python-brace-format
 msgid "打开目录 {name} 失败。"
 msgstr "Failed to open directory {name}."
 
-#: hosts_keeper/application.py:71 hosts_keeper/application.py:119
-#: hosts_keeper/application.py:130
+#: hosts_keeper/application.py:70 hosts_keeper/application.py:118
+#: hosts_keeper/application.py:129
 msgid "profile_id 不能为空"
 msgstr "profile_id cannot be empty"
 
-#: hosts_keeper/application.py:75
+#: hosts_keeper/application.py:74
 #, python-brace-format
 msgid "配置文件 {name} 已存在。"
 msgstr "Profile {name} already exists."
 
-#: hosts_keeper/application.py:82
+#: hosts_keeper/application.py:81
 #, python-brace-format
 msgid "已创建配置文件: {name}"
 msgstr "Profile created: {name}"
 
-#: hosts_keeper/application.py:85
+#: hosts_keeper/application.py:84
 msgid "创建配置文件失败。"
 msgstr "Failed to create profile."
 
-#: hosts_keeper/application.py:108
+#: hosts_keeper/application.py:91 media_killer/components/preset.py:106
+msgid "ID"
+msgstr "ID"
+
+#: hosts_keeper/application.py:92
+msgid "Name"
+msgstr ""
+
+#: hosts_keeper/application.py:93
+msgid "Description"
+msgstr ""
+
+#: hosts_keeper/application.py:94
+msgid "Enabled"
+msgstr ""
+
+#: hosts_keeper/application.py:107
 msgid "未找到符合条件的配置文件。"
 msgstr "No matching profiles found."
 
-#: hosts_keeper/application.py:112
+#: hosts_keeper/application.py:111
 #, python-brace-format
 msgid "共找到 {count} 个配置文件。"
 msgstr "Found {count} profiles."
 
-#: hosts_keeper/application.py:115
+#: hosts_keeper/application.py:114
 msgid "可尝试使用 show 或 edit 命令查看或编辑配置文件。"
 msgstr "Try using 'show' or 'edit' commands to view or edit profiles."
 
-#: hosts_keeper/application.py:125 hosts_keeper/application.py:135
+#: hosts_keeper/application.py:124 hosts_keeper/application.py:134
 #, python-brace-format
 msgid "未找到 ID 为 {profile_id} 的配置文件。"
 msgstr "No profile found with ID {profile_id}."
 
-#: hosts_keeper/application.py:142
+#: hosts_keeper/application.py:141
 #, python-brace-format
 msgid "配置文件 {path} 不存在。"
 msgstr "Profile {path} does not exist."
 
-#: hosts_keeper/application.py:152
+#: hosts_keeper/application.py:151
 msgid "update 模式已启动"
 msgstr "Update mode started"
 
-#: hosts_keeper/application.py:154
+#: hosts_keeper/application.py:153
 msgid "已构建 HostBuilder"
 msgstr "HostBuilder constructed"
 
-#: hosts_keeper/application.py:159
+#: hosts_keeper/application.py:158
 msgid "已启用配置文件"
 msgstr "Profiles enabled"
 
-#: hosts_keeper/application.py:163
+#: hosts_keeper/application.py:162
 msgid "开始构建 Hosts 文件内容"
 msgstr "Start building hosts file content"
 
-#: hosts_keeper/application.py:171
+#: hosts_keeper/application.py:170
 #, python-brace-format
 msgid "已写入新的内容到临时文件 {path}"
 msgstr "Written new content to temp file {path}"
 
-#: hosts_keeper/application.py:178
+#: hosts_keeper/application.py:177
 #, python-brace-format
 msgid "将保存到目标文件 {path}"
 msgstr "Will save to target file {path}"
 
-#: hosts_keeper/application.py:181
+#: hosts_keeper/application.py:180
 msgid "已成功保存新的 hosts 文件。"
 msgstr "Successfully saved the new hosts file."
 
-#: hosts_keeper/application.py:184
+#: hosts_keeper/application.py:183
 msgid "准备刷新 DNS 缓存"
 msgstr "Preparing to flush DNS cache"
 
-#: hosts_keeper/application.py:190
+#: hosts_keeper/application.py:189
 msgid "hosts 文件已更新。当前平台不支持自动刷新 DNS 缓存。"
 msgstr ""
 "Hosts file updated. Current platform does not support automatic DNS cache"
@@ -388,43 +416,43 @@ msgstr "DNS cache not flushed, please flush manually. Try:"
 msgid "hosts 文件已更新。如需刷新 DNS 缓存，请手动执行："
 msgstr "Hosts file updated. To flush DNS cache, please run manually:"
 
-#: hosts_keeper/hosts_saver.py:322
+#: hosts_keeper/hosts_saver.py:324
 #, python-brace-format
 msgid "目标 hosts 文件 {path} 不存在，跳过备份。"
 msgstr "Target hosts file {path} does not exist, skipping backup."
 
-#: hosts_keeper/hosts_saver.py:330
+#: hosts_keeper/hosts_saver.py:332
 #, python-brace-format
 msgid "无法创建备份文件，错误：{error}"
 msgstr "Failed to create backup file, error: {error}"
 
-#: hosts_keeper/hosts_saver.py:363
+#: hosts_keeper/hosts_saver.py:365
 msgid "假装模式已开启，新的内容将输出到标准输出。"
 msgstr "Pretending mode is on; new content will be output to stdout."
 
-#: hosts_keeper/hosts_saver.py:374
+#: hosts_keeper/hosts_saver.py:376
 msgid "目标文件已存在且无法备份，将直接输出生成的 hosts 内容。"
 msgstr ""
 "Target file exists and cannot be backed up; generated hosts content will "
 "be output directly."
 
-#: hosts_keeper/hosts_saver.py:386
+#: hosts_keeper/hosts_saver.py:388
 #, python-brace-format
 msgid "替换失败。目标文件 {path} 无法写入。"
 msgstr "Replace failed. Target file {path} is not writable."
 
-#: hosts_keeper/hosts_saver.py:398
+#: hosts_keeper/hosts_saver.py:400
 msgid "当前平台不支持自动提权替换。请以管理员权限运行本程序。"
 msgstr ""
 "Automatic elevated replacement is not supported on this platform. Please "
 "run as administrator."
 
-#: hosts_keeper/hosts_saver.py:409
+#: hosts_keeper/hosts_saver.py:411
 #, python-brace-format
 msgid "目标文件 {path} 没有写入权限。"
 msgstr "Target file {path} has no write permission."
 
-#: hosts_keeper/hosts_saver.py:412
+#: hosts_keeper/hosts_saver.py:414
 msgid "请自行处理目标文件的权限问题，或以管理员权限运行本程序。"
 msgstr ""
 "Please handle target file permissions yourself, or run this program as "
@@ -441,17 +469,52 @@ msgstr ""
 "Profile {id} is already provided by {old_name}, will be overwritten by "
 "{new_name}."
 
-#: hosts_keeper/profile/contenters/url_contenter.py:48
-#, python-brace-format
-msgid "无法获取 URL 内容: {error}"
-msgstr "Cannot fetch URL content: {error}"
+#: hosts_keeper/profile/contenters/direct_contenter.py:27
+msgid "直接内容"
+msgstr ""
 
-#: hosts_keeper/profile/contenters/url_contenter.py:52
+#: hosts_keeper/profile/contenters/local_contenter.py:30
+#, python-brace-format
+msgid "正在读取 {file}"
+msgstr ""
+
+#: hosts_keeper/profile/contenters/local_contenter.py:32
+msgid "等待文件配置"
+msgstr ""
+
+#: hosts_keeper/profile/contenters/url_contenter.py:31
+#, python-brace-format
+msgid "正在获取 {url}"
+msgstr ""
+
+#: hosts_keeper/profile/contenters/url_contenter.py:31
+msgid "等待 URL 配置"
+msgstr ""
+
+#: hosts_keeper/profile/contenters/url_contenter.py:41
+#, python-brace-format
+msgid "正在下载 {url}"
+msgstr ""
+
+#: hosts_keeper/profile/contenters/url_contenter.py:53
 #, python-brace-format
 msgid "使用配置编码 {encoding} 解码失败，尝试 utf-8 回退..."
 msgstr ""
 "Decoding with configured encoding {encoding} failed, trying utf-8 "
 "fallback..."
+
+#: hosts_keeper/profile/contenters/url_contenter.py:59
+msgid "正在解析内容"
+msgstr ""
+
+#: hosts_keeper/profile/contenters/url_contenter.py:62
+msgid "下载失败"
+msgstr ""
+
+#: hosts_keeper/profile/contenters/url_contenter.py:63
+#, python-brace-format
+msgid "无法获取 URL 内容: {error}"
+msgstr "Cannot fetch URL content: {error}"
 
 #: jpegger/simple_appcontext.py:36
 #, python-brace-format
@@ -587,7 +650,8 @@ msgid "其它选项"
 msgstr "Other Options"
 
 #: jpegger/simple_appcontext.py:282
-msgid "强制覆盖已存在的文件，未设置时将会自动重命名目标文件"
+#, fuzzy
+msgid "强制覆盖已存在的文件，未设置时将会跳过"
 msgstr "Force overwrite existing files; target will be auto-renamed when not set"
 
 #: jpegger/simple_appcontext.py:284 media_killer/appcontext.py:139
@@ -641,44 +705,44 @@ msgstr "Options"
 msgid "加载选项"
 msgstr "Options"
 
-#: jpegger/components/mission_runner.py:59
+#: jpegger/components/mission_runner.py:58
 msgid "创建目录"
 msgstr "Create Directory"
 
-#: jpegger/components/mission_runner.py:79
+#: jpegger/components/mission_runner.py:78
 #, python-brace-format
 msgid "源文件 {path} 不存在"
 msgstr "Source file {path} does not exist"
 
-#: jpegger/components/mission_runner.py:87
+#: jpegger/components/mission_runner.py:86
 #, python-brace-format
 msgid "目标文件 {path} 与源文件相同"
 msgstr "Target file {path} is the same as the source file"
 
-#: jpegger/components/mission_runner.py:92
-#, python-brace-format
-msgid "目标文件已存在，已自动重命名为{name}。"
-msgstr "Target file already exists, auto-renamed to {name}."
+#: jpegger/components/mission_runner.py:90
+#, fuzzy, python-brace-format
+msgid "目标文件 {name} 已存在，跳过。"
+msgstr "Profile {name} already exists."
 
-#: jpegger/components/mission_runner.py:106
+#: jpegger/components/mission_runner.py:105
 #, python-brace-format
 msgid "文件 {path} 无法识别，任务跳过！"
 msgstr "File {path} not recognized, task skipped!"
 
-#: jpegger/components/mission_runner.py:114
+#: jpegger/components/mission_runner.py:113
 #, python-brace-format
 msgid "文件 {path} 处理失败！"
 msgstr "File {path} processing failed!"
 
-#: jpegger/components/mission_runner.py:123
+#: jpegger/components/mission_runner.py:122
 msgid "正在执行任务..."
 msgstr "Executing tasks..."
 
-#: jpegger/components/mission_runner.py:137
+#: jpegger/components/mission_runner.py:136
 msgid "任务发生未捕获异常："
 msgstr ""
 
-#: jpegger/components/mission_runner.py:140
+#: jpegger/components/mission_runner.py:139
 #, python-brace-format
 msgid "正在执行{count}个任务..."
 msgstr "Executing {count} tasks..."
@@ -1181,10 +1245,6 @@ msgstr "Invalid output directory"
 msgid "创建输出目录"
 msgstr "Create Output Directory"
 
-#: media_killer/components/preset.py:106
-msgid "ID"
-msgstr "ID"
-
 #: media_killer/components/preset.py:107
 msgid "预设名称"
 msgstr "Preset Name"
@@ -1352,4 +1412,31 @@ msgstr "Show full help information"
 
 #~ msgid "指定输出格式，默认沿用原始格式"
 #~ msgstr "Specify output format; defaults to the original format"
+
+#~ msgid "命令和参数"
+#~ msgstr "Commands & Arguments"
+
+#~ msgid "命令"
+#~ msgstr "Commands"
+
+#~ msgid ""
+#~ "要执行的操作，可选值为：\n"
+#~ " - [u]list[/]：列出所有配置文件。\n"
+#~ " - [u]show[/]：显示当前配置文件的内容。\n"
+#~ " - [u]edit[/]：编辑当前配置文件。\n"
+#~ " - [u]update[/]：按照所有激活的配置文件更新hosts。\n"
+#~ " - [u]help[/]：显示帮助信息。"
+#~ msgstr ""
+#~ "Operation to perform. Options:\n"
+#~ " - [u]list[/]: List all profiles.\n"
+#~ " - [u]show[/]: Show current profile content.\n"
+#~ " - [u]edit[/]: Edit the current profile.\n"
+#~ " - [u]update[/]: Update hosts with all active profiles.\n"
+#~ " - [u]help[/]: Show help."
+
+#~ msgid "配置文件的ID，在 show 和 edit 命令中必须要指定。"
+#~ msgstr "The profile ID, required for the show and edit commands."
+
+#~ msgid "目标文件已存在，已自动重命名为{name}。"
+#~ msgstr "Target file already exists, auto-renamed to {name}."
 

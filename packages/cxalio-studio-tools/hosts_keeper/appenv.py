@@ -17,7 +17,7 @@ class AppEnv(IAppEnvironment):
     def __init__(self) -> None:
         super().__init__()
         self.app_name = "HostsKeeper"
-        self.app_version = "0.8.4"
+        self.app_version = "0.8.5"
         self.app_description = _("根据配置文件更新 hosts")
         self.context = AppContext()
 
@@ -34,7 +34,7 @@ class AppEnv(IAppEnvironment):
             r.TimeRemainingColumn(compact=True),
             expand=True,
             console=self.console,
-            transient=False,
+            transient=True,
         )
         self._temp_dir: TemporaryDirectory | None = None
 
@@ -74,11 +74,18 @@ class AppEnv(IAppEnvironment):
         banner_text = importlib.resources.read_text(
             __package__, "banner.txt", encoding="utf-8"
         )
-        banners.append(r.Align.center(banner_text))
-        banners.append(r.Align.center(_("你的 hosts 由我来守护！")))
-        banners.append(r.Align.center("v" + self.app_version))
-        group = r.Group(*banners)
-        appenv.console.print(group, style="bold cyan", highlight=False)
+        banners.append(
+            r.Align.center(
+                r.Text(banner_text, style="bold cyan", no_wrap=True, overflow="crop")
+            )
+        )
+        banners.append(
+            r.Align.center(r.Text(_("你的 hosts 由我来守护！"), style="bold cyan"))
+        )
+        banners.append(
+            r.Align.center(r.Text("v" + self.app_version, style="bold cyan"))
+        )
+        self.say(r.Group(*banners))
 
     def is_debug_mode_on(self) -> bool:
         return self.context.debug_mode

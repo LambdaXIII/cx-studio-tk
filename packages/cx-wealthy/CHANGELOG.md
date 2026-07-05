@@ -1,5 +1,47 @@
 # Changelog
 
+
+## 0.3.0
+
+### 架构重构
+
+- **HelpGroup 单类取代 ActionGroup + CommandGroup**：能力重复的两个类合并为单一 `HelpGroup(Group)`，通过 `commands` 字段区分参数分组语义（`commands=()`）与命令语义（`commands=("list",)`）。
+  - 删除 `ActionGroup` 与 `CommandGroup` 类、`command_group.py`、`action_group.py` 文件
+  - 删除 `add_command_group()` 方法（分组用 `add_group()`）
+  - 删除 `is_nested` 属性（死代码）
+  - 新增 `HelpGroup.iter_commands()` 递归遍历辅助方法
+  - 渲染层 `isinstance(x, CommandGroup)` → `isinstance(x, HelpGroup) and x.is_command`
+  - **所有现有 CLI 工具的 --help 输出字面不变**
+- **导出更新**：`ActionGroup`、`CommandGroup` 从 `cx_wealthy` / `cx_wealthy.help` 导出中删除，新增 `HelpGroup`
+
+### 修复
+
+- **恢复文档导入**：`cx_wealthy/__init__.py` 中补回误删的 `from .document import Group, Node, Note, WealthyDocument`——`__all__` 中仍列出这些符号但导入被意外移除。
+- **恢复 epilog 样式**：`theme.py` 中补回误删的 `cx.help.epilog` 样式，epilog 文本不再回退到默认 Rich 样式。
+- **usage 渲染修复**（三个渲染 bug）：
+  - 修复子命令详版行与首行不对齐：将混合的 Table+Padding 结构统一为双列 Table，prog 末尾空格作列间分隔，所有行在同一右列中自然对齐。
+  - 修复 usage 与 description 左 padding 不一致：Table 统一加 `Padding(pad=(0,0,0,2))`。
+  - 修复子命令 pipe 排在参数后面：简版行拼接顺序从 `path → actions → sub_commands` 改为 `path → sub_commands → actions`，符合 CLI 惯例。
+- **列间距职责上移**：前导空格从 `_render_node_usage` 的简版行内部提取到 Table 层（prog 末尾空格），不再由数据层隐含提供。
+
+## 0.2.0
+
+### 新特性
+
+- **CommandGroup 机制**：`WealthyHelp` 新增 `CommandGroup` 类型，原生支持子命令结构（git/docker 风格 CLI）。
+  - `CommandGroup` 继承 `ActionGroup`，兼具命令本身与组织容器两种角色
+  - `add_command(*keywords, name=, description=)` / `add_command_group(name=, description=)` API
+  - 递归 usage 渲染：简版总览行 + 每个子命令详版行，支持嵌套
+  - details 渲染：CommandGroup 作为子命令区块，递归展开
+  - 无 CommandGroup 的工具（如 jpegger）行为完全不变
+- **新增样式**：`cx.help.usage.command`（命令关键词样式）
+- **新增导出**：`CommandGroup` 在 `cx_wealthy` 和 `cx_wealthy.help` 顶层导出
+
+### 文档
+
+- 新增 `docs/wealthy-help-guide.md`：WealthyHelp 完整用法文档
+- README 简要介绍补充 CommandGroup 示例
+
 ## 0.1.2
 
 修正 0.1.1 引入的问题：

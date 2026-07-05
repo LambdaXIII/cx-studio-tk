@@ -40,6 +40,15 @@ class Application(IApplication):
     def stop(self) -> None:
         appenv.stop()
 
+    @override
+    def __exit__(self, exc_type, exc_val, exc_tb) -> bool | None:
+        result = super().__exit__(exc_type, exc_val, exc_tb)
+        if exc_type is KeyboardInterrupt:
+            appenv.stop()
+            appenv.say(f"[cx.error]{_('用户中断')}[/]")
+            result = True
+        return result
+
     @staticmethod
     def __open_file(file_path: Path) -> None:
         editor = os.environ.get("EDITOR", None)
@@ -161,11 +170,11 @@ class Application(IApplication):
 
         appenv.whisper(_("开始构建 Hosts 文件内容"))
         lines = builder.iter_lines(enabled_profiles)
-
-        # 保存临时文件；使用不带 BOM 的 utf-8 写入，因为系统 DNS 解析器不期望 BOM
+        # 先将 generator 耗尽让 async 完成，再停 progress
         with appenv.temp_hosts.open("w", encoding="utf-8") as f:
             for line in lines:
                 f.write(line + "\n")
+        appenv.progress.stop()
         appenv.whisper(
             _("已写入新的内容到临时文件 {path}").format(path=appenv.temp_hosts)
         )
@@ -190,7 +199,7 @@ class Application(IApplication):
                     )
 
     def command_help(self) -> None:
-        AppHelp.show_help(appenv.console)
+        AppHelp.show_help()
 
     def run(self) -> None:
         if appenv.context.command == "help" or appenv.context.show_help:
@@ -198,7 +207,7 @@ class Application(IApplication):
             return
 
         if appenv.context.show_full_help:
-            AppHelp.show_full_help(appenv.console)
+            AppHelp.show_full_help()
             return
 
         if appenv.context.command == "new":

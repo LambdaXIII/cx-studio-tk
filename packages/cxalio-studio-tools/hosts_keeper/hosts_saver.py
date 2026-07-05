@@ -340,7 +340,8 @@ class HostsSaver:
         # 写入保持 utf-8（系统 DNS 解析器不期望 BOM，强制不带 BOM）。
         with hosts_file.open("r", encoding="utf-8-sig") as f:
             for line in f:
-                appenv.console.print(line.strip())
+                # 数据输出走 stdout（say/whisper 走 stderr），便于管道重定向
+                print(line.strip())
 
     def save(self, target: Path | None = None) -> bool:
         """保存 hosts 文件。

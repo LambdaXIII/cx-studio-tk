@@ -6,6 +6,7 @@ from pathlib import Path
 
 from cx_studio.collectiontools import flatten_list
 from cx_studio.filesystem import detect_file_encoding
+from cx_tools.i18n import _
 from .appenv import appenv
 from .profile import Profile
 
@@ -87,6 +88,9 @@ class HostsBuilder:
                         total=1,
                         completed=1,
                     )
+                appenv.say(
+                    f"[cx.success]{_('已处理配置文件 {name}').format(name=profile.name)}[/]"
+                )
             except Exception as e:
                 appenv.progress.update(
                     task_id,
