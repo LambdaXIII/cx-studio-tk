@@ -1,6 +1,14 @@
 # Change Log of Cxalio Studio Tools
 
 
+
+### v0.8.6
+
+- FFpretty 迭代至 0.8.6，MediaScout 迭代至 0.8.6
+- **依赖迁移**：ffpretty 和 media_scout 的 TUI 依赖从 `cx-wealth` 迁移至 `cx-wealthy`（`WealthHelp`→`WealthyHelp`、`WealthLabel`→`RichLabel`、`WealthDetailPanel`/`WealthDetailTable`/`IndexedListPanel` 导入路径更新）
+- **API 适配**：`HelpGroup.add_action` 的 `description=` 参数更名为 `detail=`（media_scout/arg_parser.py 中 10 处适配）
+- **样式统一**：硬编码颜色样式（`red`/`yellow`/`green`/`blue`/`bright_black`/`cyan`/`dim`/`green1`）替换为 `cx_wealthy` 主题语义样式（`cx.error`/`cx.warning`/`cx.success`/`cx.info`/`cx.debug`/`cx.number`/`cx.whisper`/`cx.argument`/`cx.filepath`），颜色选择委托给主题
+
 ### v0.8.5
 
 - HostsKeeper 迭代至 0.8.5

@@ -1,7 +1,7 @@
 from typing import Any
 
-import cx_wealth.rich_types as r
-from cx_wealth import WealthDetailTable, WealthLabel
+from cx_wealthy import rich_types as r
+from cx_wealthy import WealthDetailTable, RichLabel
 from .format_info import FormatInfo
 from .stream_info import StreamInfo
 
@@ -16,12 +16,12 @@ class MediaInfo:
         o = options.update(highlight=False)
         table = WealthDetailTable(self.format_info, sub_box=False)
 
-        labels = r.Group(*(WealthLabel(stream) for stream in self.stream_infos))
+        labels = r.Group(*(RichLabel(stream) for stream in self.stream_infos))
         stream_box = r.Panel(
             labels,
             title="流信息",
             title_align="left",
-            border_style="dim",
+            border_style="ffpretty.info.border",
         )
 
         group = r.Group(table, stream_box)

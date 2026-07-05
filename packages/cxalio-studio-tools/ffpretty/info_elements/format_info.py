@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Any
 
-import cx_wealth.rich_types as r
+from cx_wealthy import rich_types as r
 from cx_studio.core.cx_filesize import FileSize
 from cx_studio.core.cx_time import CxTime
 
@@ -53,24 +53,28 @@ class FormatInfo:
     def __rich_detail__(self):
         name = self.filename
         if name:
-            yield "文件名", r.Text(name, style="red")
+            yield "文件名", r.Text(name, style="ffpretty.info.filename")
 
         format_name = self.format_name
         if format_name:
-            yield "编码代码", r.Text(format_name, style="green")
+            yield "编码代码", r.Text(format_name, style="ffpretty.info.format_name")
 
         format_long_name = self.format_long_name
         if format_long_name:
-            yield "混流格式", r.Text(format_long_name, style="blue")
+            yield "混流格式", r.Text(
+                format_long_name, style="ffpretty.info.format_long_name"
+            )
 
         duration = self.duration
         if duration:
-            yield "时长", r.Text(duration.pretty_string, style="cyan")
+            yield "时长", r.Text(duration.pretty_string, style="ffpretty.info.duration")
 
         bit_rate = self.bit_rate
         if bit_rate:
-            yield "码率", r.Text(f"{bit_rate.pretty_string}/s", style="yellow")
+            yield "码率", r.Text(
+                f"{bit_rate.pretty_string}/s", style="ffpretty.info.bit_rate"
+            )
 
         size = self.size
         if size:
-            yield "大小", r.Text(size.pretty_string, style="yellow")
+            yield "大小", r.Text(size.pretty_string, style="ffpretty.info.file_size")

@@ -6,7 +6,7 @@ from pathlib import Path
 from cx_studio.core.cx_time import CxTime
 from cx_studio.ffmpeg import FFmpegArgumentsPreProcessor
 from cx_tools.app import IApplication, SafeError
-from cx_wealth.indexed_list_panel import IndexedListPanel
+from cx_wealthy import IndexedListPanel
 from .appenv import appenv
 from .mk_help_info import MKHelp
 from .prober import Prober

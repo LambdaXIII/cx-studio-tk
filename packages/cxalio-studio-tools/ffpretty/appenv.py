@@ -3,14 +3,28 @@ from typing import override
 
 from cx_studio.filesystem.path_expander import CmdFinder
 from cx_tools.app import IAppEnvironment
-from cx_wealth import rich_types as r
+from cx_wealthy import rich_types as r
+from rich.theme import Theme
+
+FFPRETTY_STYLES: dict[str, str] = {
+    "ffpretty.info.filename": "red",
+    "ffpretty.info.format_name": "green",
+    "ffpretty.info.codec_name": "green1",
+    "ffpretty.info.format_long_name": "blue",
+    "ffpretty.info.stream_label": "blue",
+    "ffpretty.info.duration": "cyan",
+    "ffpretty.info.bit_rate": "yellow",
+    "ffpretty.info.file_size": "yellow",
+    "ffpretty.info.border": "dim",
+}
 
 
 class AppEnv(IAppEnvironment):
     def __init__(self):
         super().__init__()
+        self.console.push_theme(Theme(FFPRETTY_STYLES))
         self.app_name = "FFpretty"
-        self.app_version = "0.8.0"
+        self.app_version = "0.8.6"
         self.ffmpeg_executable = CmdFinder.which("ffmpeg")
         self.debug_mode = False
 

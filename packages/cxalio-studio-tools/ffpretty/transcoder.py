@@ -5,7 +5,7 @@ from pathlib import Path
 from cx_studio.ffmpeg import FFmpegAsync, FFmpegArgumentsPreProcessor
 from cx_studio.ffmpeg.cx_ff_infos import FFmpegCodingInfo
 from cx_tools.app.safe_error import SafeError
-from cx_wealth import IndexedListPanel
+from cx_wealthy import IndexedListPanel
 from .appenv import appenv
 
 
@@ -18,7 +18,7 @@ class Transcoder:
 
     def __enter__(self):
         self._task_id = appenv.progress.add_task(
-            description="[green]准备中...[/]", total=None
+            description="[cx.success]准备中...[/]", total=None
         )
         return self
 
@@ -89,7 +89,7 @@ class Transcoder:
 
         # 统计文件数量用于显示
         m, n = len(inputs), len(outputs)
-        summary = f"[blue][{m}->{n}][/]"
+        summary = f"[cx.info][{m}->{n}][/]"
 
         # 设置状态更新监听器
         @self._ffmpeg.on("status_updated")
@@ -98,13 +98,13 @@ class Transcoder:
             total = status.total_time.total_seconds if status.total_time else None
 
             # 格式化速度显示
-            speed = f"[bright_black][{status.current_speed:.2f}x][/]"
+            speed = f"[cx.debug][{status.current_speed:.2f}x][/]"
 
             appenv.progress.update(
                 self._task_id,  # type: ignore[arg-type]  # set in __enter__ before run
                 completed=current,
                 total=total,
-                description=f"{summary}{speed}[green]{self._task_description}[/]",
+                description=f"{summary}{speed}[cx.success]{self._task_description}[/]",
             )
 
         @self._ffmpeg.on("started")

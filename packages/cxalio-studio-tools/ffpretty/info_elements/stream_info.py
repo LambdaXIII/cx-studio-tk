@@ -2,7 +2,7 @@ from collections.abc import Generator
 from typing import Any, Iterable
 
 
-import cx_wealth.rich_types as r
+from cx_wealthy import rich_types as r
 from cx_studio.core.cx_filesize import FileSize
 from cx_studio.core.cx_time import CxTime
 
@@ -34,18 +34,18 @@ class StreamInfo:
         s_type = self.codec_type
         match s_type:
             case "video":
-                yield r.Text(f"视频流 #{index}", style="blue")
+                yield r.Text(f"视频流 #{index}", style="ffpretty.info.stream_label")
             case "audio":
-                yield r.Text(f"音频流 #{index}", style="blue")
+                yield r.Text(f"音频流 #{index}", style="ffpretty.info.stream_label")
             case "subtitle":
-                yield r.Text(f"字幕流 #{index}", style="blue")
+                yield r.Text(f"字幕流 #{index}", style="ffpretty.info.stream_label")
             case _:
-                yield r.Text(f"未知流 #{index}", style="blue")
+                yield r.Text(f"未知流 #{index}", style="ffpretty.info.stream_label")
 
-        yield r.Text(self.codec_name, style="green1")
+        yield r.Text(self.codec_name, style="ffpretty.info.codec_name")
         profile = self.data.get("profile", None)
         if profile:
-            yield r.Text(f"[{profile}]", style="green1")
+            yield r.Text(f"[{profile}]", style="ffpretty.info.codec_name")
 
         width, height = self.data.get("width", None), self.data.get("height", None)
         if width and height:

@@ -189,7 +189,7 @@ requires-dist = [{ name = "rich", specifier = ">=14.0.0" }]
 
 [[package]]
 name = "cxalio-studio-tools"
-version = "0.8.5"
+version = "0.8.6"
 source = { editable = "packages/cxalio-studio-tools" }
 dependencies = [
     { name = "cachetools" },

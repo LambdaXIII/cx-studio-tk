@@ -1,8 +1,8 @@
 from cx_studio import text as tt
-from cx_wealth import WealthHelp
+from cx_wealthy import WealthyHelp
 
 
-class MKHelp(WealthHelp):
+class MKHelp(WealthyHelp):
     def __init__(self, **kwargs):
         super().__init__(prog="ffpretty", **kwargs)
 
