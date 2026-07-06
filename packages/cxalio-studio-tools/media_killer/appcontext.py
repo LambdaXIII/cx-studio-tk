@@ -1,150 +1,201 @@
 from __future__ import annotations
-from argparse import ArgumentParser
-from collections.abc import Sequence, Generator
-from typing import Any, Literal
 
+import argparse
+from dataclasses import dataclass, field
+from typing import Literal
+
+from cx_tools.app.safe_error import SafeError
 from cx_tools.i18n import _
 
 
+@dataclass
 class AppContext:
-    def __init__(self, **kwargs: Any) -> None:
-        self.inputs: list[str] = []
-        self.script_output: str | None = None
-        self.pretending_mode: bool = False
-        self.debug_mode: bool = False
-        self.sort_mode: Literal["source", "preset", "target", "x"] = "x"
-        self.continue_mode: bool = False
-        self.generate: bool = False
-        self.save_script: str | None = None
-        self.show_full_help: bool = False
-        self.force_overwrite: bool = False
-        self.force_no_overwrite: bool = False
-        self.output_dir: str | None = None
-        self.show_help: bool = False
-        self.max_workers: int = 1
+    """命令行参数上下文。
 
-        for k, v in kwargs.items():
-            if k in self.__dict__:
-                self.__dict__[k] = v
+    封装 mediakiller 所有命令行选项的解析结果。
+    唯一入口是 :meth:`from_arguments`，禁止直接构造。
+    """
 
-    def __rich_repr__(self) -> Generator[tuple[str, Any], None, None]:
-        yield from self.__dict__.items()
+    # 输入路径列表（位置参数）
+    inputs: list[str] = field(default_factory=list)
+
+    # 覆盖模式
+    force_overwrite: bool = False  # -y
+    force_no_overwrite: bool = False  # -n
+
+    # 输出目录
+    output_dir: str | None = None  # -o
+
+    # 并发数
+    max_workers: int = 1  # -j
+
+    # 假装模式
+    pretending_mode: bool = False  # -p
+
+    # 继续模式
+    continue_mode: bool = False  # -c
+
+    # 脚本保存
+    save_script: str | None = None  # -s
+
+    # 调试模式
+    debug_mode: bool = False  # -d
+
+    # 帮助
+    show_help: bool = False  # -h
+    show_full_help: bool = False  # --tutorial
+
+    # 生成示例预设
+    generate: str | None = None  # -g
+
+    # 排序模式
+    sort_mode: Literal["source", "preset", "target", "x"] = "source"  # --sort
+
+    @classmethod
+    def from_arguments(cls, arguments: list[str]) -> AppContext:
+        """从命令行参数解析。
+
+        Args:
+            arguments: 命令行参数列表（不含程序名）
+
+        Returns:
+            AppContext: 解析后的上下文
+
+        Raises:
+            SafeError: 参数互斥冲突时抛出
+        """
+        parser = cls._make_parser()
+        parsed = parser.parse_args(arguments)
+
+        # 互斥检查：-y 与 -n 不可同时指定
+        if parsed.force_overwrite and parsed.force_no_overwrite:
+            raise SafeError(_("-y（强制覆盖）与 -n（强制不覆盖）不可同时使用。"))
+
+        # 白名单赋值：只取 dataclass 中声明的字段
+        context = cls()
+        context.inputs = parsed.inputs
+        context.force_overwrite = parsed.force_overwrite
+        context.force_no_overwrite = parsed.force_no_overwrite
+        context.output_dir = parsed.output_dir
+        context.max_workers = parsed.max_workers
+        context.pretending_mode = parsed.pretending_mode
+        context.continue_mode = parsed.continue_mode
+        context.save_script = parsed.save_script
+        context.debug_mode = parsed.debug_mode
+        context.show_help = parsed.show_help
+        context.show_full_help = parsed.show_full_help
+        context.generate = parsed.generate
+        context.sort_mode = parsed.sort_mode
+
+        return context
 
     @staticmethod
-    def __make_parser() -> ArgumentParser:
-        parser = ArgumentParser(
-            # prog="MediaKiller",
-            description=_("MediaKiller 是一个命令行多媒体文件批量处理工具。"),
-            # formatter_class=RichHelpFormatter,
-            epilog=_("—— 来自 Cxalio 工作室工具集。"),
+    def _make_parser() -> argparse.ArgumentParser:
+        """构建内部参数解析器。
+
+        私有方法，不对外暴露 argparse 细节。
+        """
+        parser = argparse.ArgumentParser(
+            prog="mediakiller",
             add_help=False,
         )
 
+        # 位置参数：输入路径
         parser.add_argument(
             "inputs",
-            help=_("多个需要处理的文件路径[dim]（源文件或配置文件）"),
             nargs="*",
-            metavar=_("输入文件"),
+            default=[],
         )
 
+        # 覆盖控制
         parser.add_argument(
-            "-g",
-            "--generate",
-            help=_("生成新的预设文件示例"),
+            "-y",
+            "--overwrite",
             action="store_true",
-            default=False,
-            dest="generate",
+            dest="force_overwrite",
         )
-        parser.add_argument("--save-script", "-s", help=_("将转码任务编写为脚本"))
+        parser.add_argument(
+            "-n",
+            "--no-overwrite",
+            action="store_true",
+            dest="force_no_overwrite",
+        )
+
+        # 输出目录
+        parser.add_argument(
+            "-o",
+            "--output",
+            dest="output_dir",
+        )
+
+        # 并发数
         parser.add_argument(
             "-j",
             "--jobs",
             "--max-workers",
-            help=_("指定最大工作线程数"),
             type=int,
             default=1,
             dest="max_workers",
-            metavar=_("线程数"),
         )
+
+        # 假装模式
+        parser.add_argument(
+            "-p",
+            "--pretend",
+            action="store_true",
+            dest="pretending_mode",
+        )
+
+        # 继续模式
         parser.add_argument(
             "-c",
             "--continue",
             action="store_true",
-            help=_("重新加载上次运行的任务"),
             dest="continue_mode",
         )
 
+        # 脚本保存
         parser.add_argument(
-            "--output",
-            "-o",
-            help=_("指定一个输出目录"),
-            metavar=_("输出目录"),
-            default=None,
-            dest="output_dir",
-        )
-        parser.add_argument(
-            "--sort",
-            help=_("指定任务排序方式"),
-            choices=["source", "preset", "target", "x"],
-            default="x",
-            metavar=_("排序方式代码"),
-            dest="sort_mode",
+            "-s",
+            "--save",
+            dest="save_script",
         )
 
+        # 调试模式
         parser.add_argument(
-            "--overwrite",
-            "-y",
-            help=_("强制覆盖所有输出文件"),
+            "-d",
+            "--debug",
             action="store_true",
-            default=False,
-            dest="force_overwrite",
+            dest="debug_mode",
         )
 
-        parser.add_argument(
-            "--no-overwrite",
-            "-n",
-            help=_("强制启用安全模式（不覆盖已有文件）"),
-            action="store_true",
-            default=False,
-            dest="force_no_overwrite",
-        )
-
+        # 帮助
         parser.add_argument(
             "-h",
             "--help",
-            # action="help",
-            help=_("显示此帮助信息"),
-            dest="show_help",
             action="store_true",
-            default=False,
+            dest="show_help",
         )
         parser.add_argument(
             "--tutorial",
             "--full-help",
             action="store_true",
-            help=_("显示详细教程"),
             dest="show_full_help",
         )
 
+        # 生成示例预设
         parser.add_argument(
-            "-p",
-            "--pretend",
-            help=_("以[italic dim]假装模式[/]模拟运行 :)"),
-            action="store_true",
-            dest="pretending_mode",
+            "-g",
+            "--generate",
+            dest="generate",
         )
+
+        # 排序模式
         parser.add_argument(
-            "-d",
-            "--debug",
-            help=_("显示调试信息"),
-            action="store_true",
-            dest="debug_mode",
+            "--sort",
+            default="source",
+            choices=["source", "preset", "target", "x"],
+            dest="sort_mode",
         )
 
         return parser
-
-    @classmethod
-    def from_arguments(cls, arguments: Sequence[str] | None = None) -> AppContext:
-        parser = cls.__make_parser()
-        args = parser.parse_args(arguments)
-        return cls(**vars(args))

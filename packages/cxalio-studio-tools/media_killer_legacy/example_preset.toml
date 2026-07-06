@@ -1,0 +1,52 @@
+# MediaKiller 使用的配置文件
+
+[general]
+# 此节用于设置配置文件的基本信息
+preset_id = 'example-preset'
+name = "示例"
+description = "不进行转码，只是拷贝音视频流"
+ffmpeg = "ffmpeg"
+
+# overwrite 为 true 时，将会自动覆盖目标文件。
+# 如果为 false，将会自动跳过有冲突的文件
+overwrite = true
+
+# 如果你不懂的话，不要修改下面这两行
+hardware_accelerate = "auto"
+options = "-hide_banner"
+
+[custom]
+# 再这一节中可以设置自定义的变量
+# 在其它的小节中则可以引用
+v1 = "自定义变量1"
+
+[source]
+# 这一节设置源文件探测时的过滤
+# suffix_includes 指定一系列增加的扩展名
+# suffix_excludes 指定一系列不需要的扩展名
+# ignore_default_suffixes 为 false 时，前两项改动将会应用于内置的扩展名列表
+# 为 true 时则会忽略内置列表，所以此时必须要指定前两项
+suffix_includes = []
+suffix_excludes = []
+ignore_default_suffixes = false
+
+[target]
+# 这一节设置导出的目标文件的信息
+# suffix 为目标扩展名
+# folder 为输出内容应用的子目录，默认使用配置文件的标题新建文件夹
+# keep_parent_level 设置保留源文件父目录的层级，默认不保留
+suffix = "mov"
+folder = "${preset:name}"
+keep_parent_level = 0
+
+# input 是输入列表，默认情况下只有一个输入，即为源文件
+# 可以添加更多的 [[input]] 增加每个任务的输入，并使用变量引用其它的文件
+[[input]]
+filename = "${source:fullpath}"
+options = ""
+
+# output 是输出列表，默认情况下保留源文件名并替换扩展名输出
+# 可以添加更多的 [[output]] 使得每个任务可以输出多个文件
+[[output]]
+filename = "${target:fullpath}"
+options = "-c:v copy -c:a copy"
