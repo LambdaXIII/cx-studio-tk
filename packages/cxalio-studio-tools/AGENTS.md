@@ -10,11 +10,13 @@
 
 ### 三者的选择
 
-|函数|通道|何时使用|
-|---|---|---|
-|`appenv.say()`|stderr|始终显示的用户提示，如操作结果、错误信息、完成状态|
-|`appenv.whisper()`|stderr|仅 debug 模式（`-d`）下显示，如内部诊断细节|
-|内置 `print()`|stdout|用户需要 `|` 管道获取的数据内容，如 pretend 模式下的输出结果|
+| 函数               | 通道   | 何时使用                                                 |
+| ------------------ | ------ | -------------------------------------------------------- |
+| `appenv.say()`     | stderr | 始终显示的用户提示，如操作结果、错误信息、完成状态       |
+| `appenv.whisper()` | stderr | 仅 debug 模式（`-d`）下显示，如内部诊断细节              |
+| 内置 `print()`     | stdout | 用户需要 管道获取的数据内容，如 pretend 模式下的输出结果 |
+
+> 通常不直接使用 print 函数，而是在appenv中初始化一个新的Console负责stdout输出
 
 ### 规则
 
@@ -36,6 +38,7 @@ self.say(r.Group(*banners))
 ```
 
 要点：
+
 - 每个元素用 `r.Text(style=...)` 包裹，赋予显式样式，阻止高亮器覆盖。
 - 使用 `self.say()` 输出，保持输出通道统一。
 - 不使用 `console.print(group, style=..., highlight=False)` 绕过 `say()`。
@@ -87,6 +90,7 @@ def __exit__(self, exc_type, exc_val, exc_tb) -> bool | None:
 ```
 
 要点：
+
 - `super().__exit__()` 始终优先执行，确保 `appenv.stop()`（progress 清理、临时目录删除等）不因异常类型跳过。
 - `appenv.stop()` 幂等，多次调用无害。
 - 返回 `True` 抑制异常传播（用户提示已由 `say()` 输出），返回 `False` 或 `None` 则异常继续传播。

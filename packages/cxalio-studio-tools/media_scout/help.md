@@ -29,7 +29,7 @@ mediascout "工程文件1.xml" "工程文件2.fcpxml" "工程文件3.edl" "工�
 mediascout "序列文件.xml" > "输出文件.txt"
 ```
 
-mediascout 在默认情况下有一些默认的特性：
+mediascout 在默认情况下还有一些特性：
 
 - 工程文件中包含的文件路径将会按照文件中本身的顺序输出
 - 如果指定了多个工程文件，将会按照输入的顺序逐个解析
@@ -39,6 +39,22 @@ mediascout 在默认情况下有一些默认的特性：
 
 了解这些特性以避免工具的输出不符合你的预期。
 另外，这些特性也可以通过选项进行定制。
+
+## 输出设计
+
+mediascout **严格区分标准输出（stdout）和标准错误输出（stderr）**——
+所有文件路径输出到 stdout，而 banner、进度提示、警告等信息走 stderr。
+这意味着你可以放心使用管道或重定向来捕获文件列表，
+而不必担心被提示内容污染。
+
+```shell
+mediascout "工程文件.xml" | some-command           # 管道传递
+mediascout "工程文件.xml" > 列表.txt                 # 重定向到文件
+mediascout "工程文件.xml" 2> 错误日志.txt            # 单独捕获错误信息
+```
+
+即使执行过程中有警告或错误输出到 stderr，
+stdout 中的文件列表仍然是干净可用的。
 
 ## 高级选项
 

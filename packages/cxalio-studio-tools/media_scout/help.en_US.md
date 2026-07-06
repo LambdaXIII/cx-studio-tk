@@ -40,6 +40,22 @@ mediascout has some default characteristics:
 Be aware of these characteristics to ensure the tool's output meets your expectations.
 Additionally, these characteristics can be customized through options.
 
+## Output Design
+
+mediascout **strictly separates stdout from stderr** —
+all file paths go to stdout, while banners, progress messages, warnings, and the like go to stderr.
+This means you can safely pipe or redirect the output to capture the file list
+without worrying about contamination from informational messages.
+
+```shell
+mediascout "project.xml" | some-command              # pipe
+mediascout "project.xml" > file-list.txt             # redirect to file
+mediascout "project.xml" 2> error-log.txt            # capture errors separately
+```
+
+Even if warnings or errors are emitted to stderr during execution,
+the file list on stdout remains clean and usable.
+
 ## Advanced Options
 
 Media Scout provides various options to customize its behavior
