@@ -1,5 +1,13 @@
 # cx-wealth
 
+> **⚠️ DEPRECATED / 已弃用**
+>
+> This package is **deprecated** since **v0.9.0**. No new features or maintenance updates will be provided.
+>
+> Please migrate to **[cx-wealthy](../cx-wealthy)** — the newly designed Rich UI component library, independent of cx-studio, lighter and more flexible.
+>
+> 本包自 v0.9.0 起正式弃用，不再接收新功能或维护更新。请迁移至 **cx-wealthy**。
+
 **语言 / Languages**: [中文](README.md) | [English](README.en_US.md)
 
 A terminal UI component library built on [Rich](https://github.com/Textualize/rich), providing extensions for CLI applications including a declarative help system, label rendering, detail panels, and adaptive layouts.

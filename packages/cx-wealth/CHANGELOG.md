@@ -1,5 +1,11 @@
 # Changelog
 
+### v0.9.0
+
+- **Deprecated**: 本包已正式标记为弃用，后续不再维护，迁移至 `cx-wealthy`
+- 导入包时自动发出 `DeprecationWarning`，提示用户迁移到 `cx-wealthy`
+- 包元数据标记为 `Development Status :: 7 - Inactive`
+
 ### v0.8.0.1
 
 - hotfix: wheel 构建缺少 packages 配置，导致所有 Python 模块未打包进 wheel
