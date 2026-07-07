@@ -7,7 +7,7 @@
 from rich import box, markup, protocol
 from rich.align import Align
 from rich.columns import Columns
-from rich.console import Console, Group
+from rich.console import Console, Group, RenderableType
 from rich.markdown import Markdown
 from rich.measure import Measurement
 from rich.padding import Padding
@@ -46,6 +46,7 @@ __all__ = [
     "Measurement",
     "Segment",
     "protocol",
+    "RenderableType",
     "Progress",
     "TaskID",
     "SpinnerColumn",

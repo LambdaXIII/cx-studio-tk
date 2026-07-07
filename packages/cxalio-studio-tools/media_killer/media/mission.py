@@ -20,7 +20,7 @@ import ulid
 from cx_studio.collectiontools import iter_with_separator
 from cx_studio.filesystem import get_basename
 from cx_tools.i18n import _
-from cx_wealth import rich_types as r
+from cx_wealthy import rich_types as r
 
 
 @dataclass(frozen=True)
