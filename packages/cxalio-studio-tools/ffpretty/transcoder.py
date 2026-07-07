@@ -120,7 +120,7 @@ class Transcoder:
             )
 
         @self._ffmpeg.on("terminated")
-        def on_terminated():
+        def on_terminated(exit_code: int, stderr_lines: list[str]) -> None:
             appenv.progress.update(
                 self._task_id, description=f"{summary}[cx.error]转码失败[/]"  # type: ignore[arg-type]
             )

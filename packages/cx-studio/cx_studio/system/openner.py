@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from .corss_runner import CrossRunner
+from .cross_runner import CrossRunner
 from .platform import SystemType
 
 __all__ = ["system_open"]

@@ -26,7 +26,7 @@ _TAG_RE: re.Pattern[str] = re.compile(r"\$\{([^}]+)\}")
 _REQUIRED_SECTIONS: tuple[str, ...] = ("general", "source", "target", "input", "output")
 
 # general 节必需字段
-_REQUIRED_GENERAL: tuple[str, ...] = ("id", "name")
+_REQUIRED_GENERAL: tuple[str, ...] = ("preset_id", "name")
 
 
 class PresetLoader:
@@ -175,18 +175,17 @@ class PresetLoader:
         target = data["target"]
 
         return Preset(
-            id=general["id"],
+            id=general["preset_id"],
             name=general["name"],
             description=general.get("description", ""),
             path=path.resolve(),
             ffmpeg=general.get("ffmpeg", "ffmpeg"),
             overwrite=general.get("overwrite", False),
-            hardware_accelerate=general.get("hardware_accelerate", "auto"),
             options=general.get("options", ""),
             source_suffixes=Preset.compute_source_suffixes(
-                ignore_default=source.get("ignore_default_suffixes", False),
-                includes=source.get("suffix_includes", []),
-                excludes=source.get("suffix_excludes", []),
+                ignore_default_suffixes=source.get("ignore_default_suffixes", False),
+                suffix_includes=source.get("suffix_includes", []),
+                suffix_excludes=source.get("suffix_excludes", []),
             ),
             target_suffix=target.get("suffix", ""),
             target_folder=Path(target.get("folder", ".")),

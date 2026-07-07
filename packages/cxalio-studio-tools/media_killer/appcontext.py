@@ -4,8 +4,12 @@ import argparse
 from dataclasses import dataclass, field
 from typing import Literal
 
-from cx_tools.app.safe_error import SafeError
+from cx_tools.app import SafeError
 from cx_tools.i18n import _
+
+# 覆盖模式三态
+OVERWRITE_DANGER = "danger"  # -y 指定，强制覆盖
+OVERWRITE_SAFE = "safe"  # -n 指定，安全模式
 
 
 @dataclass
@@ -50,6 +54,21 @@ class AppContext:
 
     # 排序模式
     sort_mode: Literal["source", "preset", "target", "x"] = "source"  # --sort
+
+    @property
+    def overwrite_mode(self) -> str | None:
+        """将 ``-y``/``-n`` 解析为三态值。
+
+        Returns:
+            ``OVERWRITE_DANGER``: ``-y`` 已指定，强制覆盖
+            ``OVERWRITE_SAFE``: ``-n`` 已指定，安全模式
+            ``None``: 两者均未指定
+        """
+        if self.force_no_overwrite:
+            return OVERWRITE_SAFE
+        if self.force_overwrite:
+            return OVERWRITE_DANGER
+        return None
 
     @classmethod
     def from_arguments(cls, arguments: list[str]) -> AppContext:

@@ -11,10 +11,10 @@ from cx_studio import text as tt
 from cx_wealthy import WealthyHelp
 from cx_wealthy import rich_types as r
 
-__all__ = ["MKHelpInfo"]
+__all__ = ["AppHelp"]
 
 
-class MKHelpInfo(WealthyHelp):
+class AppHelp(WealthyHelp):
     """media_killer 帮助信息。
 
     继承 :class:`WealthyHelp`，使用 ``add_group`` / ``add_action``
@@ -36,7 +36,7 @@ class MKHelpInfo(WealthyHelp):
             "inputs",
             nargs="+",
             metavar="FILE",
-            description=_(
+            detail=_(
                 "指定（多个）需要处理的文件，包括[u]预设文件[/]和[u]源文件路径[/]。"
             ),
         )
@@ -47,12 +47,12 @@ class MKHelpInfo(WealthyHelp):
             "-o",
             "--output",
             metavar="DIR",
-            description=_("指定目标文件夹，覆盖预设中的目标目录。"),
+            detail=_("指定目标文件夹，覆盖预设中的目标目录。"),
         )
         trans_opts.add_action(
             "--sort",
             metavar="source|preset|target|x",
-            description=tt.auto_unwrap(
+            detail=tt.auto_unwrap(
                 _(
                     """设置任务的排序模式。
                     四种模式分别为[u]按源文件路径[/]、[u]按预设[/]、[u]按目标文件路径[/]、[u]按输入顺序（默认）[/]。"""
@@ -64,20 +64,18 @@ class MKHelpInfo(WealthyHelp):
             "--jobs",
             "--max-workers",
             metavar="NUM",
-            description=tt.auto_unwrap(_("""设置并行工作进程的数量，默认为 1。
+            detail=tt.auto_unwrap(_("""设置并行工作进程的数量，默认为 1。
                     不建议设置大于 2 的数值，除非你知道你在干什么。""")),
         )
         trans_opts.add_action(
             "-y",
             "--overwrite",
-            description=_("启用[red bold]强制覆盖模式[/]，忽略预设文件中的覆盖选项。"),
+            detail=_("启用[red bold]强制覆盖模式[/]，忽略预设文件中的覆盖选项。"),
         )
         trans_opts.add_action(
             "-n",
             "--no-overwrite",
-            description=_(
-                "启用[green bold]安全模式[/]，无论如何也不覆盖已有目标文件。"
-            ),
+            detail=_("启用[green bold]安全模式[/]，无论如何也不覆盖已有目标文件。"),
         )
 
         # ── 其它操作 ──
@@ -87,39 +85,35 @@ class MKHelpInfo(WealthyHelp):
             "--generate",
             metavar="PRESET",
             nargs="+",
-            description=_("以示例内容生成预设文件。[uu]示例文件不可直接运行！[/]"),
+            detail=_("以示例内容生成预设文件。[uu]示例文件不可直接运行！[/]"),
         )
         other_ops.add_action(
             "-s",
             "--save",
             metavar="FILE",
-            description=_("将转码任务保存为脚本文件，不执行转码。"),
+            detail=_("将转码任务保存为脚本文件，不执行转码。"),
         )
         other_ops.add_action(
             "-c",
             "--continue",
-            description=_(
+            detail=_(
                 "加载上次的[u]所有[/]转码任务并叠加到本次任务中。\n建议附加 -n 选项以避免覆盖已完成的输出。"
             ),
         )
 
         # ── 杂项 ──
         misc = self.add_group(_("杂项"))
-        misc.add_action("-h", "--help", description=_("显示此帮助信息"))
+        misc.add_action("-h", "--help", detail=_("显示此帮助信息"))
         misc.add_action(
             "--tutorial",
             "--full-help",
-            description=_("显示完整的教程内容"),
+            detail=_("显示完整的教程内容"),
         )
-        misc.add_action(
-            "-d", "--debug", description=_("开启调试模式以显示更多后台信息")
-        )
+        misc.add_action("-d", "--debug", detail=_("开启调试模式以显示更多后台信息"))
         misc.add_action(
             "-p",
             "--pretend",
-            description=_(
-                "启用[cx.mk.mode.simulate]模拟运行模式[/]，不执行任何文件操作。"
-            ),
+            detail=_("启用[cx.mk.mode.simulate]模拟运行模式[/]，不执行任何文件操作。"),
         )
 
         self.epilog = (
@@ -129,7 +123,7 @@ class MKHelpInfo(WealthyHelp):
     @staticmethod
     def show_help(console: r.Console) -> None:
         """显示简要帮助。"""
-        console.print(MKHelpInfo())
+        console.print(AppHelp())
 
     @staticmethod
     def show_full_help(console: r.Console) -> None:

@@ -1,6 +1,8 @@
 """源文件展开器。
 
-将命令行输入的源路径展开为最终媒体文件列表。
+处理命令行输入的源路径展开为最终媒体文件列表。
+三阶段展开：项目文件解析（委托 media_scout.InspectorChain）→ 目录递归 → 后缀过滤。
+后缀过滤集合由 Application 合并所有 Preset 的 source_suffixes 后传入。
 """
 
 from collections.abc import Generator
@@ -101,6 +103,7 @@ class SourceExpander:
         # 调用 scout_chain 解析项目文件
         info = InspectorInfo(project_file)
         for media_path in self._scout_chain.inspect(info):
+            media_path = Path(media_path)
             # media_path 可能是相对路径，需要基于项目文件目录解析
             if not media_path.is_absolute():
                 media_path = (project_file.parent / media_path).resolve()

@@ -13,6 +13,8 @@ MEDIA_KILLER_STYLES: dict[str, str] = {
     "cx.mk.mission.counter": "bright_black",
     "cx.mk.mission.metadata": "dim green",
     "cx.mk.mission.name": "yellow",
+    # Preset 标识（与 cx.mk.mission.name 对称：预设名 cyan / 任务名 yellow）
+    "cx.mk.preset.name": "cyan",
     "cx.mk.mission.source_dir": "bright_black",
     # 状态
     "cx.mk.status.success": "green",
@@ -22,9 +24,8 @@ MEDIA_KILLER_STYLES: dict[str, str] = {
     # 模式标签
     "cx.mk.mode.overwrite": "red",
     "cx.mk.mode.no_overwrite": "green",
-    "cx.mk.mode.hardware": "cyan",
     # Banner
-    "cx.mk.banner": "bold cyan",
+    "cx.mk.banner": "bold red",
 }
 
 media_killer_theme = Theme({**cx_default_theme.styles, **MEDIA_KILLER_STYLES})

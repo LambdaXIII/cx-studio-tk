@@ -1,6 +1,7 @@
 """MediaInfo 值对象模块。
 
 承载 ffprobe 解析后的媒体元数据，是 MediaProber 和 MediaDB 之间的统一数据载体。
+提供序列化/反序列化方法，支持与 FileInfoCache 交互。
 """
 
 from dataclasses import dataclass, asdict

@@ -1,7 +1,8 @@
 """Mission 列表 XML 持久化存储。
 
 MissionStore 负责将 Mission 列表序列化/反序列化为 XML 文件，
-保持与旧版 last_missions.xml 的格式兼容。
+保持与旧版 last_missions.xml 的格式兼容，供 -c/--continue 使用。
+因 Mission 内部路径均为绝对路径，continue 文件自然保存绝对路径。
 """
 
 from __future__ import annotations
@@ -13,7 +14,7 @@ from pathlib import Path
 import ulid
 
 from cx_studio.filesystem import ensure_parents
-from ..mission import InputSpec, Mission, OutputSpec
+from ..media import InputSpec, Mission, OutputSpec
 
 
 def _text(element: ET.Element | None) -> str | None:
@@ -83,7 +84,6 @@ class MissionStore:
         _add_child(node, "source", str(mission.source))
         _add_child(node, "standard_target", str(mission.standard_target))
         _add_child(node, "overwrite", "true" if mission.overwrite else "false")
-        _add_child(node, "hardware_accelerate", mission.hardware_accelerate or "")
         _add_child(node, "options", " ".join(mission.options))
 
         inputs_node = ET.SubElement(node, "inputs")
@@ -117,8 +117,6 @@ class MissionStore:
         overwrite_text = get_text("overwrite")
         overwrite = overwrite_text == "true" if overwrite_text else False
 
-        hardware_accelerate = get_text("hardware_accelerate") or None
-
         options = _parse_options(get_text("options"))
 
         preset_id = get_text("preset_id") or None
@@ -146,7 +144,6 @@ class MissionStore:
             source=source,
             standard_target=standard_target,
             overwrite=overwrite,
-            hardware_accelerate=hardware_accelerate,
             options=options,
             inputs=inputs,
             outputs=outputs,

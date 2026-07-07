@@ -4,8 +4,8 @@
 无锁、无状态、支持并发。
 """
 
-import json
 import subprocess
+import json
 from fractions import Fraction
 from pathlib import Path
 
@@ -173,7 +173,7 @@ def _safe_int(value: object) -> int | None:
     if value is None:
         return None
     try:
-        v = int(value)
+        v = int(value)  # type: ignore[arg-type]
         return v
     except (ValueError, TypeError):
         return None

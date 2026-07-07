@@ -28,22 +28,18 @@ class PresetTagReplacer:
         source: Path,
         output_dir: Path | None = None,
     ) -> None:
-        """初始化标签替换器。
-
-        Args:
-            preset: 预设对象
-            source: 源文件路径
-            output_dir: 输出目录。若为 None，使用 CWD。
-        """
         self._preset = preset
         self._source = Path(source).resolve()
         self._output_dir = (output_dir or Path.cwd()).resolve()
 
-        # 计算目标路径
+        # 第一步：构建不含 target 的 replacer
+        self._replacer = self._build_replacer(with_target=False)
+
+        # 第二步：计算目标路径（target_folder 通过 read_value 替换标签）
         self._target = self._compute_target()
 
-        # 初始化标签替换器
-        self._replacer = self._build_replacer()
+        # 第三步：安装 target provider（路径已完全解析）
+        self._replacer.install_provider("target", PathInfoProvider(self._target))
 
     def _compute_target(self) -> Path:
         """计算目标文件路径。
@@ -51,9 +47,10 @@ class PresetTagReplacer:
         Returns:
             Path: 完整的目标文件路径
         """
-        # 1. 确定输出基础目录
+        # 1. 确定输出基础目录（target_folder 先经 read_value 替换标签）
         output_dir = self._output_dir
-        target_folder = Path(self._preset.target_folder)
+        target_folder_str = self.read_value(str(self._preset.target_folder))
+        target_folder = Path(target_folder_str)
         if target_folder.is_absolute():
             output_dir = target_folder
         else:
@@ -70,20 +67,25 @@ class PresetTagReplacer:
         # 4. 完整目标路径
         return Path(output_dir, *parent_dirs, target_name).resolve()
 
-    def _build_replacer(self) -> TagReplacer:
+    def _build_replacer(self, with_target: bool = True) -> TagReplacer:
         """构建标签替换器并注册 providers。
+
+        Args:
+            with_target: 是否安装 target provider。首次构建时为 False，
+                target 路径尚未解析完成；计算完毕后再手动安装。
 
         Returns:
             TagReplacer: 配置好的替换器实例
         """
         replacer = TagReplacer()
 
-        # 注册 providers
+        # 注册 providers（target 依赖 _target，首次构建时跳过）
         replacer.install_provider("preset", self._provide_preset_info)
         replacer.install_provider("profile", self._provide_preset_info)  # 别名
         replacer.install_provider("custom", self._provide_custom_values)
         replacer.install_provider("source", PathInfoProvider(self._source))
-        replacer.install_provider("target", PathInfoProvider(self._target))
+        if with_target:
+            replacer.install_provider("target", PathInfoProvider(self._target))
         replacer.install_provider("sep", os.sep)
 
         return replacer

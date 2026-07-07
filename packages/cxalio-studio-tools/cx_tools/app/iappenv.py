@@ -3,6 +3,7 @@ from abc import ABC
 from typing import Self
 
 from rich.console import Console
+from rich.text import Text
 from rich.highlighter import RegexHighlighter
 
 from cx_tools.i18n import _
@@ -90,12 +91,14 @@ class IAppEnvironment(ABC):
 
         @self.interrupt_handler.on("first_triggered")
         def __when_wanna_quit():
-            self.whisper(f"[cx.error]{_('触发中断信号…')}[/]")
+            self.say(
+                f"[cx.warning]{_('正在取消运行中的任务，再次按下 Ctrl+C 取消全部任务')}[/]"
+            )
             self.wanna_quit_event.set()
 
         @self.interrupt_handler.on("second_triggered")
         def __when_really_wanna_quit():
-            self.whisper(f"[cx.error]{_('检测到强制中断信号…')}[/]")
+            self.say(f"[cx.error]{_('正在中止执行')}[/]")
             self.really_wanna_quit_event.set()
 
     def handle_interrupt(self, _sig, _frame) -> None:
@@ -160,9 +163,15 @@ class IAppEnvironment(ABC):
         适合内部诊断信息、次要细节、开发日志。
         """
         if self.is_debug_mode_on():
-            kwargs["style"] = "dim"
             kwargs["highlight"] = False
-            self.console.print(*args, **kwargs)
+            kwargs["style"] = "dim"
+            args_list = list(args)
+            for i, a in enumerate(args_list):
+                if isinstance(a, str):
+                    t = Text.from_markup(a)
+                    t.stylize("dim")
+                    args_list[i] = t
+            self.console.print(*args_list, **kwargs)
 
     @staticmethod
     def is_user_admin() -> bool:

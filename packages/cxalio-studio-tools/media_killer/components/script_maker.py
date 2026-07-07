@@ -1,14 +1,14 @@
-"""ScriptMaker - 脚本生成器。
+"""脚本生成器。
 
-接收 Mission 列表，输出 batch/shell 脚本，包含完整 ffmpeg 命令序列。
-脚本中直接使用 Mission 的最终目标文件名，不体现临时文件机制。
+将 Mission 列表编译为 batch/shell 脚本，脚本直接使用 Mission 最终目标文件名，
+不体现临时文件机制。输出格式按平台选择 .bat/.sh。
 """
 
 import sys
 from collections.abc import Iterable
 from pathlib import Path
 
-from ..mission import Mission
+from ..media import Mission
 
 
 class ScriptMaker:
@@ -109,12 +109,11 @@ class ScriptMaker:
         """
         args: list[str] = [mission.ffmpeg]
 
-        # 硬件加速
-        if mission.hardware_accelerate:
-            args.extend(["-hwaccel", mission.hardware_accelerate])
-
-        # 全局 options
+        # 全局 options（不含 -y/-n，由 Mission.__post_init__ 滤除）
         args.extend(mission.options)
+
+        # 覆盖标志（脚本直接操作目标文件，必须明确策略）
+        args.append("-y" if mission.overwrite else "-n")
 
         # 输入文件组
         for input_spec in mission.inputs:

@@ -19,14 +19,14 @@ from datetime import datetime
 from pathlib import Path
 
 from cx_studio.core.cx_time import CxTime
+from cx_studio.core.cx_filesize import FileSize
 from cx_studio.filesystem import FileSizeCounter
 from cx_tools.app import ConfigManager, IAppEnvironment
 from cx_tools.i18n import _
 from cx_wealthy import rich_types as r
 
-from .appcontext import AppContext
-from .components.exception import SafeError
-from .prober.media_db import MediaDB
+from .appcontext import AppContext, OVERWRITE_DANGER, OVERWRITE_SAFE
+from .media import MediaDB
 from .theme import media_killer_theme
 
 
@@ -57,7 +57,7 @@ class AppEnv(IAppEnvironment):
 
         # 应用元数据
         self.app_name = "MediaKiller"
-        self.app_version = "2.0.0"
+        self.app_version = "0.9"
         self.app_description = _("媒体文件批量转码工具")
 
         # 合并自定义主题
@@ -96,6 +96,9 @@ class AppEnv(IAppEnvironment):
 
         # Garbage 文件集合
         self._garbage_files: set[Path] = set()
+        # 文件处理清单
+        self.processed_files: set[Path] = set()
+        self.generated_files: set[Path] = set()
 
         # 应用启动时间
         self._app_start_time: datetime
@@ -156,15 +159,11 @@ class AppEnv(IAppEnvironment):
         output_size = self.output_filesize_counter.total_size
         size_report = ""
         if input_size.total_bytes > 0:
-            size_report += (
-                f"[dim]{_('输入文件总大小:')} [cx.number]{input_size.pretty_string}[/]"
-            )
+            size_report += f"[dim]{_('输入文件总大小:')} [cx.number]{FileSize.from_bytes(input_size.total_bytes).pretty_string}[/]"
         if output_size.total_bytes > 0:
             if size_report:
                 size_report += "  "
-            size_report += (
-                f"[dim]{_('输出文件总大小:')} [cx.number]{output_size.pretty_string}[/]"
-            )
+            size_report += f"[dim]{_('输出文件总大小:')} [cx.number]{FileSize.from_bytes(output_size.total_bytes).pretty_string}[/]"
         if size_report:
             self.say(size_report)
 
@@ -211,10 +210,15 @@ class AppEnv(IAppEnvironment):
         tags = []
         if self.context.pretending_mode:
             tags.append(f"[cx.mk.mode.simulate]{_('模拟运行')}[/]")
-        if self.context.force_no_overwrite:
-            tags.append(f"[cx.mk.mode.no_overwrite]{_('安全模式')}[/]")
-        elif self.context.force_overwrite:
-            tags.append(f"[cx.mk.mode.overwrite]{_('强制覆盖模式')}[/]")
+        mode = self.context.overwrite_mode
+        if mode == OVERWRITE_SAFE:
+            tags.append(
+                f"[cx.mk.mode.no_overwrite]{_('安全模式启动，将拒绝任何覆盖操作')}[/]"
+            )
+        elif mode == OVERWRITE_DANGER:
+            tags.append(
+                f"[cx.mk.mode.overwrite]{_('覆盖模式已启动，将自动覆盖任何输出')}[/]"
+            )
         if tags:
             description = r.Text.from_markup(" · ".join(tags))
         banners.append(r.Align.center(description))
@@ -234,69 +238,50 @@ class AppEnv(IAppEnvironment):
         """清理 garbage 文件。
 
         删除所有已登记的 garbage 文件，输出清理统计。
+        Windows 上已终止的 ffmpeg 进程可能尚未完全释放文件句柄，
+        遇到 PermissionError 时最多重试 3 次（间隔 0.5 秒），
+        仍失败则跳过该文件并输出警告。
         """
         if not self._garbage_files:
             return
 
         self.say(f"[dim]{_('正在清理失败的目标文件...')}[/]")
         for filename in self._garbage_files:
-            filename.unlink(missing_ok=True)
-            self.whisper(f"  [cx.filepath]{filename}[/] [cx.error]{_('已删除')}[/]")
-            if self.context.debug_mode:
-                time.sleep(0.1)
+            self.whisper(f"[dim]{_('删除垃圾文件')}[/] [cx.filepath]{filename}[/]")
+            self._unlink_with_retry(filename)
 
         self.say(
-            _("已清理 {count} 个目标文件。").format(count=len(self._garbage_files))
+            _("已清理 {count} 个失败的垃圾文件。").format(
+                count=len(self._garbage_files)
+            )
         )
         self._garbage_files.clear()
 
-    def check_overwritable_file(self, filename: Path, check_only: bool = False) -> bool:
-        """检查文件是否可覆盖。
-
-        根据当前覆盖模式（-y/-n）判断文件是否可覆盖。
-        若不可覆盖且 check_only=False，抛出 SafeError。
+    @staticmethod
+    def _unlink_with_retry(
+        filename: Path, max_retries: int = 3, delay: float = 0.5
+    ) -> None:
+        """删除文件，遇 PermissionError 重试。
 
         Args:
-            filename: 文件路径
-            check_only: 若为 True，仅返回判断结果，不抛出异常
-
-        Returns:
-            True 若文件可覆盖（不存在或强制覆盖模式）
-
-        Raises:
-            SafeError: 若文件已存在且不可覆盖，且 check_only=False
+            filename: 要删除的文件路径
+            max_retries: 最大重试次数
+            delay: 重试间隔（秒）
         """
-        existed = filename.exists()
-        result = not existed
-
-        if self.context.force_overwrite:
-            result = True
-        if self.context.force_no_overwrite:
-            result = False
-
-        if not check_only and not result:
-            if self.context.force_no_overwrite:
-                raise SafeError(
-                    _(
-                        "文件 {name} 已存在，请取消 --no-overwrite 选项或指定其它文件名。"
-                    ).format(name=filename)
-                )
-            elif not self.context.force_overwrite:
-                raise SafeError(
-                    _(
-                        "文件 {name} 已存在，请使用 --overwrite 选项尝试覆盖或指定其它文件名。"
-                    ).format(name=filename)
-                )
-            raise SafeError(
-                _("文件 {name} 已存在，或指定其它文件名。").format(name=filename)
-            )
-
-        if not check_only and result and existed:
-            self.say(
-                f"[dim red]{_('文件 {name} 已存在，将强制覆盖。').format(name=filename)}[/]"
-            )
-
-        return result
+        for attempt in range(max_retries):
+            try:
+                filename.unlink(missing_ok=True)
+                return
+            except PermissionError:
+                if attempt < max_retries - 1:
+                    time.sleep(delay)
+                else:
+                    appenv.say(
+                        f"[cx.warning]{_('无法删除文件（可能仍被占用）: {path}').format(path=filename)}[/]"
+                    )
+            except OSError:
+                # 其他文件系统错误也跳过，不阻塞清理流程
+                break
 
     def pretending_sleep(self, interval: float = 0.2) -> None:
         """模拟运行模式下的同步睡眠。

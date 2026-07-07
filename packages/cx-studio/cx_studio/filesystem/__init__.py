@@ -10,3 +10,4 @@ from .path_expander import *
 from .encoding_detector import *
 
 from .cx_pathutils import *
+from .cx_filesize_counter import *

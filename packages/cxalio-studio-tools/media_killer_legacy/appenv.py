@@ -11,7 +11,7 @@ from cx_tools.app import IAppEnvironment, ConfigManager
 from cx_tools.i18n import _
 from cx_studio.core.cx_time import CxTime
 from cx_wealth import rich_types as r
-from media_killer.components.exception import SafeError
+from cx_tools.app import SafeError
 from .appcontext import AppContext
 
 

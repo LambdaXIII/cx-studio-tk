@@ -12,8 +12,7 @@ ffmpeg = "ffmpeg"
 overwrite = true
 
 # 如果你不懂的话，不要修改下面这两行
-hardware_accelerate = "auto"
-options = "-hide_banner"
+options = "-hwaccel auto -hide_banner"
 
 [custom]
 # 再这一节中可以设置自定义的变量

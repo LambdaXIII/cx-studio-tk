@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from ..mission import InputSpec, Mission, OutputSpec
+from ...media import InputSpec, Mission, OutputSpec
 from .preset import Preset
 from .tag_replacer import PresetTagReplacer
 
@@ -72,16 +72,15 @@ class MissionMaker:
         self,
         source: Path,
         output_dir: Path | None = None,
-        force_overwrite: bool = False,
-        force_no_overwrite: bool = False,
+        overwrite_mode: str | None = None,
     ) -> Mission:
         """生成 Mission。
 
         Args:
             source: 源文件路径
             output_dir: 输出目录。若为 None，使用 CWD。
-            force_overwrite: 强制覆盖（-y）
-            force_no_overwrite: 强制不覆盖（-n）
+            overwrite_mode: 覆盖模式三态。``None`` 沿用 preset 设置，
+                ``"danger"`` 强制覆盖，``"safe"`` 禁止覆盖。
 
         Returns:
             Mission: 生成的 Mission 对象
@@ -109,11 +108,11 @@ class MissionMaker:
             opts = replacer.read_value_as_list(template.options)
             outputs.append(OutputSpec(filename=filename, options=opts))
 
-        # 覆盖逻辑：命令行参数优先于 Preset 配置
+        # 覆盖逻辑：overwrite_mode 优先于 Preset 配置
         overwrite = self._preset.overwrite
-        if force_overwrite:
+        if overwrite_mode == "danger":
             overwrite = True
-        if force_no_overwrite:
+        elif overwrite_mode == "safe":
             overwrite = False
 
         return Mission(
@@ -121,7 +120,6 @@ class MissionMaker:
             source=source.resolve(),
             standard_target=replacer.standard_target,
             overwrite=overwrite,
-            hardware_accelerate=self._preset.hardware_accelerate or "auto",
             options=list(options),
             inputs=inputs,
             outputs=outputs,
