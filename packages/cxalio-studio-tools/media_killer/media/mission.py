@@ -18,7 +18,7 @@ from pathlib import Path
 import ulid
 
 from cx_studio.collectiontools import iter_with_separator
-from cx_studio.filesystem import get_basename
+from cx_studio.filesystem import PathUtils
 from cx_tools.i18n import _
 from cx_wealthy import rich_types as r
 
@@ -92,7 +92,7 @@ class Mission:
     @property
     def name(self) -> str:
         """返回源文件名（不含扩展名）。"""
-        return get_basename(self.source)
+        return PathUtils.get_basename(self.source)
 
     def __rich__(self) -> r.Text:
         """渲染 Mission 的完整标识行。"""

@@ -18,7 +18,7 @@ from typing import override
 
 from cx_studio.core.cx_time import CxTime
 from cx_studio.core.cx_filesize import FileSize
-from cx_studio.filesystem import force_suffix
+from cx_studio.filesystem import PathUtils
 from cx_tools.app import IApplication, SafeError, try_open_text_file
 from cx_tools.i18n import _
 from cx_wealthy import IndexedListPanel, WealthDetailPanel
@@ -106,7 +106,7 @@ class Application(IApplication):
     @staticmethod
     def export_example_preset(filename: Path) -> None:
         """导出示例预设文件。"""
-        filename = Path(force_suffix(filename, ".toml"))
+        filename = Path(PathUtils.force_suffix(filename, ".toml"))
 
         if filename.exists():
             if appenv.context.overwrite_mode == OVERWRITE_DANGER:
@@ -342,7 +342,7 @@ class Application(IApplication):
             for s in targets:
                 p = Path(s)
                 if p.suffix == ".toml" or p.suffix == "":
-                    resolved = Path(force_suffix(p, ".toml"))
+                    resolved = Path(PathUtils.force_suffix(p, ".toml"))
                     self.export_example_preset(p)
                     generated.append(resolved)
                 else:

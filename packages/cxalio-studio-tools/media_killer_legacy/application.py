@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 from typing import override
 
-from cx_studio.filesystem import force_suffix
+from cx_studio.filesystem import PathUtils
 from cx_tools.app import IApplication
 from cx_tools.i18n import _
 from cx_wealth import DynamicColumns, IndexedListPanel, WealthDetailPanel
@@ -74,7 +74,7 @@ class Application(IApplication):
 
     @staticmethod
     def export_example_preset(filename: Path):
-        filename = Path(force_suffix(filename, ".toml"))
+        filename = Path(PathUtils.force_suffix(filename, ".toml"))
         appenv.check_overwritable_file(filename)
         with importlib.resources.open_text(
             "media_killer", "example_preset.toml"

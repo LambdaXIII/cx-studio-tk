@@ -13,7 +13,7 @@ from pathlib import Path
 
 import ulid
 
-from cx_studio.filesystem import ensure_parents
+from cx_studio.filesystem import PathUtils
 from ..media import InputSpec, Mission, OutputSpec
 
 
@@ -52,7 +52,7 @@ class MissionStore:
             root.append(self._encode_mission(mission))
 
         tree = ET.ElementTree(root)
-        path = ensure_parents(path)
+        path = PathUtils.ensure_parents(path)
         tree.write(path, encoding="utf-8", xml_declaration=True)
 
     def load(self, path: Path) -> list[Mission]:

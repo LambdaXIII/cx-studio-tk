@@ -5,7 +5,7 @@ from pathlib import Path
 
 import ulid
 
-from cx_studio.filesystem import ensure_parents
+from cx_studio.filesystem import PathUtils
 from .argument_group import ArgumentGroup
 from .mission import Mission
 
@@ -142,7 +142,7 @@ class MissionXML:
 
     def save(self, path: Path) -> None:
         tree = ET.ElementTree(self.root)
-        path = ensure_parents(path)
+        path = PathUtils.ensure_parents(path)
         tree.write(path, encoding="utf-8", xml_declaration=True)
 
     @classmethod

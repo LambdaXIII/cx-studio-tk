@@ -8,7 +8,7 @@ import ulid
 
 from cx_tools.i18n import _
 from cx_studio.collectiontools import iter_with_separator
-from cx_studio.filesystem import get_basename, PathQuoteMode, quote_path
+from cx_studio.filesystem import PathUtils
 from cx_wealth import rich_types as r
 from .argument_group import ArgumentGroup
 
@@ -33,7 +33,7 @@ class Mission:
 
     @property
     def name(self):
-        return get_basename(self.source)
+        return PathUtils.get_basename(self.source)
 
     def __rich__(self) -> r.Text:
         return r.Text.assemble(
@@ -61,7 +61,7 @@ class Mission:
     def iter_arguments(
         self,
         force_overwrite: bool | None = None,
-        quote_mode: PathQuoteMode = "none",
+        quote_mode: PathUtils.PathQuoteMode = "none",
     ) -> Generator[str]:
         if self.hardware_accelerate:
             yield "-hwaccel"
@@ -72,10 +72,10 @@ class Mission:
         for input_group in self.inputs:
             yield from input_group.iter_arguments()
             yield "-i"
-            yield quote_path(input_group.filename, quote_mode)
+            yield PathUtils.quote_path(input_group.filename, quote_mode)
         for output_group in self.outputs:
             yield from output_group.iter_arguments()
-            yield quote_path(output_group.filename, quote_mode)
+            yield PathUtils.quote_path(output_group.filename, quote_mode)
 
     def __rich_detail__(self) -> Generator[tuple[str, object], None, None]:
         yield _("名称"), self.name

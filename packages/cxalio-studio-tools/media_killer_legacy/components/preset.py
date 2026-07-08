@@ -10,7 +10,7 @@ from rich.columns import Columns
 
 from cx_tools.i18n import _
 from cx_studio import text as tt
-from cx_studio.filesystem import normalize_suffix, force_suffix
+from cx_studio.filesystem import PathUtils
 
 DefaultSuffixes = (
     ".mov .mp4 .mkv .avi .wmv .flv .webm "
@@ -58,18 +58,18 @@ class Preset:
             else set()
         )
         includes = {
-            normalize_suffix(s)
+            PathUtils.normalize_suffix(s)
             for s in tt.auto_list_text(data.source.suffix_includes)  # type: ignore
         }
         excludes = {
-            normalize_suffix(s)
+            PathUtils.normalize_suffix(s)
             for s in tt.auto_list_text(data.source.suffix_excludes)  # type: ignore
         }
         return default_suffixes | includes - excludes
 
     @classmethod
     def load(cls, filename: Path | str) -> Preset:
-        filename = force_suffix(filename, ".toml")
+        filename = PathUtils.force_suffix(filename, ".toml")
         with open(filename, "rb") as f:
             toml = tomllib.load(f)
         # data = DataPackage(**toml)

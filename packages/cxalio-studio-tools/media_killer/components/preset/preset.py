@@ -12,7 +12,7 @@ from typing import Any, Generator
 
 from cx_tools.i18n import _
 from cx_studio import text as tt
-from cx_studio.filesystem import normalize_suffix
+from cx_studio.filesystem import PathUtils
 
 # 默认支持的源文件后缀集合
 DEFAULT_SUFFIXES: set[str] = {
@@ -234,7 +234,11 @@ class Preset:
         """
         default_suffixes = set() if ignore_default_suffixes else DEFAULT_SUFFIXES
 
-        includes = {normalize_suffix(s) for s in tt.auto_list_text(suffix_includes)}
-        excludes = {normalize_suffix(s) for s in tt.auto_list_text(suffix_excludes)}
+        includes = {
+            PathUtils.normalize_suffix(s) for s in tt.auto_list_text(suffix_includes)
+        }
+        excludes = {
+            PathUtils.normalize_suffix(s) for s in tt.auto_list_text(suffix_excludes)
+        }
 
         return default_suffixes | includes - excludes

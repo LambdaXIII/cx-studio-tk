@@ -9,7 +9,7 @@ from collections.abc import Generator
 
 from box import Box, BoxList
 
-from cx_studio.filesystem import force_suffix
+from cx_studio.filesystem import PathUtils
 from .contenter_base import ContenterBase, AbstractContenter
 from .hostrecord import HostRecord
 
@@ -29,7 +29,7 @@ class Profile:
 
     @classmethod
     def load(cls, filename: Path | str) -> Self | None:
-        filename = force_suffix(filename, ".toml")
+        filename = PathUtils.force_suffix(filename, ".toml")
         with open(filename, "rb") as f:
             toml_data = tomllib.load(f)
         data = Box(toml_data)
@@ -54,7 +54,7 @@ class Profile:
 
     @staticmethod
     def create(profile_id: str, target: Path) -> Path:
-        target = force_suffix(target, ".toml")
+        target = PathUtils.force_suffix(target, ".toml")
         target.parent.mkdir(parents=True, exist_ok=True)
 
         assert __package__ is not None, "Profile must be imported as part of a package"

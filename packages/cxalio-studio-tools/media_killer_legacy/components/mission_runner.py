@@ -9,7 +9,7 @@ from typing import override
 
 from cx_studio.core.cx_time import CxTime
 from cx_studio.ffmpeg import FFmpegAsync
-from cx_studio.filesystem import is_executable
+from cx_studio.filesystem import PathUtils
 from cx_tools.i18n import _
 from cx_wealth import rich_types as r
 from cx_wealth.indexed_list_panel import IndexedListPanel
@@ -135,7 +135,7 @@ class MissionRunner:
             appenv.whisper(IndexedListPanel(conflicts, title=_("发现重叠文件")))
             raise SafeError(_("检测到重叠的输入输出文件"))
 
-        if not is_executable(Path(self._ffmpeg.executable)):
+        if not PathUtils.is_executable(Path(self._ffmpeg.executable)):
             raise SafeError(
                 _("ffmpeg可执行文件无效: {path}").format(path=self._ffmpeg.executable)
             )
@@ -233,7 +233,7 @@ class MissionPretender(MissionRunner):
 
         self._task_description = _("检查ffmpeg可执行文件")
         await asyncio.sleep(0.3)
-        if not is_executable(Path(self._ffmpeg.executable)):
+        if not PathUtils.is_executable(Path(self._ffmpeg.executable)):
             raise SafeError(
                 _("ffmpeg可执行文件无效: {path}").format(path=self._ffmpeg.executable)
             )

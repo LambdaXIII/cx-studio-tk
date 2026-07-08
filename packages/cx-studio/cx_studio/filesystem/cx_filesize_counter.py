@@ -4,10 +4,12 @@
 """
 
 from collections.abc import Iterable
+from warnings import deprecated
 from cx_studio.core.cx_filesize import FileSize
 from pathlib import Path
 
 
+@deprecated("use cx_file_sizer instead")
 class FileSizeCounter:
     """文件大小计数器。
 

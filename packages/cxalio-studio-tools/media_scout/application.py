@@ -6,7 +6,7 @@ from pathlib import Path, PurePath
 from rich.rule import Rule
 from cx_tools.i18n import _
 
-from cx_studio.filesystem import auto_suffix, quote_path
+from cx_studio.filesystem import PathUtils
 from cx_tools.app import IApplication
 from cx_wealthy import WealthDetailPanel
 from media_scout.inspectors.filelist_inspector import FileListInspector
@@ -48,7 +48,7 @@ class Application(IApplication):
             return None
         if appenv.context.auto_resolve:
             result = result.resolve()
-        return quote_path(result, appenv.context.quote_mode)
+        return PathUtils.quote_path(result, appenv.context.quote_mode)
 
     @staticmethod
     def auto_expand(path: os.PathLike, info: InspectorInfo) -> Iterable[PurePath]:
@@ -118,7 +118,7 @@ class Application(IApplication):
         )
 
         if appenv.context.output:
-            output_file = auto_suffix(appenv.context.output, ".txt")
+            output_file = PathUtils.auto_suffix(appenv.context.output, ".txt")
             with open(output_file, "w") as fp:
                 for x in result:
                     fp.write(str(x) + "\n")

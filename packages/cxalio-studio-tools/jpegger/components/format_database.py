@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 from importlib.resources import files
 from threading import Event, Lock
 
-from cx_studio.filesystem import normalize_suffix
+from cx_studio.filesystem import PathUtils
 
 
 @dataclass(frozen=True)
@@ -64,7 +64,7 @@ class FormatDB:
             for row in reader:
                 name = row["NAME"].strip().upper()
                 extensions = [
-                    normalize_suffix(ext.strip().lower())
+                    PathUtils.normalize_suffix(ext.strip().lower())
                     for ext in row["EXTENSIONS"].split(" ")
                 ]
                 info = FormatInfo(name=name, extensions=extensions)
@@ -92,7 +92,7 @@ class FormatDB:
     def search_for_extension(cls, extension: str) -> FormatInfo | None:
         """按扩展名查询。"""
         cls._load_default_data()
-        extension = normalize_suffix(extension).lower()
+        extension = PathUtils.normalize_suffix(extension).lower()
         for info in cls.__data.values():
             if extension in info.extensions:
                 return info

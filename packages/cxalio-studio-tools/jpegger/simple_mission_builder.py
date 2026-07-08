@@ -9,7 +9,7 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
-from cx_studio.filesystem import force_suffix, normalize_path, normalize_suffix
+from cx_studio.filesystem import PathUtils
 from jpegger.components.format_database import FormatDB, FormatInfo
 from jpegger.components.mission import Mission
 from jpegger.filters import ImageFilterChain
@@ -44,7 +44,7 @@ class SimpleMissionBuilder:
         app_context: SimpleAppContext,
     ):
         self.filter_chain = filter_chain
-        self.output_dir = normalize_path(app_context.output_dir or Path.cwd())
+        self.output_dir = PathUtils.normalize_path(app_context.output_dir or Path.cwd())
 
         target_format = app_context.target_format
         self.target_format_info = (
@@ -52,7 +52,7 @@ class SimpleMissionBuilder:
         )
         self.target_suffix = None
         if self.target_format_info:
-            self.target_suffix = normalize_suffix(target_format or "").lower()
+            self.target_suffix = PathUtils.normalize_suffix(target_format or "").lower()
             if self.target_suffix not in self.target_format_info.extensions:
                 self.target_suffix = self.target_format_info.preferred_extension
 
@@ -67,10 +67,10 @@ class SimpleMissionBuilder:
         Returns:
             构建好的 `Mission` 实例。
         """
-        source = normalize_path(source)
+        source = PathUtils.normalize_path(source)
         target = self.output_dir / source.name
         if self.target_suffix:
-            target = force_suffix(target, self.target_suffix)
+            target = PathUtils.force_suffix(target, self.target_suffix)
 
         # 仅对动画格式注入 saveall，避免静态格式报错。
         saving_options: dict[str, Any] = {}

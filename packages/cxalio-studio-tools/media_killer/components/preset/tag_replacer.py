@@ -9,7 +9,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from cx_studio.filesystem import force_suffix, get_basename, get_parents
+from cx_studio.filesystem import PathUtils
 from cx_studio.text import PathInfoProvider, TagReplacer
 
 from .preset import Preset
@@ -57,11 +57,13 @@ class PresetTagReplacer:
             output_dir = Path(output_dir, target_folder)
 
         # 2. 获取父目录层级
-        parent_dirs = get_parents(self._source, self._preset.keep_parent_level)
+        parent_dirs = PathUtils.get_parents(
+            self._source, self._preset.keep_parent_level
+        )
 
         # 3. 构造目标文件名
-        target_name = force_suffix(
-            get_basename(self._source), self._preset.target_suffix
+        target_name = PathUtils.force_suffix(
+            PathUtils.get_basename(self._source), self._preset.target_suffix
         )
 
         # 4. 完整目标路径
