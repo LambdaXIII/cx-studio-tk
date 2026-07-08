@@ -17,7 +17,6 @@ from pathlib import Path
 from typing import override
 
 from cx_studio.core.cx_time import CxTime
-from cx_studio.core.cx_filesize import FileSize
 from cx_studio.filesystem import PathUtils
 from cx_tools.app import IApplication, SafeError, try_open_text_file
 from cx_tools.i18n import _
@@ -305,24 +304,6 @@ class Application(IApplication):
         if n := counts.get(MissionResult.SKIPPED, 0):
             appenv.say(_("{n} 个任务跳过。").format(n=n))
 
-        # 文件统计（来自调度器实时收集的清单）
-        processed = appenv.processed_files
-        generated = appenv.generated_files
-        if processed:
-            size = FileSize(sum(f.stat().st_size for f in processed))
-            appenv.say(
-                _("处理 {n} 个文件（共 {size}）。").format(
-                    n=len(processed), size=size.pretty_string
-                )
-            )
-        if generated and len(generated) != len(processed):
-            size = FileSize(sum(f.stat().st_size for f in generated))
-            appenv.say(
-                _("生成 {n} 个文件（共 {size}）。").format(
-                    n=len(generated), size=size.pretty_string
-                )
-            )
-
     # --- 主流程 ---
 
     def run(self) -> None:
@@ -456,7 +437,6 @@ class Application(IApplication):
             appenv.say(_("没有任务需要执行。"))
             return
 
-        appenv.say(_("本次执行共 {n} 个任务。").format(n=len(self.missions)))
         appenv.whisper(IndexedListPanel(self.missions, _("整理完的任务列表")))
 
         # 10. 脚本保存

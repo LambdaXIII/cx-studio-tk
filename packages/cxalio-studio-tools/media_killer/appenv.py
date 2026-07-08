@@ -19,8 +19,7 @@ from datetime import datetime
 from pathlib import Path
 
 from cx_studio.core.cx_time import CxTime
-from cx_studio.core.cx_filesize import FileSize
-from cx_studio.filesystem import FileSizeCounter
+from cx_studio.filesystem import FileList
 from cx_tools.app import ConfigManager, IAppEnvironment
 from cx_tools.i18n import _
 from cx_wealthy import rich_types as r
@@ -94,18 +93,15 @@ class AppEnv(IAppEnvironment):
         db_path = self.config_manager.get_file("media_info.db")
         self.media_db = MediaDB(db_path=db_path)
 
-        # Garbage 文件集合
-        self._garbage_files: set[Path] = set()
-        # 文件处理清单
-        self.processed_files: set[Path] = set()
-        self.generated_files: set[Path] = set()
+        # 文件列表（FileList 自动去重 + 延迟大小计算）
+        # sizer 通过 MediaDB.FileBytesGetter 从缓存拉取文件大小
+        sizer = self.media_db.make_file_bytes_getter()
+        self.garbage_files = FileList(sizer_function=sizer)
+        self.processed_files = FileList(sizer_function=sizer)
+        self.generated_files = FileList(sizer_function=sizer)
 
         # 应用启动时间
         self._app_start_time: datetime
-
-        # 文件大小统计
-        self.input_filesize_counter = FileSizeCounter()
-        self.output_filesize_counter = FileSizeCounter()
 
     def is_debug_mode_on(self) -> bool:
         """返回是否处于 debug 模式。
@@ -137,35 +133,22 @@ class AppEnv(IAppEnvironment):
     def stop(self) -> None:
         """停止应用环境。
 
-        停止 Progress，关闭 MediaDB，清理 garbage 文件，
-        输出文件大小统计和耗时统计。
+        停止 Progress，执行文件统计与清理（cleanup），
+        清理旧日志，关闭 MediaDB，输出耗时统计。
         """
         # 停止 Progress
         self.progress.refresh()
         time.sleep(0.1)
         self.progress.stop()
 
-        # 关闭 MediaDB
-        self.media_db.close()
-
-        # 清理 garbage 文件
-        self.clean_garbage_files()
+        # 文件统计与 garbage 清理（依赖 MediaDB 连接）
+        self.cleanup()
 
         # 清理旧日志文件
         self.config_manager.remove_old_log_files()
 
-        # 输出文件大小统计
-        input_size = self.input_filesize_counter.total_size
-        output_size = self.output_filesize_counter.total_size
-        size_report = ""
-        if input_size.total_bytes > 0:
-            size_report += f"[dim]{_('输入文件总大小:')} [cx.number]{FileSize.from_bytes(input_size.total_bytes).pretty_string}[/]"
-        if output_size.total_bytes > 0:
-            if size_report:
-                size_report += "  "
-            size_report += f"[dim]{_('输出文件总大小:')} [cx.number]{FileSize.from_bytes(output_size.total_bytes).pretty_string}[/]"
-        if size_report:
-            self.say(size_report)
+        # 关闭 MediaDB
+        self.media_db.close()
 
         # 输出耗时统计（超过 5 秒）
         time_spent = datetime.now() - self._app_start_time
@@ -232,30 +215,49 @@ class AppEnv(IAppEnvironment):
             filenames: 文件路径列表
         """
         for f in filenames:
-            self._garbage_files.add(Path(f))
+            self.garbage_files.append(Path(f))
 
-    def clean_garbage_files(self) -> None:
-        """清理 garbage 文件。
+    def cleanup(self) -> None:
+        """退出阶段统一扫尾清理。
 
-        删除所有已登记的 garbage 文件，输出清理统计。
-        Windows 上已终止的 ffmpeg 进程可能尚未完全释放文件句柄，
-        遇到 PermissionError 时最多重试 3 次（间隔 0.5 秒），
-        仍失败则跳过该文件并输出警告。
+        先输出 processed/generated 两个列表的统计报告（计数 + 大小），
+        再清理 garbage_files 中的垃圾文件并输出清理报告。
+        所有报告使用自然语言，数值为 0 时不提示该部分。
         """
-        if not self._garbage_files:
-            return
+        # --- I/O 列表统计报告 ---
+        self._report_file_list(self.processed_files, _("本次执行处理了 {n} 个文件"))
+        self._report_file_list(self.generated_files, _("本次执行生成了 {n} 个文件"))
 
-        self.say(f"[dim]{_('正在清理失败的目标文件...')}[/]")
-        for filename in self._garbage_files:
-            self.whisper(f"[dim]{_('删除垃圾文件')}[/] [cx.filepath]{filename}[/]")
-            self._unlink_with_retry(filename)
-
-        self.say(
-            _("已清理 {count} 个失败的垃圾文件。").format(
-                count=len(self._garbage_files)
+        # --- garbage 清理 ---
+        if len(self.garbage_files) > 0:
+            self.say(f"[cx.error]{_('正在清理失败的目标文件...')}[/]")
+            for filename in self.garbage_files:
+                self.whisper(f"[cx.filepath]{filename}[/]")
+                self._unlink_with_retry(filename)
+            self.say(
+                f"[cx.error]{_('清理了 {n} 个失败的目标文件').format(n=len(self.garbage_files))}[/]"
             )
-        )
-        self._garbage_files.clear()
+            self.garbage_files.clear()
+
+    def _report_file_list(self, file_list: FileList, msgid: str) -> None:
+        """输出单个文件列表的统计报告（一行）。
+
+        文件数为 0 时整句不输出。文件数 > 0 但总大小为 0 时
+        仅输出计数句，不带括号大小部分。文件数和大小均 > 0 时
+        输出 '文案（大小）' 格式。
+
+        Args:
+            file_list: 要报告的 FileList
+            msgid: 带 {n} 占位符的中文 msgid，如 "本次执行处理了 {n} 个文件"
+        """
+        count = len(file_list)
+        if count == 0:
+            return
+        text = f"[cx.info]{_(msgid).format(n=count)}[/]"
+        total = file_list.total_size
+        if total.total_bytes > 0:
+            text += f"（[cx.number]{total.pretty_string}[/]）"
+        self.say(text)
 
     @staticmethod
     def _unlink_with_retry(

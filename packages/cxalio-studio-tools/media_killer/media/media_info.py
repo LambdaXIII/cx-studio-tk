@@ -32,6 +32,7 @@ class MediaInfo:
         audio_bitrate: 音频码率（bps）
         sample_rate: 采样率（Hz）
         channels: 音频声道数
+        file_size: 文件大小（字节）
     """
 
     # 文件身份
@@ -58,6 +59,8 @@ class MediaInfo:
     audio_bitrate: int | None = None
     sample_rate: int | None = None
     channels: int | None = None
+    # 文件大小（字节，来自 ffprobe format.size 或 FileSizer 兜底）
+    file_size: int | None = None
 
     def to_dict(self) -> dict:
         """序列化为字典，用于存入 FileInfoCache。

@@ -9,6 +9,7 @@ import json
 from fractions import Fraction
 from pathlib import Path
 
+from cx_studio.filesystem.cx_file_sizer import FileSizer
 from .media_info import MediaInfo
 
 
@@ -31,6 +32,7 @@ class MediaProber:
         self._ffprobe = (
             str(ffprobe_executable) if ffprobe_executable is not None else "ffprobe"
         )
+        self._sizer = FileSizer()
 
     def probe(self, file: Path) -> MediaInfo:
         """同步调用 ffprobe，返回 MediaInfo。
@@ -90,6 +92,11 @@ class MediaProber:
 
         # 容器信息
         container_format: str | None = fmt.get("format_name")
+        # 文件大小（字节）：优先从 ffprobe format.size 获取
+        file_size: int | None = _safe_int(fmt.get("size"))
+        # ffprobe 未提供 size 时，用 FileSizer 实例兜底
+        if file_size is None:
+            file_size = self._sizer.get_bytes(file)
 
         # 时长
         duration: float | None = None
@@ -156,6 +163,7 @@ class MediaProber:
             audio_bitrate=audio_bitrate,
             sample_rate=sample_rate,
             channels=channels,
+            file_size=file_size,
         )
 
 

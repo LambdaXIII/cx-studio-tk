@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cxalio-studio-tools VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-07 22:33+0800\n"
+"POT-Creation-Date: 2026-07-08 10:58+0800\n"
 "PO-Revision-Date: 2026-06-28 22:30+0800\n"
 "Last-Translator: Cxalio <cxalio@example.com>\n"
 "Language: en_US\n"
@@ -19,13 +19,13 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: cx_tools/app/iappenv.py:93
-msgid "触发中断信号…"
-msgstr "Interrupt signal triggered…"
+#: cx_tools/app/iappenv.py:95
+msgid "正在取消运行中的任务，再次按下 Ctrl+C 取消全部任务"
+msgstr ""
 
-#: cx_tools/app/iappenv.py:98
-msgid "检测到强制中断信号…"
-msgstr "Forced interrupt signal detected…"
+#: cx_tools/app/iappenv.py:101
+msgid "正在中止执行"
+msgstr ""
 
 #: hosts_keeper/app_help.py:17
 msgid "直接运行"
@@ -228,7 +228,8 @@ msgstr "Debug mode is on."
 msgid "已找到配置文件"
 msgstr "Profiles found"
 
-#: hosts_keeper/application.py:48
+#: hosts_keeper/application.py:48 media_killer/media/executor.py:373
+#: media_killer/media/pretender.py:90
 msgid "用户中断"
 msgstr ""
 
@@ -932,223 +933,252 @@ msgstr ""
 msgid "-y（强制覆盖）与 -n（强制不覆盖）不可同时使用。"
 msgstr ""
 
-#: media_killer/appenv.py:61
+#: media_killer/appenv.py:60
 #, fuzzy
 msgid "媒体文件批量转码工具"
 msgstr "Batch media file operations tool"
 
-#: media_killer/appenv.py:159
-msgid "输入文件总大小:"
-msgstr "Total input file size:"
-
-#: media_killer/appenv.py:163
-msgid "输出文件总大小:"
-msgstr "Total output file size:"
-
-#: media_killer/appenv.py:171
+#: media_killer/appenv.py:157
 #, fuzzy, python-brace-format
 msgid "总共耗时 {time_str}。"
 msgstr "Total time: {time_str}."
 
-#: media_killer/appenv.py:209
+#: media_killer/appenv.py:195
 msgid "模拟运行"
 msgstr "Pretending Mode"
 
-#: media_killer/appenv.py:213
+#: media_killer/appenv.py:199
 msgid "安全模式启动，将拒绝任何覆盖操作"
 msgstr ""
 
-#: media_killer/appenv.py:217
+#: media_killer/appenv.py:203
 msgid "覆盖模式已启动，将自动覆盖任何输出"
 msgstr ""
 
-#: media_killer/appenv.py:245
+#: media_killer/appenv.py:228
+#, python-brace-format
+msgid "本次执行处理了 {n} 个文件"
+msgstr ""
+
+#: media_killer/appenv.py:229
+#, python-brace-format
+msgid "本次执行生成了 {n} 个文件"
+msgstr ""
+
+#: media_killer/appenv.py:233
 msgid "正在清理失败的目标文件..."
 msgstr "Cleaning up failed target files..."
 
-#: media_killer/appenv.py:250
-#, python-brace-format
-msgid "已清理 {count} 个目标文件。"
+#: media_killer/appenv.py:238
+#, fuzzy, python-brace-format
+msgid "清理了 {n} 个失败的目标文件"
 msgstr "Cleaned {count} target files."
 
-#: media_killer/appenv.py:274
+#: media_killer/appenv.py:282
 #, python-brace-format
 msgid "无法删除文件（可能仍被占用）: {path}"
 msgstr ""
 
-#: media_killer/application.py:67
+#: media_killer/application.py:73
 msgid "程序正常退出。"
 msgstr "Program exited normally."
 
-#: media_killer/application.py:107
+#: media_killer/application.py:113
 #, python-brace-format
 msgid "文件 {name} 已存在，将强制覆盖。"
 msgstr "File {name} already exists, will force overwrite."
 
-#: media_killer/application.py:111
+#: media_killer/application.py:117
 #, fuzzy, python-brace-format
 msgid "文件 {name} 已存在，跳过覆盖。"
 msgstr "Profile {name} already exists."
 
-#: media_killer/application.py:118
+#: media_killer/application.py:124
 #, fuzzy
 msgid "已生成示例预设文件:"
 msgstr "Generate a sample preset file"
 
-#: media_killer/application.py:262
+#: media_killer/application.py:275
 msgid "完成"
 msgstr "Complete"
 
-#: media_killer/application.py:264
+#: media_killer/application.py:277
 msgid "运行异常"
 msgstr "Runtime Error"
 
-#: media_killer/application.py:266
+#: media_killer/application.py:279
 msgid "被取消"
 msgstr "Cancelled"
 
-#: media_killer/application.py:268
+#: media_killer/application.py:281
 msgid "已跳过"
 msgstr ""
 
-#: media_killer/application.py:281
-#, python-brace-format
-msgid "成功 {n}"
-msgstr ""
+#: media_killer/application.py:299
+#, fuzzy, python-brace-format
+msgid "成功执行 {n} 个任务。"
+msgstr "Generated {count} tasks."
 
-#: media_killer/application.py:287
-#, python-brace-format
-msgid "失败 {n}"
-msgstr ""
+#: media_killer/application.py:301
+#, fuzzy, python-brace-format
+msgid "{n} 个任务失败。"
+msgstr "Generated {count} tasks."
 
-#: media_killer/application.py:291
-#, python-brace-format
-msgid "取消 {n}"
-msgstr ""
+#: media_killer/application.py:303
+#, fuzzy, python-brace-format
+msgid "{n} 个任务取消。"
+msgstr "Generated {count} tasks."
 
-#: media_killer/application.py:297
-#, python-brace-format
-msgid "跳过 {n}"
-msgstr ""
+#: media_killer/application.py:305
+#, fuzzy, python-brace-format
+msgid "{n} 个任务跳过。"
+msgstr "Generated {count} tasks."
 
-#: media_killer/application.py:325
+#: media_killer/application.py:330
 msgid "并非合法的文件名，不予处理。"
 msgstr "Not a valid filename, skipped."
 
-#: media_killer/application.py:332
+#: media_killer/application.py:337
 msgid "未提供任何输入项，请使用 -h 查看帮助。"
 msgstr ""
 
-#: media_killer/application.py:344
+#: media_killer/application.py:349
 #, fuzzy, python-brace-format
 msgid "加载预设文件 {path} 失败: {err}"
 msgstr "File {path} processing failed!"
 
-#: media_killer/application.py:351
+#: media_killer/application.py:356
 #, fuzzy
 msgid "预设"
 msgstr "Preset Description"
 
-#: media_killer/application.py:354
+#: media_killer/application.py:359
 msgid "配置文件路径"
 msgstr "Preset Path"
 
-#: media_killer/application.py:357
+#: media_killer/application.py:362
 msgid "媒体来源路径"
 msgstr "Media Source Path"
 
-#: media_killer/application.py:362
+#: media_killer/application.py:367
 #, python-brace-format
 msgid "已添加 {preset_count} 个配置文件和 {source_count} 个来源路径。"
 msgstr "Added {preset_count} presets and {source_count} source paths."
 
-#: media_killer/application.py:367
+#: media_killer/application.py:372
 msgid "未提供任何预设文件。"
 msgstr ""
 
-#: media_killer/application.py:399
+#: media_killer/application.py:404
 #, fuzzy, python-brace-format
 msgid "源文件不存在: {path}"
 msgstr "Source file {path} does not exist"
 
-#: media_killer/application.py:405
+#: media_killer/application.py:410
 msgid "输出目录将被替换为:"
 msgstr "Output directory will be replaced with:"
 
-#: media_killer/application.py:419
+#: media_killer/application.py:424
 #, python-brace-format
 msgid "生成了 {count} 个任务。"
 msgstr "Generated {count} tasks."
 
-#: media_killer/application.py:425
+#: media_killer/application.py:430
 #, python-brace-format
 msgid "从上次执行中恢复了 {count} 个任务……"
 msgstr "Restored {count} tasks from the last run..."
 
-#: media_killer/application.py:432
+#: media_killer/application.py:437
 msgid "没有任务需要执行。"
 msgstr "No tasks to execute."
 
-#: media_killer/application.py:435
+#: media_killer/application.py:440
+#, fuzzy, python-brace-format
+msgid "本次执行共 {n} 个任务。"
+msgstr "Generated {count} tasks."
+
+#: media_killer/application.py:441
 msgid "整理完的任务列表"
 msgstr "Sorted Task List"
 
-#: media_killer/application.py:442
+#: media_killer/application.py:448
 #, fuzzy, python-brace-format
 msgid "脚本文件 {name} 已存在，请取消 --no-overwrite 选项。"
 msgstr ""
 "File {name} already exists. Cancel --force-no-overwrite or specify "
 "another filename."
 
-#: media_killer/application.py:452
+#: media_killer/application.py:458
 msgid "检测到[italic cyan underline]假装模式[/]，将不会真正执行任何操作。"
 msgstr ""
 "[italic cyan underline]Pretending mode[/] detected, no actual operations "
 "will be performed."
 
-#: media_killer/components/debug_reporter.py:121
-msgid "已提交"
+#: media_killer/components/debug_reporter.py:113
+msgid "任务已启动"
 msgstr ""
 
-#: media_killer/components/debug_reporter.py:129
-msgid "失败"
-msgstr ""
-
-#: media_killer/components/debug_reporter.py:137
+#: media_killer/components/debug_reporter.py:118
 #, fuzzy
-msgid "跳过"
-msgstr "Skip Flush"
+msgid "已完成"
+msgstr "Complete"
 
-#: media_killer/components/debug_reporter.py:137
-msgid "目标已存在"
+#: media_killer/components/debug_reporter.py:124
+#, fuzzy
+msgid "FFmpeg 已启动"
+msgstr "FFmpeg Path"
+
+#: media_killer/components/debug_reporter.py:125
+#, fuzzy
+msgid "命令"
+msgstr "Subcommands"
+
+#: media_killer/components/debug_reporter.py:132
+msgid "正在停止"
 msgstr ""
 
-#: media_killer/components/debug_reporter.py:145
+#: media_killer/components/debug_reporter.py:137
 #, fuzzy
 msgid "已取消"
 msgstr "Cancelled"
 
-#: media_killer/components/debug_reporter.py:163
-#: media_killer/media/mission.py:118
-msgid "任务 ID"
+#: media_killer/components/debug_reporter.py:143
+msgid "失败"
 msgstr ""
 
-#: media_killer/components/debug_reporter.py:164
+#: media_killer/components/debug_reporter.py:151
 msgid "退出状态码"
 msgstr ""
 
-#: media_killer/components/debug_reporter.py:165
+#: media_killer/components/debug_reporter.py:152
 msgid "原始命令"
 msgstr ""
 
-#: media_killer/components/debug_reporter.py:166
+#: media_killer/components/debug_reporter.py:153
 msgid "异常信息"
 msgstr ""
 
-#: media_killer/components/debug_reporter.py:168
+#: media_killer/components/debug_reporter.py:155
 #, fuzzy
 msgid "FFmpeg 执行异常"
 msgstr "FFmpeg Output"
+
+#: media_killer/components/debug_reporter.py:164
+#, fuzzy
+msgid "跳过"
+msgstr "Skip Flush"
+
+#: media_killer/components/debug_reporter.py:164
+msgid "目标已存在"
+msgstr ""
+
+#: media_killer/components/debug_reporter.py:172
+msgid "已提交"
+msgstr ""
+
+#: media_killer/components/debug_reporter.py:176
+msgid "正在取消全部任务"
+msgstr ""
 
 #: media_killer/components/preset/loader.py:54
 #, python-brace-format
@@ -1255,34 +1285,42 @@ msgstr "Output Arguments"
 msgid "自定义参数"
 msgstr "Custom Arguments"
 
-#: media_killer/media/executor.py:142
+#: media_killer/media/executor.py:180
 #, fuzzy, python-brace-format
 msgid "检测到重叠的输入输出文件: {files}"
 msgstr "Overlapping input/output files detected"
 
-#: media_killer/media/executor.py:150
+#: media_killer/media/executor.py:188
 #, fuzzy, python-brace-format
 msgid "FFmpeg 可执行文件无效: {path}"
 msgstr "Invalid ffmpeg executable: {path}"
 
-#: media_killer/media/executor.py:157
+#: media_killer/media/executor.py:195
 #, python-brace-format
 msgid "输入文件不存在: {files}"
 msgstr "Input file does not exist: {files}"
 
-#: media_killer/media/executor.py:168
+#: media_killer/media/executor.py:206
 #, python-brace-format
 msgid "输出目录无写权限: {dirs}"
 msgstr ""
 
-#: media_killer/media/executor.py:345
+#: media_killer/media/executor.py:383 media_killer/media/pretender.py:101
+msgid "调度器强制取消"
+msgstr ""
+
+#: media_killer/media/executor.py:407
 #, fuzzy
 msgid "FFmpeg 执行失败"
 msgstr "FFmpeg Output"
 
-#: media_killer/media/executor.py:438
+#: media_killer/media/executor.py:494
 #, python-brace-format
 msgid "重命名临时文件失败: {error}"
+msgstr ""
+
+#: media_killer/media/mission.py:118
+msgid "任务 ID"
 msgstr ""
 
 #: media_killer/media/mission.py:122
@@ -1637,4 +1675,28 @@ msgstr "Show full help information"
 
 #~ msgid "命令参数预览"
 #~ msgstr "Command Argument Preview"
+
+#~ msgid "触发中断信号…"
+#~ msgstr "Interrupt signal triggered…"
+
+#~ msgid "检测到强制中断信号…"
+#~ msgstr "Forced interrupt signal detected…"
+
+#~ msgid "输入文件总大小:"
+#~ msgstr "Total input file size:"
+
+#~ msgid "输出文件总大小:"
+#~ msgstr "Total output file size:"
+
+#~ msgid "成功 {n}"
+#~ msgstr ""
+
+#~ msgid "失败 {n}"
+#~ msgstr ""
+
+#~ msgid "取消 {n}"
+#~ msgstr ""
+
+#~ msgid "跳过 {n}"
+#~ msgstr ""
 

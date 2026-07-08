@@ -65,3 +65,58 @@ class MediaDB(FileInfoCache):
 
         self.set(file, {"media_info": info.to_dict()})
         return info
+
+    class FileBytesGetter:
+        """文件大小获取闭包对象。
+
+        绑定一个 MediaDB 实例，作为 FileList 的 sizer_function 注入。
+        调用时从 MediaDB 缓存拉取文件大小（缓存命中读 file_size 字段），
+        不触发 ffprobe 探测。缓存未命中或数据库未连接时回退到 stat()。
+
+        与 MediaDB.get_media_info() 的区别：
+        - get_media_info() 会触发 ffprobe 探测并回填缓存
+        - FileBytesGetter 只读缓存，不探测——适合 sizer 热路径
+        """
+
+        def __init__(self, media_db: "MediaDB") -> None:
+            """绑定 MediaDB 实例。
+
+            Args:
+                media_db: 要读取缓存的 MediaDB 实例
+            """
+            self._db = media_db
+
+        def __call__(self, file: Path) -> int:
+            """从缓存获取文件大小（字节），未命中时回退到 stat()。
+
+            仅读取缓存，不触发 ffprobe 探测。
+
+            Args:
+                file: 文件路径
+
+            Returns:
+                文件字节大小；无法获取时返回 0
+            """
+            try:
+                cached = self._db.get(file)
+                if cached is not None and "media_info" in cached:
+                    raw = cached["media_info"]
+                    if raw is not None:
+                        size = raw.get("file_size")
+                        if size is not None:
+                            return int(size)
+            except RuntimeError:
+                # 数据库未连接，回退到 stat()
+                pass
+            try:
+                return file.stat().st_size
+            except OSError:
+                return 0
+
+    def make_file_bytes_getter(self) -> "MediaDB.FileBytesGetter":
+        """构造绑定本实例的 FileBytesGetter。
+
+        Returns:
+            FileBytesGetter 实例，可直接传给 FileList(sizer_function=...)
+        """
+        return MediaDB.FileBytesGetter(self)

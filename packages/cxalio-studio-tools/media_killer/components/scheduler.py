@@ -259,7 +259,7 @@ class MissionScheduler(AsyncIOEventEmitter):
 
             # 实时推送：输入文件立即记入 appenv
             for input_spec in mission.inputs:
-                appenv.processed_files.add(input_spec.filename)
+                appenv.processed_files.append(input_spec.filename)
 
             result = await executor.execute()
 
@@ -269,7 +269,7 @@ class MissionScheduler(AsyncIOEventEmitter):
             # 仅成功完成的任务登记生成文件
             if result == MissionResult.SUCCESS:
                 for output_spec in mission.outputs:
-                    appenv.generated_files.add(output_spec.filename)
+                    appenv.generated_files.append(output_spec.filename)
 
             self._results[index] = result
             self._completed_count += 1
