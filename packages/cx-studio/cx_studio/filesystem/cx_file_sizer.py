@@ -13,7 +13,7 @@ class FileSizer:
     权限处理、特殊文件类型等高级功能。
 
     推荐做法：
-        手工提供 sizer_function 而非依赖 default_sizer，尤其是在需要
+        手工提供 sizer_function 而非依赖 _default_sizer，尤其是在需要
         重复查询相同路径或处理大规模文件列表时。自定义 sizer 应引入
         缓存能力（如 functools.lru_cache 或 FileInfoCache）以避免重复
         调用 stat() 系统调用。
@@ -41,13 +41,13 @@ class FileSizer:
 
         Args:
             sizer_function: 自定义大小计算函数，接收 Path 返回字节数。
-                None 时使用 default_sizer（简单实现，无缓存）。
+                None 时使用 _default_sizer（简单实现，无缓存）。
                 推荐注入带缓存的自定义函数以提升性能。
         """
-        self._sizer: Callable[[Path], int] = sizer_function or self.default_sizer
+        self._sizer: Callable[[Path], int] = sizer_function or self._default_sizer
 
     @staticmethod
-    def default_sizer(path: Path) -> int:
+    def _default_sizer(path: Path) -> int:
         """默认大小计算函数。
 
         简单实现，**不推荐在生产环境直接使用**，仅作为兜底。

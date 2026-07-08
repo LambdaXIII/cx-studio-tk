@@ -1,4 +1,4 @@
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterator
 from pathlib import Path
 import threading
 
@@ -153,7 +153,7 @@ class FileList:
         with self._lock:
             return len(self._paths)
 
-    def __iter__(self) -> Iterable[Path]:
+    def __iter__(self) -> Iterator[Path]:
         """返回同步迭代器，按录入顺序遍历文件路径。
 
         迭代时会创建快照，后续的追加/取出操作不影响当前迭代。
@@ -236,7 +236,8 @@ class FileList:
             所有文件的总字节数。
         """
         with self._lock:
-            return sum(self._get_bytes(key) for key in self._paths)
+            keys = list(self._paths)
+        return sum(self._get_bytes(key) for key in keys)
 
     @property
     def total_size(self) -> FileSize:
@@ -259,3 +260,12 @@ class FileList:
             for k, v in self._bytes.items():
                 if v is not None:
                     self._bytes[k] = None
+
+    def clear(self) -> None:
+        """清空文件列表和大小缓存。
+
+        调用后列表为空，所有已缓存的大小也被清除。
+        """
+        with self._lock:
+            self._paths.clear()
+            self._bytes.clear()
