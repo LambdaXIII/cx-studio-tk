@@ -68,7 +68,7 @@ def get_parents(
         return []
     path = Path(source).resolve() if resolve_path else Path(source)
     parts = path.parts
-    begin_index = max(0, len(parts) - level)
+    begin_index = max(0, len(parts) - 1 - level)
     end_index = len(parts) - 1
     return parts[begin_index:end_index]
 
