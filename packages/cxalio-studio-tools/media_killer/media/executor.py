@@ -28,6 +28,7 @@ from cx_studio.ffmpeg import (
     FFMPEG_EVENT_STATUS_UPDATED,
     FFMPEG_EVENT_TERMINATED,
     FFMPEG_EVENT_VERBOSE,
+    FFmpegCodingInfo,
     FFmpegAsync,
 )
 from cx_studio.filesystem import CmdFinder
@@ -147,8 +148,9 @@ class ExecutorStatus:
     error_tail: str  # FFmpeg 错误尾巴（仅 FFMPEG_FAILED 后有效）
     cancel_reason: str | None  # 取消原因（仅 CANCELING/CANCELED 后有效）
     failure_reason: str | None  # 任务级失败原因（校验失败、重命名失败等）
-    skipped_targets: list[str]  # 被跳过的已存在目标文件路径
+    skipped_targets: list[str]  # 被跳过的已存在目标文件路径列表
     commit_target: str | None  # 最近一次原子重命名的目标文件名
+    coding_info: FFmpegCodingInfo | None = None  # FFmpeg 运行时状态快照
 
 
 # ── 模块级校验函数 ──────────────────────────────────────────
@@ -273,6 +275,9 @@ class MissionExecutor(AsyncIOEventEmitter):
         self._failure_reason: str | None = None
         self._skipped_targets: list[str] = []
         self._commit_target: str | None = None
+        self._coding_info: FFmpegCodingInfo | None = (
+            None  # FFmpeg 运行时状态快照，用于总体进度轮询拉取
+        )
 
     @property
     def status(self) -> ExecutorStatus:
@@ -292,6 +297,7 @@ class MissionExecutor(AsyncIOEventEmitter):
             failure_reason=self._failure_reason,
             skipped_targets=self._skipped_targets,
             commit_target=self._commit_target,
+            coding_info=self._coding_info,
         )
 
     @property
@@ -451,9 +457,18 @@ class MissionExecutor(AsyncIOEventEmitter):
             self.emit(FFMPEG_STARTED)
 
         def _on_progress(current: object, total: object) -> None:
+            # 保持 _coding_info 与 FFmpeg 最新进度同步
+            # _on_status 建立引用后，此处逐行更新 current_time/total_time
+            # type: ignore 因为 FFmpeg 事件承诺传递 CxTime，
+            # 但类型签名选择 object 以避免循环导入
+            if self._coding_info is not None:
+                self._coding_info.current_time = current  # type: ignore[assignment]
+                self._coding_info.total_time = total  # type: ignore[assignment]
             self.emit(PROGRESS_UPDATED, current, total)
 
         def _on_status(coding_info: object) -> None:
+            # 首次建立 / 更新 _coding_info 引用（FFmpegCodingInfo 副本）
+            self._coding_info = coding_info  # type: ignore[assignment]
             self.emit(STATUS_UPDATED, coding_info)
 
         def _on_ffmpeg_finished() -> None:

@@ -16,6 +16,8 @@ from collections.abc import Iterable, Sequence
 from pathlib import Path
 from typing import override
 
+
+from cx_studio.ffmpeg import FFmpegCodingInfo
 from cx_studio.core.cx_time import CxTime
 from cx_studio.filesystem import PathUtils
 from cx_tools.app import IApplication, SafeError, try_open_text_file
@@ -183,6 +185,18 @@ class Application(IApplication):
             executor_factory=executor_factory,
         )
 
+        # 预计算每项任务的总时长（fallback 链：MediaDB → 1.0）
+        mission_totals: list[float] = []
+        for m in self.missions:
+            d = self._lookup_duration(m)
+            mission_totals.append(d.total_seconds if d else 1.0)
+
+        overall_total = sum(mission_totals)
+        overall_task_id = appenv.progress.add_task(
+            _("总进度"),
+            total=overall_total,
+        )
+
         # 挂接第一次中断回调（取消所有正在运行的 executor，pending 不受影响）
         @appenv.interrupt_handler.on("first_triggered")
         def _on_first() -> None:
@@ -196,6 +210,10 @@ class Application(IApplication):
         # 挂接进度 UI
         task_ids: dict[int, TaskID] = {}
         total = len(self.missions)
+        # 跟踪上次写入的值，避免因值未变而重复调用 progress.update()
+        # 因为 Rich Progress 在 total 更新时会重置 ETA 计时
+        _last_completed: dict[int, float] = {}
+        _last_total: dict[int, float] = {}
 
         @scheduler.on("mission_started")
         def _on_started(index: int, status: ExecutorStatus) -> None:
@@ -208,10 +226,9 @@ class Application(IApplication):
                     title=f"[bright_black]M[/] [dim green]{short_id}[/] [{index + 1}/{total}] {mission.name}",
                 )
             )
-            duration = self._lookup_duration(mission)
             task_id = appenv.progress.add_task(
                 f"[bright_black][{index + 1}/{total}][/] [cx.mk.mission.name]{mission.name}[/]",
-                total=duration.total_seconds if duration else None,
+                total=None,
             )
             task_ids[index] = task_id
 
@@ -220,8 +237,20 @@ class Application(IApplication):
             index: int, current: CxTime, total_time: CxTime | None
         ) -> None:
             tid = task_ids.get(index)
-            if tid is not None:
-                appenv.progress.update(tid, completed=current.total_seconds)
+            if tid is None:
+                return
+            new_c = current.total_seconds
+            new_t = (
+                total_time.total_seconds
+                if total_time and total_time.total_seconds > 0
+                else None
+            )
+            if _last_completed.get(index) != new_c:
+                appenv.progress.update(tid, completed=new_c)
+                _last_completed[index] = new_c
+            if new_t is not None and _last_total.get(index) != new_t:
+                appenv.progress.update(tid, total=new_t)
+                _last_total[index] = new_t
 
         @scheduler.on("mission_finished")
         def _on_finished(index: int, status: ExecutorStatus) -> None:
@@ -231,12 +260,36 @@ class Application(IApplication):
             result = scheduler.results.get(index, MissionResult.FAILED)
             self._report_mission_result(self.missions[index], result)
 
+        # 转码速度指示器：更新进度条描述中的 [3.21x] 部分
+        # 来自 FFmpegCodingInfo.current_speed，通过 STATUS_UPDATED 事件传递
+        _last_speed: dict[int, float] = {}
+
+        @scheduler.on("mission_status_updated")
+        def _on_speed_update(index: int, coding_info: FFmpegCodingInfo) -> None:
+            tid = task_ids.get(index)
+            if tid is None:
+                return
+            speed = coding_info.current_speed
+            if speed > 0 and _last_speed.get(index) != speed:
+                appenv.progress.update(
+                    tid,
+                    description=(
+                        f"[bright_black][{index + 1}/{total}] [{speed:.2f}x][/]"
+                        f" [cx.mk.mission.name]{self.missions[index].name}[/]"
+                    ),
+                )
+                _last_speed[index] = speed
+
         # 挂接诊断输出（executor 内部步骤 whisper）
         DebugReporter(scheduler, appenv).attach()
-
         # 执行
-        results = asyncio.run(scheduler.run())
-
+        results = asyncio.run(
+            scheduler.run(
+                overall_task_id=overall_task_id,
+                mission_totals=mission_totals,
+            )
+        )
+        appenv.progress.remove_task(overall_task_id)
         # 统计
         self._report_summary(results)
 

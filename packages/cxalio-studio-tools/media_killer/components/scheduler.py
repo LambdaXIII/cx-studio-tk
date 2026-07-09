@@ -47,6 +47,8 @@ from pathlib import Path
 
 from pyee.asyncio import AsyncIOEventEmitter
 
+from rich.progress import TaskID
+
 from cx_tools.i18n import _
 
 from ..media.executor import (
@@ -141,6 +143,10 @@ class MissionScheduler(AsyncIOEventEmitter):
         self._canceled_by_interrupt: bool = False
         self._results: dict[int, MissionResult] = {}
         self._running_executors: dict[int, MissionExecutor | MissionPretender] = {}
+        # 每个 mission 最终确定的 total_time 缓存。
+        # 在 mission 完成时从 coding_info.total_time 记录（若可用），
+        # 确保已结束和运行中的任务使用同一 total 来源，避免跳变。
+        self._mission_total_cache: dict[int, float] = {}
 
     @property
     def status(self) -> SchedulerStatus:
@@ -185,9 +191,17 @@ class MissionScheduler(AsyncIOEventEmitter):
             if not task.done():
                 task.cancel()
 
-    async def run(self) -> list[MissionResult]:
+    async def run(
+        self,
+        overall_task_id: TaskID | None = None,
+        mission_totals: list[float] | None = None,
+    ) -> list[MissionResult]:
         """启动批量调度。
         所有 Mission 一次性创建 asyncio.Task，Semaphore 控制并发度。
+
+        Args:
+            overall_task_id: 总体进度条 TaskID（可选）。提供时启动轮询协程。
+            mission_totals: 每项任务的总时长（秒），与 overall_task_id 配对使用。
 
         Returns:
             list[MissionResult]: 每个 Mission 的执行结果（顺序与输入一致）
@@ -198,17 +212,25 @@ class MissionScheduler(AsyncIOEventEmitter):
             asyncio.create_task(self._run_one(i, mission, sem))
             for i, mission in enumerate(self._missions)
         ]
+        # 总体进度轮询 task（生命周期与 run() 匹配）
+        if overall_task_id is not None and mission_totals is not None:
+            self._tasks.append(
+                asyncio.create_task(self._poll_overall(overall_task_id, mission_totals))
+            )
 
         # 等待所有任务完成
         raw_results = await asyncio.gather(*self._tasks, return_exceptions=True)
 
-        # 将异常转换为 MissionResult
+        # 将异常转换为 MissionResult，跳过 poll task 的 None 返回值
         final: list[MissionResult] = []
         for r in raw_results:
             if isinstance(r, MissionResult):
                 final.append(r)
             elif isinstance(r, asyncio.CancelledError):
                 final.append(MissionResult.CANCELED)
+            elif r is None:
+                # _poll_overall 的正常/取消退出均返回 None，不记入结果
+                continue
             else:
                 final.append(MissionResult.FAILED)
 
@@ -277,6 +299,96 @@ class MissionScheduler(AsyncIOEventEmitter):
             return result
 
         finally:
+            # 在 executor 从 _running_executors 移除前，缓存其 final total_time
+            executor = self._running_executors.get(index)
+            if executor is not None:
+                ci = executor.status.coding_info
+                if (
+                    ci is not None
+                    and ci.total_time is not None
+                    and ci.total_time.total_seconds > 0
+                ):
+                    self._mission_total_cache[index] = ci.total_time.total_seconds
             self._running_executors.pop(index, None)
             self._running_count -= 1
             sem.release()
+
+    async def _poll_overall(
+        self, overall_task_id: TaskID, mission_totals: list[float]
+    ) -> None:
+        """异步轮询所有 executor 的 coding_info，聚合总体进度并刷新进度条。
+
+        退出条件：所有 mission 完成（_completed_count >= total）；
+        被 cancel_all() 取消时，poll task 被 CancelledError 终止。
+        """
+        last_completed = -1.0
+        last_total = -1.0
+        total_missions = len(self._missions)
+        try:
+            while True:
+                if self._completed_count >= total_missions:
+                    # 全部完成：最后一次确保 completed == total == 100%
+                    overall_total = sum(mission_totals)
+                    appenv.progress.update(
+                        overall_task_id, completed=overall_total, total=overall_total
+                    )
+                    break
+
+                completed = 0.0
+                total = 0.0
+
+                for index, mt in enumerate(mission_totals):
+                    dur = self._get_duration_for_mission(index, mission_totals)
+                    total += dur
+                    if index in self._results:
+                        # 已完成 → completed 取完整 total
+                        completed += dur
+                    elif index in self._running_executors:
+                        executor = self._running_executors[index]
+                        ci = executor.status.coding_info
+                        completed += (
+                            ci.current_time.total_seconds if ci is not None else 0.0
+                        )
+                    # 未开始 → completed += 0
+
+                if completed != last_completed or total != last_total:
+                    appenv.progress.update(
+                        overall_task_id, completed=completed, total=total
+                    )
+                    last_completed = completed
+                    last_total = total
+
+                await asyncio.sleep(0.5)
+        except asyncio.CancelledError:
+            pass
+
+    def _get_duration_for_mission(
+        self, index: int, mission_totals: list[float]
+    ) -> float:
+        """Per-mission 总时长，按 fallback 链获取。所有状态（运行中/已完成/未开始）使用同一逻辑。
+
+        Fallback 优先级：
+        1. coding_info.total_time（FFmpeg 运行时报告的 Duration，帧精确）
+        2. _mission_total_cache（mission 完成时从 coding_info.total_time 缓存）
+        3. mission_totals[index]（预计算值，MediaDB → 1.0）
+        4. 1.0（安全兜底）
+
+        优先级 1 和 2 确保同一 task 完成前后 total 值不变，避免进度条跳变。
+        MissionPretender 不产生 coding_info，始终走后两项 fallback。
+        """
+        # 1. 运行中的 executor → 取 coding_info.total_time
+        executor = self._running_executors.get(index)
+        if executor is not None:
+            ci = executor.status.coding_info
+            if (
+                ci is not None
+                and ci.total_time is not None
+                and ci.total_time.total_seconds > 0
+            ):
+                return ci.total_time.total_seconds
+        # 2. 已完成的 mission → 取缓存的 total_time
+        cached = self._mission_total_cache.get(index)
+        if cached is not None and cached > 0:
+            return cached
+        # 3. Pre-computed mission_totals（MediaDB → 1.0）
+        return mission_totals[index] if index < len(mission_totals) else 1.0
