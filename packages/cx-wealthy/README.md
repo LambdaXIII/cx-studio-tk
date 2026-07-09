@@ -25,7 +25,7 @@ uv add cx-wealthy
 cx-wealthy 为 Rich 扩展了两种渲染模式：`__rich_label__`（紧凑标签，用于行内摘要）和 `__rich_detail__`（键值面板，用于结构化详情）。继承对应的 mixin 后，`console.print()` 自动以该模式渲染——无需在调用点手动包装。
 
 ```python
-from cx_wealthy import RichLabelMixin, RichDetailMixin, WealthDetailPanel
+from cx_wealthy import RichLabelMixin, RichDetailMixin, WealthyDetailPanel
 from rich.console import Console
 
 console = Console()
@@ -49,11 +49,11 @@ class Mission(RichLabelMixin, RichDetailMixin):
 console.print(Mission("encode", "input.mp4"))
 # 输出标签：M encode → input.mp4
 
-console.print(WealthDetailPanel(Mission("encode", "input.mp4")))
+console.print(WealthyDetailPanel(Mission("encode", "input.mp4")))
 # 输出键值面板，"覆盖"行因 overwrite==False 被去重隐藏
 ```
 
-不愿继承时，用包装器 `RichLabel(obj)` / `WealthDetailPanel(obj)` 渲染任意实现了协议的对象。
+不愿继承时，用包装器 `RichLabel(obj)` / `WealthyDetailPanel(obj)` 渲染任意实现了协议的对象。
 
 **`__rich_detail__` yield 格式：**
 
@@ -157,7 +157,7 @@ r.Console().print(table)
 | 模块 | 导出 |
 |---|---|
 | `label` | `RichLabelMixin` · `RichLabel` |
-| `detail` | `RichDetailMixin` · `WealthDetailTable` · `WealthDetailPanel` |
+| `detail` | `RichDetailMixin` · `WealthyDetailTable` · `WealthyDetailPanel` |
 | `document` | `Node` · `Group` · `Note` · `WealthyDocument` |
 | `help` | `Action` · `HelpGroup` · `WealthyHelp` |
 | `indexed_list` | `IndexedListPanel` |

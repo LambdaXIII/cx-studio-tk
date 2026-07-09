@@ -16,8 +16,8 @@ from .label import RichLabel
 
 __all__ = [
     "RichDetailMixin",
-    "WealthDetailTable",
-    "WealthDetailPanel",
+    "WealthyDetailTable",
+    "WealthyDetailPanel",
 ]
 
 
@@ -25,7 +25,7 @@ class RichDetailMixin:
     """详情渲染协议 mixin。
 
     子类实现 __rich_detail__() 后，本 mixin 自动提供 __rich__()
-    默认实现，使 console.print(obj) 直接输出 WealthDetailPanel。
+    默认实现，使 console.print(obj) 直接输出 WealthyDetailPanel。
     """
 
     def __rich_detail__(self) -> Generator[tuple[Any, ...], None, None]:
@@ -39,11 +39,11 @@ class RichDetailMixin:
         raise NotImplementedError
 
     def __rich__(self) -> RenderableType:
-        """默认渲染：将对象包装为 WealthDetailPanel。"""
-        return WealthDetailPanel(self)
+        """默认渲染：将对象包装为 WealthyDetailPanel。"""
+        return WealthyDetailPanel(self)
 
 
-class WealthDetailTable:
+class WealthyDetailTable:
     """将对象渲染为两列键值表格。
 
     检测优先级：__rich_detail__ > __rich_repr__ > Mapping > Iterable
@@ -146,26 +146,26 @@ class WealthDetailTable:
             return Text(str(value))
         if hasattr(value, "__rich_detail__") or hasattr(value, "__rich_repr__"):
             if self._sub_box and not disable_sub_box:
-                return WealthDetailPanel(
+                return WealthyDetailPanel(
                     value,
                     sub_box=self._sub_box,
                     list_max_lines=self._list_max_lines,
                     border_style=self._SUB_BOX_BORDER_STYLE,
                 )
-            return WealthDetailTable(
+            return WealthyDetailTable(
                 value,
                 sub_box=self._sub_box,
                 list_max_lines=self._list_max_lines,
             ).make_table(value)
         if isinstance(value, Mapping):
             if self._sub_box and not disable_sub_box:
-                return WealthDetailPanel(
+                return WealthyDetailPanel(
                     value,
                     sub_box=self._sub_box,
                     list_max_lines=self._list_max_lines,
                     border_style=self._SUB_BOX_BORDER_STYLE,
                 )
-            return WealthDetailTable(
+            return WealthyDetailTable(
                 value,
                 sub_box=self._sub_box,
                 list_max_lines=self._list_max_lines,
@@ -183,8 +183,8 @@ class WealthDetailTable:
             return Text(str(value))
 
 
-class WealthDetailPanel:
-    """详情面板：将对象渲染为带标题/副标题的 Panel 包裹的 WealthDetailTable。"""
+class WealthyDetailPanel:
+    """详情面板：将对象渲染为带标题/副标题的 Panel 包裹的 WealthyDetailTable。"""
 
     def __init__(
         self,
@@ -210,8 +210,8 @@ class WealthDetailPanel:
         self._list_max_lines = list_max_lines
 
     def __rich__(self) -> RenderableType:
-        """渲染为 Panel 包裹的 WealthDetailTable。"""
-        table = WealthDetailTable(
+        """渲染为 Panel 包裹的 WealthyDetailTable。"""
+        table = WealthyDetailTable(
             self._item,
             sub_box=self._sub_box,
             list_max_lines=self._list_max_lines,
@@ -228,4 +228,6 @@ class WealthDetailPanel:
             title=title,
             subtitle=subtitle,
             border_style=self._border_style or "none",
+            title_align="left",
+            subtitle_align="right",
         )

@@ -35,6 +35,11 @@ class InputSpec:
     filename: Path
     options: list[str]
 
+    def __rich_detail__(self) -> Generator[tuple[str, object], None, None]:
+        """详情面板渲染，展示输入规格字段。"""
+        yield _("文件"), str(self.filename)
+        yield _("选项"), " ".join(self.options) if self.options else _("无")
+
 
 @dataclass(frozen=True)
 class OutputSpec:
@@ -47,6 +52,11 @@ class OutputSpec:
 
     filename: Path
     options: list[str]
+
+    def __rich_detail__(self) -> Generator[tuple[str, object], None, None]:
+        """详情面板渲染，展示输出规格字段。"""
+        yield _("文件"), str(self.filename)
+        yield _("选项"), " ".join(self.options) if self.options else _("无")
 
 
 @dataclass(frozen=True)
@@ -124,8 +134,8 @@ class Mission:
             yield _("预设名称"), self.preset_name
         yield _("覆盖模式"), _("是") if self.overwrite else _("否")
         yield _("全局选项"), " ".join(self.options) if self.options else _("无")
-        yield _("输入数量"), str(len(self.inputs))
-        yield _("输出数量"), str(len(self.outputs))
+        yield _("输入"), self.inputs
+        yield _("输出"), self.outputs
 
     def iter_arguments(self) -> Generator[str, None, None]:
         """生成 FFmpeg 命令行参数。

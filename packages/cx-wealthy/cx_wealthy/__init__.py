@@ -4,7 +4,7 @@ __version__ = "0.3.0"
 
 from .columns import MaxColumnsLayout
 from .document import Group, Node, Note, WealthyDocument
-from .detail import RichDetailMixin, WealthDetailPanel, WealthDetailTable
+from .detail import RichDetailMixin, WealthyDetailPanel, WealthyDetailTable
 from .help import Action, HelpGroup, WealthyHelp
 from .indexed_list import IndexedListPanel
 from .label import RichLabel, RichLabelMixin
@@ -25,8 +25,8 @@ __all__ = [
     "RichLabelMixin",
     "RichLabel",
     "RichDetailMixin",
-    "WealthDetailTable",
-    "WealthDetailPanel",
+    "WealthyDetailTable",
+    "WealthyDetailPanel",
     # 通用文档
     "Node",
     "Group",

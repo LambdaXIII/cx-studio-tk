@@ -10,7 +10,7 @@ from typing import override
 
 from cx_tools.app import IApplication
 from cx_tools.i18n import _
-from cx_wealthy import IndexedListPanel, WealthDetailPanel, RichLabel
+from cx_wealthy import IndexedListPanel, WealthyDetailPanel, RichLabel
 
 from .appenv import appenv
 from .components.mission_runner import MissionRunner
@@ -56,12 +56,12 @@ class JpeggerApp(IApplication):
             return
 
         # 在调试模式下展示解析后的参数。
-        appenv.whisper(WealthDetailPanel(appenv.context, title="初始化参数"))
+        appenv.whisper(WealthyDetailPanel(appenv.context, title="初始化参数"))
 
         filter_chain = SimpleFilterChainBuilder.build_filter_chain_from_simple_context(
             appenv.context
         )
-        appenv.whisper(WealthDetailPanel(filter_chain, title="过滤器链"))
+        appenv.whisper(WealthyDetailPanel(filter_chain, title="过滤器链"))
 
         # 空输入时短路返回。
         if not appenv.context.inputs:

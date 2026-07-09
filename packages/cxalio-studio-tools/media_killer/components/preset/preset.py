@@ -118,6 +118,11 @@ class InputTemplate:
     filename: str
     options: list[str]
 
+    def __rich_detail__(self) -> Generator[tuple[str, Any], None, None]:
+        """详情面板渲染，展示输入模板字段。"""
+        yield _("文件名模板"), self.filename
+        yield _("选项"), " ".join(self.options) if self.options else _("无")
+
 
 @dataclass(frozen=True)
 class OutputTemplate:
@@ -130,6 +135,11 @@ class OutputTemplate:
 
     filename: str
     options: list[str]
+
+    def __rich_detail__(self) -> Generator[tuple[str, Any], None, None]:
+        """详情面板渲染，展示输出模板字段。"""
+        yield _("文件名模板"), self.filename
+        yield _("选项"), " ".join(self.options) if self.options else _("无")
 
 
 @dataclass(frozen=True)
@@ -209,8 +219,8 @@ class Preset:
         yield _("目标文件扩展名"), self.target_suffix
         yield _("目标文件夹"), str(self.target_folder)
         yield _("保留父级层级"), str(self.keep_parent_level)
-        yield _("输入模板数量"), str(len(self.inputs))
-        yield _("输出模板数量"), str(len(self.outputs))
+        yield _("输入模板"), self.inputs
+        yield _("输出模板"), self.outputs
         yield _("自定义参数"), self.custom
 
     @staticmethod

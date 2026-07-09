@@ -1,7 +1,7 @@
 from typing import Any
 
 from cx_wealthy import rich_types as r
-from cx_wealthy import WealthDetailTable, RichLabel
+from cx_wealthy import WealthyDetailTable, RichLabel
 from .format_info import FormatInfo
 from .stream_info import StreamInfo
 
@@ -14,7 +14,7 @@ class MediaInfo:
 
     def __rich_console__(self, console, options):
         o = options.update(highlight=False)
-        table = WealthDetailTable(self.format_info, sub_box=False)
+        table = WealthyDetailTable(self.format_info, sub_box=False)
 
         labels = r.Group(*(RichLabel(stream) for stream in self.stream_infos))
         stream_box = r.Panel(

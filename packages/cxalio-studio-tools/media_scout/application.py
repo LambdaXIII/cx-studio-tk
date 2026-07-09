@@ -8,7 +8,7 @@ from cx_tools.i18n import _
 
 from cx_studio.filesystem import PathUtils
 from cx_tools.app import IApplication
-from cx_wealthy import WealthDetailPanel
+from cx_wealthy import WealthyDetailPanel
 from media_scout.inspectors.filelist_inspector import FileListInspector
 from .appenv import appenv
 from .arg_parser import MSHelp
@@ -34,7 +34,7 @@ class Application(IApplication):
         appenv.start()
         appenv.show_banner()
         appenv.whisper(_("MediaScout 启动"))
-        appenv.whisper(WealthDetailPanel(appenv.context))
+        appenv.whisper(WealthyDetailPanel(appenv.context))
 
     def stop(self):
         appenv.stop()

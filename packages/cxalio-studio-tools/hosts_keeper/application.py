@@ -9,7 +9,7 @@ from typing import Self, override
 
 from cx_studio.system import system_open
 from cx_tools.app import IApplication
-from cx_wealthy import WealthDetailPanel, IndexedListPanel, RichLabel
+from cx_wealthy import WealthyDetailPanel, IndexedListPanel, RichLabel
 from cx_wealthy import rich_types as r
 from .app_help import AppHelp
 from .appenv import appenv
@@ -127,7 +127,7 @@ class Application(IApplication):
         assert appenv.context.profile_id is not None, _("profile_id 不能为空")
         profile = self.profile_manager.profiles.get(appenv.context.profile_id, None)
         if profile:
-            appenv.say(WealthDetailPanel(profile, title=profile.id))  # type: ignore[arg-type]  # Profile 为 dataclass，运行时兼容 WealthDetailMixin
+            appenv.say(WealthyDetailPanel(profile, title=profile.id))  # type: ignore[arg-type]  # Profile 为 dataclass，运行时兼容 WealthDetailMixin
         else:
             appenv.say(
                 f"[cx.error]{_('未找到 ID 为 {profile_id} 的配置文件。').format(profile_id=appenv.context.profile_id)}[/]"

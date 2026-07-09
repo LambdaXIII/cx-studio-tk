@@ -20,7 +20,7 @@ from cx_studio.core.cx_time import CxTime
 from cx_studio.filesystem import PathUtils
 from cx_tools.app import IApplication, SafeError, try_open_text_file
 from cx_tools.i18n import _
-from cx_wealthy import IndexedListPanel, WealthDetailPanel
+from cx_wealthy import IndexedListPanel, WealthyDetailPanel
 from rich.progress import TaskID
 
 from .appenv import appenv
@@ -203,7 +203,7 @@ class Application(IApplication):
             short_id = status.mission_id[:6]
             # 输出 Mission 详情面板（whisper，仅 --debug 可见；面板在进度条之前）
             appenv.whisper(
-                WealthDetailPanel(
+                WealthyDetailPanel(
                     mission,
                     title=f"[bright_black]M[/] [dim green]{short_id}[/] [{index + 1}/{total}] {mission.name}",
                 )
@@ -351,7 +351,7 @@ class Application(IApplication):
                 self.presets.append(preset)
                 # 输出 Preset 详情面板（whisper，仅 --debug 可见）
                 appenv.whisper(
-                    WealthDetailPanel(
+                    WealthyDetailPanel(
                         preset,
                         title=f"{_('预设')} [cx.mk.preset.name]{preset.name}[/]",
                     )

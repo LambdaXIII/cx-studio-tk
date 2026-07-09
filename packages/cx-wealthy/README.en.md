@@ -25,7 +25,7 @@ uv add cx-wealthy
 cx-wealthy extends Rich with two rendering modes: `__rich_label__` (compact label, for inline summaries) and `__rich_detail__` (key-value panel, for structured details). Inheriting the corresponding mixin makes `console.print()` automatically render in that mode — no manual wrapping at the call site.
 
 ```python
-from cx_wealthy import RichLabelMixin, RichDetailMixin, WealthDetailPanel
+from cx_wealthy import RichLabelMixin, RichDetailMixin, WealthyDetailPanel
 from rich.console import Console
 
 console = Console()
@@ -49,11 +49,11 @@ class Mission(RichLabelMixin, RichDetailMixin):
 console.print(Mission("encode", "input.mp4"))
 # Label output: M encode → input.mp4
 
-console.print(WealthDetailPanel(Mission("encode", "input.mp4")))
+console.print(WealthyDetailPanel(Mission("encode", "input.mp4")))
 # Detail panel output, "Overwrite" row hidden because overwrite == False
 ```
 
-When inheritance is not an option, use wrappers `RichLabel(obj)` / `WealthDetailPanel(obj)` to render any object that implements the protocol.
+When inheritance is not an option, use wrappers `RichLabel(obj)` / `WealthyDetailPanel(obj)` to render any object that implements the protocol.
 
 **`__rich_detail__` yield formats:**
 
@@ -140,7 +140,7 @@ r.Console().print(table)
 | Module | Exports |
 |---|---|
 | `label` | `RichLabelMixin` · `RichLabel` |
-| `detail` | `RichDetailMixin` · `WealthDetailTable` · `WealthDetailPanel` |
+| `detail` | `RichDetailMixin` · `WealthyDetailTable` · `WealthyDetailPanel` |
 | `document` | `Node` · `Group` · `Note` · `WealthyDocument` |
 | `help` | `Action` · `WealthyHelp` |
 | `indexed_list` | `IndexedListPanel` |

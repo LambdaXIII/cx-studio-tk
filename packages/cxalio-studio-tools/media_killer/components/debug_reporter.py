@@ -21,7 +21,7 @@
 - mission_canceled → 任务已取消
 - mission_failed → 失败原因（来自 status.failure_reason）
 - mission_ffmpeg_started → FFmpeg 进程已启动（含命令行）
-- mission_ffmpeg_failed → FFmpeg 异常诊断 WealthDetailPanel
+- mission_ffmpeg_failed → FFmpeg 异常诊断 WealthyDetailPanel
 - mission_commit_renamed → 原子重命名成功
 - mission_skipped → 跳过信息（目标已存在）
 - scheduler_canceling → 调度器级取消全部
@@ -31,7 +31,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
-from cx_wealthy import WealthDetailPanel
+from cx_wealthy import WealthyDetailPanel
 
 from cx_tools.app import IAppEnvironment
 from cx_tools.i18n import _
@@ -55,6 +55,8 @@ class DebugReporter:
         scheduler: 要订阅的 MissionScheduler 实例
         env: 应用环境，提供 whisper() 输出通道
     """
+
+    # TODO: 考虑直接添加 SAID 和 WHISPERED 事件，不再以路由方式输出信息
 
     def __init__(
         self,
@@ -146,7 +148,7 @@ class DebugReporter:
         """mission_ffmpeg_failed：FFmpeg 进程异常退出，渲染诊断面板。"""
         prefix = self._format_prefix(status)
         self._env.whisper(
-            WealthDetailPanel(
+            WealthyDetailPanel(
                 {
                     _("退出状态码"): str(status.exit_code),
                     _("原始命令"): f"ffmpeg {' '.join(status.arguments)}",

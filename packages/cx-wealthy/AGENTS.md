@@ -25,7 +25,7 @@
 
 ### mixin + 包装器双轨
 
-渲染协议用 mixin 承载（非 Protocol）：mixin 提供默认 `__rich__` 实现，使 `console.print(obj)` 直接输出正确渲染——"协议即渲染"。同时提供包装器（`RichLabel`/`WealthDetailPanel`）给不愿或不能继承的使用方（第三方类型、frozen dataclass 继承位已满等）。两者共享底层渲染逻辑。
+渲染协议用 mixin 承载（非 Protocol）：mixin 提供默认 `__rich__` 实现，使 `console.print(obj)` 直接输出正确渲染——"协议即渲染"。同时提供包装器（`RichLabel`/`WealthyDetailPanel`）给不愿或不能继承的使用方（第三方类型、frozen dataclass 继承位已满等）。两者共享底层渲染逻辑。
 
 Protocol-only 不可取：Protocol 不允许带方法体，"协议即渲染"无法成立——所有使用方都必须显式 `console.print(RichLabel(obj))`，丢失直接打印的体验。mixin 只定义方法不定义字段，与 frozen dataclass 完全兼容，无实质冲突。
 
@@ -65,7 +65,7 @@ Protocol-only 不可取：Protocol 不允许带方法体，"协议即渲染"无�
 
 - yield `(key, value)` 或 `(key, value, default)` 三元组；三元组中 `value == default` 时该行不显示（去重）
 - value 若实现同协议则自动嵌套渲染为 sub-panel；value 为列表自动渲染为 `IndexedListPanel`
-- `RichDetailMixin` 提供默认 `__rich__`（包装为 `WealthDetailPanel`），`WealthDetailPanel`/`WealthDetailTable` 是包装器
+- `RichDetailMixin` 提供默认 `__rich__`（包装为 `WealthyDetailPanel`），`WealthyDetailPanel`/`WealthyDetailTable` 是包装器
 
 **key/value 的字符串语义**：
 
