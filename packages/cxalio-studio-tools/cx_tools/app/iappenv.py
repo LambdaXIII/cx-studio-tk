@@ -9,6 +9,7 @@ from rich.highlighter import RegexHighlighter
 from cx_tools.i18n import _
 from cx_wealthy import default_theme as cx_default_theme
 from cx_studio import system
+from cx_studio.tui.tools.double_trigger import FIRST_TRIGGERED, SECOND_TRIGGERED
 from cx_studio.tui import DoubleTrigger
 
 
@@ -89,14 +90,14 @@ class IAppEnvironment(ABC):
 
         self.interrupt_handler = DoubleTrigger()
 
-        @self.interrupt_handler.on("first_triggered")
+        @self.interrupt_handler.on(FIRST_TRIGGERED)
         def __when_wanna_quit():
             self.say(
                 f"[cx.warning]{_('正在取消运行中的任务，再次按下 Ctrl+C 取消全部任务')}[/]"
             )
             self.wanna_quit_event.set()
 
-        @self.interrupt_handler.on("second_triggered")
+        @self.interrupt_handler.on(SECOND_TRIGGERED)
         def __when_really_wanna_quit():
             self.say(f"[cx.error]{_('正在中止执行')}[/]")
             self.really_wanna_quit_event.set()

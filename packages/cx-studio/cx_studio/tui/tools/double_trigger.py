@@ -2,6 +2,10 @@ from datetime import datetime
 
 from pyee import EventEmitter
 
+TRIGGERED: str = "triggered"
+FIRST_TRIGGERED: str = "first_triggered"
+SECOND_TRIGGERED: str = "second_triggered"
+
 
 class DoubleTrigger(EventEmitter):
 
@@ -18,11 +22,11 @@ class DoubleTrigger(EventEmitter):
         return span.total_seconds() < self._delay
 
     def trigger(self):
-        self.emit("triggered")
+        self.emit(TRIGGERED)
 
         if self.is_pending:
-            self.emit("second_triggered")
+            self.emit(SECOND_TRIGGERED)
         else:
-            self.emit("first_triggered")
+            self.emit(FIRST_TRIGGERED)
 
         self._last_time = datetime.now()

@@ -106,6 +106,16 @@ uv build                  # 构建所有包
 - `__rich_detail__()` → 详情面板（yield `(key, value)` 二元组，渲染为两列表格）
 - 两者可共存；核心领域类型（Mission、Preset、StreamInfo）应同时实现。可通过 `yield from super().__rich_label__()` 复用父类标签。
 
+### asyncio 事件命名
+- **事件名称必须通过常量定义**，禁止直接使用字符串字面量调 `emit()`/`on()`。常量在事件发射组件的模块文件顶级中定义。
+- **事件名使用 `-ED` 形式**（如 `STARTED`、`FINISHED`、`CANCELED`、`FILE_LOGGED`），表明事件是对**已发生的状态跃迁**的通知，而非对将来动作的请求或描述过程（不应使用 `-ING`、无后缀动词原形等形式）。
+- **事件常量通常不在 `__init__.py` 中包级导出**，避免命名冲突（不同组件可能定义同名事件，如 `FILE_LOGGED` 在 executor 级别和 HQ 级别含义不同）。外部消费者从定义常量的模块直接导入：
+  ```python
+  from .media.mission_hq import MISSION_STARTED
+  # 而非 from .media import MISSION_STARTED
+  ```
+- 同一组件内部使用常量调用 `emit()`/`on()` 也遵循此规则——虽非强制，但推荐以保持可 grep 性和一致性。
+
 ### 文档与注释
 - 公开类/方法必须有 docstring；行内注释只解释代码表达不了的决策理由
 - 修改代码后自底向上检查注释是否仍匹配（行内→方法→类→模块）

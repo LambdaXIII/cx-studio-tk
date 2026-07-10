@@ -2,8 +2,15 @@ import asyncio
 import itertools
 from pathlib import Path
 
-from cx_studio.ffmpeg import FFmpegAsync, FFmpegArgumentsPreProcessor
-from cx_studio.ffmpeg.cx_ff_infos import FFmpegCodingInfo
+from cx_studio.ffmpeg import (
+    FFMPEG_EVENT_FINISHED,
+    FFMPEG_EVENT_STARTED,
+    FFMPEG_EVENT_STATUS_UPDATED,
+    FFMPEG_EVENT_TERMINATED,
+    FFmpegAsync,
+    FFmpegCodingInfo,
+    FFmpegArgumentsPreProcessor,
+)
 from cx_tools.app.safe_error import SafeError
 from cx_wealthy import IndexedListPanel
 from .appenv import appenv
@@ -92,7 +99,7 @@ class Transcoder:
         summary = f"[cx.info][{m}->{n}][/]"
 
         # 设置状态更新监听器
-        @self._ffmpeg.on("status_updated")
+        @self._ffmpeg.on(FFMPEG_EVENT_STATUS_UPDATED)
         def on_status_updated(status: FFmpegCodingInfo):
             current = status.current_time.total_seconds
             total = status.total_time.total_seconds if status.total_time else None
@@ -107,19 +114,19 @@ class Transcoder:
                 description=f"{summary}{speed}[cx.success]{self._task_description}[/]",
             )
 
-        @self._ffmpeg.on("started")
+        @self._ffmpeg.on(FFMPEG_EVENT_STARTED)
         def on_started():
             appenv.progress.update(
                 self._task_id, description=f"{summary}[cx.success]开始转码...[/]"  # type: ignore[arg-type]
             )
 
-        @self._ffmpeg.on("finished")
+        @self._ffmpeg.on(FFMPEG_EVENT_FINISHED)
         def on_finished():
             appenv.progress.update(
                 self._task_id, description=f"{summary}[cx.success]转码完成[/]"  # type: ignore[arg-type]
             )
 
-        @self._ffmpeg.on("terminated")
+        @self._ffmpeg.on(FFMPEG_EVENT_TERMINATED)
         def on_terminated(exit_code: int, stderr_lines: list[str]) -> None:
             appenv.progress.update(
                 self._task_id, description=f"{summary}[cx.error]转码失败[/]"  # type: ignore[arg-type]

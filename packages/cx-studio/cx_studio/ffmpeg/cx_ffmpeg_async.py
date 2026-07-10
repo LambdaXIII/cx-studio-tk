@@ -45,7 +45,7 @@ FFMPEG_EVENT_TERMINATED: str = "terminated"
 
 # FFmpeg 原始 stderr 行：(line: str)
 # 每读取到一行 stderr 时发射。高频事件，消费者应谨慎处理。
-FFMPEG_EVENT_VERBOSE: str = "verbose"
+FFMPEG_EVENT_VERBOSE_UPDATED: str = "verbose_updated"
 
 
 class FFmpegAsync(AsyncIOEventEmitter):
@@ -64,7 +64,7 @@ class FFmpegAsync(AsyncIOEventEmitter):
     | ``FFMPEG_EVENT_FINISHED`` | ``finished`` | ``()`` | 进程正常退出 |
     | ``FFMPEG_EVENT_CANCELED`` | ``canceled`` | ``()`` | 进程被取消 |
     | ``FFMPEG_EVENT_TERMINATED`` | ``terminated`` | ``(exit_code: int, stderr_lines: list[str])`` | 进程异常退出，携带退出码和完整 stderr 行 |
-    | ``FFMPEG_EVENT_VERBOSE`` | ``verbose`` | ``(line: str)`` | 原始 stderr 行，高频 |
+    | ``FFMPEG_EVENT_VERBOSE_UPDATED`` | ``verbose_updated`` | ``(line: str)`` | 原始 stderr 行，高频 |
     """
 
     def __init__(
@@ -109,7 +109,7 @@ class FFmpegAsync(AsyncIOEventEmitter):
         stream = AsyncStreamUtils.wrap_io(self._process.stderr)
         async for line in AsyncStreamUtils.readlines_from_stream(stream):
             line_str = line.decode("utf-8", errors="ignore")
-            self.emit(FFMPEG_EVENT_VERBOSE, line_str)
+            self.emit(FFMPEG_EVENT_VERBOSE_UPDATED, line_str)
             self._stderr_lines.append(line_str)
 
             coding_info_dict = FFmpegCodingInfo.parse_status_line(line_str)
