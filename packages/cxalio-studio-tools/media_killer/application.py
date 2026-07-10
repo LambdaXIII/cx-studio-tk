@@ -17,21 +17,16 @@ from pathlib import Path
 from typing import override
 
 
-from cx_studio.ffmpeg import FFmpegCodingInfo
-from cx_studio.core.cx_time import CxTime
 from cx_studio.filesystem import PathUtils
 from cx_tools.app import IApplication, SafeError, try_open_text_file
 from cx_tools.i18n import _
 from cx_wealthy import IndexedListPanel, WealthyDetailPanel
-from rich.progress import TaskID
 
 from .appenv import appenv
 from .appcontext import OVERWRITE_DANGER, OVERWRITE_SAFE
 from .app_help import AppHelp
 from .components import (
-    DebugReporter,
     MissionMaker,
-    MissionScheduler,
     MissionStore,
     Preset,
     PresetLoader,
@@ -39,12 +34,12 @@ from .components import (
     SourceExpander,
 )
 from .media import (
-    ExecutorStatus,
+    FileLogType,
     Mission,
-    MissionExecutor,
-    MissionPretender,
+    MissionHQ,
     MissionResult,
 )
+from .media.mission_hq import MISSION_FILE_LOGGED, MISSION_RESULT, MISSION_STARTED
 
 
 class Application(IApplication):
@@ -155,157 +150,84 @@ class Application(IApplication):
 
     # --- Mission 执行 ---
 
+    # --- Mission 执行 ---
+
     def _execute_missions(self, pretend: bool) -> None:
-        """构造调度器并执行 Mission 列表。
+        """使用 MissionHQ 执行 Mission 列表。
+
+        替换旧版的 MissionScheduler + DebugReporter + Progress 内联编排架构。
+        MissionHQ 接管全部生命周期：中断（两段式）、进度（总+子）、debug 输出、文件追踪。
 
         Args:
-            pretend: True 表示模拟运行（MissionPretender），False 表示实际转码（MissionExecutor）。
+            pretend: True = 模拟运行，False = 实际转码
         """
         ctx = appenv.context
-
-        # 构造 executor_factory（不同内名避免 Pylance 重声明警告）
-        if pretend:
-
-            def _pretend_factory(mission: Mission) -> MissionPretender:
-                duration = self._lookup_duration(mission)
-                return MissionPretender(mission, duration=duration)
-
-            executor_factory = _pretend_factory
-
-        else:
-
-            def _execute_factory(mission: Mission) -> MissionExecutor:
-                return MissionExecutor(mission)
-
-            executor_factory = _execute_factory
-
-        scheduler = MissionScheduler(
-            missions=self.missions,
+        hq = MissionHQ(
             max_workers=ctx.max_workers,
-            executor_factory=executor_factory,
+            pretending=pretend,
+            progress=appenv.progress,
+            env=appenv,
         )
-
-        # 预计算每项任务的总时长（fallback 链：MediaDB → 1.0）
-        mission_totals: list[float] = []
-        for m in self.missions:
-            d = self._lookup_duration(m)
-            mission_totals.append(d.total_seconds if d else 1.0)
-
-        overall_total = sum(mission_totals)
-        overall_task_id = appenv.progress.add_task(
-            _("总进度"),
-            total=overall_total,
-        )
-
-        # 挂接第一次中断回调（取消所有正在运行的 executor，pending 不受影响）
-        @appenv.interrupt_handler.on("first_triggered")
-        def _on_first() -> None:
-            scheduler.cancel_running()
-
-        # 挂接第二次中断回调（取消所有任务，含 pending）
-        @appenv.interrupt_handler.on("second_triggered")
-        def _on_second() -> None:
-            scheduler.cancel_all()
-
-        # 挂接进度 UI
-        task_ids: dict[int, TaskID] = {}
-        total = len(self.missions)
-        # 跟踪上次写入的值，避免因值未变而重复调用 progress.update()
-        # 因为 Rich Progress 在 total 更新时会重置 ETA 计时
-        _last_completed: dict[int, float] = {}
-        _last_total: dict[int, float] = {}
-
-        @scheduler.on("mission_started")
-        def _on_started(index: int, status: ExecutorStatus) -> None:
-            mission = self.missions[index]
-            short_id = status.mission_id[:6]
-            # 输出 Mission 详情面板（whisper，仅 --debug 可见；面板在进度条之前）
-            appenv.whisper(
-                WealthyDetailPanel(
-                    mission,
-                    title=f"[bright_black]M[/] [dim green]{short_id}[/] [{index + 1}/{total}] {mission.name}",
-                )
-            )
-            task_id = appenv.progress.add_task(
-                f"[bright_black][{index + 1}/{total}][/] [cx.mk.mission.name]{mission.name}[/]",
-                total=None,
-            )
-            task_ids[index] = task_id
-
-        @scheduler.on("mission_progress_updated")
-        def _on_progress(
-            index: int, current: CxTime, total_time: CxTime | None
-        ) -> None:
-            tid = task_ids.get(index)
-            if tid is None:
-                return
-            new_c = current.total_seconds
-            new_t = (
-                total_time.total_seconds
-                if total_time and total_time.total_seconds > 0
-                else None
-            )
-            if _last_completed.get(index) != new_c:
-                appenv.progress.update(tid, completed=new_c)
-                _last_completed[index] = new_c
-            if new_t is not None and _last_total.get(index) != new_t:
-                appenv.progress.update(tid, total=new_t)
-                _last_total[index] = new_t
-
-        @scheduler.on("mission_finished")
-        def _on_finished(index: int, status: ExecutorStatus) -> None:
-            tid = task_ids.pop(index, None)
-            if tid is not None:
-                appenv.progress.remove_task(tid)
-            result = scheduler.results.get(index, MissionResult.FAILED)
-            self._report_mission_result(self.missions[index], result)
-
-        # 转码速度指示器：更新进度条描述中的 [3.21x] 部分
-        # 来自 FFmpegCodingInfo.current_speed，通过 STATUS_UPDATED 事件传递
-        _last_speed: dict[int, float] = {}
-
-        @scheduler.on("mission_status_updated")
-        def _on_speed_update(index: int, coding_info: FFmpegCodingInfo) -> None:
-            tid = task_ids.get(index)
-            if tid is None:
-                return
-            speed = coding_info.current_speed
-            if speed > 0 and _last_speed.get(index) != speed:
-                appenv.progress.update(
-                    tid,
-                    description=(
-                        f"[bright_black][{index + 1}/{total}] [{speed:.2f}x][/]"
-                        f" [cx.mk.mission.name]{self.missions[index].name}[/]"
-                    ),
-                )
-                _last_speed[index] = speed
-
-        # 挂接诊断输出（executor 内部步骤 whisper）
-        DebugReporter(scheduler, appenv).attach()
-        # 执行
-        results = asyncio.run(
-            scheduler.run(
-                overall_task_id=overall_task_id,
-                mission_totals=mission_totals,
-            )
-        )
-        appenv.progress.remove_task(overall_task_id)
-        # 统计
+        # 订阅 HQ 总线事件
+        hq.on(MISSION_STARTED, self._on_mission_started)
+        hq.on(MISSION_RESULT, self._on_mission_result)
+        hq.on(MISSION_FILE_LOGGED, self._on_file_logged)
+        # 投喂 + 执行
+        hq.add_missions(self.missions)
+        hq.finish()
+        results = asyncio.run(hq.run())
         self._report_summary(results)
 
-    def _lookup_duration(self, mission: Mission) -> CxTime | None:
-        """从 MediaDB 查询源文件时长。
+    def _on_mission_started(self, mission: Mission) -> None:
+        """mission_started 事件处理：输出 WealthyDetailPanel。
+
+        显示 Mission 的完整解析结果（仅在 -v/--debug 模式下可见）。
+        面板位于进度条之前，方便 debug 时对照。
 
         Args:
-            mission: 要查询的 Mission
-
-        Returns:
-            CxTime 时长，查询失败返回 None
+            mission: 开始执行的 Mission
         """
-        info = appenv.media_db.get_media_info(mission.source)
-        if info is not None and info.duration is not None:
-            return CxTime.from_seconds(info.duration)
-        return None
+        index = self.missions.index(mission)
+        total = len(self.missions)
+        short_id = str(mission.mission_id)[:6]
+        appenv.whisper(
+            WealthyDetailPanel(
+                mission,
+                title=(
+                    f"[bright_black]M[/] [dim green]{short_id}[/] "
+                    f"[{index + 1}/{total}] {mission.name}"
+                ),
+            )
+        )
+
+    def _on_mission_result(self, mission: Mission, result: MissionResult) -> None:
+        """mission_result 事件处理：输出结果行。
+
+        Args:
+            mission: 已完成的 Mission
+            result: 执行结果
+        """
+        self._report_mission_result(mission, result)
+
+    def _on_file_logged(self, log_type: FileLogType, paths: list[Path]) -> None:
+        """file_logged 事件处理：追踪文件的处理状态。
+
+        根据事件类型将文件路径分发到 appenv 的相应文件列表中，
+        在 appenv.cleanup() 阶段输出统计报告和清理 garbage。
+
+        Args:
+            log_type: 文件事件类型
+            paths: 受影响的文件路径列表
+        """
+        if log_type == FileLogType.LOADED:
+            for p in paths:
+                appenv.processed_files.append(p)
+        elif log_type == FileLogType.SAVED:
+            for p in paths:
+                appenv.generated_files.append(p)
+        elif log_type == FileLogType.DEPRECATED:
+            for p in paths:
+                appenv.garbage_files.append(p)
 
     @staticmethod
     def _report_mission_result(mission: Mission, result: MissionResult) -> None:

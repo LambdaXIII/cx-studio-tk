@@ -8,11 +8,12 @@ MissionExecutor 通过 asyncio 运行 FFmpeg，使用 pyee 事件模型向外报
 - MissionExecutor：单 Mission 执行单元（AsyncIOEventEmitter 子类），
   校验→创建目录→运行 FFmpeg→原子提交，支持外部取消和临时文件保护。
 - MissionResult：执行结果枚举（SUCCESS/FAILED/CANCELED）。
-- 事件名常量：STARTED、PROGRESS_UPDATED、STATUS_UPDATED、FINISHED、
-  FAILED、CANCELED、VERBOSE、SKIPPED。
+  FAILED、CANCELED、SKIPPED。
 """
 
 import asyncio
+from cx_studio.core.cx_time import CxTime
+from typing import ClassVar
 from dataclasses import dataclass
 import os
 from enum import Enum
@@ -22,12 +23,11 @@ from pyee.asyncio import AsyncIOEventEmitter
 
 from cx_studio.ffmpeg import (
     FFMPEG_EVENT_CANCELED,
-    FFMPEG_EVENT_FINISHED,
     FFMPEG_EVENT_PROGRESS_UPDATED,
     FFMPEG_EVENT_STARTED,
     FFMPEG_EVENT_STATUS_UPDATED,
     FFMPEG_EVENT_TERMINATED,
-    FFMPEG_EVENT_VERBOSE,
+    FFMPEG_EVENT_VERBOSE_UPDATED,
     FFmpegCodingInfo,
     FFmpegAsync,
 )
@@ -38,72 +38,36 @@ from .mission import Mission
 
 # ── 事件名常量 ──────────────────────────────────────────────
 
-# FFmpeg 进程已启动
+# 执行器自身的生命周期事件
 STARTED: str = "started"
-# 进度更新：(current: CxTime, total: CxTime | None)
 PROGRESS_UPDATED: str = "progress_updated"
-# 帧级状态更新：(coding_info: FFmpegCodingInfo)
 STATUS_UPDATED: str = "status_updated"
-# 转码成功完成
 FINISHED: str = "finished"
-# 转码失败：()，无参信号。失败原因通过 status.failure_reason 拉取
 FAILED: str = "failed"
-# 被外部取消：()，无参信号。取消原因通过 status.cancel_reason 拉取。
-# 与 CANCELING 的区别：CANCELING = 中断请求已识别/正在停止（过程），
-# CANCELED = 已停止（终态）。
 CANCELED: str = "canceled"
-# FFmpeg 原始 stderr 行：(line: str)
-VERBOSE: str = "verbose"
-# 任务被跳过（目标已存在且 overwrite=False）：()，无参信号。
-# 已存在的目标文件路径通过 status.skipped_targets 拉取。
 SKIPPED: str = "skipped"
-# 参数构建完成：()，无参信号。完整命令行参数通过 status.arguments 拉取。
-# 在 _build_arguments() 返回后、FFmpegAsync 启动前发射。
-ARGS_BUILT: str = "args_built"
 
-# 单个输出文件原子重命名成功：()，无参信号。
-# 重命名的目标文件名通过 status.commit_target 拉取。
-# 在 os.replace(temp, target) 成功后、从 garbage_files 移除后发射。
-# 每次 _commit_outputs() 遍历成功一个文件就发射一次。
-# 注意：MissionPretender 不发射此事件（不创建临时文件）。
-COMMIT_RENAMED: str = "commit_renamed"
+# 调试输出（替代旧版 ARGS_BUILT/CANCELING/FFMPEG_STARTED/FFMPEG_FAILED/VERBOSE）
+# (msg: str)
+WHISPERED: str = "whispered"
+# 用户可见的输出（预留，暂未使用）
+# (msg: str)
+SAID: str = "said"
 
-# ── FFmpeg 进程级事件（executor 转发自 FFmpegAsync，与 executor 自身事件独立）──
-
-# FFmpeg 进程已启动：()，无参信号。命令行通过 status.arguments 拉取。
-# 由 _attach_listeners 从 FFmpegAsync 的 FFMPEG_EVENT_STARTED 转发。
-# 与 executor 的 STARTED 不同——STARTED 表示 executor 开始执行
-# （校验通过、参数构建完成），FFMPEG_STARTED 表示 FFmpeg 子进程
-# 实际启动。Pretender 不发射此事件（不启动 FFmpeg）。
-FFMPEG_STARTED: str = "ffmpeg_started"
-
-# FFmpeg 进程正常退出（returncode == 0）：()
-# 由 _attach_listeners 从 FFmpegAsync 的 FFMPEG_EVENT_FINISHED 转发。
-# 与 executor 的 FINISHED 不同——FINSIHED 在 _commit_outputs
-# 成功后由 executor 发射，表示任务完整完成（含原子提交）。
-# FFMPEG_FINISHED 仅表示 FFmpeg 进程本身成功退出。
-# Pretender 不发射此事件。
-FFMPEG_FINISHED: str = "ffmpeg_finished"
-
-# FFmpeg 进程异常退出（returncode != 0，非取消）：()，无参信号。
-# 退出码/命令/错误尾巴通过 status.exit_code / status.arguments / status.error_tail 拉取。
-# 由 _attach_listeners 从 FFmpegAsync 的 FFMPEG_EVENT_TERMINATED 转发，
-# 提取错误尾巴后存入 status 再发射。与 executor 的 FAILED 独立——
-# FAILED 表示任务级失败摘要，FFMPEG_FAILED 携带 FFmpeg 进程级的完整诊断上下文。
-# 两者在 FFmpeg 异常退出时先后触发：先 FFMPEG_FAILED（进程级详情），
-# 再 FAILED（任务级摘要）。Pretender 不发射此事件。
-FFMPEG_FAILED: str = "ffmpeg_failed"
-
-# executor 识别到中断信号，即将停止 FFmpeg 进程：()
-# 在 ffmpeg.cancel() 调用前发射。无参信号，数据通过 status 属性拉取。
-# 与 CANCELED 的区别：
-# CANCELING = "我收到了中断请求，正在停止"（过程信号）
-#   → status.cancel_reason 可区分取消来源
-# CANCELED = "已停止，任务取消"（终态信号）
-CANCELING: str = "canceling"
+# 文件状态事件（供 HQ 总线转发）
+# (log_type: FileLogType, paths: list[Path])
+FILE_LOGGED: str = "file_logged"
 
 
-# ── MissionResult 枚举 ──────────────────────────────────────
+# ── FileLogType 枚举 ────────────────────────────────────────
+
+
+class FileLogType(Enum):
+    """文件被处理的事件类型。由 executor 和 pretender 发射 FILE_LOGGED 事件时使用。"""
+
+    LOADED = "loaded"
+    SAVED = "saved"
+    DEPRECATED = "deprecated"
 
 
 class MissionResult(Enum):
@@ -136,17 +100,18 @@ class ExecutorStatus:
     事件分为两类：
     - **无参信号**（大部分生命周期事件）：emit() 不携带参数，
       接收端通过 executor.status 拉取数据。此类信号反映状态跃迁，
-      如 STARTED、CANCELING、CANCELED、FAILED、FINISHED 等。
-    - **流式数据事件**（PROGRESS_UPDATED、STATUS_UPDATED、VERBOSE）：
+      如 STARTED、CANCELED、FAILED、FINISHED 等。
+    - **流式数据事件**（PROGRESS_UPDATED、STATUS_UPDATED）：
       保留 emit 参数，因为是高频流式数据，不适合快照模式。
     """
 
+    executor_id: int  # 执行器唯一 ID（进程内自增）
     mission_id: str  # 当前 mission 的 ULID 字符串
     mission_name: str  # 源文件名（不含扩展名）
     arguments: list[str]  # FFmpeg 完整命令行参数（已替换临时路径）
-    exit_code: int | None  # FFmpeg 进程退出码（仅 FFMPEG_FAILED 后有效）
-    error_tail: str  # FFmpeg 错误尾巴（仅 FFMPEG_FAILED 后有效）
-    cancel_reason: str | None  # 取消原因（仅 CANCELING/CANCELED 后有效）
+    exit_code: int | None  # FFmpeg 进程退出码（仅异常退出后有效）
+    error_tail: str  # FFmpeg 错误尾巴（仅异常退出后有效）
+    cancel_reason: str | None  # 取消原因（仅 CANCELED 后有效）
     failure_reason: str | None  # 任务级失败原因（校验失败、重命名失败等）
     skipped_targets: list[str]  # 被跳过的已存在目标文件路径列表
     commit_target: str | None  # 最近一次原子重命名的目标文件名
@@ -221,12 +186,12 @@ class MissionExecutor(AsyncIOEventEmitter):
 
     中断语义（两段式）：
     - 单次 Ctrl+C：调度器调用 ``executor.cancel()``（设置 ``_cancel_event``），
-      本单元在轮询中检测到后发射 ``CANCELING``，停止 FFmpeg，返回 ``CANCELED``。
+      本单元在轮询中检测到后通过 WHISPERED 报告，停止 FFmpeg，返回 ``CANCELED``。
     - 二次 Ctrl+C（3 秒内）：调度器通过 ``task.cancel()`` 取消所有 task，
-      本单元 ``asyncio.CancelledError`` 中发射 ``CANCELING``，停止 FFmpeg，返回 ``CANCELED``。
+      本单元 ``asyncio.CancelledError`` 中通过 WHISPERED 报告，停止 FFmpeg，返回 ``CANCELED``。
 
     信号与数据分离：
-    所有生命周期事件（除流式数据 PROGRESS_UPDATED/STATUS_UPDATED/VERBOSE）
+    所有生命周期事件（除流式数据 PROGRESS_UPDATED/STATUS_UPDATED）
     均为无参信号——emit() 不携带参数。接收端通过 ``executor.status`` 属性
     （返回 ``ExecutorStatus`` 只读快照）拉取事件上下文数据。
 
@@ -235,22 +200,20 @@ class MissionExecutor(AsyncIOEventEmitter):
       执行返回 SKIPPED。与 CANCELED 的区别：SKIPPED 表示从未开始执行
       （FFmpeg 未启动），CANCELED 表示已开始执行后因中断中止。
 
-    事件列表（无参信号，数据通过 status 拉取，除非注明）：
-    - ``started`` — executor 开始执行
+    事件列表：
+    - ``started`` — executor 开始执行（无参）
     - ``progress_updated`` — (current, total) 流式进度
     - ``status_updated`` — (coding_info) 帧级状态
-    - ``finished`` — 任务完整完成
-    - ``failed`` — 任务级失败 → status.failure_reason
-    - ``canceled`` — 任务已取消 → status.cancel_reason
-    - ``canceling`` — 中断已识别/正在停止 → status.cancel_reason
-    - ``verbose`` — (line) FFmpeg stderr 流式行
-    - ``skipped`` — 目标已存在跳过 → status.skipped_targets
-    - ``ffmpeg_started`` — FFmpeg 子进程已启动 → status.arguments
-    - ``ffmpeg_finished`` — FFmpeg 进程正常退出
-    - ``ffmpeg_failed`` — FFmpeg 异常退出 → status.exit_code/arguments/error_tail
+    - ``finished`` — 任务完整完成（无参）
+    - ``failed`` — 任务级失败（无参）→ status.failure_reason
+    - ``canceled`` — 任务已取消（无参）→ status.cancel_reason
+    - ``skipped`` — 目标已存在跳过（无参）→ status.skipped_targets
+    - ``whispered`` — (msg) debug 级别消息行
+    - ``file_logged`` — (FileLogType, list[str]) 文件处理事件
     """
 
     _TEMP_PREFIX: str = "mk2tmp."
+    _next_id: ClassVar[int] = 0
 
     def __init__(
         self,
@@ -263,6 +226,8 @@ class MissionExecutor(AsyncIOEventEmitter):
             mission: 要执行的 Mission
             ffmpeg_executable: ffmpeg 可执行文件路径。若为 None，使用 mission.ffmpeg。
         """
+        self.executor_id = MissionExecutor._next_id
+        MissionExecutor._next_id += 1
         super().__init__()
         self._mission = mission
         self._ffmpeg_executable = ffmpeg_executable or mission.ffmpeg
@@ -288,6 +253,7 @@ class MissionExecutor(AsyncIOEventEmitter):
         """
         # TODO:这里非常不优雅，将来考虑设计更通用、更安全的机制
         return ExecutorStatus(
+            executor_id=self.executor_id,
             mission_id=str(self._mission.mission_id),
             mission_name=self._mission.name,
             arguments=self._ffmpeg_arguments,
@@ -339,6 +305,9 @@ class MissionExecutor(AsyncIOEventEmitter):
                 self._skipped_targets = [str(e) for e in existing]
                 self.emit(SKIPPED)
                 return MissionResult.SKIPPED
+        self.emit(
+            FILE_LOGGED, FileLogType.LOADED, [s.filename for s in self._mission.inputs]
+        )
 
         # 创建输出目录
         self._ensure_output_dirs()
@@ -361,7 +330,7 @@ class MissionExecutor(AsyncIOEventEmitter):
         # 构建参数：替换输出路径为临时路径
         arguments = self._build_arguments(temp_map)
         self._ffmpeg_arguments = arguments
-        self.emit(ARGS_BUILT)
+        self.emit(WHISPERED, _("参数构建完成"))
         self.emit(STARTED)
 
         # 创建 FFmpeg 实例并挂载事件转发
@@ -377,7 +346,7 @@ class MissionExecutor(AsyncIOEventEmitter):
             while not main_task.done():
                 if self._cancel_event.is_set():
                     self._cancel_reason = _("用户中断")
-                    self.emit(CANCELING)
+                    self.emit(WHISPERED, _("正在停止 FFmpeg…"))
                     ffmpeg.cancel()
                     await main_task
                     return MissionResult.CANCELED
@@ -385,9 +354,21 @@ class MissionExecutor(AsyncIOEventEmitter):
 
             ffmpeg_ok: bool = main_task.result()
 
+            # 用户取消优先于 FFmpeg 结果
+            if self._cancel_event.is_set():
+                return MissionResult.CANCELED
+
+            if ffmpeg_ok:
+                return self._commit_outputs(temp_map)
+
+            # FFmpeg 异常退出
+            self._failure_reason = _("FFmpeg 执行失败")
+            self.emit(FAILED)
+            return MissionResult.FAILED
+
         except asyncio.CancelledError:
             self._cancel_reason = _("调度器强制取消")
-            self.emit(CANCELING)
+            self.emit(WHISPERED, _("正在停止 FFmpeg…"))
             ffmpeg.cancel()
             # 等待 ffmpeg 子进程完成清理后再返回，保证文件句柄释放
             if main_task is not None and not main_task.done():
@@ -402,17 +383,11 @@ class MissionExecutor(AsyncIOEventEmitter):
             self.emit(FAILED)
             return MissionResult.FAILED
 
-        # 用户取消优先于 FFmpeg 结果
-        if self._cancel_event.is_set():
-            return MissionResult.CANCELED
-
-        if ffmpeg_ok:
-            return self._commit_outputs(temp_map)
-
-        # FFmpeg 异常退出
-        self._failure_reason = _("FFmpeg 执行失败")
-        self.emit(FAILED)
-        return MissionResult.FAILED
+        finally:
+            if self._garbage_files:
+                self.emit(
+                    FILE_LOGGED, FileLogType.DEPRECATED, list(self._garbage_files)
+                )
 
     # ------------------------------------------------------------------
     # 内部方法
@@ -446,33 +421,29 @@ class MissionExecutor(AsyncIOEventEmitter):
     def _attach_listeners(self, ffmpeg: FFmpegAsync) -> None:
         """挂载 FFmpegAsync → MissionExecutor 的事件转发。
 
-        FFmpeg 进程级事件转发到 executor 的 FFMPEG_ 系列
-        （FFMPEG_STARTED/FFMPEG_FINISHED/FFMPEG_FAILED），
-        与 executor 自身的 STARTED/FINISHED/FAILED 独立。
-        progress_updated/status_updated/verbose 保持原有转发
-        （executor 有自己的同名常量）。
+        FFmpeg 进程级事件被转发为 executor 的 WHISPERED 事件，
+        不再保留独立的 FFMPEG 事件常量。executor 自身的
+        STARTED/FINISHED/FAILED 不依赖此转发逻辑。
+        progress_updated/status_updated/verbose（→ WHISPERED）
+        保持转发到 executor 对应事件。
         """
 
         def _on_ffmpeg_started() -> None:
-            self.emit(FFMPEG_STARTED)
+            self.emit(WHISPERED, _("FFmpeg 已启动"))
 
         def _on_progress(current: object, total: object) -> None:
             # 保持 _coding_info 与 FFmpeg 最新进度同步
             # _on_status 建立引用后，此处逐行更新 current_time/total_time
-            # type: ignore 因为 FFmpeg 事件承诺传递 CxTime，
-            # 但类型签名选择 object 以避免循环导入
             if self._coding_info is not None:
-                self._coding_info.current_time = current  # type: ignore[assignment]
-                self._coding_info.total_time = total  # type: ignore[assignment]
+                if isinstance(current, CxTime):
+                    self._coding_info.current_time = current
+                if isinstance(total, CxTime):
+                    self._coding_info.total_time = total
             self.emit(PROGRESS_UPDATED, current, total)
 
-        def _on_status(coding_info: object) -> None:
-            # 首次建立 / 更新 _coding_info 引用（FFmpegCodingInfo 副本）
-            self._coding_info = coding_info  # type: ignore[assignment]
-            self.emit(STATUS_UPDATED, coding_info)
-
-        def _on_ffmpeg_finished() -> None:
-            self.emit(FFMPEG_FINISHED)
+        def _on_status(status: object) -> None:
+            self._coding_info = status  # type: ignore[assignment]
+            self.emit(STATUS_UPDATED, status)
 
         def _on_canceled() -> None:
             self.emit(CANCELED)
@@ -480,18 +451,17 @@ class MissionExecutor(AsyncIOEventEmitter):
         def _on_ffmpeg_terminated(exit_code: int, stderr_lines: list[str]) -> None:
             self._exit_code = exit_code
             self._error_tail = self._extract_error_tail(stderr_lines)
-            self.emit(FFMPEG_FAILED)
+            self.emit(WHISPERED, f"FFmpeg 异常退出，状态码 {exit_code}")
 
         def _on_verbose(line: str) -> None:
-            self.emit(VERBOSE, line)
+            self.emit(WHISPERED, line)
 
         ffmpeg.on(FFMPEG_EVENT_STARTED, _on_ffmpeg_started)
         ffmpeg.on(FFMPEG_EVENT_PROGRESS_UPDATED, _on_progress)
         ffmpeg.on(FFMPEG_EVENT_STATUS_UPDATED, _on_status)
-        ffmpeg.on(FFMPEG_EVENT_FINISHED, _on_ffmpeg_finished)
         ffmpeg.on(FFMPEG_EVENT_CANCELED, _on_canceled)
         ffmpeg.on(FFMPEG_EVENT_TERMINATED, _on_ffmpeg_terminated)
-        ffmpeg.on(FFMPEG_EVENT_VERBOSE, _on_verbose)
+        ffmpeg.on(FFMPEG_EVENT_VERBOSE_UPDATED, _on_verbose)
 
     def _commit_outputs(self, temp_map: dict[Path, Path]) -> MissionResult:
         """原子重命名临时文件到目标路径。
@@ -504,7 +474,7 @@ class MissionExecutor(AsyncIOEventEmitter):
                 os.replace(temp, target)
                 self._garbage_files.discard(temp)
                 self._commit_target = str(target.name)
-                self.emit(COMMIT_RENAMED)
+                self.emit(FILE_LOGGED, FileLogType.SAVED, [target])
             except OSError as e:
                 self._failure_reason = _("重命名临时文件失败: {error}").format(error=e)
                 self.emit(FAILED)

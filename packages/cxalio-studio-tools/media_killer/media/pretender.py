@@ -14,14 +14,16 @@ from cx_studio.core.cx_time import CxTime
 
 from .executor import (
     CANCELED,
-    CANCELING,
     FAILED,
+    FILE_LOGGED,
+    FileLogType,
     FINISHED,
     MissionExecutor,
     MissionResult,
     PROGRESS_UPDATED,
     SKIPPED,
     STARTED,
+    WHISPERED,
 )
 from .mission import Mission
 
@@ -31,10 +33,9 @@ class MissionPretender(MissionExecutor):
 
     继承 ``MissionExecutor``，覆盖 ``execute()`` 使用虚拟延时模拟转码进度。
     不调用 FFmpeg、不创建目录、不写临时文件。
-    cancel() 和 garbage_files 共享父类实现。
-
     事件：
-        started, progress_updated, finished, failed, canceled, skipped
+        started, progress_updated, finished, failed, canceled, skipped,
+        whispered, file_logged
     """
 
     def __init__(
@@ -76,6 +77,9 @@ class MissionPretender(MissionExecutor):
                 self._skipped_targets = [str(e) for e in existing]
                 self.emit(SKIPPED)
                 return MissionResult.SKIPPED
+        self.emit(
+            FILE_LOGGED, FileLogType.LOADED, [s.filename for s in self._mission.inputs]
+        )
 
         # 模拟执行（不创建目录、不写临时文件）
         self.emit(STARTED)
@@ -88,7 +92,7 @@ class MissionPretender(MissionExecutor):
             for i in range(1, segments + 1):
                 if self._cancel_event.is_set():
                     self._cancel_reason = _("用户中断")
-                    self.emit(CANCELING)
+                    self.emit(WHISPERED, _("正在停止…"))
                     self.emit(CANCELED)
                     return MissionResult.CANCELED
 
@@ -99,8 +103,11 @@ class MissionPretender(MissionExecutor):
 
         except asyncio.CancelledError:
             self._cancel_reason = _("调度器强制取消")
-            self.emit(CANCELING)
+            self.emit(WHISPERED, _("正在停止…"))
             return MissionResult.CANCELED
 
+        self.emit(
+            FILE_LOGGED, FileLogType.SAVED, [s.filename for s in self._mission.outputs]
+        )
         self.emit(FINISHED)
         return MissionResult.SUCCESS

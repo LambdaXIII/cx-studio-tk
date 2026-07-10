@@ -1,6 +1,18 @@
 # Change Log of Cxalio Studio Tools
 
 
+### v0.8.7
+
+- MediaKiller 迭代至 0.9.1（abort 提前截断），FFpretty 迭代至 0.8.7（事件常量迁移）
+- **事件命名规范统一**：
+  - 所有 `DoubleTrigger` 订阅方（`iappenv.py`/`ffpretty/appenv.py`/`mission_hq.py`）改用 `FIRST_TRIGGERED`/`SECOND_TRIGGERED` 常量
+  - `ffpretty/transcoder.py` 的 FFmpeg 事件订阅（`"started"`/`"finished"`/`"status_updated"`/`"terminated"`）改用 `FFMPEG_EVENT_*` 常量
+  - `MissionHQ` 内部 `self.emit()`（`"finished"`/`"mission_started"`/`"mission_result"`）改用已定义的 `MISSION_*` 常量
+  - `ExecutorFactory` 的 HQ 桥接发射改用 `MISSION_FILE_LOGGED` 常量
+  - `media/__init__.py` 移除全部事件常量 re-export（`CANCELED`/`FAILED`/`FILE_LOGGED`/`FINISHED`/`PROGRESS_UPDATED`/`SAID`/`SKIPPED`/`STARTED`/`STATUS_UPDATED`/`WHISPERED`）
+  - `executor.py` 同步更新 `FFMPEG_EVENT_VERBOSE` → `FFMPEG_EVENT_VERBOSE_UPDATED`
+- **Abort 提前截断**：`MissionHQ._run_one()` 入口新增 `self._scheduler.is_aborted` 检查，abort 后所有 pending_tasks 直接返回 `CANCELED`，不创建 executor 对象、不等待 semaphore
+
 
 ### v0.8.6
 
