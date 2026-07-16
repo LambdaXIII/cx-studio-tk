@@ -55,10 +55,13 @@ class MediaDB(FileInfoCache):
         """
         cached = self.get(file)
         if cached is not None and "media_info" in cached:
-            raw = cached["media_info"]
-            if raw is None:
+            cached_media = cached["media_info"]
+            if cached_media is None:
                 return None
-            return MediaInfo.from_dict(raw)
+            # 旧格式缓存（0.8.x）不含 top-level "raw" 字段 → 触发热重新探测
+            if "raw" in cached_media:
+                return MediaInfo.from_dict(cached_media)
+            # fall through: 旧缓存降级，走重新探测并覆写
 
         with self._probe_lock:
             info = self._prober.probe(file)

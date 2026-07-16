@@ -6,11 +6,10 @@
 
 import subprocess
 import json
-from fractions import Fraction
 from pathlib import Path
 
 from cx_studio.filesystem.cx_file_sizer import FileSizer
-from .media_info import MediaInfo
+from .media_info import MediaInfo, StreamInfo, _safe_int
 
 
 class MediaProber:
@@ -90,123 +89,18 @@ class MediaProber:
             解析后的 MediaInfo 对象
         """
         fmt = data.get("format", {})
-        streams = data.get("streams", [])
 
-        # 容器信息
-        container_format: str | None = fmt.get("format_name")
-        # 文件大小（字节）：优先从 ffprobe format.size 获取
-        file_size: int | None = _safe_int(fmt.get("size"))
-        # ffprobe 未提供 size 时，用 FileSizer 实例兜底
+        # FileSizer 兜底：ffprobe 未提供 size 时回退
+        file_size = _safe_int(fmt.get("size"))
         if file_size is None:
             file_size = self._sizer.get_bytes(file)
+            fmt["size"] = str(file_size)  # 写回 raw，保证 property 一致性
 
-        # 时长
-        duration: float | None = None
-        raw_duration = fmt.get("duration")
-        if raw_duration is not None:
-            try:
-                duration = float(raw_duration)
-            except (ValueError, TypeError):
-                pass
-
-        # 流统计
-        stream_count = len(streams)
-        video_stream = None
-        audio_stream = None
-        for s in streams:
-            codec_type = s.get("codec_type")
-            if codec_type == "video" and video_stream is None:
-                video_stream = s
-            elif codec_type == "audio" and audio_stream is None:
-                audio_stream = s
-
-        has_video = video_stream is not None
-        has_audio = audio_stream is not None
-
-        # 视频属性
-        width: int | None = None
-        height: int | None = None
-        fps: Fraction | float | None = None
-        video_codec: str | None = None
-        video_bitrate: int | None = None
-
-        if video_stream is not None:
-            width = _safe_int(video_stream.get("width"))
-            height = _safe_int(video_stream.get("height"))
-            video_codec = video_stream.get("codec_name")
-            video_bitrate = _safe_int(video_stream.get("bit_rate"))
-            fps = _parse_fps(video_stream)
-
-        # 音频属性
-        audio_codec: str | None = None
-        audio_bitrate: int | None = None
-        sample_rate: int | None = None
-        channels: int | None = None
-
-        if audio_stream is not None:
-            audio_codec = audio_stream.get("codec_name")
-            audio_bitrate = _safe_int(audio_stream.get("bit_rate"))
-            sample_rate = _safe_int(audio_stream.get("sample_rate"))
-            channels = _safe_int(audio_stream.get("channels"))
+        # 构造 streams
+        streams_data = [StreamInfo(raw=s) for s in data.get("streams", [])]
 
         return MediaInfo(
+            raw=fmt,
             file_path=file,
-            container_format=container_format,
-            stream_count=stream_count,
-            has_video=has_video,
-            has_audio=has_audio,
-            duration=duration,
-            width=width,
-            height=height,
-            fps=fps,
-            video_codec=video_codec,
-            video_bitrate=video_bitrate,
-            audio_codec=audio_codec,
-            audio_bitrate=audio_bitrate,
-            sample_rate=sample_rate,
-            channels=channels,
-            file_size=file_size,
+            streams=streams_data,
         )
-
-
-def _safe_int(value: object) -> int | None:
-    """将 ffprobe 字段安全转换为 int。
-
-    ffprobe 的数值字段可能是字符串或数字，N/A 表示不可用。
-
-    Args:
-        value: 待转换的值
-
-    Returns:
-        转换后的 int，或 None（无法转换时）
-    """
-    if value is None:
-        return None
-    try:
-        v = int(value)  # type: ignore[arg-type]
-        return v
-    except (ValueError, TypeError):
-        return None
-
-
-def _parse_fps(stream: dict) -> Fraction | float | None:
-    """从视频流中解析帧率。
-
-    优先使用 avg_frame_rate，回退到 r_frame_rate。
-    将 "30000/1001" 格式的字符串解析为 Fraction。
-
-    Args:
-        stream: ffprobe 视频流字典
-
-    Returns:
-        帧率（Fraction 或 float），无法解析时返回 None
-    """
-    for key in ("avg_frame_rate", "r_frame_rate"):
-        raw = stream.get(key)
-        if raw is None or raw == "0/0" or raw == "0":
-            continue
-        try:
-            return Fraction(raw)
-        except (ValueError, ZeroDivisionError):
-            continue
-    return None

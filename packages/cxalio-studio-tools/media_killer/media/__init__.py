@@ -18,7 +18,7 @@ from .executor import (
 from .executor_factory import ExecutorFactory
 from .executor_scheduler import ExecutorScheduler
 from .media_db import MediaDB
-from .media_info import MediaInfo
+from .media_info import MediaInfo, StreamInfo
 from .media_prober import MediaProber
 from .mission import InputSpec, Mission, OutputSpec
 from .mission_hq import MissionHQ, ProgressSnapshot
@@ -43,6 +43,7 @@ __all__ = [
     "MissionResult",
     "OutputSpec",
     "ProgressSnapshot",
+    "StreamInfo",
     "TaskProgress",
     "TotalProgress",
     "Whisperer",
