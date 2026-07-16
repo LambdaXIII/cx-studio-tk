@@ -4,6 +4,8 @@
 入口点，负责安装 Rich 异常追踪并启动 `JpeggerApp`。
 """
 
+__version__ = "0.8.3"
+
 from .simple_application import JpeggerApp
 
 

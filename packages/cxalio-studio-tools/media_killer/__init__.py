@@ -3,6 +3,8 @@
 CLI 入口：mediakiller = "media_killer:run"
 """
 
+__version__ = "0.9.1"
+
 from .application import Application
 
 

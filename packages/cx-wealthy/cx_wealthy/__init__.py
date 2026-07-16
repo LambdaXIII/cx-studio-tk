@@ -1,13 +1,18 @@
 """cx-wealthy: Rich 终端结构化文档与 UI 组件库。"""
 
 __version__ = "0.3.0"
-
-from .columns import MaxColumnsLayout
+from .widgets import (
+    IndexedListPanel,
+    MaxColumnsLayout,
+    RichDetailMixin,
+    RichLabel,
+    RichLabelMixin,
+    WealthyDetailPanel,
+    WealthyDetailTable,
+)
+from .tutorial import render_tutorial
 from .document import Group, Node, Note, WealthyDocument
-from .detail import RichDetailMixin, WealthyDetailPanel, WealthyDetailTable
 from .help import Action, HelpGroup, WealthyHelp
-from .indexed_list import IndexedListPanel
-from .label import RichLabel, RichLabelMixin
 from .theme import (
     BASE_STYLES,
     CX_STYLES,
@@ -17,7 +22,6 @@ from .theme import (
     INDEXED_LIST_STYLES,
     default_theme,
 )
-from .tutorial import render_tutorial
 from . import rich_types
 
 __all__ = [

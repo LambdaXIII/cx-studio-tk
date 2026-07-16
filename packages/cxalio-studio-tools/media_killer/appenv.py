@@ -10,6 +10,8 @@
 
 from __future__ import annotations
 
+from . import __version__
+
 import asyncio
 import importlib.resources
 import signal
@@ -56,7 +58,7 @@ class AppEnv(IAppEnvironment):
 
         # 应用元数据
         self.app_name = "MediaKiller"
-        self.app_version = "0.9.1"
+        self.app_version = __version__
         self.app_description = _("媒体文件批量转码工具")
 
         # 合并自定义主题

@@ -1,6 +1,7 @@
 from rich.console import Console
 
 from cx_tools.app import IAppEnvironment
+from . import __version__
 from .arg_parser import AppContext
 
 
@@ -8,7 +9,7 @@ class AppEnv(IAppEnvironment):
     def __init__(self):
         super().__init__()
         self.app_name = "MediaScout"
-        self.app_version = "0.8.6"
+        self.app_version = __version__
         self.output_console = Console()
         self.context: AppContext
 

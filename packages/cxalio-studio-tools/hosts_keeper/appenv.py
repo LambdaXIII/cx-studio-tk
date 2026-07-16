@@ -1,4 +1,5 @@
 import importlib.resources
+from . import __version__
 from cx_tools.i18n import _
 
 import os
@@ -17,7 +18,7 @@ class AppEnv(IAppEnvironment):
     def __init__(self) -> None:
         super().__init__()
         self.app_name = "HostsKeeper"
-        self.app_version = "0.8.5"
+        self.app_version = __version__
         self.app_description = _("根据配置文件更新 hosts")
         self.context = AppContext()
 

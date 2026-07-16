@@ -9,6 +9,7 @@ from typing import override
 
 from cx_tools.app import IAppEnvironment
 
+from . import __version__
 from .simple_appcontext import SimpleAppContext
 
 
@@ -25,7 +26,7 @@ class AppEnv(IAppEnvironment):
     def __init__(self):
         super().__init__()
         self.app_name = "Jpegger"
-        self.app_version = "0.8.3"
+        self.app_version = __version__
         self.context: SimpleAppContext | None = None
 
     @override

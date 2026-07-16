@@ -1,24 +1,50 @@
 # cxalio-studio-tools CLI 工具编写规范
 
-本文件覆盖 `packages/cxalio-studio-tools/` 分发包内所有 CLI 工具及共享框架 `cx_tools` 的约定。不重复仓库根目录 `AGENTS.md` 中的内容（项目结构、依赖链、版本策略、i18n 流程等）。
+本文件覆盖 `packages/cxalio-studio-tools/` 分发包内所有 CLI 工具及共享框架 `cx_tools` 的约定。
+根目录 `AGENTS.md` 中的全局规则优先；本文件仅补充本工作空间特有的规则。
 
 ---
 
-## 输出通道
+## 工具编写模式
+
+所有 CLI 工具遵循统一的编写模式，共享相同的应用生命周期和基础设施。
+
+### CLI 入口点
+
+每个工具在 `__init__.py` 定义 `run()` → `rich.traceback.install()` → `Application` 上下文管理器。
+`Application` 命名随工具变化（`Application`、`FFPrettyApp`、`JpeggerApp`），但均实现 `IApplication`。
+
+### 参数解析
+
+每个工具使用 `AppContext` 类（`from_arguments()` 唯一工厂，`kwargs` 白名单赋值），不直接暴露 argparse。
+
+### 帮助系统
+
+每个工具使用 `WealthHelp` DSL（`add_group`/`add_action`/`add_note` 声明式构建），帮助文件通过 `importlib.resources.read_text()` 加载。
+
+### 异常体系
+
+`SafeError`（可恢复应用异常，带 style）由 `Application.__exit__` 捕获；`FFmpegError` 子类通过正则自动匹配工厂 `create(msg)`。
+
+### 分级输出
+
+`IAppEnvironment` 提供 `say()`（始终显示）和 `whisper()`（仅 debug 模式）两个输出层级。详见下方"输出通道"。
+
+### 输出通道
 
 `IAppEnvironment.console` 初始化为 `stderr=True`，因此 `say()` 和 `whisper()` 的输出均走 **stderr**。stdout 保留给用户可能通过管道重定向的数据输出。
 
-### 三者的选择
+#### 三者的选择
 
 | 函数               | 通道   | 何时使用                                                 |
 | ------------------ | ------ | -------------------------------------------------------- |
 | `appenv.say()`     | stderr | 始终显示的用户提示，如操作结果、错误信息、完成状态       |
 | `appenv.whisper()` | stderr | 仅 debug 模式（`-d`）下显示，如内部诊断细节              |
-| 内置 `print()`     | stdout | 用户需要 管道获取的数据内容，如 pretend 模式下的输出结果 |
+| 内置 `print()`     | stdout | 用户需要管道获取的数据内容，如 pretend 模式下的输出结果 |
 
-> 通常不直接使用 print 函数，而是在appenv中初始化一个新的Console负责stdout输出
+> 通常不直接使用 print 函数，而是在 appenv 中初始化一个新的 Console 负责 stdout 输出。
 
-### 规则
+#### 规则
 
 - 所有用户可见的提示性文字必须使用 `say()` 或 `whisper()`。禁止裸 `console.print()` 调用（banner 例外，见下文）。
 - 数据类输出（如"假装模式下显示将要写入的内容"）使用 `print()`，确保管道可用。
@@ -26,7 +52,9 @@
 
 ---
 
-## Banner 显示
+## 应用环境与 UI
+
+### Banner 显示
 
 工具启动时显示 banner。推荐模式：
 
@@ -43,13 +71,11 @@ self.say(r.Group(*banners))
 - 使用 `self.say()` 输出，保持输出通道统一。
 - 不使用 `console.print(group, style=..., highlight=False)` 绕过 `say()`。
 
----
-
-## Progress 与输出时序
+### Progress 与输出时序
 
 Rich Progress 基于 Live display。Progress 活跃期间调用 `console.print()`（`say()` 内部使用）会导致终端渲染异常，在部分 Windows 终端上表现为 progress bar 残留副本。
 
-### 约束
+#### 约束
 
 1. **`transient=True`**——所有 `Progress` 实例必须设为 `transient=True`。设置后 progress 在 `stop()` 时自动清屏，不滞留上次运行的状态。`transient=False` 仅在需要保留进度历史时有意义，未经讨论不得使用。
 
@@ -72,9 +98,7 @@ Rich Progress 基于 Live display。Progress 活跃期间调用 `console.print()
    appenv.progress.stop()          # 再停 progress
    ```
 
----
-
-## `__exit__` 覆盖模式
+### __exit__ 覆盖模式
 
 工具自定义 `__exit__` 必须遵循以下结构：
 
@@ -95,15 +119,13 @@ def __exit__(self, exc_type, exc_val, exc_tb) -> bool | None:
 - `appenv.stop()` 幂等，多次调用无害。
 - 返回 `True` 抑制异常传播（用户提示已由 `say()` 输出），返回 `False` 或 `None` 则异常继续传播。
 
----
+### 中断处理
 
-## 中断处理（两种策略）
-
-### 策略 A：`__exit__` 中 catch KeyboardInterrupt
+#### 策略 A：`__exit__` 中 catch KeyboardInterrupt
 
 适用于不需要多次 Ctrl+C 取消流程的工具。在 `Application.__exit__` 中直接检查 `exc_type is KeyboardInterrupt`，无需注册 signal handler。见上方 `__exit__` 覆盖模式示例。
 
-### 策略 B：DoubleTrigger 信号机制
+#### 策略 B：DoubleTrigger 信号机制
 
 `IAppEnvironment` 内置 `DoubleTrigger` 对象。在 `AppEnv.__init__` 中注册回调：
 
@@ -123,13 +145,13 @@ def _when_really_wanna_quit():
 signal.signal(signal.SIGINT, appenv.handle_interrupt)
 ```
 
-首次 Ctrl+C 触发 `first_triggered`（设置`wanna_quit_event`，提示用户再次确认）。再次 Ctrl+C 触发 `second_triggered`（设置 `really_quit_event`，强制中断）。适用于有长时间异步操作需要优雅取消的工具。
+首次 Ctrl+C 触发 `first_triggered`（设置 `wanna_quit_event`，提示用户再次确认）。再次 Ctrl+C 触发 `second_triggered`（设置 `really_quit_event`，强制中断）。适用于有长时间异步操作需要优雅取消的工具。
 
 ---
 
-## 工具内的引用模式
+## 引用模式
 
-### `appenv` 单例
+### appenv 单例
 
 每个工具的 `appenv.py` 末尾定义模块级单例：
 

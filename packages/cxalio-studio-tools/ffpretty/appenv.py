@@ -1,5 +1,6 @@
 import signal
 from typing import override
+from . import __version__
 
 from cx_studio.filesystem.path_expander import CmdFinder
 from cx_studio.tui.tools.double_trigger import FIRST_TRIGGERED, SECOND_TRIGGERED
@@ -25,7 +26,7 @@ class AppEnv(IAppEnvironment):
         super().__init__()
         self.console.push_theme(Theme(FFPRETTY_STYLES))
         self.app_name = "FFpretty"
-        self.app_version = "0.8.7"
+        self.app_version = __version__
         self.ffmpeg_executable = CmdFinder.which("ffmpeg")
         self.debug_mode = False
 
