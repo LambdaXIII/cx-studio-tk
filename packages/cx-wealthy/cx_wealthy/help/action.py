@@ -21,6 +21,10 @@ class Action(Node):
     ``cx.help.details.description`` 样式；可经 ``**kwargs`` 传入
     自定义 ``detailer`` 覆盖默认。
 
+    选项 vs 位置参数：flags 以 ``prefix_chars`` 开头 → 选项（锚定 is_optional），
+    flags 为空或不以前缀开头 → 位置参数。可选性判定优先级：显式 ``optional``
+    > ``is_positional() == False`` > 位置参数且 ``nargs="?"``。
+
     继承通用 :class:`Node`，增加 flags、nargs、metavar 等 help 特化概念。
     """
 
@@ -99,8 +103,11 @@ class Action(Node):
     def is_optional(self) -> bool:
         """是否为可选参数。
 
-        若构造时显式传入 ``optional`` 则使用显式值，否则按 ``is_positional`` 推断。
-        位置参数若 nargs 为 ``"?"`` 也视为可选。
+        判定优先级（优先级从高到低）：
+        1. 构造时显式传入 ``optional=True`` / ``False``
+        2. ``is_positional() == False``（选项默认可选）
+        3. 位置参数且 ``nargs="?"``（0 或 1 个参数）
+        4. 其他 → 非可选
         """
         if self.optional is not None:
             return self.optional
@@ -124,6 +131,14 @@ class Action(Node):
 
     def _usage_argument_text(self) -> Text | None:
         """生成 usage 中的参数占位符部分。
+
+        nargs 渲染规则：
+        - ``None`` / 省略 → ``METAVAR``（单参数）
+        - ``int``（如 2）→ ``METAVAR1, METAVAR2``（逐个列举）
+        - ``"?"`` → ``METAVAR1``（0 或 1）
+        - ``"+"`` → ``METAVAR1 [, METAVAR2, [METAVAR3]] [, ...]``（1+）
+        - ``"*"`` → ``[METAVAR1] [, [METAVAR2], [METAVAR3]] [, ...]``（0+）
+        - ``"**"`` → 不在此处处理，由 ``render_usage()`` 单独处理（可重复选项）
 
         注：nargs="**" 的渲染逻辑在 render_usage() 中专门处理，不在此处。
         """

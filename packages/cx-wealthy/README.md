@@ -102,8 +102,6 @@ update_cmd.add_action("--force", description="强制更新")
 
 `WealthyHelp` 自动渲染多行 usage（简版总览 + 每个子命令详版）和按命令分组的参数详情。
 
-详见 [WealthyHelp 完整用法文档](docs/wealthy-help-guide.md)。
-
 ## 辅助组件
 
 | 组件 | 用途 |

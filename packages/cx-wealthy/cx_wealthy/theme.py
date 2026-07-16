@@ -27,17 +27,17 @@ BASE_STYLES: dict[str, str] = {
 CX_STYLES: dict[str, str] = BASE_STYLES
 
 HELP_STYLES: dict[str, str] = {
-    "cx.help.usage.title": "green",
-    "cx.help.usage.prog": "orange1",
-    "cx.help.usage.bracket": "bright_black",
-    "cx.help.usage.option": "cyan",
-    "cx.help.usage.argument": "italic yellow",
-    "cx.help.group.title": "orange1",
-    "cx.help.group.description": "italic dim default",
-    "cx.help.details.box": "blue",
-    "cx.help.details.description": "italic default",
-    "cx.help.usage.command": "bold magenta",
-    "cx.help.epilog": "dim italic default",
+    "cx.help.usage.title": "green",  # usage 面板标题
+    "cx.help.usage.prog": "orange1",  # 程序名
+    "cx.help.usage.bracket": "bright_black",  # 方括号和 pipe 分隔符
+    "cx.help.usage.option": "cyan",  # 选项名（如 -o）
+    "cx.help.usage.argument": "italic yellow",  # 参数占位符（如 DIR）
+    "cx.help.group.title": "orange1",  # 参数分组标题
+    "cx.help.group.description": "italic dim default",  # 分组描述
+    "cx.help.details.box": "blue",  # 面板边框
+    "cx.help.details.description": "italic default",  # 参数描述文本
+    "cx.help.usage.command": "bold magenta",  # 命令关键词（如 list）
+    "cx.help.epilog": "dim italic default",  # 尾部链接
 }
 
 DETAIL_STYLES: dict[str, str] = {
