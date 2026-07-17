@@ -115,6 +115,18 @@ def _elevated_replace_windows(source: Path, target: Path) -> bool:
     Returns:
         True 表示替换成功，False 表示失败。
     """
+    # Win11 24H2+ 内置 sudo — 非致命，失败后回退到 PowerShell UAC
+    sudo_attempted = False
+    if shutil.which("sudo"):
+        sudo_attempted = True
+        try:
+            subprocess.run(
+                ["sudo", "copy", "/Y", str(source.resolve()), str(target.resolve())],
+                check=True,
+            )
+            return True
+        except subprocess.CalledProcessError:
+            appenv.whisper(f"[cx.warning]{_('sudo 提权失败，尝试 PowerShell UAC...')}")
     # PowerShell UAC
     if shutil.which("powershell.exe"):
         ps_command = (
