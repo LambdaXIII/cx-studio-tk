@@ -1,6 +1,6 @@
 """cx-wealthy: Rich 终端结构化文档与 UI 组件库。"""
 
-__version__ = "0.3.0"
+__version__ = "0.9.0"
 from .widgets import (
     IndexedListPanel,
     MaxColumnsLayout,

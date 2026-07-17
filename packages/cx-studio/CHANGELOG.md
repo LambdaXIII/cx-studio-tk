@@ -1,5 +1,19 @@
 # Change logs of cx-studio
 
+
+### v0.9.0
+
+- **FileSystem 架构重构**：
+  - `FileList` 重写为独立模块（`cx_file_list.py`），新增 `clear()` 方法
+  - `FileSizer` 提取为独立模块（`cx_file_sizer.py`），`default_sizer` 改为私有
+  - `FileInfoCache` 全量重写（435 行 → 更简洁的结构）
+  - `CmdFinder` 路径扩展重构（`path_expander/cx_cmdfinder.py`）
+  - `FileSizeCounter` 标记为弃用，建议使用 `cx_file_sizer` + `MediaDB`
+  - `get_parents()` 修复 off-by-one 错误（`cx_pathutils.py`）
+  - `PathExpander` 结构调整
+- **PEP 396 规范落地**：所有包新增 `__version__`，`appenv.py` 从 `__init__.py` 导入版本号
+- **版本统一**：所有包统一为 0.9.0 同步发布
+
 ### v0.8.0.3
 
 - **事件命名规范落地**：为 `DoubleTrigger` 定义事件常量（`TRIGGERED`/`FIRST_TRIGGERED`/`SECOND_TRIGGERED`），内部 `emit()` 全部切换为常量
