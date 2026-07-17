@@ -11,6 +11,7 @@
 
 from .executor import (
     ExecutorStatus,
+    FfmpegErrorInfo,
     FileLogType,
     MissionExecutor,
     MissionResult,
@@ -31,6 +32,7 @@ __all__ = [
     "ExecutorFactory",
     "ExecutorScheduler",
     "ExecutorStatus",
+    "FfmpegErrorInfo",
     "FileLogType",
     "InputSpec",
     "MediaDB",

@@ -4,9 +4,7 @@
 - 进度条创建/更新/销毁
 - 临时文件追踪（FILE_LOGGED）
 - 中断轮询
-
-不转发 executor 的 WHISPERED 事件到 whisper——ffpretty 的 debug 模式
-在 Application 层通过 task card + FILE_LOGGED + 错误尾巴 提供更结构化的信息。
+- Whisperer 挂接（转发 executor 内部 WHISPERED 事件到 IAppEnvironment.whisper()）
 """
 
 from collections.abc import Callable
@@ -14,10 +12,18 @@ from collections.abc import Callable
 from rich.progress import Progress, TaskID
 
 from cx_tools.app import IAppEnvironment
-from media_killer.media import FileLogType, Mission, MissionExecutor, MissionResult
+from media_killer.media import (
+    FileLogType,
+    Mission,
+    MissionExecutor,
+    MissionResult,
+    Whisperer,
+)
 from media_killer.media.executor import (
     CANCELED,
+    ExecutorStatus,
     FAILED,
+    FfmpegErrorInfo,
     FILE_LOGGED,
     FINISHED,
     PROGRESS_UPDATED,
@@ -28,10 +34,7 @@ from media_killer.media.executor import (
 
 
 class MissionRunner:
-    """单 Mission 执行器。封装进度条、临时文件追踪、中断响应。
-
-    不转发 WHISPERED 事件——ffpretty 的 debug 输出由 Application 层直接提供。
-    """
+    """单 Mission 执行器。封装进度条、临时文件追踪、中断响应。"""
 
     def __init__(
         self,
@@ -46,12 +49,26 @@ class MissionRunner:
         self._pretending = pretending
         self._task_id: TaskID | None = None
         self._executor: MissionExecutor | None = None
+        self._last_error_info: FfmpegErrorInfo | None = None
+        self._last_status: ExecutorStatus | None = None
         self._file_handler: Callable[[FileLogType, list], None] | None = None
 
     @property
     def status(self):
         """执行器的当前状态快照，执行完成后可读取 error_tail 等字段。"""
-        return self._executor.status if self._executor else None
+        return (
+            self._executor.status if self._executor is not None else self._last_status
+        )
+
+    def make_error_info(self) -> FfmpegErrorInfo | None:
+        """返回当前或最近一次执行的 FFmpeg 错误信息对象。
+
+        executor 运行时取自 live status，executor 已清时取自缓存的 _last_error_info。
+        仅失败后调用有意义，但方法本身在任何时刻均可调用。
+        """
+        if self._executor is not None:
+            return self._executor.make_error_info()
+        return self._last_error_info
 
     def set_file_handler(self, handler: Callable[[FileLogType, list], None]):
         """注册 FILE_LOGGED 文件事件的外部处理器（用于 garbage 追踪）。"""
@@ -63,7 +80,7 @@ class MissionRunner:
             self._executor.cancel()
 
     def _wire(self, executor: MissionExecutor, summary: str):
-        """挂载进度条 + 事件转发（不转发 WHISPERED）。"""
+        """挂载进度条 + 事件转发。"""
         self._task_id = self._progress.add_task(
             description=f"{summary}[cx.success]准备中...[/]", total=None
         )
@@ -117,13 +134,16 @@ class MissionRunner:
         if self._file_handler:
             executor.on(FILE_LOGGED, self._file_handler)
 
+        Whisperer.attach(executor, self._env)
         self._executor = executor
 
     def _unwire(self):
         """清理进度条和内部状态。"""
         if self._task_id is not None:
             self._progress.remove_task(self._task_id)
-            self._task_id = None
+        if self._executor is not None:
+            self._last_status = self._executor.status
+            self._last_error_info = self._executor.make_error_info()
         self._executor = None
 
     async def run(self) -> MissionResult:

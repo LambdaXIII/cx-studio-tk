@@ -193,9 +193,12 @@ class FFPrettyApp(IApplication):
 
         if result is MissionResult.FAILED:
             if runner.status and runner.status.error_tail:
+                error_info = runner.make_error_info()
                 appenv.say(
-                    "[cx.error]FFmpeg 异常退出，错误信息：[/]\n"
-                    f"[dim]{runner.status.error_tail}[/]"
+                    WealthyDetailPanel(
+                        error_info,
+                        title="[cx.error]FFmpeg 异常退出[/]",
+                    )
                 )
             return
 

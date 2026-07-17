@@ -144,8 +144,10 @@ class IAppEnvironment(ABC):
     def say(self, *args, **kwargs):
         """始终显示的用户提示。输出走 stderr（Console 初始化时 stderr=True）。
 
-        强制开启高亮器（highlight=True），CxHighlighter 会按正则匹配
+        自动开启高亮器（highlight=True），CxHighlighter 会按正则匹配
         文件路径、数字、命令行参数等并附加样式。
+
+        如果手动指定 highlight=False，则可以强制禁用高亮器。
 
         注意：
         - 如需避免高亮器干扰（如 ASCII art），将内容包裹在
@@ -153,18 +155,21 @@ class IAppEnvironment(ABC):
         - 数据类输出（用户需要 | 管道获取的内容）不使用 say()，
           直接使用内置 print() 走 stdout。
         """
-        kwargs["highlight"] = True
+        if "highlight" not in kwargs:
+            kwargs["highlight"] = True
         self.console.print(*args, **kwargs)
 
     def whisper(self, *args, **kwargs):
         """仅 debug 模式下显示的非关键输出。走 stderr。
 
         仅在 is_debug_mode_on() 返回 True 时输出。
-        样式固定为 dim，不开启高亮（highlight=False）。
+        样式固定为 dim，默认不开启高亮（highlight=False）（但可以强制启用）。
         适合内部诊断信息、次要细节、开发日志。
         """
         if self.is_debug_mode_on():
-            kwargs["highlight"] = False
+            if "highlight" not in kwargs:
+                kwargs["highlight"] = False
+
             kwargs["style"] = "dim"
             args_list = list(args)
             for i, a in enumerate(args_list):

@@ -30,10 +30,11 @@ from typing import TYPE_CHECKING
 
 from pyee.asyncio import AsyncIOEventEmitter
 
-from .executor import MissionResult
+from .executor import FfmpegErrorInfo, MissionResult
 from .executor_factory import ExecutorFactory
 from .executor_scheduler import ExecutorScheduler
 from cx_studio.tui.tools.double_trigger import FIRST_TRIGGERED, SECOND_TRIGGERED
+from cx_wealthy import WealthyDetailPanel
 from .mission import Mission
 from .task_progress import TaskProgress
 from .total_progress import TotalProgress
@@ -350,6 +351,14 @@ class MissionHQ(AsyncIOEventEmitter):
             result = await self._scheduler.run_one(executor, on_start=_on_start)
             # 缓存已完成任务的 duration，防止进度条跳变
             self._cache_completed_duration(executor)
+            if result == MissionResult.FAILED and self._env is not None:
+                error_info = executor.make_error_info()
+                self._env.whisper(
+                    WealthyDetailPanel(
+                        error_info,
+                        title="[cx.error]FFmpeg 异常退出[/]",
+                    )
+                )
             self.emit(MISSION_RESULT, mission, result)
             return result
         finally:

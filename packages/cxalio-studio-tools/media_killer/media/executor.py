@@ -14,6 +14,7 @@ MissionExecutor 通过 asyncio 运行 FFmpeg，使用 pyee 事件模型向外报
 import asyncio
 from cx_studio.core.cx_time import CxTime
 from typing import ClassVar
+from rich.text import Text
 from dataclasses import dataclass
 import os
 from enum import Enum
@@ -108,6 +109,7 @@ class ExecutorStatus:
     executor_id: int  # 执行器唯一 ID（进程内自增）
     mission_id: str  # 当前 mission 的 ULID 字符串
     mission_name: str  # 源文件名（不含扩展名）
+    ffmpeg_executable: str  # FFmpeg 可执行文件路径
     arguments: list[str]  # FFmpeg 完整命令行参数（已替换临时路径）
     exit_code: int | None  # FFmpeg 进程退出码（仅异常退出后有效）
     error_tail: str  # FFmpeg 错误尾巴（仅异常退出后有效）
@@ -116,6 +118,28 @@ class ExecutorStatus:
     skipped_targets: list[str]  # 被跳过的已存在目标文件路径列表
     commit_target: str | None  # 最近一次原子重命名的目标文件名
     coding_info: FFmpegCodingInfo | None = None  # FFmpeg 运行时状态快照
+
+
+@dataclass
+class FfmpegErrorInfo:
+    """FFmpeg 异常退出时的结构化错误信息，实现 __rich_detail__ 供 WealthyDetailPanel 渲染。"""
+
+    ffmpeg_executable: str
+    arguments: list[str]
+    exit_code: int | None
+    error_tail: str
+    failure_reason: str | None
+
+    def __rich_detail__(self):
+        yield "FFmpeg", Text(self.ffmpeg_executable, overflow="fold")
+        if self.exit_code is not None:
+            yield "退出码", str(self.exit_code)
+        if self.arguments:
+            yield "调用参数", Text(
+                "ffmpeg " + " ".join(self.arguments), overflow="fold"
+            )
+        if self.error_tail:
+            yield "错误信息", Text(self.error_tail, style="cx.error", overflow="fold")
 
 
 # ── 模块级校验函数 ──────────────────────────────────────────
@@ -256,6 +280,7 @@ class MissionExecutor(AsyncIOEventEmitter):
             executor_id=self.executor_id,
             mission_id=str(self._mission.mission_id),
             mission_name=self._mission.name,
+            ffmpeg_executable=self._ffmpeg_executable,
             arguments=self._ffmpeg_arguments,
             exit_code=self._exit_code,
             error_tail=self._error_tail,
@@ -264,6 +289,20 @@ class MissionExecutor(AsyncIOEventEmitter):
             skipped_targets=self._skipped_targets,
             commit_target=self._commit_target,
             coding_info=self._coding_info,
+        )
+
+    def make_error_info(self) -> FfmpegErrorInfo:
+        """构造当前任务上下文的 FFmpeg 错误信息对象。
+
+        仅在失败后调用有实际意义，但方法本身在任何时刻均可调用——
+        它只是从内部状态收集字段，不触发副作用。
+        """
+        return FfmpegErrorInfo(
+            ffmpeg_executable=self._ffmpeg_executable,
+            arguments=self._ffmpeg_arguments,
+            exit_code=self._exit_code,
+            error_tail=self._error_tail,
+            failure_reason=self._failure_reason,
         )
 
     @property

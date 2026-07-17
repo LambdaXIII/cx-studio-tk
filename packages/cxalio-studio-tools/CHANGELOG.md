@@ -1,6 +1,16 @@
 # Change Log of Cxalio Studio Tools
 
 
+
+### v0.9.0
+
+- **新增 `FfmpegErrorInfo` 数据类**：实现 `__rich_detail__` 协议，结构化封装 FFmpeg 异常退出信息（可执行路径、调用参数、退出码、错误文本、失败原因），供 `WealthyDetailPanel` 渲染
+- **ffpretty 错误展示重构**：临时 `r.Panel` + 字符串转义方案替换为 `WealthyDetailPanel(FfmpegErrorInfo, ...)`，`[...]` 不再被 Rich markup 吞掉，错误信息使用 `cx.error` 样式
+- **media_killer whisper FfmpegErrorInfo**：任务失败时（debug 模式）通过 `WealthyDetailPanel` 展示结构化错误卡片
+- **ffpretty Whisperer 挂接**：`MissionRunner` 挂接 `Whisperer`，executor 内部的 WHISPERED 事件转发至 `IAppEnvironment.whisper()`，与 media_killer 行为对齐
+- **`ExecutorStatus` 新增 `ffmpeg_executable` 字段**：status 快照中暴露 FFmpeg 可执行文件路径
+- **`MissionExecutor.make_error_info()`**：新增方法，从内部状态构造 `FfmpegErrorInfo`，无副作用
+
 ### v0.8.7
 
 - MediaKiller 迭代至 0.9.1（abort 提前截断），FFpretty 迭代至 0.8.7（事件常量迁移）
