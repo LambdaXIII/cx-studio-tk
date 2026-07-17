@@ -10,6 +10,7 @@
 - **ffpretty Whisperer 挂接**：`MissionRunner` 挂接 `Whisperer`，executor 内部的 WHISPERED 事件转发至 `IAppEnvironment.whisper()`，与 media_killer 行为对齐
 - **`ExecutorStatus` 新增 `ffmpeg_executable` 字段**：status 快照中暴露 FFmpeg 可执行文件路径
 - **`MissionExecutor.make_error_info()`**：新增方法，从内部状态构造 `FfmpegErrorInfo`，无副作用
+- **HostsKeeper Windows 提权替换修复**：移除 `_elevated_replace_windows` 中的 `sudo` 分支。原 `sudo cp -f` 在提权后的 Windows 环境中因 PATH 不含 `cp` 而报“找不到命令”并把错误泄漏到终端；改用 `sudo cmd /c copy` 又会因 Windows sudo 的窗口模式弹出新控制台窗口。现仅保留 PowerShell UAC 单一提权路径（`Start-Process powershell.exe -Verb RunAs -Wait` 执行 `Copy-Item`），已提权运行时由 `is_user_admin()` 短路直接复制，不受影响
 
 ### v0.8.7
 

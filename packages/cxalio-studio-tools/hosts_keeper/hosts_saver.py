@@ -104,7 +104,7 @@ def _elevated_replace_macos(source: Path, target: Path) -> bool:
 def _elevated_replace_windows(source: Path, target: Path) -> bool:
     """Windows 提权替换。
 
-    检测顺序: Win11 内置 sudo → PowerShell UAC（弹 UAC 对话框）。
+    通过 PowerShell UAC（弹 UAC 对话框）提权复制。
     PowerShell 命令使用 -EncodedCommand + base64 编码，
     避免路径空格导致的 shell 转义问题。
 
@@ -115,19 +115,6 @@ def _elevated_replace_windows(source: Path, target: Path) -> bool:
     Returns:
         True 表示替换成功，False 表示失败。
     """
-    # Win11 24H2+ 内置 sudo — 非致命，失败后回退到 PowerShell UAC
-    sudo_attempted = False
-    if shutil.which("sudo"):
-        sudo_attempted = True
-        try:
-            subprocess.run(
-                ["sudo", "cp", "-f", str(source.resolve()), str(target.resolve())],
-                check=True,
-            )
-            return True
-        except subprocess.CalledProcessError:
-            appenv.whisper(f"[cx.warning]{_('sudo 提权失败，尝试 PowerShell UAC...')}")
-
     # PowerShell UAC
     if shutil.which("powershell.exe"):
         ps_command = (
@@ -157,12 +144,9 @@ def _elevated_replace_windows(source: Path, target: Path) -> bool:
             appenv.say(f"[cx.error]{_('提权替换超时：用户未在 UAC 对话框中确认。')}[/]")
             return False
 
-    if sudo_attempted:
-        appenv.say(f"[cx.error]{_('所有提权方式均失败。请检查权限设置。')}[/]")
-    else:
-        appenv.say(
-            f"[cx.error]{_('当前平台未检测到可用的提权工具（sudo/powershell.exe）。请以管理员权限运行本程序。')}"
-        )
+    appenv.say(
+        f"[cx.error]{_('当前平台未检测到可用的提权工具（powershell.exe）。请以管理员权限运行本程序。')}"
+    )
     return False
 
 
