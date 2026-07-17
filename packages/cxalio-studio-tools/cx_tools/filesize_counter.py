@@ -2,8 +2,10 @@ from collections.abc import Iterable
 from pathlib import Path
 
 from cx_studio.core import FileSize
+from warnings import deprecated
 
 
+@deprecated("use cx_file_sizer instead")
 class FileSizeCounter:
     def __init__(self, paths: Iterable[Path | str] | None = None) -> None:
         self._paths = [Path(x) for x in paths or []]

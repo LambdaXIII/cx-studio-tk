@@ -34,6 +34,11 @@ class AbstractContenter(ABC):
             else Box(profile_metadata)
         )
 
+        # 动态状态文本：contenter 在 iter_records 过程中自行更新，
+        # 外部通过 on_contenter_status 回调读取以更新 progress。
+        # 初始值由子类在 __init__ 中设置（通常为描述性文本）。
+        self.status_text: str = ""
+
     @property
     def profile_path(self) -> Path | None:
         """配置文件路径"""

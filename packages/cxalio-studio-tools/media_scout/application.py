@@ -6,9 +6,9 @@ from pathlib import Path, PurePath
 from rich.rule import Rule
 from cx_tools.i18n import _
 
-from cx_studio.filesystem import auto_suffix, quote_path
+from cx_studio.filesystem import PathUtils
 from cx_tools.app import IApplication
-from cx_wealth import WealthDetailPanel
+from cx_wealthy import WealthyDetailPanel
 from media_scout.inspectors.filelist_inspector import FileListInspector
 from .appenv import appenv
 from .arg_parser import MSHelp
@@ -34,7 +34,7 @@ class Application(IApplication):
         appenv.start()
         appenv.show_banner()
         appenv.whisper(_("MediaScout 启动"))
-        appenv.whisper(WealthDetailPanel(appenv.context))
+        appenv.whisper(WealthyDetailPanel(appenv.context))
 
     def stop(self):
         appenv.stop()
@@ -44,11 +44,11 @@ class Application(IApplication):
     def resolve(path: os.PathLike) -> str | None:
         result = Path(path)
         if appenv.context.existed_only and not result.exists():
-            appenv.whisper(f"[red]{result} {_('不存在')}[/]")
+            appenv.whisper(f"[cx.error]{result} {_('不存在')}[/]")
             return None
         if appenv.context.auto_resolve:
             result = result.resolve()
-        return quote_path(result, appenv.context.quote_mode)
+        return PathUtils.quote_path(result, appenv.context.quote_mode)
 
     @staticmethod
     def auto_expand(path: os.PathLike, info: InspectorInfo) -> Iterable[PurePath]:
@@ -59,7 +59,7 @@ class Application(IApplication):
         if result.is_absolute() or not appenv.context.includes:
             yield result
         else:
-            appenv.whisper(f"[red]{_('在搜索路径中搜索：')}{result}[/]")
+            appenv.whisper(f"[cx.warning]{_('在搜索路径中搜索：')}{result}[/]")
             for include in includes:
                 p = Path(include).absolute() / result
                 if p.exists():
@@ -99,13 +99,13 @@ class Application(IApplication):
             return
 
         if appenv.context.allow_duplicated:
-            appenv.say(f"[red]{_('允许输出重复项')}[/]")
+            appenv.say(f"[cx.warning]{_('允许输出重复项')}[/]")
             time.sleep(0.5)
         if appenv.context.auto_resolve:
-            appenv.say(f"[yellow]{_('自动整理或折叠路径')}[/]")
+            appenv.say(f"[cx.warning]{_('自动整理或折叠路径')}[/]")
             time.sleep(0.5)
         if appenv.context.existed_only:
-            appenv.say(f"[green]{_('只输出存在的文件')}[/]")
+            appenv.say(f"[cx.info]{_('只输出存在的文件')}[/]")
             time.sleep(0.5)
 
         result = []
@@ -114,15 +114,15 @@ class Application(IApplication):
             appenv.print(x)
 
         appenv.say(
-            f"[yellow]{_('共找到 {count} 个媒体路径。').format(count=len(result))}[/]"
+            f"[cx.info]{_('共找到 {count} 个媒体路径。').format(count=len(result))}[/]"
         )
 
         if appenv.context.output:
-            output_file = auto_suffix(appenv.context.output, ".txt")
+            output_file = PathUtils.auto_suffix(appenv.context.output, ".txt")
             with open(output_file, "w") as fp:
                 for x in result:
                     fp.write(str(x) + "\n")
 
             appenv.say(
-                f"[green]{_('列表已保存到：{path}').format(path=output_file)}[/]"
+                f"[cx.success]{_('列表已保存到：{path}').format(path=output_file)}[/]"
             )

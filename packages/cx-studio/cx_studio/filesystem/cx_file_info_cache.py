@@ -1,245 +1,240 @@
-# file_cache.py
-# 遵循规则：初始化无批量操作 | 运行时仅单条校验 | 仅析构执行淘汰 | 线程安全 | 语义化API
-import os
-from pathlib import Path
-import time
+"""轻量文件条目缓存，基于 SQLite 持久化。
+
+设计要点：
+- 初始化仅保存配置，connect() 建立连接，close() 执行淘汰后关闭。
+- 基于文件 mtime 自动失效。
+- LRU 淘汰在 close()/cleanup() 时触发。
+- threading.Lock 保证线程安全。
+"""
+
+from __future__ import annotations
+
 import json
+import os
 import sqlite3
 import threading
+import time
+from pathlib import Path
 
 
 class FileInfoCache:
-    def __init__(self, db_path: Path, max_size: int = -1):
-        """初始化：仅连接数据库 + 创建表，无任何清理/淘汰"""
-        self.max_size = max_size
-        self.db_path = db_path.resolve().absolute()
-        self.lock = threading.Lock()
+    """基于 SQLite 的文件条目缓存。
 
-        # 数据库连接
-        self.conn = sqlite3.connect(self.db_path, check_same_thread=False)
-        self.cursor = self.conn.cursor()
+    缓存以文件规范化绝对路径为 key，存储 user_data（JSON 序列化的 dict）
+    以及文件的 mtime 用于失效判断。LRU 淘汰在 close()/cleanup() 时执行。
+    """
 
-        # 创建缓存表
-        with self.lock:
-            self._sql(
+    _CREATE_TABLE_SQL = """
+        CREATE TABLE IF NOT EXISTS file_cache (
+            path        TEXT PRIMARY KEY,
+            mtime       REAL NOT NULL,
+            last_access REAL NOT NULL,
+            user_data   TEXT NOT NULL
+        )
+    """
+
+    def __init__(self, db_path: Path, max_size: int = -1) -> None:
+        """保存配置，不立即连接数据库。
+
+        Args:
+            db_path: SQLite 数据库文件路径。
+            max_size: 最大缓存条目数。<=0 表示不限制。
+        """
+        self._db_path = db_path
+        self._max_size = max_size
+        self._lock = threading.Lock()
+        self._conn: sqlite3.Connection | None = None
+
+    # ====================== 生命周期 ======================
+
+    def connect(self) -> None:
+        """建立 SQLite 连接并创建表结构。
+
+        重复调用会先关闭旧连接再重新建立。
+        """
+        with self._lock:
+            if self._conn is not None:
+                self._conn.close()
+            resolved = self._db_path.resolve()
+            self._conn = sqlite3.connect(str(resolved), check_same_thread=False)
+            self._conn.execute(self._CREATE_TABLE_SQL)
+            self._conn.commit()
+
+    def close(self) -> None:
+        """执行淘汰清理，然后关闭连接。"""
+        self.cleanup()
+        with self._lock:
+            if self._conn is not None:
+                self._conn.close()
+                self._conn = None
+
+    def cleanup(self) -> None:
+        """执行 LRU 淘汰清理。
+
+        当 max_size > 0 且缓存条目数超过限制时，按 last_access 升序
+        删除最久未使用的条目。可被手动调用，也会被 close() 自动调用。
+        """
+        if self._max_size <= 0:
+            return
+        with self._lock:
+            conn = self._ensure_conn()
+            conn.execute(
                 """
-                CREATE TABLE IF NOT EXISTS file_cache (
-                    file_abs_path TEXT PRIMARY KEY,
-                    file_mtime REAL NOT NULL,
-                    cache_last_access REAL NOT NULL,
-                    user_data JSON NOT NULL
+                DELETE FROM file_cache
+                WHERE path IN (
+                    SELECT path FROM file_cache
+                    ORDER BY last_access ASC
+                    LIMIT MAX(0, (SELECT COUNT(*) FROM file_cache) - ?)
                 )
-            """,
-                commit=True,
+                """,
+                (self._max_size,),
             )
+            conn.commit()
 
-    # ====================== 私有工具方法 ======================
-    def _get_abs_path(self, file_path: str | Path) -> str:
-        """标准化绝对路径"""
-        return os.path.realpath(os.path.expanduser(str(file_path)))
+    # ====================== 公开 API ======================
 
-    def _sql(self, sql: str, params=(), commit: bool = False):
-        """统一SQL执行（线程安全）"""
-        self.cursor.execute(sql, params)
-        if commit:
-            self.conn.commit()
-        return self.cursor
+    def get(self, file_path: Path) -> dict | None:
+        """读取 user_data。
 
-    def _validate(self, abs_path: str) -> bool:
-        """运行时：仅校验单条缓存有效性，无效则删除"""
-        if not os.path.exists(abs_path):
-            self._sql(
-                "DELETE FROM file_cache WHERE file_abs_path = ?",
-                (abs_path,),
-                commit=True,
-            )
-            return False
+        若缓存不存在或文件 mtime 已变化，返回 None。
+        命中时自动更新 last_access 时间戳。
 
-        current_mtime = os.path.getmtime(abs_path)
-        res = self._sql(
-            "SELECT file_mtime FROM file_cache WHERE file_abs_path = ?", (abs_path,)
-        ).fetchone()
-        if not res or res[0] != current_mtime:
-            self._sql(
-                "DELETE FROM file_cache WHERE file_abs_path = ?",
-                (abs_path,),
-                commit=True,
-            )
-            return False
-        return True
+        Args:
+            file_path: 目标文件路径。
 
-    def _batch_clean_invalid(self):
-        """【仅析构调用】批量清理无效缓存"""
-        if self.max_size <= 0:
-            return
-        rows = self._sql("SELECT file_abs_path, file_mtime FROM file_cache").fetchall()
-        invalid = [
-            (p,) for p, m in rows if not os.path.exists(p) or os.path.getmtime(p) != m
-        ]
-        if invalid:
-            self._sql(
-                "DELETE FROM file_cache WHERE file_abs_path = ?", invalid, commit=True
-            )
+        Returns:
+            缓存的 user_data dict，或 None（未命中/已失效）。
+        """
+        record = self._get_record(file_path)
+        if record is None:
+            return None
+        return json.loads(record["user_data"])
 
-    def _lru_evict(self):
-        """【仅析构调用】LRU 淘汰超量数据"""
-        if self.max_size <= 0:
-            return
-        self._batch_clean_invalid()
-        self._sql(
-            """
-            DELETE FROM file_cache
-            WHERE file_abs_path IN (
-                SELECT file_abs_path FROM file_cache
-                ORDER BY cache_last_access ASC
-                LIMIT MAX(0, (SELECT COUNT(*) FROM file_cache) - ?)
-            )
-        """,
-            (self.max_size,),
-            commit=True,
-        )
+    def set(self, file_path: Path, data: dict) -> None:
+        """写入 user_data，同时记录当前文件 mtime。
 
-    def _update_timestamp(self, abs_path: str):
-        """更新缓存记录访问时间"""
-        self._sql(
-            "UPDATE file_cache SET cache_last_access = ? WHERE file_abs_path = ?",
-            (time.time(), abs_path),
-            commit=True,
-        )
+        Args:
+            file_path: 目标文件路径。
+            data: 要缓存的字典数据。
+        """
+        key = str(file_path.resolve())
+        now = time.time()
+        mtime = os.path.getmtime(file_path)
+        record = {
+            "mtime": mtime,
+            "last_access": now,
+            "user_data": json.dumps(data),
+        }
+        self._set_record(file_path, record)
 
-    def _get_record(self, abs_path: str) -> dict | None:
-        """获取缓存记录（包含所有字段）"""
-        res = self._sql(
-            "SELECT user_data FROM file_cache WHERE file_abs_path = ?", (abs_path,)
-        ).fetchone()
-        return json.loads(res[0]) if res else None
+    def invalidate(self, file_path: Path) -> None:
+        """删除指定文件的缓存条目。
 
-    # ====================== 语义化公有 API ======================
-    def get(self, file_path: str | Path, key: str):
-        """【单个字段】获取值"""
-        abs_path = self._get_abs_path(file_path)
-        with self.lock:
-            if not self._validate(abs_path):
+        Args:
+            file_path: 目标文件路径。
+        """
+        key = str(file_path.resolve())
+        with self._lock:
+            conn = self._ensure_conn()
+            conn.execute("DELETE FROM file_cache WHERE path = ?", (key,))
+            conn.commit()
+
+    # ====================== 内部方法 ======================
+
+    def _get_record(self, file_path: Path) -> dict | None:
+        """在锁保护下读取完整记录。
+
+        读取时检查 mtime 一致性：若文件不存在或 mtime 不匹配，
+        自动删除失效条目并返回 None。命中时更新 last_access。
+
+        Args:
+            file_path: 目标文件路径。
+
+        Returns:
+            包含 mtime、last_access、user_data 的 dict，或 None。
+        """
+        key = str(file_path.resolve())
+        with self._lock:
+            conn = self._ensure_conn()
+            row = conn.execute(
+                "SELECT mtime, last_access, user_data FROM file_cache WHERE path = ?",
+                (key,),
+            ).fetchone()
+            if row is None:
                 return None
 
-            # 更新访问时间
-            self._update_timestamp(abs_path)
-            data = self._get_record(abs_path)
-            if data is None:
+            cached_mtime = row[0]
+            # 检查文件是否存在且 mtime 一致
+            try:
+                current_mtime = os.path.getmtime(file_path)
+            except OSError:
+                # 文件已不存在，删除失效条目
+                conn.execute("DELETE FROM file_cache WHERE path = ?", (key,))
+                conn.commit()
                 return None
-            return data.get(key)
 
-    def get_fields(self, file_path: str | Path, *keys: str) -> dict:
-        """【完整字典】获取所有缓存字段"""
-        with self.lock:
-            abs_path = self._get_abs_path(file_path)
-            if not self._validate(abs_path):
-                return {}
+            if current_mtime != cached_mtime:
+                # mtime 变化，删除失效条目
+                conn.execute("DELETE FROM file_cache WHERE path = ?", (key,))
+                conn.commit()
+                return None
 
-            self._update_timestamp(abs_path)
-            data = self._get_record(abs_path)
-            if data is None:
-                return {}
-            if not keys:
-                return data
-            return {k: data.get(k) for k in keys}
-
-    def set(self, file_path: str | Path, key: str, value):
-        """【单个字段】设置值（自动创建缓存）"""
-        with self.lock:
-            abs_path = self._get_abs_path(file_path)
-            if not os.path.exists(abs_path):
-                return
-
-            # 读取现有数据或新建
-            res = self._sql(
-                "SELECT user_data FROM file_cache WHERE file_abs_path = ?", (abs_path,)
-            ).fetchone()
-            data = json.loads(res[0]) if res else {}
-            data[key] = value
-
-            # 写入数据库
+            # 命中：更新 last_access
             now = time.time()
-            mtime = os.path.getmtime(abs_path)
-            self._sql(
+            conn.execute(
+                "UPDATE file_cache SET last_access = ? WHERE path = ?",
+                (now, key),
+            )
+            conn.commit()
+            return {
+                "mtime": row[0],
+                "last_access": now,
+                "user_data": row[2],
+            }
+
+    def _set_record(self, file_path: Path, record: dict) -> None:
+        """在锁保护下写入完整记录。
+
+        使用 INSERT OR REPLACE 实现 upsert 语义。
+
+        Args:
+            file_path: 目标文件路径。
+            record: 包含 mtime、last_access、user_data 的 dict。
+        """
+        key = str(file_path.resolve())
+        with self._lock:
+            conn = self._ensure_conn()
+            conn.execute(
                 """
-                INSERT OR REPLACE INTO file_cache
-                (file_abs_path, file_mtime, cache_last_access, user_data)
+                INSERT OR REPLACE INTO file_cache (path, mtime, last_access, user_data)
                 VALUES (?, ?, ?, ?)
-            """,
-                (abs_path, mtime, now, json.dumps(data)),
-                commit=True,
+                """,
+                (key, record["mtime"], record["last_access"], record["user_data"]),
             )
+            conn.commit()
 
-    def set_fields(self, file_path: str | Path, data: dict):
-        """【完整字典】覆盖设置所有字段"""
-        with self.lock:
-            abs_path = self._get_abs_path(file_path)
-            if not os.path.exists(abs_path):
-                return
+    # ====================== 上下文管理器 ======================
 
-            now = time.time()
-            mtime = os.path.getmtime(abs_path)
-            self._sql(
-                """
-                INSERT OR REPLACE INTO file_cache
-                (file_abs_path, file_mtime, cache_last_access, user_data)
-                VALUES (?, ?, ?, ?)
-            """,
-                (abs_path, mtime, now, json.dumps(data)),
-                commit=True,
+    def __enter__(self) -> FileInfoCache:
+        self.connect()
+        return self
+
+    def __exit__(self, exc_type, exc, tb) -> None:
+        self.close()
+
+    # ====================== 内部工具 ======================
+
+    def _ensure_conn(self) -> sqlite3.Connection:
+        """确保连接可用（调用方须已持有锁）。
+
+        Returns:
+            当前活跃的 sqlite3.Connection。
+
+        Raises:
+            RuntimeError: 连接尚未建立。
+        """
+        if self._conn is None:
+            raise RuntimeError(
+                "数据库连接尚未建立，请先调用 connect() 或使用上下文管理器"
             )
-
-    def update_fields(self, file_path: str | Path, **data):
-        """【增量更新】仅更新指定字段，不覆盖其他"""
-        with self.lock:
-            abs_path = self._get_abs_path(file_path)
-            if not os.path.exists(abs_path):
-                return
-
-            res = self._sql(
-                "SELECT user_data FROM file_cache WHERE file_abs_path = ?", (abs_path,)
-            ).fetchone()
-            current_data = json.loads(res[0]) if res else {}
-            current_data.update(data)
-
-            now = time.time()
-            mtime = os.path.getmtime(abs_path)
-            self._sql(
-                """
-                INSERT OR REPLACE INTO file_cache
-                (file_abs_path, file_mtime, cache_last_access, user_data)
-                VALUES (?, ?, ?, ?)
-            """,
-                (abs_path, mtime, now, json.dumps(current_data)),
-                commit=True,
-            )
-
-    def delete(self, file_path: str | Path):
-        """删除单条缓存"""
-        with self.lock:
-            abs_path = self._get_abs_path(file_path)
-            self._sql(
-                "DELETE FROM file_cache WHERE file_abs_path = ?",
-                (abs_path,),
-                commit=True,
-            )
-
-    def clear(self):
-        """清空所有缓存"""
-        with self.lock:
-            self._sql("DELETE FROM file_cache", commit=True)
-
-    def close(self):
-        """关闭数据库连接"""
-        with self.lock:
-            if self.conn:
-                self.conn.close()
-
-    # ====================== 析构：唯一淘汰入口 ======================
-    def __del__(self):
-        try:
-            with self.lock:
-                self._lru_evict()
-        finally:
-            self.close()
+        return self._conn

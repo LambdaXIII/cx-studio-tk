@@ -3,6 +3,7 @@ import re
 from pathlib import Path, PurePath
 
 from typing import Literal
+from collections.abc import Iterable
 
 
 def normalize_path(
@@ -15,7 +16,7 @@ def normalize_path(
     return path.resolve() if follow_symlinks else path.absolute()
 
 
-def normalize_suffix(suffix: str, with_dot=True) -> str:
+def normalize_suffix(suffix: str, with_dot: bool = True) -> str:
     if not suffix:
         return ""
     s = str(suffix).strip().strip(".").lower()
@@ -60,12 +61,14 @@ def get_basename(source: Path | str) -> str:
     return Path(source).stem
 
 
-def get_parents(source: Path | str, level: int = 1, resolve_path: bool = True):
+def get_parents(
+    source: Path | str, level: int = 1, resolve_path: bool = True
+) -> Iterable[str]:
     if level < 1:
         return []
     path = Path(source).resolve() if resolve_path else Path(source)
     parts = path.parts
-    begin_index = max(0, len(parts) - level)
+    begin_index = max(0, len(parts) - 1 - level)
     end_index = len(parts) - 1
     return parts[begin_index:end_index]
 

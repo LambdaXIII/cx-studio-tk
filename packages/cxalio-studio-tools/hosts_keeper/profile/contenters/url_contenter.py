@@ -27,39 +27,46 @@ class UrlContenter(AbstractContenter):
         self.url: str | None = self.package.get("url")
         self.description: str | None = self.package.get("description")
         self.encoding: str = self.package.get("encoding") or "utf-8"
+        self.status_text = (
+            _("正在获取 {url}").format(url=self.url) if self.url else _("等待 URL 配置")
+        )
 
-    def get_content(self) -> str:
-        """获取URL内容"""
+    async def get_content(self) -> str:
+        """获取URL内容（异步，通过 run_in_executor 避免阻塞事件循环）"""
         if self.url is None:
             return ""
 
-        content_bytes: bytes = b""
-        try:
-            with urllib.request.urlopen(self.url, timeout=10) as response:
-                content_bytes = response.read()
+        url = self.url  # url 在 _fetch 闭包中类型收窄
+        loop = asyncio.get_running_loop()
+        self.status_text = _("正在下载 {url}").format(url=url)
 
+        def _fetch() -> str:
+            with urllib.request.urlopen(url, timeout=10) as response:
+                content_bytes = response.read()
                 content_type = response.headers.get_content_charset()
                 if content_type:
                     return content_bytes.decode(content_type)
+                try:
+                    return content_bytes.decode(self.encoding)
+                except UnicodeDecodeError:
+                    appenv.whisper(
+                        f"[cx.info]{_('使用配置编码 {encoding} 解码失败，尝试 utf-8 回退...').format(encoding=self.encoding)}"
+                    )
+                    return content_bytes.decode("utf-8", errors="replace")
 
-                return content_bytes.decode(self.encoding)
-
+        try:
+            result = await loop.run_in_executor(None, _fetch)
+            self.status_text = _("正在解析内容")
+            return result
         except urllib.error.URLError as e:
+            self.status_text = _("下载失败")
             appenv.say(f"[cx.error]{_('无法获取 URL 内容: {error}').format(error=e)}")
             return ""
-        except UnicodeDecodeError:
-            appenv.whisper(
-                f"[cx.info]{_('使用配置编码 {encoding} 解码失败，尝试 utf-8 回退...').format(encoding=self.encoding)}"
-            )
-            try:
-                return content_bytes.decode("utf-8", errors="replace")
-            except Exception:
-                return ""
 
     @override
     async def iter_records(self) -> AsyncGenerator[HostRecord, None]:  # type: ignore[override]  # pyright async generator 覆盖类型推断限制
         """迭代记录"""
-        content = self.get_content()
+        content = await self.get_content()
         for line in content.splitlines():
             await asyncio.sleep(0)
             yield HostRecord.from_line(line.strip())

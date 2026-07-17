@@ -1,5 +1,14 @@
 # cx-wealth
 
+> **⚠️ 已弃用 / DEPRECATED**
+>
+> 本包自 **v0.9.0** 起正式弃用，不再接收新功能或维护更新。
+>
+> 请迁移至 **[cx-wealthy](../cx-wealthy)** —— 全新设计的 Rich UI 组件库，不依赖 cx-studio，更轻量、更灵活。
+>
+> This package is **deprecated** since v0.9.0. No further updates will be provided.
+> Please migrate to **cx-wealthy** instead.
+
 **语言 / Languages**: [中文](README.md) | [English](README.en_US.md)
 
 基于 [Rich](https://github.com/Textualize/rich) 的终端 UI 组件库，为 CLI 应用提供声明式帮助系统、标签渲染、详情面板和自适应布局等扩展。

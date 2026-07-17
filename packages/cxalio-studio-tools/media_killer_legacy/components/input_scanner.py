@@ -1,0 +1,75 @@
+from collections.abc import Collection
+from pathlib import Path
+
+from rich.columns import Columns
+from rich.text import Text
+
+from cx_studio.collectiontools import flatten_list
+from cx_studio.filesystem import PathUtils
+from cx_tools.i18n import _
+from .preset import Preset
+from ..appenv import appenv
+
+
+class InputScanner:
+    def __init__(self, inputs: Collection[str | Path]):
+        self._inputs: list[str | Path] = list(inputs)
+        self._task_id = appenv.progress.add_task(_("预处理输入项…"), visible=False)
+
+    def __enter__(self):
+        appenv.progress.update(self._task_id, visible=True)
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        appenv.progress.stop_task(self._task_id)
+        appenv.progress.update(self._task_id, visible=False)
+
+        return False
+
+    def __del__(self):
+        appenv.progress.remove_task(self._task_id)
+
+    @staticmethod
+    def is_preset(path: str | Path) -> bool:
+        path = Path(path)
+        suffix = path.suffix.lower()
+        if suffix == ".toml":
+            return True
+        if suffix == "":
+            p_path = PathUtils.force_suffix(path, ".toml")
+            return p_path.exists()
+        return False
+
+    def add_inputs(self, *paths) -> "InputScanner":
+        for p in flatten_list(*paths):
+            self._inputs.append(p)
+        return self
+
+    @staticmethod
+    def _print_result(source: str | Path, is_preset: bool):
+        result = (
+            Text(_("配置文件路径"), style="cyan", justify="right")
+            if is_preset
+            else Text(_("媒体来源路径"), style="green", justify="right")
+        )
+        path = Text(str(source), style="yellow", justify="left")
+        appenv.whisper(Columns([path, result], expand=True))
+
+    def scan(self) -> tuple[list[Preset], list[Path]]:
+        presets: list[Preset] = []
+        sources: list[Path] = []
+
+        appenv.whisper(_("检索待处理路径并从中解析配置文件..."))
+
+        for input_path in appenv.progress.track(self._inputs, task_id=self._task_id):
+            if self.is_preset(input_path):
+                preset = Preset.load(input_path)
+                presets.append(preset)
+                self._print_result(input_path, True)
+            else:
+                sources.append(Path(input_path))
+                self._print_result(input_path, False)
+
+            # time.sleep(0.5)
+
+        return presets, sources

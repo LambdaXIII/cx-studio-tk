@@ -1,5 +1,83 @@
 # Change Log of Cxalio Studio Tools
 
+
+
+### v0.9.0
+
+- **新增 `FfmpegErrorInfo` 数据类**：实现 `__rich_detail__` 协议，结构化封装 FFmpeg 异常退出信息（可执行路径、调用参数、退出码、错误文本、失败原因），供 `WealthyDetailPanel` 渲染
+- **ffpretty 错误展示重构**：临时 `r.Panel` + 字符串转义方案替换为 `WealthyDetailPanel(FfmpegErrorInfo, ...)`，`[...]` 不再被 Rich markup 吞掉，错误信息使用 `cx.error` 样式
+- **media_killer whisper FfmpegErrorInfo**：任务失败时（debug 模式）通过 `WealthyDetailPanel` 展示结构化错误卡片
+- **ffpretty Whisperer 挂接**：`MissionRunner` 挂接 `Whisperer`，executor 内部的 WHISPERED 事件转发至 `IAppEnvironment.whisper()`，与 media_killer 行为对齐
+- **`ExecutorStatus` 新增 `ffmpeg_executable` 字段**：status 快照中暴露 FFmpeg 可执行文件路径
+- **`MissionExecutor.make_error_info()`**：新增方法，从内部状态构造 `FfmpegErrorInfo`，无副作用
+- **HostsKeeper Windows 提权替换修复**：移除 `_elevated_replace_windows` 中的 `sudo` 分支。原 `sudo cp -f` 在提权后的 Windows 环境中因 PATH 不含 `cp` 而报“找不到命令”并把错误泄漏到终端；改用 `sudo cmd /c copy` 又会因 Windows sudo 的窗口模式弹出新控制台窗口。现仅保留 PowerShell UAC 单一提权路径（`Start-Process powershell.exe -Verb RunAs -Wait` 执行 `Copy-Item`），已提权运行时由 `is_user_admin()` 短路直接复制，不受影响
+
+### v0.8.7
+
+- MediaKiller 迭代至 0.9.1（abort 提前截断），FFpretty 迭代至 0.8.7（事件常量迁移）
+- **事件命名规范统一**：
+  - 所有 `DoubleTrigger` 订阅方（`iappenv.py`/`ffpretty/appenv.py`/`mission_hq.py`）改用 `FIRST_TRIGGERED`/`SECOND_TRIGGERED` 常量
+  - `ffpretty/transcoder.py` 的 FFmpeg 事件订阅（`"started"`/`"finished"`/`"status_updated"`/`"terminated"`）改用 `FFMPEG_EVENT_*` 常量
+  - `MissionHQ` 内部 `self.emit()`（`"finished"`/`"mission_started"`/`"mission_result"`）改用已定义的 `MISSION_*` 常量
+  - `ExecutorFactory` 的 HQ 桥接发射改用 `MISSION_FILE_LOGGED` 常量
+  - `media/__init__.py` 移除全部事件常量 re-export（`CANCELED`/`FAILED`/`FILE_LOGGED`/`FINISHED`/`PROGRESS_UPDATED`/`SAID`/`SKIPPED`/`STARTED`/`STATUS_UPDATED`/`WHISPERED`）
+  - `executor.py` 同步更新 `FFMPEG_EVENT_VERBOSE` → `FFMPEG_EVENT_VERBOSE_UPDATED`
+- **Abort 提前截断**：`MissionHQ._run_one()` 入口新增 `self._scheduler.is_aborted` 检查，abort 后所有 pending_tasks 直接返回 `CANCELED`，不创建 executor 对象、不等待 semaphore
+
+
+### v0.8.6
+
+- FFpretty 迭代至 0.8.6，MediaScout 迭代至 0.8.6
+- **依赖迁移**：ffpretty 和 media_scout 的 TUI 依赖从 `cx-wealth` 迁移至 `cx-wealthy`（`WealthHelp`→`WealthyHelp`、`WealthLabel`→`RichLabel`、`WealthDetailPanel`/`WealthDetailTable`/`IndexedListPanel` 导入路径更新）
+- **API 适配**：`HelpGroup.add_action` 的 `description=` 参数更名为 `detail=`（media_scout/arg_parser.py 中 10 处适配）
+- **样式统一**：硬编码颜色样式（`red`/`yellow`/`green`/`blue`/`bright_black`/`cyan`/`dim`/`green1`）替换为 `cx_wealthy` 主题语义样式（`cx.error`/`cx.warning`/`cx.success`/`cx.info`/`cx.debug`/`cx.number`/`cx.whisper`/`cx.argument`/`cx.filepath`），颜色选择委托给主题
+
+### v0.8.5
+
+- HostsKeeper 迭代至 0.8.5
+- **帮助系统重构**：`app_help.py` 从扁平参数结构迁移至 `CommandGroup`，usage 行正确展示子命令列表（`list|show|edit|update|new`），每个子命令的专有参数正确归属
+- **修复遗漏**：补充 `new` 命令的帮助定义（此前 parser 支持但 help 未显示）
+- **修复命名不一致**：搜索参数名从 `--search-pattern` 修正为 `-s, --search`（与 `appcontext.py` 一致）
+### v0.8.4
+
+- HostsKeeper 迭代至 0.8.4
+- **重构并发模型**：移除 contenter 级并发（原 `asyncio.as_completed` 因同步 `urlopen` 阻塞事件循环形同虚设），简化为 profile 级并发（`max_workers` 控制同时处理的 profile 数），profile 内 contenter 顺序处理
+- **解除 URL 阻塞**：`UrlContenter.get_content()` 改为 async，通过 `run_in_executor` 将 `urlopen` 移出事件循环，使多 profile 并行下载真正生效
+- **Progress 实时追踪**：`hostskeeper update` 集成 Rich Progress 面板，单 contenter 用回转 spinner，多 contenter 用进度条，实时显示每个 profile 的处理状态
+- **迁移至 cx_wealthy**：hosts_keeper 的 TUI 依赖从 `cx-wealth` 完整迁移至 `cx-wealthy`（`WealthLabel`→`RichLabel`、`WealthHelp`→`WealthyHelp`），样式通过 `default_theme` 机制注入
+- **cx_wealthy.rich_types 补充**：新增 `Progress`、`TaskID`、`SpinnerColumn`、`TextColumn`、`BarColumn`、`TaskProgressColumn`、`TimeRemainingColumn` 导出
+- **contenter 动态状态文本**：`AbstractContenter` 新增 `status_text` 属性，contenter 在处理过程中自行更新，外部通过回调读取以实时更新 progress description
+- **修复 HostsSaver 先使用后赋值 bug**：`__init__` 中 else 分支（`source_hosts` 为 `Iterable[str]` 时）先写入临时文件再赋值
+- **修复 i18n 遗漏**：`appenv.py` 中 2 处临时目录提示文字、`application.py` 中 `command_list` 表头（ID/Name/Description/Enabled）
+- **修复拼写错误**：`prepare_customed_lines` → `prepare_custom_lines`
+- **修复缺失类型标注**：`AppContext.show_help`
+- **删除死代码**：`application.py` 中未使用的 `url = f"file://{file_path.resolve()}"`
+### v0.8.3
+
+- Jpegger 迭代至 0.8.3
+- 配合 cx-wealthy 0.1.2 的 `__rich_detail__` str/Text 语义变更：`ImageFilterChain.__rich_detail__` 的 key 改为 yield `Text.from_markup(...)` 对象，保持彩色标签显示
+- 修复 jpegger 输出文件重名时的行为：不再自动下划线重命名，改为跳过并警告
+
+### v0.8.2
+
+- Jpegger 迭代至 0.8.2
+- 将 Jpegger 的 Rich UI 依赖从 `cx-wealth` 迁移至 `cx-wealthy`（其余 4 个工具仍在 cx-wealth 上，渐进迁移）
+- 在 `cxalio-studio-tools` 的 `dependencies` 中新增 `cx-wealthy`，保留 `cx-wealth`
+- 在 `IAppEnvironment` 中合并 `cx_wealthy.default_theme`，使应用框架层支持 cx_wealthy 组件渲染
+- 修复迁移过程中发现的 cx_wealthy 阻塞性问题（详见 spec 同目录 `audit.md`）：
+  - `Group` 类新增 `add_action` 便利方法（延迟导入保持分层）
+  - `Action._validate_flags` 放宽校验，支持位置参数名与含连字符的 flag（如 `--force-overwrite`）
+
+### v0.8.1
+
+- Jpegger 迭代至 0.8.1
+- 修复 `ResizeFilter` 与 `FactorResizeFilter` 的缩放逻辑：按目标尺寸/缩放因子计算宽高，避免原图尺寸覆盖或传入浮点数导致 `Image.resize` 失败
+- 修复 `Mission.filter_chain` 默认共享可变对象的问题，确保每个任务实例拥有独立的过滤器链
+- 为 Jpegger 各模块、类、方法补充文档字符串，并在关键执行路径增加说明，提升可维护性
+- 修复 `IAppEnvironment` 未从 `cx_tools.app` 正确导出的问题
+- 在分发包 `pyproject.toml` 中配置 basedpyright，关闭 `reportUnknownMemberType` 与 `reportExplicitAny` 规则
+- 在代码注释中说明：GIF 仅处理第 1 帧为期望行为，Jpegger 的定位是单帧图片处理
+
 ### v0.8.0
 
 - HostsKeeper 更新 hosts 后自动执行平台对应的 DNS 缓存刷新（Windows ipconfig /flushdns、macOS killall -HUP mDNSResponder、Linux 提示手动命令）

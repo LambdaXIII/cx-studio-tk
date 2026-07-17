@@ -104,7 +104,7 @@ def _elevated_replace_macos(source: Path, target: Path) -> bool:
 def _elevated_replace_windows(source: Path, target: Path) -> bool:
     """Windows 提权替换。
 
-    检测顺序: Win11 内置 sudo → PowerShell UAC（弹 UAC 对话框）。
+    通过 PowerShell UAC（弹 UAC 对话框）提权复制。
     PowerShell 命令使用 -EncodedCommand + base64 编码，
     避免路径空格导致的 shell 转义问题。
 
@@ -115,19 +115,6 @@ def _elevated_replace_windows(source: Path, target: Path) -> bool:
     Returns:
         True 表示替换成功，False 表示失败。
     """
-    # Win11 24H2+ 内置 sudo — 非致命，失败后回退到 PowerShell UAC
-    sudo_attempted = False
-    if shutil.which("sudo"):
-        sudo_attempted = True
-        try:
-            subprocess.run(
-                ["sudo", "cp", "-f", str(source.resolve()), str(target.resolve())],
-                check=True,
-            )
-            return True
-        except subprocess.CalledProcessError:
-            appenv.whisper(f"[cx.warning]{_('sudo 提权失败，尝试 PowerShell UAC...')}")
-
     # PowerShell UAC
     if shutil.which("powershell.exe"):
         ps_command = (
@@ -157,12 +144,9 @@ def _elevated_replace_windows(source: Path, target: Path) -> bool:
             appenv.say(f"[cx.error]{_('提权替换超时：用户未在 UAC 对话框中确认。')}[/]")
             return False
 
-    if sudo_attempted:
-        appenv.say(f"[cx.error]{_('所有提权方式均失败。请检查权限设置。')}[/]")
-    else:
-        appenv.say(
-            f"[cx.error]{_('当前平台未检测到可用的提权工具（sudo/powershell.exe）。请以管理员权限运行本程序。')}"
-        )
+    appenv.say(
+        f"[cx.error]{_('当前平台未检测到可用的提权工具（powershell.exe）。请以管理员权限运行本程序。')}"
+    )
     return False
 
 
@@ -305,6 +289,8 @@ class HostsSaver:
         elif isinstance(source_hosts, Path):
             self.source_hosts = source_hosts
         else:
+            # source_hosts 是 Iterable[str]，写入临时文件
+            self.source_hosts = appenv.temp_hosts
             # 写入用 utf-8（不产生 BOM），系统 DNS 解析器不期望 BOM
             with self.source_hosts.open("w", encoding="utf-8") as f:
                 f.writelines(source_hosts)
@@ -338,7 +324,8 @@ class HostsSaver:
         # 写入保持 utf-8（系统 DNS 解析器不期望 BOM，强制不带 BOM）。
         with hosts_file.open("r", encoding="utf-8-sig") as f:
             for line in f:
-                appenv.console.print(line.strip())
+                # 数据输出走 stdout（say/whisper 走 stderr），便于管道重定向
+                print(line.strip())
 
     def save(self, target: Path | None = None) -> bool:
         """保存 hosts 文件。
@@ -409,7 +396,7 @@ class HostsSaver:
                     f"[cx.error]{_('目标文件 {path} 没有写入权限。').format(path=target)}"
                 )
                 appenv.say(
-                    f"[cx.info]{_('请自行处理目标文件的权限问题，或以管理员权限运行本程序。')}"
+                    f"[cx.error]{_('请自行处理目标文件的权限问题，或以管理员权限运行本程序。')}"
                 )
                 self._show_hosts_lines(self.source_hosts)
                 return False

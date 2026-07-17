@@ -18,6 +18,15 @@ from cx_studio.filesystem import CmdFinder
 from cx_studio.iotools import StreamUtils
 from .cx_ff_errors import *
 from .cx_ff_infos import FFmpegCodingInfo
+from .cx_ffmpeg_async import (
+    FFMPEG_EVENT_CANCELED,
+    FFMPEG_EVENT_FINISHED,
+    FFMPEG_EVENT_PROGRESS_UPDATED,
+    FFMPEG_EVENT_STARTED,
+    FFMPEG_EVENT_STATUS_UPDATED,
+    FFMPEG_EVENT_TERMINATED,
+    FFMPEG_EVENT_VERBOSE_UPDATED,
+)
 
 
 class FFmpeg(EventEmitter):
@@ -126,7 +135,7 @@ class FFmpeg(EventEmitter):
         line = b""
         for line in StreamUtils.readlines_from_stream(self._process.stderr):
             line_str = line.decode("utf-8", errors="ignore")
-            self.emit("verbose", line_str)
+            self.emit(FFMPEG_EVENT_VERBOSE_UPDATED, line_str)
 
             coding_info_dict = FFmpegCodingInfo.parse_status_line(line_str)
 
@@ -134,13 +143,13 @@ class FFmpeg(EventEmitter):
 
             if "current_time" in coding_info_dict or "total_time" in coding_info_dict:
                 self.emit(
-                    "progress_updated",
+                    FFMPEG_EVENT_PROGRESS_UPDATED,
                     self._coding_info.current_time,
                     self._coding_info.total_time,
                 )
 
             if "current_frame" in coding_info_dict:
-                self.emit("status_updated", copy(self._coding_info))
+                self.emit(FFMPEG_EVENT_STATUS_UPDATED, copy(self._coding_info))
 
         self._process.stderr.close()
         return line.decode()
@@ -174,7 +183,7 @@ class FFmpeg(EventEmitter):
                     stderr=subprocess.PIPE,
                 )
 
-                self.emit("started")
+                self.emit(FFMPEG_EVENT_STARTED)
 
                 if input_stream is not None:
                     input_stream = StreamUtils.wrap_io(input_stream)
@@ -201,15 +210,18 @@ class FFmpeg(EventEmitter):
                             con_futures.wait(pending)
                             raise exc
             except Exception as exc:
-                self.emit("verbose", f"Unexpected error during execution: {exc}")
+                self.emit(
+                    FFMPEG_EVENT_VERBOSE_UPDATED,
+                    f"Unexpected error during execution: {exc}",
+                )
             self._process.wait()
             result = self._process.returncode == 0
             if self._canceled:
-                self.emit("canceled")
+                self.emit(FFMPEG_EVENT_CANCELED)
             elif result is False:
-                self.emit("terminated")
+                self.emit(FFMPEG_EVENT_TERMINATED)
             else:
-                self.emit("finished")
+                self.emit(FFMPEG_EVENT_FINISHED)
             return result
 
         # running_cond

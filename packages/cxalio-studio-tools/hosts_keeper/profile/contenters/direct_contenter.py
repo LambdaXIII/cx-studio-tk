@@ -1,4 +1,6 @@
 from typing import override, AsyncGenerator
+from cx_tools.i18n import _
+
 
 from box import Box
 
@@ -21,6 +23,8 @@ class DirectContenter(AbstractContenter):
         self.ip: str | None = self.package.get("ip") or None
         self.domains: list[str] = self.package.get("domains") or []
         self.comment: str | None = self.package.get("comment") or None
+
+        self.status_text = _("直接内容")
 
     @override
     async def iter_records(self) -> AsyncGenerator[HostRecord, None]:  # type: ignore[override]  # pyright async generator 覆盖类型推断限制

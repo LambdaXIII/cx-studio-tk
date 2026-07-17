@@ -1,3 +1,4 @@
+from collections.abc import Callable
 import asyncio
 import importlib.resources
 import tomllib
@@ -8,7 +9,7 @@ from collections.abc import Generator
 
 from box import Box, BoxList
 
-from cx_studio.filesystem import force_suffix
+from cx_studio.filesystem import PathUtils
 from .contenter_base import ContenterBase, AbstractContenter
 from .hostrecord import HostRecord
 
@@ -28,7 +29,7 @@ class Profile:
 
     @classmethod
     def load(cls, filename: Path | str) -> Self | None:
-        filename = force_suffix(filename, ".toml")
+        filename = PathUtils.force_suffix(filename, ".toml")
         with open(filename, "rb") as f:
             toml_data = tomllib.load(f)
         data = Box(toml_data)
@@ -53,7 +54,7 @@ class Profile:
 
     @staticmethod
     def create(profile_id: str, target: Path) -> Path:
-        target = force_suffix(target, ".toml")
+        target = PathUtils.force_suffix(target, ".toml")
         target.parent.mkdir(parents=True, exist_ok=True)
 
         assert __package__ is not None, "Profile must be imported as part of a package"
@@ -81,19 +82,37 @@ class Profile:
 
     PROFILE_END_MARKER_PATTERN = r"#####\s+(.+)\s+END\s+#####"
 
-    async def async_iter_records(self) -> AsyncGenerator[HostRecord, None]:
-        """迭代记录"""
+    def count_contenters(self) -> int:
+        """统计此 profile 实际可用的 contenter 数量（跳过未注册 schema）。"""
+        count = 0
+        for schema, packages in self.packages.items():
+            if not isinstance(packages, list | BoxList):
+                packages = [packages]
+            for _ in packages:
+                if ContenterBase.CONTENTERS.get(schema) is not None:
+                    count += 1
+        return count
 
-        async def expand_contenter(_contenter: AbstractContenter):
-            result = []
-            async for record in _contenter.iter_records():  # type: ignore[attr-defined]  # pyright 对抽象 async generator 类型推断限制
-                result.append(record)
-            return result
+    async def async_iter_records(
+        self,
+        on_contenter_status: (
+            Callable[[AbstractContenter, int, int], None] | None
+        ) = None,
+        pretend_delay: float | None = None,
+    ) -> AsyncGenerator[HostRecord, None]:
+        """迭代记录。
 
-        tasks = []
+        Args:
+            on_contenter_status: 可选回调，每个 contenter 开始处理前调用。
+                参数为 (contenter, current_index, total_count)。
+                回调可读取 contenter.status_text 获取动态状态文本。
+            pretend_delay: 假装模式下每个 contenter 处理前的固定模拟延迟（秒）。
+                None 表示不延迟。
+        """
+        self.metadata.path = str(self.path)  # type: ignore[attr-defined]  # Box 动态属性注入
 
-        self.metadata.path = str(self.path)  # type: ignore[attr-defined]  # Box 动态属性注入，为 LocalContenter 提供 profile 所在目录
-
+        # 先收集所有 contenter 以获取总数（用于进度回调）
+        contenters: list[AbstractContenter] = []
         for schema, packages in self.packages.items():
             if not isinstance(packages, list | BoxList):
                 packages = [packages]
@@ -101,23 +120,33 @@ class Profile:
                 contenter = ContenterBase.create_contenter(
                     schema, package, self.metadata
                 )
-                if contenter is None:
-                    continue
-                tasks.append(asyncio.create_task(expand_contenter(contenter)))
+                if contenter is not None:
+                    contenters.append(contenter)
 
-        async for task in asyncio.as_completed(tasks):  # type: ignore[arg-type]  # pyright 对 AsyncIterator 类型推断限制
-            result = await task
-            for record in result:
+        for index, contenter in enumerate(contenters):
+            if on_contenter_status is not None:
+                on_contenter_status(contenter, index + 1, len(contenters))
+            if pretend_delay is not None:
+                await asyncio.sleep(pretend_delay)
+            async for record in contenter.iter_records():  # type: ignore[arg-type]  # pyright 对抽象 async generator 的类型推断限制
                 yield record
 
     async def async_iter_lines(
-        self, include_markers: bool = True
+        self,
+        include_markers: bool = True,
+        on_contenter_status: (
+            Callable[[AbstractContenter, int, int], None] | None
+        ) = None,
+        pretend_delay: float | None = None,
     ) -> AsyncGenerator[str, None]:
         """迭代行"""
         if include_markers:
             yield ""
             yield self.profile_start_marker
-        async for record in self.async_iter_records():
+        async for record in self.async_iter_records(
+            on_contenter_status=on_contenter_status,
+            pretend_delay=pretend_delay,
+        ):
             yield str(record)
         if include_markers:
             yield self.profile_end_marker

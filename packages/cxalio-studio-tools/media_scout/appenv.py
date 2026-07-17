@@ -1,6 +1,7 @@
 from rich.console import Console
 
 from cx_tools.app import IAppEnvironment
+from . import __version__
 from .arg_parser import AppContext
 
 
@@ -8,7 +9,7 @@ class AppEnv(IAppEnvironment):
     def __init__(self):
         super().__init__()
         self.app_name = "MediaScout"
-        self.app_version = "0.7.0"
+        self.app_version = __version__
         self.output_console = Console()
         self.context: AppContext
 
@@ -25,7 +26,7 @@ class AppEnv(IAppEnvironment):
         return self.context.debug_mode
 
     def show_banner(self):
-        self.say(f"[blue]{self.app_name}[/] [yellow]v{self.app_version}[/]")
+        self.say(f"[cx.info]{self.app_name}[/] [cx.number]v{self.app_version}[/]")
 
 
 appenv = AppEnv()

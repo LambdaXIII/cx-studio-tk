@@ -150,6 +150,15 @@ hostskeeper update --skip-flush
 > **Note:** Flushing the DNS cache on Windows requires administrator privileges. The program will automatically attempt an elevated flush after updating hosts.
 > macOS requires sudo authorization. Linux does not automatically perform the flush but still shows the hint.
 
+
+**Pretend mode (`--pretend` / `-p`) behavior details:**
+
+In pretend mode, the program still fully executes the entire pipeline — configuration parsing, content fetching, hosts assembly — but:
+
+- Each content block (contenter) simulates a **4-second** processing delay before processing, to visualize progress bar dynamics
+- Does not actually modify the hosts file; final content is printed to stdout
+- Useful for previewing update results and verifying configuration correctness
+
 **The update command will automatically detect whether administrator privileges are needed, but currently only supports sudo.**
 
 ## Configuration File Format

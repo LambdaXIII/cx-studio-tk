@@ -24,9 +24,18 @@ def make_ngettext(domain: str, locale_dir: str | Path):
 
 
 def detect_locale() -> str:
-    """检测用户 locale。默认返回 'zh_CN'。"""
-    lang = os.environ.get("LANG", "") or os.environ.get("LC_ALL", "") or "zh_CN"
-    return lang.split(".")[0].replace("-", "_")
+    """检测用户 locale，遵循 GNU gettext 标准顺序。
+
+    按 LANGUAGE → LC_ALL → LC_MESSAGES → LANG 顺序检测环境变量。
+    LANGUAGE 支持 ":" 分隔的列表（如 "en_US:zh_CN"），取第一项。
+    全部缺失时回退到 'zh_CN'。
+    """
+    for var in ("LANGUAGE", "LC_ALL", "LC_MESSAGES", "LANG"):
+        val = os.environ.get(var, "")
+        if val:
+            first = val.split(":", 1)[0]
+            return first.split(".")[0].replace("-", "_")
+    return "zh_CN"
 
 
 def load_localized_text(

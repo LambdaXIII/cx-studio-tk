@@ -6,6 +6,7 @@ from pathlib import Path
 
 from cx_studio.collectiontools import flatten_list
 from cx_studio.filesystem import detect_file_encoding
+from cx_tools.i18n import _
 from .appenv import appenv
 from .profile import Profile
 
@@ -21,7 +22,7 @@ class HostsBuilder:
     PROFILE_START_MARKER = re.compile(Profile.PROFILE_START_MARKER_PATTERN)
     PROFILE_END_MARKER = re.compile(Profile.PROFILE_END_MARKER_PATTERN)
 
-    async def prepare_customed_lines(self) -> list[str]:
+    async def prepare_custom_lines(self) -> list[str]:
         async with self._semaphore:
             result = []
             encoding = detect_file_encoding(
@@ -45,13 +46,63 @@ class HostsBuilder:
 
     async def prepare_profile_lines(self, profile: Profile) -> list[str]:
         async with self._semaphore:
+            # 统计 contenter 数量以决定进度模式（与 Profile.async_iter_records 的收集逻辑一致）
+            contenter_count = profile.count_contenters()
+            task_id = appenv.progress.add_task(
+                profile.name,
+                total=contenter_count if contenter_count > 1 else None,
+            )
             result = []
-            async for line in profile.async_iter_lines():
-                result.append(line)
-        return result
+            try:
+
+                def on_contenter_status(contenter, current, total):
+                    if total > 1:
+                        desc = (
+                            f"[bright_black]({current}/{total})[/]"
+                            f" {contenter.status_text}"
+                        )
+                        appenv.progress.update(
+                            task_id, description=desc, completed=current - 1
+                        )
+                    else:
+                        appenv.progress.update(
+                            task_id, description=contenter.status_text
+                        )
+
+                async for line in profile.async_iter_lines(
+                    on_contenter_status=on_contenter_status,
+                    pretend_delay=4.0 if appenv.context.pretending_mode else None,
+                ):
+                    result.append(line)
+                # 完成
+                if contenter_count > 1:
+                    appenv.progress.update(
+                        task_id,
+                        description=f"[cx.success]{profile.name} ✓[/]",
+                        completed=contenter_count,
+                    )
+                else:
+                    appenv.progress.update(
+                        task_id,
+                        description=f"[cx.success]{profile.name} ✓[/]",
+                        total=1,
+                        completed=1,
+                    )
+                appenv.say(
+                    f"[cx.success]{_('已处理配置文件 {name}').format(name=profile.name)}[/]"
+                )
+            except Exception as e:
+                appenv.progress.update(
+                    task_id,
+                    description=f"[cx.error]{profile.name} ✗ {e}[/]",
+                )
+                raise
+            finally:
+                appenv.progress.stop_task(task_id)
+            return result
 
     async def async_build_lines(self, profiles: Iterable[Profile]) -> list[list[str]]:
-        tasks = [asyncio.create_task(self.prepare_customed_lines())]
+        tasks = [asyncio.create_task(self.prepare_custom_lines())]
         for profile in profiles:
             tasks.append(asyncio.create_task(self.prepare_profile_lines(profile)))
         return await asyncio.gather(*tasks)

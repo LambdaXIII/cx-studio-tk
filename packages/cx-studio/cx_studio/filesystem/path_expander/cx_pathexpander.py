@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
-
+from collections.abc import Iterable
 from .validators.cx_pathvalidator import IPathValidator, ChainValidator
 
 
@@ -18,7 +18,7 @@ class PathExpander:
         follow_symlinks: bool = True
 
     def __init__(self, start_info: "PathExpander.StartInfo | None" = None):
-        self.start_info = start_info or PathExpander.StartInfo()
+        self.start_info: PathExpander.StartInfo = start_info or PathExpander.StartInfo()
 
     def __make_path(self, path: str | Path) -> Path:
         path = Path(path)
@@ -29,7 +29,7 @@ class PathExpander:
                 path = Path.cwd() / path
         return path.resolve() if self.start_info.follow_symlinks else path
 
-    def __pure_expand(self, path: str | Path):
+    def __pure_expand(self, path: str | Path) -> Iterable[Path]:
         path = self.__make_path(path)
         yield path
         if (
@@ -56,7 +56,7 @@ class PathExpander:
 
         return self.start_info.accept_others
 
-    def expand(self, *paths: str | Path):
+    def expand(self, *paths: str | Path) -> Iterable[Path]:
         for p in paths:
             for res in self.__pure_expand(p):
                 if self.__validate_path(res):

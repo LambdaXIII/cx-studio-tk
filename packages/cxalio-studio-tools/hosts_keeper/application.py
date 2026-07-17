@@ -9,8 +9,8 @@ from typing import Self, override
 
 from cx_studio.system import system_open
 from cx_tools.app import IApplication
-from cx_wealth import WealthDetailPanel, IndexedListPanel, WealthLabel
-from cx_wealth import rich_types as r
+from cx_wealthy import WealthyDetailPanel, IndexedListPanel, RichLabel
+from cx_wealthy import rich_types as r
 from .app_help import AppHelp
 from .appenv import appenv
 from .hosts_builder import HostsBuilder
@@ -31,7 +31,7 @@ class Application(IApplication):
             appenv.say(f"[cx.warning]{_('调试模式已开启。')}[/]")
             appenv.whisper(
                 IndexedListPanel(
-                    [WealthLabel(x) for x in self.profile_manager.profiles.values()],
+                    [RichLabel(x) for x in self.profile_manager.profiles.values()],
                     title=_("已找到配置文件"),
                 )
             )
@@ -39,6 +39,15 @@ class Application(IApplication):
     @override
     def stop(self) -> None:
         appenv.stop()
+
+    @override
+    def __exit__(self, exc_type, exc_val, exc_tb) -> bool | None:
+        result = super().__exit__(exc_type, exc_val, exc_tb)
+        if exc_type is KeyboardInterrupt:
+            appenv.stop()
+            appenv.say(f"[cx.error]{_('用户中断')}[/]")
+            result = True
+        return result
 
     @staticmethod
     def __open_file(file_path: Path) -> None:
@@ -52,7 +61,6 @@ class Application(IApplication):
         )
         result = system_open(file_path)
         if not result:
-            url = f"file://{file_path.resolve()}"
             appenv.say(
                 f"[cx.error]{_('打开文件 {name} 失败。').format(name=file_path.name)}[/]"
             )
@@ -89,10 +97,10 @@ class Application(IApplication):
 
     def command_list(self) -> None:
         table = r.Table(
-            r.Column("ID", highlight=False, style="yellow"),
-            r.Column("Name", highlight=False, style="cyan"),
-            r.Column("Description", highlight=False, style="green"),
-            r.Column("Enabled", highlight=False),
+            r.Column(_("ID"), highlight=False, style="yellow"),
+            r.Column(_("Name"), highlight=False, style="cyan"),
+            r.Column(_("Description"), highlight=False, style="green"),
+            r.Column(_("Enabled"), highlight=False),
             box=r.box.HORIZONTALS,
             border_style="dim blue",
             header_style="bold blue",
@@ -119,7 +127,7 @@ class Application(IApplication):
         assert appenv.context.profile_id is not None, _("profile_id 不能为空")
         profile = self.profile_manager.profiles.get(appenv.context.profile_id, None)
         if profile:
-            appenv.say(WealthDetailPanel(profile, title=profile.id))  # type: ignore[arg-type]  # Profile 为 dataclass，运行时兼容 WealthDetailMixin
+            appenv.say(WealthyDetailPanel(profile, title=profile.id))  # type: ignore[arg-type]  # Profile 为 dataclass，运行时兼容 WealthDetailMixin
         else:
             appenv.say(
                 f"[cx.error]{_('未找到 ID 为 {profile_id} 的配置文件。').format(profile_id=appenv.context.profile_id)}[/]"
@@ -156,17 +164,17 @@ class Application(IApplication):
         enabled_profiles = list(self.profile_manager.enabled_profiles)
         appenv.whisper(
             IndexedListPanel(
-                [WealthLabel(x) for x in enabled_profiles], title=_("已启用配置文件")
+                [RichLabel(x) for x in enabled_profiles], title=_("已启用配置文件")
             )
         )
 
         appenv.whisper(_("开始构建 Hosts 文件内容"))
         lines = builder.iter_lines(enabled_profiles)
-
-        # 保存临时文件；使用不带 BOM 的 utf-8 写入，因为系统 DNS 解析器不期望 BOM
+        # 先将 generator 耗尽让 async 完成，再停 progress
         with appenv.temp_hosts.open("w", encoding="utf-8") as f:
             for line in lines:
                 f.write(line + "\n")
+        appenv.progress.stop()
         appenv.whisper(
             _("已写入新的内容到临时文件 {path}").format(path=appenv.temp_hosts)
         )
@@ -191,7 +199,7 @@ class Application(IApplication):
                     )
 
     def command_help(self) -> None:
-        AppHelp.show_help(appenv.console)
+        AppHelp.show_help()
 
     def run(self) -> None:
         if appenv.context.command == "help" or appenv.context.show_help:
@@ -199,7 +207,7 @@ class Application(IApplication):
             return
 
         if appenv.context.show_full_help:
-            AppHelp.show_full_help(appenv.console)
+            AppHelp.show_full_help()
             return
 
         if appenv.context.command == "new":

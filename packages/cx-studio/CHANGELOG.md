@@ -1,5 +1,31 @@
 # Change logs of cx-studio
 
+
+### v0.9.0
+
+- **FileSystem 架构重构**：
+  - `FileList` 重写为独立模块（`cx_file_list.py`），新增 `clear()` 方法
+  - `FileSizer` 提取为独立模块（`cx_file_sizer.py`），`default_sizer` 改为私有
+  - `FileInfoCache` 全量重写（435 行 → 更简洁的结构）
+  - `CmdFinder` 路径扩展重构（`path_expander/cx_cmdfinder.py`）
+  - `FileSizeCounter` 标记为弃用，建议使用 `cx_file_sizer` + `MediaDB`
+  - `get_parents()` 修复 off-by-one 错误（`cx_pathutils.py`）
+  - `PathExpander` 结构调整
+- **PEP 396 规范落地**：所有包新增 `__version__`，`appenv.py` 从 `__init__.py` 导入版本号
+- **版本统一**：所有包统一为 0.9.0 同步发布
+
+### v0.8.0.3
+
+- **事件命名规范落地**：为 `DoubleTrigger` 定义事件常量（`TRIGGERED`/`FIRST_TRIGGERED`/`SECOND_TRIGGERED`），内部 `emit()` 全部切换为常量
+- **事件重命名**：`FFMPEG_EVENT_VERBOSE` → `FFMPEG_EVENT_VERBOSE_UPDATED`（符合 `-ED` 命名规范），值同步更新为 `"verbose_updated"`
+- **旧同步 FFmpeg 迁移**：`cx_ffmpeg.py` 全部 8 处 `emit()` 字面量替换为 `FFMPEG_EVENT_*` 常量
+- 全局 `AGENTS.md` 补充 asyncio 事件命名规范章节（`-ED` 形式、常量定义、不在 `__init__.py` 包级导出）
+
+### v0.8.0.2
+
+- 修复 detect_locale() 环境变量检测顺序与 GNU gettext 标准不一致的问题：补充 LANGUAGE、LC_MESSAGES 检测，正确顺序为 LANGUAGE → LC_ALL → LC_MESSAGES → LANG
+- LANGUAGE 支持 ":" 分隔的列表，取第一项
+
 ### v0.8.0.1
 
 - hotfix: wheel 构建缺少 packages 配置，导致所有 Python 模块未打包进 wheel，运行时 ModuleNotFoundError

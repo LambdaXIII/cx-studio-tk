@@ -4,7 +4,7 @@ import fnmatch
 from collections.abc import Iterable
 from pathlib import Path
 
-from cx_studio.filesystem import force_suffix
+from cx_studio.filesystem import PathUtils
 from .appenv import appenv
 from .profile import Profile
 
@@ -69,7 +69,7 @@ class ProfileManager:
                 yield profile
 
     def generate_profile_path(self, profile_id: str) -> Path:
-        return self.profile_dir / Path(force_suffix(profile_id, ".toml"))
+        return self.profile_dir / Path(PathUtils.force_suffix(profile_id, ".toml"))
 
     def create_profile(self, profile_id: str, path: Path | None = None) -> Path | None:
         filename = path or self.generate_profile_path(profile_id)

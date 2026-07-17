@@ -1,4 +1,5 @@
 import importlib.resources
+from . import __version__
 from cx_tools.i18n import _
 
 import os
@@ -9,7 +10,7 @@ from tempfile import TemporaryDirectory
 from typing import override
 
 from cx_tools.app import IAppEnvironment, ConfigManager
-from cx_wealth import rich_types as r
+from cx_wealthy import rich_types as r
 from .appcontext import AppContext
 
 
@@ -17,11 +18,25 @@ class AppEnv(IAppEnvironment):
     def __init__(self) -> None:
         super().__init__()
         self.app_name = "HostsKeeper"
-        self.app_version = "0.7.1"
+        self.app_version = __version__
         self.app_description = _("根据配置文件更新 hosts")
         self.context = AppContext()
 
         self.config_manager = ConfigManager(self.app_name)
+
+        self.progress = r.Progress(
+            r.SpinnerColumn(),
+            r.TextColumn(
+                "[progress.description]{task.description}",
+                table_column=r.Column(ratio=60, no_wrap=True),
+            ),
+            r.BarColumn(table_column=r.Column(ratio=40)),
+            r.TaskProgressColumn(justify="right"),
+            r.TimeRemainingColumn(compact=True),
+            expand=True,
+            console=self.console,
+            transient=True,
+        )
         self._temp_dir: TemporaryDirectory | None = None
 
     @override
@@ -30,15 +45,18 @@ class AppEnv(IAppEnvironment):
         super().start()
         if self._temp_dir is None:
             self._temp_dir = TemporaryDirectory()
-            appenv.whisper(f"临时目录已创建：{self.temp_dir}")
+            appenv.whisper(f"{_('临时目录已创建')}：{self.temp_dir}")
+        self.progress.start()
 
     @override
     def stop(self) -> None:
+        self.progress.refresh()
+        self.progress.stop()
         if self._temp_dir is not None:
             temp_path = Path(self._temp_dir.name)
             self._temp_dir.cleanup()
             self._temp_dir = None
-            appenv.whisper(f"临时目录已删除：{temp_path}")
+            appenv.whisper(f"{_('临时目录已删除')}：{temp_path}")
         super().stop()
 
     @property
@@ -57,11 +75,18 @@ class AppEnv(IAppEnvironment):
         banner_text = importlib.resources.read_text(
             __package__, "banner.txt", encoding="utf-8"
         )
-        banners.append(r.Align.center(banner_text))
-        banners.append(r.Align.center(_("你的 hosts 由我来守护！")))
-        banners.append(r.Align.center("v" + self.app_version))
-        group = r.Group(*banners)
-        appenv.console.print(group, style="bold cyan", highlight=False)
+        banners.append(
+            r.Align.center(
+                r.Text(banner_text, style="bold cyan", no_wrap=True, overflow="crop")
+            )
+        )
+        banners.append(
+            r.Align.center(r.Text(_("你的 hosts 由我来守护！"), style="bold cyan"))
+        )
+        banners.append(
+            r.Align.center(r.Text("v" + self.app_version, style="bold cyan"))
+        )
+        self.say(r.Group(*banners))
 
     def is_debug_mode_on(self) -> bool:
         return self.context.debug_mode
