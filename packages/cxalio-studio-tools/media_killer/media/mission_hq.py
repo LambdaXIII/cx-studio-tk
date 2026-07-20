@@ -91,7 +91,7 @@ class MissionHQ(AsyncIOEventEmitter):
         _paused: 暂停标志
         _resume_event: 暂停恢复事件
         _interrupt_event: 全局中断事件
-        _completed_duration_cache: 已完成任务 duration 缓存（防跳变）
+        _mission_duration_cache: 已完成/排队任务 duration 缓存（懒填充 + FFmpeg 覆盖）
         _ABORT_SENTINEL: 中止哨兵，用 is 比较唤醒 run() 循环
     """
 
@@ -126,9 +126,9 @@ class MissionHQ(AsyncIOEventEmitter):
         self._resume_event.set()  # 初始非暂停状态
         self._interrupt_event = asyncio.Event()
         self._results: list[MissionResult] = []
-        # 已完成任务的 duration 缓存，防止进度条跳变
-        # key = executor_id, value = 运行时 coding_info.total_time（秒）
-        self._completed_duration_cache: dict[int, float] = {}
+        # 已完成/排队任务的时长缓存，键为 Mission，防进度条跳变
+        # _duration_for 懒加载填充（MediaDB），_cache_completed_duration 覆盖（FFmpeg）
+        self._mission_duration_cache: dict[Mission, float] = {}
         # 中止哨兵：用 is 比较，不依赖 Mission.__eq__
         self._ABORT_SENTINEL = Mission(
             ffmpeg="abort",
@@ -350,7 +350,7 @@ class MissionHQ(AsyncIOEventEmitter):
         try:
             result = await self._scheduler.run_one(executor, on_start=_on_start)
             # 缓存已完成任务的 duration，防止进度条跳变
-            self._cache_completed_duration(executor)
+            self._cache_completed_duration(executor, mission)
             if result == MissionResult.FAILED and self._env is not None:
                 error_info = executor.make_error_info()
                 self._env.whisper(
@@ -365,14 +365,16 @@ class MissionHQ(AsyncIOEventEmitter):
             if self._task_progress:
                 self._task_progress.forget(executor)
 
-    def _cache_completed_duration(self, executor) -> None:
-        """从 executor 的 coding_info 缓存 total_time 到 _completed_duration_cache。
+    def _cache_completed_duration(self, executor, mission: Mission) -> None:
+        """用 FFmpeg 精确 total_time 覆盖缓存。
 
-        用于 _duration_for() 的 fallback 链——已完成任务的 coding_info
-        可能在 executor GC 后不可达，缓存确保进度条不会因数据丢失而跳变。
+        仅在 FFmpeg 产生过 total_time 时写入，覆盖 _duration_for 懒加载的
+        MediaDB 估计值或上一轮缓存值。若无 FFmpeg 数据（SKIPPED / 早期 FAILED），
+        保留缓存中已有的值。
 
         Args:
             executor: 已完成执行的 MissionExecutor 实例
+            mission: 已完成执行的 Mission
         """
         ci = executor.status.coding_info
         if (
@@ -380,9 +382,7 @@ class MissionHQ(AsyncIOEventEmitter):
             and ci.total_time is not None
             and ci.total_time.total_seconds > 0
         ):
-            self._completed_duration_cache[executor.executor_id] = (
-                ci.total_time.total_seconds
-            )
+            self._mission_duration_cache[mission] = ci.total_time.total_seconds
 
     def progress_snapshot(self) -> ProgressSnapshot:
         """全量任务进度快照。
@@ -424,12 +424,10 @@ class MissionHQ(AsyncIOEventEmitter):
 
         优先级（从高到低）：
         1. 正在运行的 executor → coding_info.total_time（帧精确，实时变化）
-        2. 已完成任务的缓存 → _completed_duration_cache（完成时冻住的快照）
-        3. 1.0 秒兜底（未开始的任务默认时长）
-
-        第 2 级是防跳变的关键——如果对已完成任务继续使用
-        coding_info.total_time，可能在 executor GC 后回退到 1.0，
-        导致进度条从接近完成跳回一半。
+        2. 已完成任务的缓存 → _mission_duration_cache（完成时冻住的快照；
+           排队任务首次查询懒加载自 MediaDB）
+        3. 懒加载 → MediaDB 探测源文件时长（ExecutorFactory._lookup_duration）
+        4. 1.0 秒兜底（分母安全值）
 
         Args:
             mission: 当前遍历的 Mission
@@ -440,7 +438,7 @@ class MissionHQ(AsyncIOEventEmitter):
         """
         eid = self._mission_executor.get(mission)
         if eid is not None:
-            # 优先级 1：运行中 → 帧精确实时值
+            # 优先级 1：运行中 → 帧精确实时值（最准确）
             running = snap.running.get(eid)
             if running is not None:
                 ci = running.status.coding_info
@@ -450,9 +448,17 @@ class MissionHQ(AsyncIOEventEmitter):
                     and ci.total_time.total_seconds > 0
                 ):
                     return ci.total_time.total_seconds
-            # 优先级 2：已完成 → 冻住的缓存值
-            cached = self._completed_duration_cache.get(eid)
-            if cached is not None and cached > 0:
-                return cached
-        # 优先级 3：兜底
+
+        # 优先级 2：Mission 键值缓存（已完成任务冻存，排队任务懒填充）
+        cached = self._mission_duration_cache.get(mission)
+        if cached is not None and cached > 0:
+            return cached
+
+        # 优先级 3：懒加载 — 从 MediaDB 取源文件探测时长
+        cx = self._factory._lookup_duration(mission)
+        if cx is not None and cx.total_seconds > 0:
+            self._mission_duration_cache[mission] = cx.total_seconds
+            return cx.total_seconds
+
+        # 优先级 4：兜底（分母绝不为 0）
         return 1.0

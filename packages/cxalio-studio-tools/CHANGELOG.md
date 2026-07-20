@@ -11,6 +11,7 @@
 - **新增 `cx_studio.text.cx_shell_escape`** 模块：`escape_arg()` / `join_args()` 平台 shell 转义公用设施，支持 Windows Batch 和 POSIX Shell
 - **`ScriptMaker` 引用公用设施**：删除自有的 `_escape_arg`，改用 `cx_shell_escape.join_args()` + `iter_option_tokens()`
 - **`PresetTagReplacer.read_value_as_list()`** 返回类型改为 `tuple[FfmpegOption, ...]`，列表分支不再按空格二次拆分
+- **MediaKiller 进度条精度优化**：MissionHQ 时长缓存键从 `executor_id`（int）重构为 `Mission` 对象；`_duration_for` 新增 MediaDB 惰性探测回退（排队任务不再使用 1.0 兜底）；消除 Pretend 模式下 `_build_pretender` 与 `_duration_for` 的双重 MediaDB 查询
 - **ffpretty `MissionMaker` 适配**：通过 `options_from_flat()` 将原始 CLI 参数转为键值对
 
 
