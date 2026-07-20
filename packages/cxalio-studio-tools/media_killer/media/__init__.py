@@ -21,7 +21,14 @@ from .executor_scheduler import ExecutorScheduler
 from .media_db import MediaDB
 from .media_info import MediaInfo, StreamInfo
 from .media_prober import MediaProber
-from .mission import InputSpec, Mission, OutputSpec
+from .mission import (
+    FfmpegOption,
+    InputSpec,
+    Mission,
+    OutputSpec,
+    iter_option_tokens,
+    options_from_flat,
+)
 from .mission_hq import MissionHQ, ProgressSnapshot
 from .pretender import MissionPretender
 from .task_progress import TaskProgress
@@ -33,6 +40,7 @@ __all__ = [
     "ExecutorScheduler",
     "ExecutorStatus",
     "FfmpegErrorInfo",
+    "FfmpegOption",
     "FileLogType",
     "InputSpec",
     "MediaDB",
@@ -49,4 +57,6 @@ __all__ = [
     "TaskProgress",
     "TotalProgress",
     "Whisperer",
+    "iter_option_tokens",
+    "options_from_flat",
 ]

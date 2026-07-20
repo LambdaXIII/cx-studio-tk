@@ -5,3 +5,6 @@ PathInfoProvider = tag_replacer.PathInfoProvider
 
 
 from .cx_textutils import *
+
+
+from .cx_shell_escape import *

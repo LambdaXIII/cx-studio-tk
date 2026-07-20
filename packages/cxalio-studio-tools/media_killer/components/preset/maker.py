@@ -120,7 +120,7 @@ class MissionMaker:
             source=source.resolve(),
             standard_target=replacer.standard_target,
             overwrite=overwrite,
-            options=list(options),
+            options=options,
             inputs=inputs,
             outputs=outputs,
             preset_id=self._preset.id,

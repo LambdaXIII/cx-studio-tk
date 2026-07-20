@@ -14,7 +14,7 @@ from pathlib import Path
 import ulid
 
 from cx_studio.filesystem import PathUtils
-from ..media import InputSpec, Mission, OutputSpec
+from ..media import FfmpegOption, InputSpec, Mission, OutputSpec
 
 
 def _text(element: ET.Element | None) -> str | None:
@@ -24,11 +24,17 @@ def _text(element: ET.Element | None) -> str | None:
     return element.text
 
 
-def _parse_options(text: str | None) -> list[str]:
-    """将空格分隔的选项字符串拆分为列表，空文本返回空列表。"""
-    if not text or not text.strip():
-        return []
-    return text.strip().split()
+def _decode_options(opts_node: ET.Element | None) -> tuple[FfmpegOption, ...]:
+    """从 XML 元素反序列化 options，不做文本解析，直接复原结构。"""
+    if opts_node is None:
+        return ()
+    opts: list[FfmpegOption] = []
+    for el in opts_node.findall("option"):
+        key = el.get("key", "")
+        value = el.get("value")
+        if key:
+            opts.append(FfmpegOption(key=key, value=value or None))
+    return tuple(opts)
 
 
 class MissionStore:
@@ -84,19 +90,35 @@ class MissionStore:
         _add_child(node, "source", str(mission.source))
         _add_child(node, "standard_target", str(mission.standard_target))
         _add_child(node, "overwrite", "true" if mission.overwrite else "false")
-        _add_child(node, "options", " ".join(mission.options))
+
+        options_node = ET.SubElement(node, "options")
+        for opt in mission.options:
+            opt_el = ET.SubElement(options_node, "option")
+            opt_el.set("key", opt.key)
+            if opt.value is not None:
+                opt_el.set("value", opt.value)
 
         inputs_node = ET.SubElement(node, "inputs")
         for spec in mission.inputs:
             input_node = ET.SubElement(inputs_node, "input")
             _add_child(input_node, "filename", str(spec.filename))
-            _add_child(input_node, "options", " ".join(spec.options))
+            opts_node = ET.SubElement(input_node, "options")
+            for opt in spec.options:
+                opt_el = ET.SubElement(opts_node, "option")
+                opt_el.set("key", opt.key)
+                if opt.value is not None:
+                    opt_el.set("value", opt.value)
 
         outputs_node = ET.SubElement(node, "outputs")
         for spec in mission.outputs:
             output_node = ET.SubElement(outputs_node, "output")
             _add_child(output_node, "filename", str(spec.filename))
-            _add_child(output_node, "options", " ".join(spec.options))
+            opts_node = ET.SubElement(output_node, "options")
+            for opt in spec.options:
+                opt_el = ET.SubElement(opts_node, "option")
+                opt_el.set("key", opt.key)
+                if opt.value is not None:
+                    opt_el.set("value", opt.value)
 
         return node
 
@@ -117,7 +139,7 @@ class MissionStore:
         overwrite_text = get_text("overwrite")
         overwrite = overwrite_text == "true" if overwrite_text else False
 
-        options = _parse_options(get_text("options"))
+        options = _decode_options(node.find("options"))
 
         preset_id = get_text("preset_id") or None
         preset_name = get_text("preset_name") or None
@@ -127,7 +149,7 @@ class MissionStore:
         if inputs_node:
             for input_node in inputs_node.findall("input"):
                 filename = Path(_text(input_node.find("filename")) or "")
-                opts = _parse_options(_text(input_node.find("options")))
+                opts = _decode_options(input_node.find("options"))
                 inputs.append(InputSpec(filename=filename, options=opts))
 
         outputs: list[OutputSpec] = []
@@ -135,7 +157,7 @@ class MissionStore:
         if outputs_node:
             for output_node in outputs_node.findall("output"):
                 filename = Path(_text(output_node.find("filename")) or "")
-                opts = _parse_options(_text(output_node.find("options")))
+                opts = _decode_options(output_node.find("options"))
                 outputs.append(OutputSpec(filename=filename, options=opts))
 
         return Mission(

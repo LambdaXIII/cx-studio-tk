@@ -1,6 +1,18 @@
 # Change Log of Cxalio Studio Tools
 
 
+### v0.9.2
+
+- **MediaKiller 迭代至 0.9.2**：Mission 数据模型重构——options 从扁平字符串列表改为结构化键值对
+- **新增 `FfmpegOption` 数据类**（`media_killer.media`）：frozen dataclass，表示 FFmpeg 选项的 key-value 对，支持 flag（value=None）和键值（如 `-vf scale=1280:720`）
+- **新增 `options_from_flat()` / `iter_option_tokens()`**：扁平 token 列表与键值对序列的双向转换，替代旧的 `str.split()` 往返解析
+- **`InputSpec.options` / `OutputSpec.options` / `Mission.options`** 字段类型从 `list[str]` 改为 `tuple[FfmpegOption, ...]`
+- **`MissionStore` XML 格式重构**：options 从空格拼接文本改为结构化 `<option key="..." value="..."/>` 子元素，无需文本解析
+- **新增 `cx_studio.text.cx_shell_escape`** 模块：`escape_arg()` / `join_args()` 平台 shell 转义公用设施，支持 Windows Batch 和 POSIX Shell
+- **`ScriptMaker` 引用公用设施**：删除自有的 `_escape_arg`，改用 `cx_shell_escape.join_args()` + `iter_option_tokens()`
+- **`PresetTagReplacer.read_value_as_list()`** 返回类型改为 `tuple[FfmpegOption, ...]`，列表分支不再按空格二次拆分
+- **ffpretty `MissionMaker` 适配**：通过 `options_from_flat()` 将原始 CLI 参数转为键值对
+
 
 ### v0.9.0
 
@@ -14,7 +26,6 @@
 
 ### v0.8.7
 
-- MediaKiller 迭代至 0.9.1（abort 提前截断），FFpretty 迭代至 0.8.7（事件常量迁移）
 - **事件命名规范统一**：
   - 所有 `DoubleTrigger` 订阅方（`iappenv.py`/`ffpretty/appenv.py`/`mission_hq.py`）改用 `FIRST_TRIGGERED`/`SECOND_TRIGGERED` 常量
   - `ffpretty/transcoder.py` 的 FFmpeg 事件订阅（`"started"`/`"finished"`/`"status_updated"`/`"terminated"`）改用 `FFMPEG_EVENT_*` 常量

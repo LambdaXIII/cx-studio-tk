@@ -135,7 +135,7 @@ class MissionHQ(AsyncIOEventEmitter):
             source=Path("<abort>"),
             standard_target=Path("<abort>"),
             overwrite=False,
-            options=[],
+            options=(),
             inputs=[],
             outputs=[],
         )

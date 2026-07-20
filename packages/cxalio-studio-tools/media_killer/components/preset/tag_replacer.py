@@ -13,6 +13,7 @@ from cx_studio.filesystem import PathUtils
 from cx_studio.text import PathInfoProvider, TagReplacer
 
 from .preset import Preset
+from ...media import FfmpegOption, options_from_flat
 
 
 class PresetTagReplacer:
@@ -143,29 +144,40 @@ class PresetTagReplacer:
         """
         return self._replacer.replace(value)
 
-    def read_value_as_list(self, value: str | list) -> list[str]:
-        """替换并拆分为列表。
+    def read_value_as_list(self, value: str | list) -> tuple[FfmpegOption, ...]:
+        """替换标签并按 key-value 对返回选项列表。
 
         Args:
             value: 字符串或列表
 
         Returns:
-            list[str]: 替换并拆分后的列表
+            tuple[FfmpegOption, ...]: 解析后的选项键值对序列
         """
         if isinstance(value, list):
-            # 递归处理列表中的每个元素
-            result = []
+            tokens: list[str] = []
             for item in value:
                 if isinstance(item, str):
-                    replaced = self.read_value(item)
-                    result.extend(replaced.split())
+                    tokens.append(self.read_value(item))
                 elif isinstance(item, list):
-                    result.extend(self.read_value_as_list(item))
-            return result
+                    tokens.extend(self._collect_list_tokens(item))
+            return options_from_flat(tokens)
         else:
-            # 字符串：先替换标签，再按空格拆分
             replaced = self.read_value(value)
-            return replaced.split()
+            return options_from_flat(replaced.split())
+
+    def _collect_list_tokens(self, value: list) -> list[str]:
+        """递归收集嵌套列表中的字符串 token。"""
+        tokens: list[str] = []
+        for item in value:
+            if isinstance(item, str):
+                tokens.append(self.read_value(item))
+            elif isinstance(item, list):
+                tokens.extend(self._collect_list_tokens(item))
+            else:
+                raise TypeError(
+                    f"Preset options 列表中的元素类型不支持: {type(item).__name__} = {item!r}"
+                )
+        return tokens
 
     @property
     def standard_target(self) -> Path:
