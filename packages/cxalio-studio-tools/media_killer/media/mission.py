@@ -17,6 +17,63 @@ from pathlib import Path
 
 import ulid
 
+
+@dataclass(frozen=True)
+class FfmpegOption:
+    """FFmpeg 命令行选项的 key-value 对。
+
+    Attributes:
+        key: 选项键（以 ``-`` 开头，如 ``"-vf"``）
+        value: 选项值。``None`` 表示 flag 选项（如 ``"-hide_banner"``）
+    """
+
+    key: str
+    value: str | None = None
+
+
+def _is_numeric(token: str) -> bool:
+    """判断 token 是否为数值字符串（含负号前缀）。"""
+    try:
+        float(token)
+        return True
+    except ValueError:
+        return False
+
+
+def options_from_flat(tokens: list[str]) -> tuple[FfmpegOption, ...]:
+    """将扁平 token 列表解析为 (key, value) 对序列。
+
+    规则：以 ``-`` 开头的 token 为 key，紧随的非 ``-`` token（或以 ``-``
+    开头但形如数字的 token）为 value。连续两个 ``-`` token 且第二段非数值
+    形态，则前者为 flag（value=None）。
+    """
+    pairs: list[FfmpegOption] = []
+    i = 0
+    while i < len(tokens):
+        key = tokens[i]
+        if key.startswith("-"):
+            i += 1
+            value: str | None = None
+            if i < len(tokens):
+                next_token = tokens[i]
+                if not next_token.startswith("-") or _is_numeric(next_token):
+                    value = next_token
+                    i += 1
+            pairs.append(FfmpegOption(key=key, value=value))
+        else:
+            pairs.append(FfmpegOption(key=key, value=None))
+            i += 1
+    return tuple(pairs)
+
+
+def iter_option_tokens(options: tuple[FfmpegOption, ...]) -> Generator[str, None, None]:
+    """将选项对序列展开为扁平 token 序列，用于 FFmpeg 命令行构造。"""
+    for opt in options:
+        yield opt.key
+        if opt.value is not None:
+            yield opt.value
+
+
 from cx_studio.collectiontools import iter_with_separator
 from cx_studio.filesystem import PathUtils
 from cx_tools.i18n import _
@@ -33,12 +90,14 @@ class InputSpec:
     """
 
     filename: Path
-    options: list[str]
+    options: tuple[FfmpegOption, ...]
 
     def __rich_detail__(self) -> Generator[tuple[str, object], None, None]:
         """详情面板渲染，展示输入规格字段。"""
         yield _("文件"), str(self.filename)
-        yield _("选项"), " ".join(self.options) if self.options else _("无")
+        yield _("选项"), (
+            " ".join(iter_option_tokens(self.options)) if self.options else _("无")
+        )
 
 
 @dataclass(frozen=True)
@@ -51,12 +110,14 @@ class OutputSpec:
     """
 
     filename: Path
-    options: list[str]
+    options: tuple[FfmpegOption, ...]
 
     def __rich_detail__(self) -> Generator[tuple[str, object], None, None]:
         """详情面板渲染，展示输出规格字段。"""
         yield _("文件"), str(self.filename)
-        yield _("选项"), " ".join(self.options) if self.options else _("无")
+        yield _("选项"), (
+            " ".join(iter_option_tokens(self.options)) if self.options else _("无")
+        )
 
 
 @dataclass(frozen=True)
@@ -84,7 +145,7 @@ class Mission:
     source: Path
     standard_target: Path
     overwrite: bool
-    options: list[str]
+    options: tuple[FfmpegOption, ...]
     inputs: list[InputSpec]
     outputs: list[OutputSpec]
     preset_id: str | None = None
@@ -95,7 +156,7 @@ class Mission:
 
         覆盖策略由 Mission.overwrite 字段统一表达，不走此途径。
         """
-        filtered = [o for o in self.options if o not in ("-y", "-n")]
+        filtered = tuple(o for o in self.options if o.key not in ("-y", "-n"))
         if len(filtered) != len(self.options):
             object.__setattr__(self, "options", filtered)
 
@@ -133,7 +194,9 @@ class Mission:
         if self.preset_name:
             yield _("预设名称"), self.preset_name
         yield _("覆盖模式"), _("是") if self.overwrite else _("否")
-        yield _("全局选项"), " ".join(self.options) if self.options else _("无")
+        yield _("全局选项"), (
+            " ".join(iter_option_tokens(self.options)) if self.options else _("无")
+        )
         yield _("输入"), self.inputs
         yield _("输出"), self.outputs
 
@@ -146,17 +209,17 @@ class Mission:
         SKIPPED 语义在 FFmpeg 启动前处理。
         """
         # 全局选项
-        yield from self.options
+        yield from iter_option_tokens(self.options)
 
         # 输入文件
         for input_spec in self.inputs:
-            yield from input_spec.options
+            yield from iter_option_tokens(input_spec.options)
             yield "-i"
             yield str(input_spec.filename)
 
         # 输出文件
         for output_spec in self.outputs:
-            yield from output_spec.options
+            yield from iter_option_tokens(output_spec.options)
             yield str(output_spec.filename)
 
     def __eq__(self, value: object) -> bool:

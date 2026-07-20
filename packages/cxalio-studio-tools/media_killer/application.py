@@ -76,13 +76,22 @@ class Application(IApplication):
     # --- 静态工具方法 ---
 
     @staticmethod
-    def _is_preset(path: Path) -> bool:
-        """判断输入项是否为预设文件（CLI_BEHAVIOR.md §4.1）。"""
+    def _resolve_preset(path: Path) -> Path | None:
+        """将用户输入解析为预设文件的实际路径。
+
+        若为 .toml 文件直接返回；若无扩展名则尝试补全 .toml 后缀，
+        或使用原路径（当文件以无扩展名形式存在时）。
+        无法解析为实际存在的文件时返回 None。
+        """
         if path.suffix.lower() == ".toml":
-            return True
+            return path
         if path.suffix == "":
-            return path.with_suffix(".toml").exists()
-        return False
+            resolved = path.with_suffix(".toml")
+            if resolved.exists():
+                return resolved
+            if path.exists():
+                return path
+        return None
 
     @staticmethod
     def _save_missions(missions: Iterable[Mission]) -> None:
@@ -314,9 +323,10 @@ class Application(IApplication):
         # 4. 扫描输入项，区分 preset / source
         for raw in ctx.inputs:
             p = Path(raw)
-            if self._is_preset(p):
+            preset_path = self._resolve_preset(p)
+            if preset_path is not None:
                 try:
-                    preset = PresetLoader().load(p.resolve())
+                    preset = PresetLoader().load(preset_path.resolve())
                 except SafeError:
                     raise
                 except Exception as e:

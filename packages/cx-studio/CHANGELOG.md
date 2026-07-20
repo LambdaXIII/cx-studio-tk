@@ -1,5 +1,8 @@
 # Change logs of cx-studio
 
+### v0.9.2
+
+- 新增 `cx_studio.text.cx_shell_escape` 模块：提供 `escape_arg()` 和 `join_args()` 两个跨平台 Shell 转义函数，用于安全构造命令行参数
 
 ### v0.9.0
 

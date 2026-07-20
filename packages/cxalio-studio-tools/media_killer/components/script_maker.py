@@ -8,7 +8,8 @@ import sys
 from collections.abc import Iterable
 from pathlib import Path
 
-from ..media import Mission
+from ..media import Mission, iter_option_tokens
+from cx_studio.text.cx_shell_escape import join_args
 
 
 class ScriptMaker:
@@ -110,34 +111,19 @@ class ScriptMaker:
         args: list[str] = [mission.ffmpeg]
 
         # 全局 options（不含 -y/-n，由 Mission.__post_init__ 滤除）
-        args.extend(mission.options)
+        args.extend(iter_option_tokens(mission.options))
 
         # 覆盖标志（脚本直接操作目标文件，必须明确策略）
         args.append("-y" if mission.overwrite else "-n")
 
         # 输入文件组
         for input_spec in mission.inputs:
-            args.extend(input_spec.options)
+            args.extend(iter_option_tokens(input_spec.options))
             args.extend(["-i", str(input_spec.filename)])
 
         # 输出文件组（使用最终目标路径）
         for output_spec in mission.outputs:
-            args.extend(output_spec.options)
+            args.extend(iter_option_tokens(output_spec.options))
             args.append(str(output_spec.filename))
 
-        return " ".join(self._escape_arg(a, is_batch) for a in args)
-
-    @staticmethod
-    def _escape_arg(arg: str, is_batch: bool) -> str:
-        """对命令行参数进行 shell 转义。
-
-        包含空格或特殊字符时用双引号包裹，内部双引号转义为 ``\\"``。
-
-        Args:
-            arg: 待转义的参数
-            is_batch: 是否为 Batch 格式
-        """
-        if " " in arg or '"' in arg or "'" in arg:
-            escaped = arg.replace('"', '\\"')
-            return f'"{escaped}"'
-        return arg
+        return join_args(args, batch=is_batch)

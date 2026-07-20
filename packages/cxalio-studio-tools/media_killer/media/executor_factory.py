@@ -67,7 +67,12 @@ class ExecutorFactory:
         Returns:
             MissionPretender: 已配置的模拟器
         """
-        duration = self._lookup_duration(mission)
+        # 优先从 HQ 缓存读取（_duration_for 惰性填充），避免重复 MediaDB 查询
+        cached_seconds = self._hq._mission_duration_cache.get(mission)
+        if cached_seconds is not None and cached_seconds > 0:
+            duration = CxTime.from_seconds(cached_seconds)
+        else:
+            duration = self._lookup_duration(mission)
         pretender = MissionPretender(mission, duration=duration)
         if self._hq._env:
             Whisperer.attach(pretender, self._hq._env)
@@ -100,9 +105,10 @@ class ExecutorFactory:
         return executor
 
     def _lookup_duration(self, mission: Mission) -> CxTime | None:
-        """从 media_db 查找源文件的原始时长。
+        """从 media_db 查找源文件原始时长。
 
-        仅在 Pretend 模式和 env 可用时调用，用于模拟真实转码时长。
+        Pretend 模式下用于模拟转码时长；Real 模式下供 MissionHQ._duration_for
+        惰性填充进度条时长预估。env 不可用时返回 None。
 
         Args:
             mission: 待查找的 Mission

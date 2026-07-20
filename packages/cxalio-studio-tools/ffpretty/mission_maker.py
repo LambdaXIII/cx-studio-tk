@@ -10,7 +10,7 @@ Preset 模板和标签替换，ffpretty 不需要这些——直接从原始命�
 from pathlib import Path
 
 from cx_studio.ffmpeg import FFmpegArgumentsPreProcessor
-from media_killer.media import InputSpec, Mission, OutputSpec
+from media_killer.media import InputSpec, Mission, OutputSpec, options_from_flat
 
 # -i 不从属于任何 input/output，构造选项列表时排除
 # （-y/-n 已被 argparse 在 Application 层消费，不会出现在参数中）
@@ -92,7 +92,7 @@ class MissionMaker:
         # 构造 InputSpec / OutputSpec
         inputs = (
             [
-                InputSpec(filename=Path(f), options=opts)
+                InputSpec(filename=Path(f), options=options_from_flat(opts))
                 for f, opts in zip(input_files, input_opts)
             ]
             if input_files
@@ -100,7 +100,7 @@ class MissionMaker:
         )
 
         outputs = [
-            OutputSpec(filename=Path(f), options=list(output_opts))
+            OutputSpec(filename=Path(f), options=options_from_flat(output_opts))
             for f in output_files
         ]
 
@@ -112,7 +112,7 @@ class MissionMaker:
             source=source,
             standard_target=standard_target,
             overwrite=overwrite,
-            options=global_opts,
+            options=options_from_flat(global_opts),
             inputs=inputs,
             outputs=outputs,
         )

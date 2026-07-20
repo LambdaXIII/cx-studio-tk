@@ -1,6 +1,6 @@
 [project]
 name = "cxalio-studio-tools"
-version = "0.9.0"
+version = "0.9.2"
 description = "Cxalio CLI toolkit — practical tools for media post-production workflows and easy system administration."
 readme = "README.md"
 requires-python = ">=3.12,<3.15"
