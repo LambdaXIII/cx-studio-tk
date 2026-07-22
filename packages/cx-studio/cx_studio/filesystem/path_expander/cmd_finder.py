@@ -23,7 +23,7 @@ import shutil
 from collections.abc import Generator, Collection, Iterable
 from pathlib import Path, PurePath
 
-from .cx_pathexpander import PathExpander
+from .path_expander import PathExpander
 
 
 class CmdFinder:

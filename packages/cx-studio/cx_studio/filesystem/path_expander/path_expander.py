@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from pathlib import Path
 from collections.abc import Iterable
-from .validators.cx_pathvalidator import IPathValidator, ChainValidator
+from .validators.path_validator import IPathValidator, ChainValidator
 
 
 class PathExpander:

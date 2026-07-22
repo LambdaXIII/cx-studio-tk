@@ -1,8 +1,16 @@
 # Change logs of cx-studio
 
+### v0.10.0
+
+- **子包重组（10→8）**：`number/`、`collectiontools/` 合并入 `core/`；`iotools/` → `process/`；`tui/` → `clikit/`（扁平化，移除 `tools/` 子层级）。旧路径（`cx_studio.tui`/`.number`/`.collectiontools`/`.iotools`）已移除
+- **死代码清理**：删除 `cx_datapackage.py`、`async_canceller.py`、`job_counter.py`、`cx_filesize_counter.py`
+- **命名统一**：25 个模块文件去除 `cx_` 前缀。`core/cx_time.py` 系列（`cx_time`/`cx_timebase`/`cx_timerange`）因与 stdlib `time` 冲突保留
+- **拼写修正**：`openner.py` → `opener.py`
+- **新增 `AGENTS.md`**：子包职责、内部依赖规则、文件命名约定、导出约定、新子包检查清单
+
 ### v0.9.2
 
-- 新增 `cx_studio.text.cx_shell_escape` 模块：提供 `escape_arg()` 和 `join_args()` 两个跨平台 Shell 转义函数，用于安全构造命令行参数
+- 新增 `cx_studio.text.shell_escape` 模块：提供 `escape_arg()` 和 `join_args()` 两个跨平台 Shell 转义函数，用于安全构造命令行参数
 
 ### v0.9.0
 

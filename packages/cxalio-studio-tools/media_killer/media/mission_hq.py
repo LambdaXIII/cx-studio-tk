@@ -33,7 +33,7 @@ from pyee.asyncio import AsyncIOEventEmitter
 from .executor import FfmpegErrorInfo, MissionResult
 from .executor_factory import ExecutorFactory
 from .executor_scheduler import ExecutorScheduler
-from cx_studio.tui.tools.double_trigger import FIRST_TRIGGERED, SECOND_TRIGGERED
+from cx_studio.clikit import FIRST_TRIGGERED, SECOND_TRIGGERED
 from cx_wealthy import WealthyDetailPanel
 from .mission import Mission
 from .task_progress import TaskProgress

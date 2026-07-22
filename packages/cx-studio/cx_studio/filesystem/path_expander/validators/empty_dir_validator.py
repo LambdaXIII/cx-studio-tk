@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from .cx_pathvalidator import IPathValidator
+from .path_validator import IPathValidator
 
 
 class EmptyDirValidator(IPathValidator):

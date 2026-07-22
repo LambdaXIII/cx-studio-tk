@@ -10,7 +10,7 @@ from __future__ import annotations
 import threading
 from pathlib import Path
 
-from cx_studio.filesystem.cx_file_info_cache import FileInfoCache
+from cx_studio.filesystem.file_info_cache import FileInfoCache
 
 from .media_info import MediaInfo
 from .media_prober import MediaProber

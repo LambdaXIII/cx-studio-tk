@@ -2,10 +2,10 @@ from collections.abc import Callable, Iterator
 from pathlib import Path
 import threading
 
-from cx_studio.core.cx_filesize import FileSize
+from cx_studio.core.file_size import FileSize
 
 from . import PathUtils
-from .cx_file_sizer import FileSizer
+from .file_sizer import FileSizer
 
 
 class FileList:
@@ -23,7 +23,7 @@ class FileList:
         - 复杂操作交给消费方：如需排序、过滤等，提取为普通列表处理
 
     示例：
-        >>> from cx_studio.filesystem.cx_file_list import FileList
+        >>> from cx_studio.filesystem.file_list import FileList
         >>> fl = FileList()
         >>> fl.append(Path("file1.txt"))
         True
@@ -72,7 +72,7 @@ class FileList:
     def _make_key(path: Path | str) -> str:
         """将路径转换为规范化的字符串键。
 
-        使用 cx_pathutils.normalize_path 处理，确保不同格式的同一
+        使用 path_utils.normalize_path 处理，确保不同格式的同一
         路径生成相同的键（如大小写、斜杠方向差异）。
 
         Args:

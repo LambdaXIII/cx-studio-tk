@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, override
 from . import __version__
 
 from cx_studio.filesystem.path_expander import CmdFinder
-from cx_studio.tui.tools.double_trigger import FIRST_TRIGGERED, SECOND_TRIGGERED
+from cx_studio.clikit import FIRST_TRIGGERED, SECOND_TRIGGERED
 from cx_tools.app import IAppEnvironment
 from cx_tools.app.config_manager import ConfigManager
 from cx_wealthy import rich_types as r

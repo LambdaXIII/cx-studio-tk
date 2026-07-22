@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Iterable
 
-from .cx_pathexpander import PathExpander
+from .path_expander import PathExpander
 from .validators import SuffixValidator
 
 

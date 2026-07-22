@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from .cx_pathvalidator import IPathValidator
-from ...cx_pathutils import is_executable
+from .path_validator import IPathValidator
+from ...path_utils import is_executable
 
 
 class ExecutableValidator(IPathValidator):

@@ -1,6 +1,12 @@
 # Change Log of Cxalio Studio Tools
 
 
+
+### v0.9.3
+
+- **适配 cx-studio 0.10.0**：所有 import 路径更新——`collectiontools` → `core`（`flatten_list`/`iter_with_separator`）、`tui` → `clikit`（`DoubleTrigger`/`FIRST_TRIGGERED`/`SECOND_TRIGGERED`）
+- **删除弃用代码**：`cx_tools/filesize_counter.py`
+
 ### v0.9.2
 
 - **MediaKiller 迭代至 0.9.2**：Mission 数据模型重构——options 从扁平字符串列表改为结构化键值对

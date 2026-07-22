@@ -2,7 +2,7 @@ from collections.abc import Collection
 from pathlib import Path
 from typing import Iterable
 
-from .cx_pathvalidator import *
+from .path_validator import *
 
 
 class SuffixValidator(IPathValidator):

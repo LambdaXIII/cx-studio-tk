@@ -8,7 +8,7 @@ import subprocess
 import json
 from pathlib import Path
 
-from cx_studio.filesystem.cx_file_sizer import FileSizer
+from cx_studio.filesystem.file_sizer import FileSizer
 from .media_info import MediaInfo, StreamInfo, _safe_int
 
 

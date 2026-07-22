@@ -1,7 +1,7 @@
 import re
 from collections.abc import Callable
 
-from .cx_tagpattern import TagPattern
+from .tag_pattern import TagPattern
 
 
 class TagReplacer:

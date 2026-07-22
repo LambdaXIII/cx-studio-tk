@@ -9,8 +9,7 @@ from rich.highlighter import RegexHighlighter
 from cx_tools.i18n import _
 from cx_wealthy import default_theme as cx_default_theme
 from cx_studio import system
-from cx_studio.tui.tools.double_trigger import FIRST_TRIGGERED, SECOND_TRIGGERED
-from cx_studio.tui import DoubleTrigger
+from cx_studio.clikit import DoubleTrigger, FIRST_TRIGGERED, SECOND_TRIGGERED
 
 
 class CxHighlighter(RegexHighlighter):

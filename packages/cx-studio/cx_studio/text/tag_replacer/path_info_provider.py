@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 from pathlib import Path
 
-from cx_studio.number import quick_clamp
+from cx_studio.core import quick_clamp
 
 
 class PathInfoProvider:

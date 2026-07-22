@@ -10,9 +10,9 @@ from pyee.asyncio import AsyncIOEventEmitter
 
 from cx_studio.core import CxTime, FileSize
 from cx_studio.filesystem.path_expander import CmdFinder
-from cx_studio.iotools import AsyncStreamUtils
+from cx_studio.process import AsyncStreamUtils
 from typing import Any
-from .cx_ff_infos import FFmpegCodingInfo
+from .ff_infos import FFmpegCodingInfo
 
 # ── FFmpegAsync 事件名常量 ────────────────────────────────────
 # 消费者应引用这些常量而非裸字符串，避免拼写错误。

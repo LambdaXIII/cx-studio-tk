@@ -1,7 +1,7 @@
 from collections.abc import Callable
 from pathlib import Path
 
-from cx_studio.core.cx_filesize import FileSize
+from cx_studio.core.file_size import FileSize
 
 from .path_expander import PathExpander
 
@@ -21,7 +21,7 @@ class FileSizer:
     示例：
         >>> from functools import lru_cache
         >>> from pathlib import Path
-        >>> from cx_studio.filesystem.cx_file_sizer import FileSizer
+        >>> from cx_studio.filesystem.file_sizer import FileSizer
         >>>
         >>> @lru_cache(maxsize=1024)
         ... def cached_sizer(path: Path) -> int:

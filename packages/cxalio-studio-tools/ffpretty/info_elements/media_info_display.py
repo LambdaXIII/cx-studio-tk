@@ -5,7 +5,7 @@
 
 from collections.abc import Generator
 
-from cx_studio.core.cx_filesize import FileSize
+from cx_studio.core.file_size import FileSize
 from cx_studio.core.cx_time import CxTime
 from cx_wealthy import RichLabel, WealthyDetailTable, rich_types as r
 from media_killer.media import MediaInfo, StreamInfo

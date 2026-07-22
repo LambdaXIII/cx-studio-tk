@@ -9,7 +9,7 @@ from collections.abc import Iterable
 from pathlib import Path
 
 from ..media import Mission, iter_option_tokens
-from cx_studio.text.cx_shell_escape import join_args
+from cx_studio.text.shell_escape import join_args
 
 
 class ScriptMaker:

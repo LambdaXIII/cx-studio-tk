@@ -4,7 +4,7 @@ import re
 from collections.abc import Iterable
 from pathlib import Path
 
-from cx_studio.collectiontools import flatten_list
+from cx_studio.core import flatten_list
 from cx_studio.filesystem import detect_file_encoding
 from hosts_keeper.i18n import _
 from .appenv import appenv
