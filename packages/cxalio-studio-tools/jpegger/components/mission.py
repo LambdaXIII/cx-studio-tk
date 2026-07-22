@@ -11,7 +11,7 @@ from typing import Any
 
 import ulid
 
-from cx_tools.i18n import _
+from jpegger.i18n import _
 from ..filters import ImageFilterChain
 
 

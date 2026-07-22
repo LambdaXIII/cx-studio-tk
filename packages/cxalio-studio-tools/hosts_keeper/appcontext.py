@@ -1,4 +1,4 @@
-from cx_tools.i18n import _
+from hosts_keeper.i18n import _
 
 from argparse import ArgumentParser
 from collections.abc import Iterator, Sequence

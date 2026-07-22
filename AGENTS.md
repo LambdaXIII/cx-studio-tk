@@ -177,11 +177,15 @@ uv build                  # 构建所有包
 | cx-studio | `from cx_studio.i18n import _, _ng` | 基础设施字符串 |
 | cx-wealth | `from cx_wealth.i18n import _, _ng` | UI 组件字符串（旧） |
 | cx-wealthy | `from cx_wealthy.i18n import _, _ng` | UI 组件字符串 |
-| cxalio-studio-tools | `from cx_tools.i18n import _, _ng` | CLI 工具字符串 |
+| cx_tools（框架） | `from cx_tools.i18n import _, _ng` | 框架自身字符串 |
+| media_scout | `from media_scout.i18n import _, _ng` | media_scout 工具字符串 |
+| media_killer | `from media_killer.i18n import _, _ng` | media_killer 工具字符串 |
+| jpegger | `from jpegger.i18n import _, _ng` | jpegger 工具字符串 |
+| hosts_keeper | `from hosts_keeper.i18n import _, _ng` | hosts_keeper 工具字符串 |
 
-不要在包间交叉导入翻译函数——`cx_tools` 中的模块必须从 `cx_tools.i18n` 导入，不从 `cx_studio.i18n` 导入。
+工具模块**必须**从所在工具自己的 `i18n` 模块导入——`media_killer` 中的模块从 `media_killer.i18n` 导入，不交叉导入 `cx_tools.i18n`。`cx_tools` 框架自身的模块仍从 `cx_tools.i18n` 导入。
 
-> `cx_tools` 是 `cxalio-studio-tools` 分发包内各工具（media_scout、media_killer 等）的共享框架层。之所以 i18n 放在 `cx_tools` 而非各工具各自独立，是因为 domain 统一为 `cx-tools`，所有工具的字符串使用同一份 .po 文件翻译，避免碎片化。`cx_tools.i18n` 服务的是整个分发包，而非仅 `cx_tools` 自身。
+> 每个工具独立 domain 和翻译文件：domain 分别为 `cx-tools`、`media-scout`、`media-killer`、`jpegger`、`hosts-keeper`。各工具自持 `i18n/locales/`，互不交叉。
 
 ### 环境变量与 locale 检测
 
@@ -206,19 +210,26 @@ LC_ALL= LANG=en_US.UTF-8 hostskeeper --help
 
 ```bash
 # cx-studio（在 packages/cx-studio/ 执行）
-uv run pybabel extract --mapping babel.cfg --output-file cx_studio/locales/cx-studio.pot --project cx-studio --copyright-holder 'Cxalio' .
-uv run pybabel update --domain cx-studio --input-file cx_studio/locales/cx-studio.pot --output-dir cx_studio/locales
-uv run pybabel compile --domain cx-studio --directory cx_studio/locales
+uv run pybabel extract --mapping babel.cfg --output-file cx_studio/i18n/locales/cx-studio.pot --project cx-studio --copyright-holder 'Cxalio' .
+uv run pybabel update --domain cx-studio --input-file cx_studio/i18n/locales/cx-studio.pot --output-dir cx_studio/i18n/locales
+uv run pybabel compile --domain cx-studio --directory cx_studio/i18n/locales
 
 # cx-wealth（在 packages/cx-wealth/ 执行）
 uv run pybabel extract --mapping babel.cfg --output-file cx_wealth/locales/cx-wealth.pot --project cx-wealth --copyright-holder 'Cxalio' .
 uv run pybabel update --domain cx-wealth --input-file cx_wealth/locales/cx-wealth.pot --output-dir cx_wealth/locales
 uv run pybabel compile --domain cx-wealth --directory cx_wealth/locales
 
-# cxalio-studio-tools（在 packages/cxalio-studio-tools/ 执行）
-uv run pybabel extract --mapping babel.cfg --output-file cx_tools/locales/cx-tools.pot --project 'cxalio-studio-tools' --copyright-holder 'Cxalio' .
-uv run pybabel update --domain cx-tools --input-file cx_tools/locales/cx-tools.pot --output-dir cx_tools/locales
-uv run pybabel compile --domain cx-tools --directory cx_tools/locales
+# cxalio-studio-tools — 每个工具分别提取（在 packages/cxalio-studio-tools/ 执行）
+uv run pybabel extract -k _ --output-file cx_tools/i18n/locales/cx-tools.pot cx_tools/
+uv run pybabel extract -k _ --output-file media_scout/i18n/locales/media-scout.pot media_scout/
+uv run pybabel extract -k _ --output-file media_killer/i18n/locales/media-killer.pot media_killer/
+uv run pybabel extract -k _ --output-file jpegger/i18n/locales/jpegger.pot jpegger/
+uv run pybabel extract -k _ --output-file hosts_keeper/i18n/locales/hosts-keeper.pot hosts_keeper/
+
+# 然后对每个工具 update 和 compile
+uv run pybabel update -i cx_tools/i18n/locales/cx-tools.pot -d cx_tools/i18n/locales -l en_US -D cx-tools
+uv run pybabel compile -d cx_tools/i18n/locales -l en_US -D cx-tools
+# （对 media_scout、media_killer、jpegger、hosts_keeper 重复同样操作）
 ```
 
 编译出的 `.mo` **必须提交到 git**——用户安装时不执行编译。

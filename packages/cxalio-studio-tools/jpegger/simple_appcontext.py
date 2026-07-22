@@ -12,7 +12,7 @@ from typing import Any
 
 from cx_studio import text as tt
 from cx_studio.i18n import load_localized_text
-from cx_tools.i18n import _
+from jpegger.i18n import _
 from cx_wealthy import WealthyHelp
 from cx_wealthy import rich_types as r
 

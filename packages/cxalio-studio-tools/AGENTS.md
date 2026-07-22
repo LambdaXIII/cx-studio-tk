@@ -169,11 +169,15 @@ appenv.whisper(...)
 
 ### i18n
 
-所有翻译函数从 `cx_tools.i18n` 导入，不在工具间交叉导入：
+每个工具自持 `i18n/` 模块和 `i18n/locales/` 翻译文件，不允许交叉导入。各工具从自己的 `i18n` 模块导入翻译函数：
 
-```python
-from cx_tools.i18n import _, _ng
-```
+| 工具 | 导入 |
+|---|---|
+| cx_tools（框架） | `from cx_tools.i18n import _, _ng` |
+| media_scout | `from media_scout.i18n import _, _ng` |
+| media_killer | `from media_killer.i18n import _, _ng` |
+| jpegger | `from jpegger.i18n import _, _ng` |
+| hosts_keeper | `from hosts_keeper.i18n import _, _ng` |
 
 ### 框架导入
 

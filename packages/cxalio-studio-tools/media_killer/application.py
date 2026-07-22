@@ -19,7 +19,7 @@ from typing import override
 
 from cx_studio.filesystem import PathUtils
 from cx_tools.app import IApplication, SafeError, try_open_text_file
-from cx_tools.i18n import _
+from media_killer.i18n import _
 from cx_wealthy import IndexedListPanel, WealthyDetailPanel
 
 from .appenv import appenv

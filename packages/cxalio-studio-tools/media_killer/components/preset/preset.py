@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Generator
 
-from cx_tools.i18n import _
+from media_killer.i18n import _
 from cx_studio import text as tt
 from cx_studio.filesystem import PathUtils
 

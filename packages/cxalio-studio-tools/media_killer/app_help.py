@@ -4,7 +4,7 @@
 通过 ``cx_studio.i18n.load_localized_text`` 加载本地化教程。
 """
 
-from cx_tools.i18n import _
+from media_killer.i18n import _
 from cx_studio.i18n import load_localized_text
 
 from cx_studio import text as tt

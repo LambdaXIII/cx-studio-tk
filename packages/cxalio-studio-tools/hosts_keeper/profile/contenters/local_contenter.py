@@ -1,5 +1,5 @@
 import asyncio
-from cx_tools.i18n import _
+from hosts_keeper.i18n import _
 
 from pathlib import Path
 from typing import override, AsyncGenerator

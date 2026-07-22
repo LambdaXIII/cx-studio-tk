@@ -23,7 +23,7 @@ from pathlib import Path
 from cx_studio.core.cx_time import CxTime
 from cx_studio.filesystem import FileList
 from cx_tools.app import ConfigManager, IAppEnvironment
-from cx_tools.i18n import _
+from media_killer.i18n import _
 from cx_wealthy import rich_types as r
 
 from .appcontext import AppContext, OVERWRITE_DANGER, OVERWRITE_SAFE

@@ -1,0 +1,473 @@
+# Translations template for PROJECT.
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-07-22 21:59+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#: hosts_keeper/app_help.py:17
+msgid "直接运行"
+msgstr ""
+
+#: hosts_keeper/app_help.py:18
+msgid "不带任何子命令运行时，显示此帮助信息。"
+msgstr ""
+
+#: hosts_keeper/app_help.py:22 hosts_keeper/appcontext.py:82
+msgid "子命令"
+msgstr ""
+
+#: hosts_keeper/app_help.py:24
+msgid "列出所有配置文件。"
+msgstr ""
+
+#: hosts_keeper/app_help.py:28 hosts_keeper/appcontext.py:111
+msgid "搜索模式"
+msgstr ""
+
+#: hosts_keeper/app_help.py:30
+msgid "搜索模式，支持 glob 形式的通配符，智能搜索配置文件的多种信息。"
+msgstr ""
+
+#: hosts_keeper/app_help.py:33
+msgid "显示指定配置文件的内容。"
+msgstr ""
+
+#: hosts_keeper/app_help.py:36 hosts_keeper/app_help.py:44
+#: hosts_keeper/app_help.py:69
+msgid "配置文件ID"
+msgstr ""
+
+#: hosts_keeper/app_help.py:38 hosts_keeper/app_help.py:46
+#: hosts_keeper/app_help.py:71
+msgid "配置文件的ID。"
+msgstr ""
+
+#: hosts_keeper/app_help.py:41
+msgid "编辑指定配置文件。"
+msgstr ""
+
+#: hosts_keeper/app_help.py:50
+msgid "按照所有激活的配置文件更新hosts。"
+msgstr ""
+
+#: hosts_keeper/app_help.py:56
+msgid "目标文件"
+msgstr ""
+
+#: hosts_keeper/app_help.py:58
+msgid "指定目标 hosts 文件，默认值为系统 hosts 文件。"
+msgstr ""
+
+#: hosts_keeper/app_help.py:62
+msgid "跳过刷新"
+msgstr ""
+
+#: hosts_keeper/app_help.py:63
+msgid "更新 hosts 后跳过 DNS 缓存刷新，仅输出平台对应的手动命令提示。"
+msgstr ""
+
+#: hosts_keeper/app_help.py:66
+msgid "创建新的配置文件。"
+msgstr ""
+
+#: hosts_keeper/app_help.py:75
+msgid "杂项"
+msgstr ""
+
+#: hosts_keeper/app_help.py:76 hosts_keeper/appcontext.py:53
+msgid "显示此帮助信息"
+msgstr ""
+
+#: hosts_keeper/app_help.py:78
+msgid "显示完整的教程内容"
+msgstr ""
+
+#: hosts_keeper/app_help.py:81
+msgid "开启调试模式以观察更多的后台信息"
+msgstr ""
+
+#: hosts_keeper/app_help.py:86
+msgid "启用[bold blue]模拟运行模式[/]，不会进行任何文件操作。"
+msgstr ""
+
+#: hosts_keeper/app_help.py:91
+msgid "建议通过完整帮助信息学习更多使用技巧。"
+msgstr ""
+
+#: hosts_keeper/app_help.py:96
+msgid ""
+"本工具通过一系列配置文件自动编写操作系统的 hosts 文件。\n"
+"        配置文件可通过 [u]list[/] [u]show[/] [u]edit[/] 等命令进行管理。\n"
+"        执行 [u]update[/] 命令后，hosts 文件将被自动更新。\n"
+"        当然，编辑 hosts 文件需要以管理员权限运行。"
+msgstr ""
+
+#: hosts_keeper/app_help.py:117
+msgid "Hosts Keeper 教程"
+msgstr ""
+
+#: hosts_keeper/appcontext.py:60
+msgid "显示详细教程"
+msgstr ""
+
+#: hosts_keeper/appcontext.py:67
+msgid "开启调试模式"
+msgstr ""
+
+#: hosts_keeper/appcontext.py:74
+msgid "假装执行，不实际更新 hosts 文件"
+msgstr ""
+
+#: hosts_keeper/appcontext.py:86
+msgid "更新 hosts 文件"
+msgstr ""
+
+#: hosts_keeper/appcontext.py:92
+msgid "指定 hosts 文件路径"
+msgstr ""
+
+#: hosts_keeper/appcontext.py:102
+msgid "更新后跳过 DNS 缓存刷新，仅提示手动命令"
+msgstr ""
+
+#: hosts_keeper/appcontext.py:106
+msgid "列出所有配置文件"
+msgstr ""
+
+#: hosts_keeper/appcontext.py:120 hosts_keeper/appcontext.py:121
+msgid "显示指定配置文件内容"
+msgstr ""
+
+#: hosts_keeper/appcontext.py:124 hosts_keeper/appcontext.py:131
+#: hosts_keeper/appcontext.py:138
+msgid "配置文件 ID"
+msgstr ""
+
+#: hosts_keeper/appcontext.py:128
+msgid "创建新配置文件"
+msgstr ""
+
+#: hosts_keeper/appcontext.py:135
+msgid "编辑指定配置文件"
+msgstr ""
+
+#: hosts_keeper/appenv.py:22
+msgid "根据配置文件更新 hosts"
+msgstr ""
+
+#: hosts_keeper/appenv.py:48
+msgid "临时目录已创建"
+msgstr ""
+
+#: hosts_keeper/appenv.py:59
+msgid "临时目录已删除"
+msgstr ""
+
+#: hosts_keeper/appenv.py:84
+msgid "你的 hosts 由我来守护！"
+msgstr ""
+
+#: hosts_keeper/appenv.py:122
+#, python-brace-format
+msgid "不支持的操作系统：{system_system}。请手动提供 hosts 文件路径。"
+msgstr ""
+
+#: hosts_keeper/application.py:31
+msgid "调试模式已开启。"
+msgstr ""
+
+#: hosts_keeper/application.py:35
+msgid "已找到配置文件"
+msgstr ""
+
+#: hosts_keeper/application.py:48
+msgid "用户中断"
+msgstr ""
+
+#: hosts_keeper/application.py:60
+msgid "未设置编辑器环境变量，尝试使用系统工具打开。"
+msgstr ""
+
+#: hosts_keeper/application.py:65
+#, python-brace-format
+msgid "打开文件 {name} 失败。"
+msgstr ""
+
+#: hosts_keeper/application.py:74
+#, python-brace-format
+msgid "打开目录 {name} 失败。"
+msgstr ""
+
+#: hosts_keeper/application.py:79 hosts_keeper/application.py:127
+#: hosts_keeper/application.py:138
+msgid "profile_id 不能为空"
+msgstr ""
+
+#: hosts_keeper/application.py:83
+#, python-brace-format
+msgid "配置文件 {name} 已存在。"
+msgstr ""
+
+#: hosts_keeper/application.py:90
+#, python-brace-format
+msgid "已创建配置文件: {name}"
+msgstr ""
+
+#: hosts_keeper/application.py:93
+msgid "创建配置文件失败。"
+msgstr ""
+
+#: hosts_keeper/application.py:100
+msgid "ID"
+msgstr ""
+
+#: hosts_keeper/application.py:101
+msgid "Name"
+msgstr ""
+
+#: hosts_keeper/application.py:102
+msgid "Description"
+msgstr ""
+
+#: hosts_keeper/application.py:103
+msgid "Enabled"
+msgstr ""
+
+#: hosts_keeper/application.py:116
+msgid "未找到符合条件的配置文件。"
+msgstr ""
+
+#: hosts_keeper/application.py:120
+#, python-brace-format
+msgid "共找到 {count} 个配置文件。"
+msgstr ""
+
+#: hosts_keeper/application.py:123
+msgid "可尝试使用 show 或 edit 命令查看或编辑配置文件。"
+msgstr ""
+
+#: hosts_keeper/application.py:133 hosts_keeper/application.py:143
+#, python-brace-format
+msgid "未找到 ID 为 {profile_id} 的配置文件。"
+msgstr ""
+
+#: hosts_keeper/application.py:150
+#, python-brace-format
+msgid "配置文件 {path} 不存在。"
+msgstr ""
+
+#: hosts_keeper/application.py:160
+msgid "update 模式已启动"
+msgstr ""
+
+#: hosts_keeper/application.py:162
+msgid "已构建 HostBuilder"
+msgstr ""
+
+#: hosts_keeper/application.py:167
+msgid "已启用配置文件"
+msgstr ""
+
+#: hosts_keeper/application.py:171
+msgid "开始构建 Hosts 文件内容"
+msgstr ""
+
+#: hosts_keeper/application.py:179
+#, python-brace-format
+msgid "已写入新的内容到临时文件 {path}"
+msgstr ""
+
+#: hosts_keeper/application.py:186
+#, python-brace-format
+msgid "将保存到目标文件 {path}"
+msgstr ""
+
+#: hosts_keeper/application.py:189
+msgid "已成功保存新的 hosts 文件。"
+msgstr ""
+
+#: hosts_keeper/application.py:192
+msgid "准备刷新 DNS 缓存"
+msgstr ""
+
+#: hosts_keeper/application.py:198
+msgid "hosts 文件已更新。当前平台不支持自动刷新 DNS 缓存。"
+msgstr ""
+
+#: hosts_keeper/hosts_builder.py:92
+#, python-brace-format
+msgid "已处理配置文件 {name}"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:40
+msgid "当前平台未检测到可用的提权工具（sudo/doas/pkexec）。请安装 sudo 或以 root 运行本程序。"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:51 hosts_keeper/hosts_saver.py:77
+#: hosts_keeper/hosts_saver.py:91
+msgid "提权替换失败。"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:94
+msgid "提权替换超时：用户未在授权对话框中确认。"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:98
+msgid "当前平台未检测到可用的提权工具（sudo/osascript）。请安装 sudo 或以 root 运行本程序。"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:139
+msgid "PowerShell UAC 提权替换失败。"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:144
+msgid "提权替换超时：用户未在 UAC 对话框中确认。"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:148
+msgid "当前平台未检测到可用的提权工具（powershell.exe）。请以管理员权限运行本程序。"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:167
+msgid "未刷新 DNS 缓存，请自行刷新。以管理员身份运行："
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:174 hosts_keeper/hosts_saver.py:195
+msgid "已刷新 DNS 缓存（ipconfig /flushdns）。"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:202
+msgid "DNS 缓存刷新超时。"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:206
+msgid "未能自动刷新 DNS 缓存。请以管理员身份运行："
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:223
+msgid "未刷新 DNS 缓存，请自行刷新。手动执行："
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:238
+msgid "已刷新 DNS 缓存。"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:242
+msgid "DNS 缓存刷新失败。请手动执行："
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:247
+msgid "DNS 缓存刷新超时。请手动执行："
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:261
+msgid "未刷新 DNS 缓存，请自行刷新。可尝试："
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:269
+msgid "hosts 文件已更新。如需刷新 DNS 缓存，请手动执行："
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:308
+#, python-brace-format
+msgid "目标 hosts 文件 {path} 不存在，跳过备份。"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:316
+#, python-brace-format
+msgid "无法创建备份文件，错误：{error}"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:350
+msgid "假装模式已开启，新的内容将输出到标准输出。"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:361
+msgid "目标文件已存在且无法备份，将直接输出生成的 hosts 内容。"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:373
+#, python-brace-format
+msgid "替换失败。目标文件 {path} 无法写入。"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:385
+msgid "当前平台不支持自动提权替换。请以管理员权限运行本程序。"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:396
+#, python-brace-format
+msgid "目标文件 {path} 没有写入权限。"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:399
+msgid "请自行处理目标文件的权限问题，或以管理员权限运行本程序。"
+msgstr ""
+
+#: hosts_keeper/profile_manager.py:32
+msgid "为非法配置文件，已跳过。"
+msgstr ""
+
+#: hosts_keeper/profile_manager.py:38
+#, python-brace-format
+msgid "配置文件 {id} 已经由 {old_name} 提供，将被 {new_name} 覆盖。"
+msgstr ""
+
+#: hosts_keeper/profile/contenters/direct_contenter.py:27
+msgid "直接内容"
+msgstr ""
+
+#: hosts_keeper/profile/contenters/local_contenter.py:30
+#, python-brace-format
+msgid "正在读取 {file}"
+msgstr ""
+
+#: hosts_keeper/profile/contenters/local_contenter.py:32
+msgid "等待文件配置"
+msgstr ""
+
+#: hosts_keeper/profile/contenters/url_contenter.py:31
+#, python-brace-format
+msgid "正在获取 {url}"
+msgstr ""
+
+#: hosts_keeper/profile/contenters/url_contenter.py:31
+msgid "等待 URL 配置"
+msgstr ""
+
+#: hosts_keeper/profile/contenters/url_contenter.py:41
+#, python-brace-format
+msgid "正在下载 {url}"
+msgstr ""
+
+#: hosts_keeper/profile/contenters/url_contenter.py:53
+#, python-brace-format
+msgid "使用配置编码 {encoding} 解码失败，尝试 utf-8 回退..."
+msgstr ""
+
+#: hosts_keeper/profile/contenters/url_contenter.py:59
+msgid "正在解析内容"
+msgstr ""
+
+#: hosts_keeper/profile/contenters/url_contenter.py:62
+msgid "下载失败"
+msgstr ""
+
+#: hosts_keeper/profile/contenters/url_contenter.py:63
+#, python-brace-format
+msgid "无法获取 URL 内容: {error}"
+msgstr ""
+

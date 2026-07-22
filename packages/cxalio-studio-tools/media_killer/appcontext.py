@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from typing import Literal
 
 from cx_tools.app import SafeError
-from cx_tools.i18n import _
+from media_killer.i18n import _
 
 # 覆盖模式三态
 OVERWRITE_DANGER = "danger"  # -y 指定，强制覆盖

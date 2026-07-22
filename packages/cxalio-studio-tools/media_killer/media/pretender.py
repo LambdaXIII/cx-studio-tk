@@ -8,7 +8,7 @@ cancel() 和 garbage_files 共享父类实现（_garbage_files 始终为空—�
 """
 
 import asyncio
-from cx_tools.i18n import _
+from media_killer.i18n import _
 
 from cx_studio.core.cx_time import CxTime
 

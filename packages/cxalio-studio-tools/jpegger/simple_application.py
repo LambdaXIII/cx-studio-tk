@@ -9,7 +9,7 @@ from collections.abc import Sequence
 from typing import override
 
 from cx_tools.app import IApplication
-from cx_tools.i18n import _
+from jpegger.i18n import _
 from cx_wealthy import IndexedListPanel, WealthyDetailPanel, RichLabel
 
 from .appenv import appenv

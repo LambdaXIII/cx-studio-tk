@@ -1,5 +1,5 @@
 from cx_studio.i18n import load_localized_text
-from cx_tools.i18n import _
+from media_scout.i18n import _
 from argparse import ArgumentParser
 from collections.abc import Sequence
 from dataclasses import dataclass

@@ -1,6 +1,6 @@
 import importlib.resources
 from . import __version__
-from cx_tools.i18n import _
+from hosts_keeper.i18n import _
 
 import os
 import sys

@@ -4,7 +4,7 @@ from collections.abc import Iterable
 from pathlib import Path, PurePath
 
 from rich.rule import Rule
-from cx_tools.i18n import _
+from media_scout.i18n import _
 
 from cx_studio.filesystem import PathUtils
 from cx_tools.app import IApplication

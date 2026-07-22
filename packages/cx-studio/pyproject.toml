@@ -13,4 +13,4 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["cx_studio"]
-include = ["cx_studio/locales/**/*.mo"]
+include = ["cx_studio/i18n/locales/**/*.mo"]

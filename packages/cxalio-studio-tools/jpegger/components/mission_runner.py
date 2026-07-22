@@ -13,7 +13,7 @@ from threading import Lock
 from PIL import Image
 
 from cx_tools.app import SafeError
-from cx_tools.i18n import _
+from jpegger.i18n import _
 from cx_wealthy import RichLabel
 from cx_wealthy import rich_types as r
 

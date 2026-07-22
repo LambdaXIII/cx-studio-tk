@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING
 
 from rich.progress import TaskID
 
-from cx_tools.i18n import _
+from media_killer.i18n import _
 
 if TYPE_CHECKING:
     from rich.progress import Progress

@@ -34,7 +34,13 @@ packages = [
     "jpegger",
     "hosts_keeper",
 ]
-include = ["cx_tools/locales/**/*.mo"]
+include = [
+    "cx_tools/i18n/locales/**/*.mo",
+    "media_scout/i18n/locales/**/*.mo",
+    "media_killer/i18n/locales/**/*.mo",
+    "jpegger/i18n/locales/**/*.mo",
+    "hosts_keeper/i18n/locales/**/*.mo",
+]
 
 [dependency-groups]
 dev = ["types-cachetools>=5.5.0.20240820"]

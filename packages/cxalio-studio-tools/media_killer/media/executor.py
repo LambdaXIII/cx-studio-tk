@@ -33,7 +33,7 @@ from cx_studio.ffmpeg import (
     FFmpegAsync,
 )
 from cx_studio.filesystem import CmdFinder
-from cx_tools.i18n import _
+from media_killer.i18n import _
 
 from .mission import Mission
 

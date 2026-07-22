@@ -1,4 +1,4 @@
-from cx_tools.i18n import _
+from hosts_keeper.i18n import _
 
 from cx_studio.i18n import load_localized_text
 
