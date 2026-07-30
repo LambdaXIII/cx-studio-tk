@@ -6,7 +6,11 @@
 
 __version__ = "0.8.3"
 
+import sys
+
 from .simple_application import JpeggerApp
+from .simple_appcontext import SimpleAppContext
+from .appenv import appenv
 
 
 def run() -> None:
@@ -14,5 +18,7 @@ def run() -> None:
     from rich.traceback import install
 
     _ = install(show_locals=False, word_wrap=True, suppress=["rich"])
-    with JpeggerApp() as app:
-        app.run()
+    context = SimpleAppContext.from_arguments(sys.argv[1:])
+    with appenv:
+        with JpeggerApp(appenv=appenv, context=context) as app:
+            app.run()

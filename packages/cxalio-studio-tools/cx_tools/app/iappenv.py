@@ -60,8 +60,6 @@ class IAppEnvironment(ABC):
     - start() 中先调用 super().start()，再启动本工具特有的资源（如 Progress）。
     - stop() 中先清理本工具资源，再调用 super().stop()。
     - 若需覆盖 __exit__，必须保持 super().__exit__() 优先执行的结构。
-      这是因为 appenv.stop() 幂等，先执行正常清理不会带来副作用，
-      但跳过则可能导致 cleanup 遗漏。
     """
 
     def __init__(self) -> None:
@@ -89,6 +87,9 @@ class IAppEnvironment(ABC):
 
         self.interrupt_handler = DoubleTrigger()
 
+        # debug 模式状态（由 Application 通过 set_debug_mode 注入）。
+        self._debug_mode: bool = False
+
         @self.interrupt_handler.on(FIRST_TRIGGERED)
         def __when_wanna_quit():
             self.say(
@@ -101,6 +102,13 @@ class IAppEnvironment(ABC):
             self.say(f"[cx.error]{_('正在中止执行')}[/]")
             self.really_wanna_quit_event.set()
 
+    def set_debug_mode(self, value: bool) -> None:
+        """设置 debug 模式状态。
+
+        由 Application 在 start() 中调用，将 context.debug_mode 同步到 appenv。
+        """
+        self._debug_mode = value
+
     def handle_interrupt(self, _sig, _frame) -> None:
         """SIGINT 处理器入口。触发 DoubleTrigger 的下一级。
 
@@ -110,11 +118,12 @@ class IAppEnvironment(ABC):
         self.interrupt_handler.trigger()
 
     def is_debug_mode_on(self) -> bool:
-        """返回是否处于 debug 模式。子类应覆盖此方法返回真实状态。
+        """返回是否处于 debug 模式。
 
+        由 Application 通过 set_debug_mode() 注入状态。
         whisper() 的输出依赖此方法——仅在其返回 True 时输出。
         """
-        return False
+        return self._debug_mode
 
     def start(self) -> None:
         """应用环境启动。在 __enter__ 时调用。
@@ -127,7 +136,6 @@ class IAppEnvironment(ABC):
         """应用环境停止。在 __exit__ 时调用。
 
         子类覆盖时应在末尾调用 super().stop()。
-        appenv.stop() 幂等，多次调用无害（Progress.stop() 可重复调用）。
         """
         self.whisper(f"{self.app_name} v{self.app_version} environment stopped.")
 
@@ -165,18 +173,19 @@ class IAppEnvironment(ABC):
         样式固定为 dim，默认不开启高亮（highlight=False）（但可以强制启用）。
         适合内部诊断信息、次要细节、开发日志。
         """
-        if self.is_debug_mode_on():
-            if "highlight" not in kwargs:
-                kwargs["highlight"] = False
+        if not self.is_debug_mode_on():
+            return
+        if "highlight" not in kwargs:
+            kwargs["highlight"] = False
 
-            kwargs["style"] = "dim"
-            args_list = list(args)
-            for i, a in enumerate(args_list):
-                if isinstance(a, str):
-                    t = Text.from_markup(a)
-                    t.stylize("dim")
-                    args_list[i] = t
-            self.console.print(*args_list, **kwargs)
+        kwargs["style"] = "dim"
+        args_list = list(args)
+        for i, a in enumerate(args_list):
+            if isinstance(a, str):
+                t = Text.from_markup(a)
+                t.stylize("dim")
+                args_list[i] = t
+        self.console.print(*args_list, **kwargs)
 
     @staticmethod
     def is_user_admin() -> bool:

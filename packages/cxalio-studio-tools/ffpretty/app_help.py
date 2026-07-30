@@ -1,10 +1,16 @@
+from cx_tools.app import IAppComponent, IAppEnvironment
+from .appcontext import AppContext
+
 from cx_studio import text as tt
 from cx_wealthy import WealthyHelp
 
 
-class AppHelp(WealthyHelp):
-    def __init__(self, **kwargs):
-        super().__init__(prog="ffpretty", **kwargs)
+class FFPrettyHelp(IAppComponent, WealthyHelp):
+    def __init__(self, appenv: IAppEnvironment, context: AppContext):
+        IAppComponent.__init__(self, appenv, context)
+        self.appenv = appenv
+        self.context = context
+        WealthyHelp.__init__(self, prog="ffpretty")
 
         self.description = tt.auto_unwrap(
             """FFmpeg 友好前端。将 FFmpeg 参数直接转发给后台进程，并在前台

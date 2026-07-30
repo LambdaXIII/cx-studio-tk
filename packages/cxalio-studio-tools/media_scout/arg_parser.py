@@ -5,6 +5,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Literal
 
+from cx_tools.app import IAppComponent, IAppContext, IAppEnvironment
 from cx_wealthy import WealthyHelp
 from cx_wealthy import rich_types as r
 
@@ -67,7 +68,12 @@ class ArgParser(ArgumentParser):
 
 
 @dataclass
-class AppContext:
+class AppContext(IAppContext):
+    """MediaScout 命令行上下文。
+
+    持有 argparse 解析后的参数，继承 IAppContext 的 temp_dir 能力和生命周期管理。
+    """
+
     inputs: list[str]
     includes: list[str]
     output: str | None
@@ -79,8 +85,13 @@ class AppContext:
     show_help: bool
     show_full_help: bool
 
+    def __post_init__(self) -> None:
+        """初始化 IAppContext 的 _temp_dir 等基础设施。"""
+        super().__init__()
+
     @classmethod
     def load(cls, arguments: Sequence[str] | None = None):
+        """从命令行参数构造上下文。"""
         parser = ArgParser()
         args = parser.parse_args(arguments)
         return cls(
@@ -100,9 +111,13 @@ class AppContext:
         yield from self.__dict__.items()
 
 
-class MSHelp(WealthyHelp):
-    def __init__(self):
-        super().__init__(
+class MediaScoutHelp(IAppComponent, WealthyHelp):
+    def __init__(self, appenv: IAppEnvironment, context: AppContext):
+        IAppComponent.__init__(self, appenv, context)
+        self.appenv = appenv
+        self.context = context
+        WealthyHelp.__init__(
+            self,
             prog="MediaScout",
             description=_(
                 "解析时间线、元数据表格等项目文件，从中提取包含的文件路径。支持干净的输出流或输出到文件。"
@@ -149,12 +164,10 @@ class MSHelp(WealthyHelp):
             "[link https://github.com/LambdaXIII/cx-studio-tk]Cxalio Studio Tools[/]"
         )
 
-    @staticmethod
-    def show_help(console: r.Console):
-        console.print(MSHelp())
+    def show_help(self) -> None:
+        self.appenv.console.print(self)
 
-    @staticmethod
-    def show_full_help(console: r.Console):
+    def show_full_help(self) -> None:
         md = load_localized_text("media_scout", "help.md")
         content = r.Markdown(md, style="default")
         panel = r.Panel(
@@ -164,4 +177,4 @@ class MSHelp(WealthyHelp):
             style="cx.debug",
             width=90,
         )
-        console.print(r.Align.center(panel))
+        self.appenv.console.print(r.Align.center(panel))

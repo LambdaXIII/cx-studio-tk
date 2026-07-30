@@ -7,7 +7,7 @@
 职责单一：装配。不负责调度、进度显示或中断响应。
 """
 
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 
 from cx_studio.core.cx_time import CxTime
 
@@ -17,8 +17,6 @@ from .pretender import MissionPretender
 from .whisperer import Whisperer
 
 if TYPE_CHECKING:
-    from ..appenv import AppEnv
-
     from .mission_hq import MissionHQ
 
 
@@ -108,7 +106,7 @@ class ExecutorFactory:
         """从 media_db 查找源文件原始时长。
 
         Pretend 模式下用于模拟转码时长；Real 模式下供 MissionHQ._duration_for
-        惰性填充进度条时长预估。env 不可用时返回 None。
+        惰性填充进度条时长预估。media_db 不可用时返回 None。
 
         Args:
             mission: 待查找的 Mission
@@ -117,11 +115,9 @@ class ExecutorFactory:
             CxTime: 源文件实际时长
             None: media_db 不可用或查找失败
         """
-        if self._hq._env:
-            from ..appenv import AppEnv  # 延迟导入避免与 media/__init__.py 循环引用
-
-            env = cast(AppEnv, self._hq._env)
-            info = env.media_db.get_media_info(mission.source)
+        media_db = self._hq._media_db
+        if media_db is not None:
+            info = media_db.get_media_info(mission.source)
             if info is not None and info.duration is not None:
                 return CxTime.from_seconds(info.duration)
         return None

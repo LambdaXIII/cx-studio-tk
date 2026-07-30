@@ -1,11 +1,12 @@
 """Jpegger 简单应用上下文与帮助系统。
 
 `SimpleAppContext` 是命令行参数解析后的值对象，采用 `from_arguments()`
-工厂方法构造，并通过 kwargs 白名单完成字段赋值。`SimpleHelp` 使用
+工厂方法构造，并通过 kwargs 白名单完成字段赋值。`JpeggerHelp` 使用
 `WealthHelp` DSL 提供与 argparse 一致的中文帮助文本，并支持加载
 `help.md` 显示完整教程。
 """
 
+from cx_tools.app import IAppComponent, IAppContext, IAppEnvironment
 from collections.abc import Generator, Sequence
 from argparse import ArgumentParser, ArgumentTypeError
 from typing import Any
@@ -18,7 +19,7 @@ from cx_wealthy import rich_types as r
 
 from .components.format_database import FormatDB
 
-# argparse choices= 与 SimpleHelp 描述共用，防止两处漂移。
+# argparse choices= 与 JpeggerHelp 描述共用，防止两处漂移。
 _COLOR_SPACE_CHOICES = ["RGB", "L", "CMYK"]
 
 
@@ -40,7 +41,7 @@ def _validate_format(value: str) -> str:
     return value
 
 
-class SimpleAppContext:
+class SimpleAppContext(IAppContext):
     """Jpegger 命令行上下文。
 
     字段通过 `from_arguments()` 解析并赋值。未在 `__init__` 中声明的
@@ -64,6 +65,7 @@ class SimpleAppContext:
 
     def __init__(self, **kwargs: Any):
         """用 kwargs 白名单初始化上下文字段。"""
+        super().__init__()
         self.inputs: list[str] = []
         self.show_help: bool = False
         self.show_full_help: bool = False
@@ -80,11 +82,11 @@ class SimpleAppContext:
 
         for k, v in kwargs.items():
             if k in self.__dict__:
-                self.__dict__[k] = v
+                setattr(self, k, v)
 
     def __rich_repr__(self) -> Generator[tuple[str, Any], None, None]:
         """返回所有字段的 `(name, value)` 表示，用于 debug 详情面板。"""
-        yield from self.__dict__.items()
+        yield from ((k, v) for k, v in self.__dict__.items() if not k.startswith("_"))
 
     @classmethod
     def from_arguments(
@@ -196,7 +198,11 @@ class SimpleAppContext:
             "overwrite",
             "debug_mode",
         ]
-        other_values = {k: v for k, v in self.__dict__.items() if k not in known_keys}
+        other_values = {
+            k: v
+            for k, v in self.__dict__.items()
+            if k not in known_keys and not k.startswith("_")
+        }
 
         yield from other_values.items()
 
@@ -204,15 +210,15 @@ class SimpleAppContext:
             yield _("输入文件"), self.inputs
 
 
-class SimpleHelp(WealthyHelp):
+class JpeggerHelp(IAppComponent, WealthyHelp):
     """Jpegger 的中文帮助文档。"""
 
-    description: str
-    epilog: str
-
-    def __init__(self):
+    def __init__(self, appenv: IAppEnvironment, context: SimpleAppContext):
         """使用 WealthHelp DSL 构建帮助内容。"""
-        super().__init__(prog="jpegger")
+        IAppComponent.__init__(self, appenv, context)
+        self.appenv = appenv
+        self.context = context
+        WealthyHelp.__init__(self, prog="jpegger")
         self.description = tt.auto_unwrap(
             _("""Jpegger是一个简单的批量转换图片的命令行工具。
 
@@ -289,15 +295,13 @@ class SimpleHelp(WealthyHelp):
             detail=_("显示完整的教程内容"),
         )
 
-    @staticmethod
-    def show_help(console: r.Console) -> None:
-        """在指定控制台打印简要帮助。"""
-        console.print(SimpleHelp())
+    def show_help(self) -> None:
+        """在控制台打印简要帮助。"""
+        self.appenv.console.print(self)
 
-    @staticmethod
-    def show_full_help(console: r.Console) -> None:
-        """在指定控制台打印完整教程（help.md）。"""
-        assert __package__ is not None, "SimpleHelp 必须作为包的一部分导入"
+    def show_full_help(self) -> None:
+        """在控制台打印完整教程（help.md）。"""
+        assert __package__ is not None, "JpeggerHelp 必须作为包的一部分导入"
         md = load_localized_text(__package__, "help.md")
         content = r.Markdown(md, style="default")
         panel = r.Panel(
@@ -307,4 +311,4 @@ class SimpleHelp(WealthyHelp):
             style="bright_black",
             width=90,
         )
-        console.print(r.Align.center(panel))
+        self.appenv.console.print(r.Align.center(panel))

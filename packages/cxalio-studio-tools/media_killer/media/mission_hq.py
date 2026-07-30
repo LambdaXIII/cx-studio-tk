@@ -101,6 +101,7 @@ class MissionHQ(AsyncIOEventEmitter):
         pretending: bool = False,
         progress: "Progress | None" = None,
         env: "IAppEnvironment | None" = None,
+        media_db=None,
         scheduler: "ExecutorScheduler | None" = None,
         factory: "ExecutorFactory | None" = None,
     ) -> None:
@@ -111,6 +112,7 @@ class MissionHQ(AsyncIOEventEmitter):
             pretending: 是否启用 Pretend 模式（-p/--pretend）
             progress: Rich Progress 实例，None 则禁用进度显示
             env: IAppEnvironment 实例，用于中断接入和 Whisperer
+            media_db: MediaDB 实例，用于 duration 查找
             scheduler: 自定义 ExecutorScheduler（测试注入用）
             factory: 自定义 ExecutorFactory（测试注入用）
         """
@@ -156,6 +158,7 @@ class MissionHQ(AsyncIOEventEmitter):
                 self.abort()
 
         self._env = env
+        self._media_db = media_db
         self._progress = progress
 
     # ── 任务投喂 ──────────────────────────────────────────────

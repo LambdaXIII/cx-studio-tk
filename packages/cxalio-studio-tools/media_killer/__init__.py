@@ -5,7 +5,11 @@ CLI 入口：mediakiller = "media_killer:run"
 
 __version__ = "0.9.2"
 
-from .application import Application
+import sys
+
+from .appcontext import AppContext
+from .appenv import appenv
+from .application import MediaKillerApp
 
 
 def run() -> None:
@@ -14,8 +18,12 @@ def run() -> None:
 
     install(show_locals=False, word_wrap=True, suppress=["rich"])
 
-    with Application() as app:
-        app.run()
+    context = AppContext.from_arguments(sys.argv[1:])
+    with appenv:
+        with MediaKillerApp(
+            appenv=appenv, context=context, progress=appenv.progress
+        ) as app:
+            app.run()
 
 
-__all__ = ["Application", "run"]
+__all__ = ["MediaKillerApp", "run"]

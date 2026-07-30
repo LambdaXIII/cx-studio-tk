@@ -1,6 +1,40 @@
 # Change Log of Cxalio Studio Tools
 
 
+### [最新修改] IAppComponent 存储重构 & 类型修复
+
+- **IAppComponent 不再存储 appenv/context**：删除 `_appenv`/`_context` 私有属性和 `appenv`/`context` property，`__init__` 参数变更为 optional，仅作签名契约提示
+- **IApplication 直接存储**：IApplication 的 `__init__` 直接赋值 `self.appenv = appenv; self.context = context`，子类在 `super().__init__()` 后通过 `self.context = context` 收窄为具体子类类型
+- **14 个框架子类全量适配**：5 个 Application 子类（FFPrettyApp/MediaKillerApp/HostsKeeperApp/JpeggerApp/MediaScoutApp）和 9 个 IAppComponent 子类（Help 组件 + HostsBuilder/HostsSaver/ProfileManager/MissionRunner）各自在 `__init__` 中按需存储 appenv/context，不再依赖基类 property
+- **app_description 从 AppEnv 移除**：media_killer 和 hosts_keeper 的 AppEnv 删除 `app_description` 字段；media_killer 的使用处改为 `_()` 包装的 i18n 字符串
+- **AGENTS.md 更新**：补充"为什么 IAppComponent 不存储 appenv/context"设计说明
+
+### [最新修改] 应用架构重构：依赖注入化
+
+- **新增 `IAppContext` 抽象基类**（`cx_tools/app/iappcontext.py`）：统一所有工具的 AppContext 契约——持有参数解析结果 + 运行时状态（temp_dir 惰性能力），实现上下文管理器协议（`__enter__`/`__exit__` + `start()`/`stop()`）
+- **`IApplication` 签名重构**：从 `(arguments)` 改为 `(appenv, context)`——Application 不再绑定全局 appenv 单例，通过构造参数注入依赖，可被其他工具复用
+- **`IAppEnvironment` 增强**：新增 `set_debug_mode()`（debug 状态注入）；`say()`/`whisper()` 恢复为纯输出，Progress 协调逻辑回归各工具 AppEnv 子类覆盖
+- **appenv 上下文改为在 Application 外部管理**：工具入口 `with appenv:` 嵌套 `with Application(...)`，appenv 生命周期与 Application 解耦
+- **5 个工具全量迁移**：hosts_keeper、ffpretty、media_scout、jpegger、media_killer 的 Application 和子组件改为构造注入，不再 `from .appenv import appenv`
+- **ffpretty 新增 `AppContext`**：参数解析从 Application._parse_arguments() 迁移到独立的 AppContext.from_arguments()
+- **appenv 瘦身**：各工具 AppEnv 移除业务状态（context、config_manager、media_db、temp_dir 等），仅保留环境能力（console/say/whisper/中断/banner/progress）
+- **已知例外**：hosts_keeper `hosts_saver.py` 中 CrossRunner 模块级函数保留全局 appenv 导入（装饰器注册机制要求）
+
+### 修复
+
+- 修复 Progress Live 显示被 say/whisper override 永久杀死的问题（ffpretty、hosts_keeper、media_killer）
+- 修复 media_scout SIGINT handler 挂在死实例上导致 Ctrl+C 无响应
+- 修复 media_killer asyncio.run() 覆盖 SIGINT handler 导致 Ctrl+C 无响应
+- 修复 hosts_keeper 注册 SIGINT handler 但同步代码不轮询事件导致 Ctrl+C 无响应
+- 修复 IApplication.__enter__/__exit__ 缺异常安全导致 context 资源泄漏
+- 修复 media_killer garbage 清理计数永远显示 0
+- 修复 hosts_saver subprocess.TimeoutExpired 未捕获
+- 修复 hosts_builder prepare_custom_lines 静默丢弃用户注释行
+- 修复 AbstractContenter appenv 参数泄漏进 package 数据
+- 修复 ffpretty SafeError 移出 with 块后无法捕获
+- 修复 jpegger SimpleAppContext _temp_dir 泄漏到富文本显示
+- 引入 IAppComponent 抽象基类，统一 CLI 特化组件的 appenv+context 持有模式
+- 提取 run_async() 共享函数，避免 asyncio.run() 覆盖 SIGINT handler
 
 ### v0.9.3
 

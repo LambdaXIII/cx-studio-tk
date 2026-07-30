@@ -2,16 +2,17 @@ import os
 import time
 from collections.abc import Iterable
 from pathlib import Path, PurePath
+from typing import override
 
+from rich.console import Console
 from rich.rule import Rule
 from media_scout.i18n import _
 
 from cx_studio.filesystem import PathUtils
-from cx_tools.app import IApplication
+from cx_tools.app import IApplication, IAppContext, IAppEnvironment
 from cx_wealthy import WealthyDetailPanel
 from media_scout.inspectors.filelist_inspector import FileListInspector
-from .appenv import appenv
-from .arg_parser import MSHelp
+from .arg_parser import MediaScoutHelp, AppContext
 from .inspectors import (
     ResolveMetadataInspector,
     InspectorInfo,
@@ -23,50 +24,71 @@ from .inspectors import (
 )
 
 
-class Application(IApplication):
-    APP_NAME = "MediaScout"
-    APP_VERSION = "0.1.0"
+class MediaScoutApp(IApplication):
+    """MediaScout 应用。
 
-    def __init__(self):
-        super().__init__()
+    编排 appenv + context，驱动媒体文件检查流程。
+    """
+
+    def __init__(
+        self,
+        appenv: IAppEnvironment,
+        context: AppContext,
+    ) -> None:
+        super().__init__(appenv, context)
+        self.context = context
+        self._data_console = Console()
 
     def start(self):
-        appenv.start()
-        appenv.show_banner()
-        appenv.whisper(_("MediaScout 启动"))
-        appenv.whisper(WealthyDetailPanel(appenv.context))
+        self.appenv.set_debug_mode(self.context.debug_mode)
+        self.appenv.say(
+            f"[cx.info]{self.appenv.app_name}[/] [cx.number]v{self.appenv.app_version}[/]"
+        )
+        self.appenv.whisper(_("MediaScout 启动"))
+        self.appenv.whisper(WealthyDetailPanel(self.context))
 
     def stop(self):
-        appenv.stop()
-        appenv.whisper("Bye~")
+        self.appenv.whisper("Bye~")
 
-    @staticmethod
-    def resolve(path: os.PathLike) -> str | None:
+    @override
+    def __exit__(self, exc_type, exc_val, exc_tb) -> bool | None:
+        result = super().__exit__(exc_type, exc_val, exc_tb)
+        if exc_type is KeyboardInterrupt:
+            self.appenv.say(f"[cx.warning]{_('用户中断')}[/]")
+            result = True
+        return result
+
+    def resolve(self, path: os.PathLike) -> str | None:
+        """解析并引用路径。
+
+        根据 context 的 existed_only、auto_resolve、quote_mode 选项处理路径。
+        """
         result = Path(path)
-        if appenv.context.existed_only and not result.exists():
-            appenv.whisper(f"[cx.error]{result} {_('不存在')}[/]")
+        if self.context.existed_only and not result.exists():
+            self.appenv.whisper(f"[cx.error]{result} {_('不存在')}[/]")
             return None
-        if appenv.context.auto_resolve:
+        if self.context.auto_resolve:
             result = result.resolve()
-        return PathUtils.quote_path(result, appenv.context.quote_mode)
+        return PathUtils.quote_path(result, self.context.quote_mode)
 
-    @staticmethod
-    def auto_expand(path: os.PathLike, info: InspectorInfo) -> Iterable[PurePath]:
+    def auto_expand(self, path: os.PathLike, info: InspectorInfo) -> Iterable[PurePath]:
+        """在搜索路径中自动展开相对路径。"""
         result = Path(path)
-        includes = [info.path.parent.resolve()] if appenv.context.auto_resolve else []
-        includes.extend([Path(x) for x in appenv.context.includes])
+        includes = [info.path.parent.resolve()] if self.context.auto_resolve else []
+        includes.extend([Path(x) for x in self.context.includes])
 
-        if result.is_absolute() or not appenv.context.includes:
+        if result.is_absolute() or not self.context.includes:
             yield result
         else:
-            appenv.whisper(f"[cx.warning]{_('在搜索路径中搜索：')}{result}[/]")
+            self.appenv.whisper(f"[cx.warning]{_('在搜索路径中搜索：')}{result}[/]")
             for include in includes:
                 p = Path(include).absolute() / result
                 if p.exists():
-                    appenv.whisper(f"{_('找到：')}{p}")
+                    self.appenv.whisper(f"{_('找到：')}{p}")
                     yield p
 
     def iter_results(self):
+        """遍历所有输入文件的检查结果。"""
         inspectors = [
             ResolveMetadataInspector(),
             EDLInspector(),
@@ -77,12 +99,12 @@ class Application(IApplication):
         ]
 
         chain = InspectorChain(
-            *inspectors, allow_duplicated=appenv.context.allow_duplicated
+            *inspectors, allow_duplicated=self.context.allow_duplicated
         )
 
-        for path in appenv.context.inputs:
+        for path in self.context.inputs:
             path = Path(path)
-            appenv.say(Rule(path.name, style="dim green"))
+            self.appenv.say(Rule(path.name, style="dim green"))
             info = InspectorInfo(Path(path))
             for result in chain.inspect(info):
                 for x in self.auto_expand(result, info):
@@ -90,39 +112,42 @@ class Application(IApplication):
                         yield a
 
     def run(self):
-        if appenv.context.show_help:
-            MSHelp.show_help(appenv.console)
+        """执行 MediaScout 主逻辑。"""
+        if self.context.show_help:
+            help_component = MediaScoutHelp(self.appenv, self.context)
+            help_component.show_help()
             return
 
-        if appenv.context.show_full_help:
-            MSHelp.show_full_help(appenv.console)
+        if self.context.show_full_help:
+            help_component = MediaScoutHelp(self.appenv, self.context)
+            help_component.show_full_help()
             return
 
-        if appenv.context.allow_duplicated:
-            appenv.say(f"[cx.warning]{_('允许输出重复项')}[/]")
+        if self.context.allow_duplicated:
+            self.appenv.say(f"[cx.warning]{_('允许输出重复项')}[/]")
             time.sleep(0.5)
-        if appenv.context.auto_resolve:
-            appenv.say(f"[cx.warning]{_('自动整理或折叠路径')}[/]")
+        if self.context.auto_resolve:
+            self.appenv.say(f"[cx.warning]{_('自动整理或折叠路径')}[/]")
             time.sleep(0.5)
-        if appenv.context.existed_only:
-            appenv.say(f"[cx.info]{_('只输出存在的文件')}[/]")
+        if self.context.existed_only:
+            self.appenv.say(f"[cx.info]{_('只输出存在的文件')}[/]")
             time.sleep(0.5)
 
         result = []
         for x in self.iter_results():
             result.append(x)
-            appenv.print(x)
+            self._data_console.print(x)
 
-        appenv.say(
+        self.appenv.say(
             f"[cx.info]{_('共找到 {count} 个媒体路径。').format(count=len(result))}[/]"
         )
 
-        if appenv.context.output:
-            output_file = PathUtils.auto_suffix(appenv.context.output, ".txt")
+        if self.context.output:
+            output_file = PathUtils.auto_suffix(self.context.output, ".txt")
             with open(output_file, "w") as fp:
                 for x in result:
                     fp.write(str(x) + "\n")
 
-            appenv.say(
+            self.appenv.say(
                 f"[cx.success]{_('列表已保存到：{path}').format(path=output_file)}[/]"
             )
