@@ -30,7 +30,7 @@ from typing import TYPE_CHECKING
 
 from pyee.asyncio import AsyncIOEventEmitter
 
-from .executor import FfmpegErrorInfo, MissionResult
+from .executor import FfmpegErrorInfo, MissionFailureInfo, MissionResult
 from .executor_factory import ExecutorFactory
 from .executor_scheduler import ExecutorScheduler
 from cx_studio.clikit import FIRST_TRIGGERED, SECOND_TRIGGERED
@@ -197,6 +197,11 @@ class MissionHQ(AsyncIOEventEmitter):
         返回前必须等待所有已启动的 task 完成（包括取消的），
         否则 garbage_files 可能未完整收集。
 
+        错误处理：
+        - 所有任务异常由 _run_one 统一捕获并报告
+        - gather(return_exceptions=True) 的异常分支是防御性的，应不可达
+        - 如到达防御性分支，输出内部错误日志
+
         Returns:
             list[MissionResult]: 每个 Mission 的执行结果列表
         """
@@ -232,7 +237,12 @@ class MissionHQ(AsyncIOEventEmitter):
                 elif isinstance(r, asyncio.CancelledError):
                     self._results.append(MissionResult.CANCELED)
                 elif r is not None:
+                    # 防御性分支：_run_one 应捕获所有异常，此处应不可达
                     self._results.append(MissionResult.FAILED)
+                    if self._env is not None:
+                        self._env.say(
+                            f"[cx.error]内部错误：任务异常未被 _run_one 捕获：{r!r}[/]"
+                        )
 
             self.emit(MISSION_FINISHED)
         finally:
@@ -317,11 +327,11 @@ class MissionHQ(AsyncIOEventEmitter):
         self.abort()
 
     async def _run_one(self, mission: Mission) -> MissionResult:
-        """执行单个 Mission 的完整生命周期。
+        """执行单个 Mission 的完整生命周期，统一捕获所有异常并报告。
 
         流程：
         1. 检查中止状态——如已 abort，直接返回 CANCELED，不创建 executor
-        2. 通过 Factory 创建 executor
+        2. 通过 Factory 创建 executor（可能抛出异常）
         3. 传入 on_start callback 给 run_one（在 semaphore 获取后执行）
            - 记录 mission → executor_id 映射
            - emit mission_started
@@ -331,32 +341,39 @@ class MissionHQ(AsyncIOEventEmitter):
         6. emit mission_result
         7. finally 中清理子进度条（确保异常安全）
 
+        错误处理：
+        - executor 内部失败（FFmpeg/校验/提交）：executor 返回 FAILED，调用 make_error_info() 报告
+        - executor 外部失败（工厂/索引/事件处理器）：本方法捕获异常，构建 MissionFailureInfo 报告
+        - 所有失败均发射 MISSION_RESULT 事件，确保结果行显示
+
         Args:
             mission: 待执行的 Mission
 
         Returns:
-            MissionResult: 执行结果
+            MissionResult: 执行结果（SUCCESS/FAILED/CANCELED/SKIPPED），永不抛出异常
         """
         # 提前检查中止——避免 abort 后 pending_tasks 仍创建 executor 对象
         if self._scheduler.is_aborted:
             return MissionResult.CANCELED
-        executor = self._factory(mission)
-        index = self._all_missions.index(mission)
 
-        def _on_start() -> None:
-            """在 run_one 获取 semaphore 并通过中断检查后执行。"""
-            self._mission_executor[mission] = executor.executor_id
-            self.emit(MISSION_STARTED, mission)
-            if self._task_progress:
-                self._task_progress.watch(executor, index)
-
+        executor = None
         try:
+            executor = self._factory(mission)
+            index = self._all_missions.index(mission)
+
+            def _on_start() -> None:
+                """在 run_one 获取 semaphore 并通过中断检查后执行。"""
+                self._mission_executor[mission] = executor.executor_id
+                self.emit(MISSION_STARTED, mission)
+                if self._task_progress:
+                    self._task_progress.watch(executor, index)
+
             result = await self._scheduler.run_one(executor, on_start=_on_start)
             # 缓存已完成任务的 duration，防止进度条跳变
             self._cache_completed_duration(executor, mission)
             if result == MissionResult.FAILED and self._env is not None:
                 error_info = executor.make_error_info()
-                self._env.whisper(
+                self._env.say(
                     WealthyDetailPanel(
                         error_info,
                         title="[cx.error]FFmpeg 异常退出[/]",
@@ -364,8 +381,27 @@ class MissionHQ(AsyncIOEventEmitter):
                 )
             self.emit(MISSION_RESULT, mission, result)
             return result
+
+        except Exception as e:
+            # 捕获所有逃逸异常：工厂/索引/on_start/缓存/whisper/emit 失败
+            stage = "factory" if executor is None else "post-execution"
+            failure_info = MissionFailureInfo(
+                mission=mission,
+                exception=e,
+                stage=stage,
+            )
+            if self._env is not None:
+                self._env.say(
+                    WealthyDetailPanel(
+                        failure_info,
+                        title="[cx.error]任务失败[/]",
+                    )
+                )
+            self.emit(MISSION_RESULT, mission, MissionResult.FAILED)
+            return MissionResult.FAILED
+
         finally:
-            if self._task_progress:
+            if self._task_progress and executor is not None:
                 self._task_progress.forget(executor)
 
     def _cache_completed_duration(self, executor, mission: Mission) -> None:

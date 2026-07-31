@@ -142,6 +142,27 @@ class FfmpegErrorInfo:
             yield "错误信息", Text(self.error_tail, style="cx.error", overflow="fold")
 
 
+@dataclass
+class MissionFailureInfo:
+    """Mission 装配/后处理阶段的失败信息，实现 __rich_detail__ 供 WealthyDetailPanel 渲染。
+
+    用于 executor.execute() 之外的失败：工厂创建、索引查找、事件处理器等。
+    与 FfmpegErrorInfo 的区别：后者用于 executor 内部的 FFmpeg 执行失败。
+    """
+
+    mission: Mission
+    exception: Exception
+    stage: str  # "factory" | "post-execution"
+
+    def __rich_detail__(self):
+        yield "任务 ID", str(self.mission.mission_id)
+        yield "源文件", str(self.mission.source)
+        yield "目标文件", str(self.mission.standard_target)
+        yield "失败阶段", self.stage
+        yield "异常类型", type(self.exception).__name__
+        yield "异常信息", Text(str(self.exception), style="cx.error", overflow="fold")
+
+
 # ── 模块级校验函数 ──────────────────────────────────────────
 
 

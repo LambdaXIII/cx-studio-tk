@@ -6,7 +6,7 @@
 与旧版 components/scheduler.py 的关键对齐：
 - cancel_all 幂等（scheduler.py:185-186）
 - semaphore 获取后中断检查（scheduler.py:256-258）
-- gather(return_exceptions=True) 兜底 → 改为 run_one 内捕获 Exception
+- 异常由 MissionHQ._run_one 统一捕获并报告
 """
 
 import asyncio
@@ -78,7 +78,7 @@ class ExecutorScheduler:
                       创建子进度条。scheduler 不关心回调内容，仅提供时序挂钩。
 
         Returns:
-            MissionResult: 执行结果。成功/失败/取消均返回，不抛异常
+            MissionResult: 执行结果。成功/取消返回 MissionResult；其他异常向上传播至 MissionHQ._run_one
         """
         async with self._sem:
             # 获取 semaphore 后检查中断——abort 后仍在排队的 task 直接返回
@@ -96,9 +96,6 @@ class ExecutorScheduler:
                 return result
             except asyncio.CancelledError:
                 return MissionResult.CANCELED
-            except Exception:
-                # 兜底：executor.execute() 保证不抛异常，但基础设施应有兜底
-                return MissionResult.FAILED
             finally:
                 self._running.pop(eid, None)
 

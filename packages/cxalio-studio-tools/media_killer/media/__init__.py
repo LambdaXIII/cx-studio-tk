@@ -14,6 +14,7 @@ from .executor import (
     FfmpegErrorInfo,
     FileLogType,
     MissionExecutor,
+    MissionFailureInfo,
     MissionResult,
 )
 from .executor_factory import ExecutorFactory
@@ -48,6 +49,7 @@ __all__ = [
     "MediaProber",
     "Mission",
     "MissionExecutor",
+    "MissionFailureInfo",
     "MissionHQ",
     "MissionPretender",
     "MissionResult",

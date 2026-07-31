@@ -117,7 +117,12 @@ class ExecutorFactory:
         """
         media_db = self._hq._media_db
         if media_db is not None:
-            info = media_db.get_media_info(mission.source)
+            try:
+                info = media_db.get_media_info(mission.source)
+            except Exception:
+                # 探测失败（文件损坏、ffprobe 异常等）：时长查找是尽力而为的优化，
+                # 失败时降级为 None，不阻断 Mission 装配。真实格式问题由后续执行阶段报告。
+                return None
             if info is not None and info.duration is not None:
                 return CxTime.from_seconds(info.duration)
         return None
