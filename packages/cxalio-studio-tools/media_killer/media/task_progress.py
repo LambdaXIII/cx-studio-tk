@@ -22,7 +22,7 @@ class TaskProgress:
     """子进度条管理器——事件驱动，非轮询。
 
     每个 executor 一个子进度条，显示格式：
-    ``[bright_black][⟨index⟩/⟨total⟩][/] [cx.mk.mission.name]⟨name⟩[/]``
+    ``[cx.debug][⟨index⟩/⟨total⟩][/] [cx.mk.mission.name]⟨name⟩[/]``
 
     通过 STATUS_UPDATED 事件自动更新转码速度指示器（如 ``[3.21x]``）。
 
@@ -61,7 +61,7 @@ class TaskProgress:
         name = status.mission_name
         # 创建进度条（立即显示）
         tid = self._hq._progress.add_task(
-            f"[bright_black][{index + 1}/{total}][/] [cx.mk.mission.name]{name}[/]",
+            f"[cx.debug][{index + 1}/{total}][/] [cx.mk.mission.name]{name}[/]",
             total=None,
         )
         self._bars[eid] = tid
@@ -149,7 +149,7 @@ class TaskProgress:
             self._hq._progress.update(
                 tid,
                 description=(
-                    f"[bright_black][{index + 1}/{total}] [{speed:.2f}x][/]"
+                    f"[cx.debug][{index + 1}/{total}] [{speed:.2f}x][/]"
                     f" [cx.mk.mission.name]{name}[/]"
                 ),
             )

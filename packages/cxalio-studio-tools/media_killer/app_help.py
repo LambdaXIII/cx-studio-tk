@@ -74,12 +74,12 @@ class MediaKillerHelp(IAppComponent, WealthyHelp):
         trans_opts.add_action(
             "-y",
             "--overwrite",
-            detail=_("启用[red bold]强制覆盖模式[/]，忽略预设文件中的覆盖选项。"),
+            detail=_("启用[cx.error]强制覆盖模式[/]，忽略预设文件中的覆盖选项。"),
         )
         trans_opts.add_action(
             "-n",
             "--no-overwrite",
-            detail=_("启用[green bold]安全模式[/]，无论如何也不覆盖已有目标文件。"),
+            detail=_("启用[cx.success]安全模式[/]，无论如何也不覆盖已有目标文件。"),
         )
 
         # ── 其它操作 ──
@@ -89,7 +89,7 @@ class MediaKillerHelp(IAppComponent, WealthyHelp):
             "--generate",
             metavar="PRESET",
             nargs="+",
-            detail=_("以示例内容生成预设文件。[uu]示例文件不可直接运行！[/]"),
+            detail=_("以示例内容生成预设文件。[cx.warning]示例文件不可直接运行！[/]"),
         )
         other_ops.add_action(
             "-s",
@@ -117,7 +117,7 @@ class MediaKillerHelp(IAppComponent, WealthyHelp):
         misc.add_action(
             "-p",
             "--pretend",
-            detail=_("启用[cx.mk.mode.simulate]模拟运行模式[/]，不执行任何文件操作。"),
+            detail=_("启用[cx.info]模拟运行模式[/]，不执行任何文件操作。"),
         )
 
         self.epilog = (
@@ -136,7 +136,7 @@ class MediaKillerHelp(IAppComponent, WealthyHelp):
             content,
             title="Media Killer 教程",
             width=90,
-            style="bright_black",
+            style="cx.debug",
             title_align="left",
         )
         self.appenv.console.print(r.Align.center(panel))

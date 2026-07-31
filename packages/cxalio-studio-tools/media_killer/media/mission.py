@@ -177,12 +177,12 @@ class Mission:
 
     def __rich_label__(self) -> Generator[r.RenderableType, None, None]:
         """生成 Mission 标识行的多色片段。"""
-        yield r.Text.from_markup(f"[cx.mk.mission.id]{self.mission_id}[/]")
+        yield r.Text.from_markup(f"[cx.debug]{self.mission_id}[/]")
         if self.preset_name:
-            yield r.Text.from_markup(f"[cx.mk.mission.preset]{self.preset_name}[/]")
+            yield r.Text.from_markup(f"[cx.info]{self.preset_name}[/]")
         else:
-            yield r.Text.from_markup(f"[cx.mk.mission.preset]{self.preset_id}[/]")
-        yield f"[cx.mk.mission.source]({self.source.parent})[/]"
+            yield r.Text.from_markup(f"[cx.info]{self.preset_id}[/]")
+        yield f"[cx.debug]({self.source.parent})[/]"
 
     def __rich_detail__(self) -> Generator[tuple[str, object], None, None]:
         """生成 Mission 的详情面板。"""

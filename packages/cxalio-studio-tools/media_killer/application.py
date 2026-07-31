@@ -84,19 +84,15 @@ class MediaKillerApp(IApplication):
             f"[cx.info]{self.appenv.app_name}[/] [cx.number]v{self.appenv.app_version}[/]"
         )
         banners.append(r.Align.center(version_info))
-        description = r.Text(_("媒体文件批量转码工具"), style="bright_black")
+        description = r.Text(_("媒体文件批量转码工具"), style="cx.debug")
         tags = []
         if self.context.pretending_mode:
-            tags.append(f"[cx.mk.mode.simulate]{_('模拟运行')}[/]")
+            tags.append(f"[cx.info]{_('模拟运行')}[/]")
         mode = self.context.overwrite_mode
         if mode == OVERWRITE_SAFE:
-            tags.append(
-                f"[cx.mk.mode.no_overwrite]{_('安全模式启动，将拒绝任何覆盖操作')}[/]"
-            )
+            tags.append(f"[cx.success]{_('安全模式启动，将拒绝任何覆盖操作')}[/]")
         elif mode == OVERWRITE_DANGER:
-            tags.append(
-                f"[cx.mk.mode.overwrite]{_('覆盖模式已启动，将自动覆盖任何输出')}[/]"
-            )
+            tags.append(f"[cx.error]{_('覆盖模式已启动，将自动覆盖任何输出')}[/]")
         if tags:
             description = r.Text.from_markup(" · ".join(tags))
         banners.append(r.Align.center(description))
@@ -194,7 +190,7 @@ class MediaKillerApp(IApplication):
         if filename.exists():
             if self.context.overwrite_mode == OVERWRITE_DANGER:
                 self.appenv.say(
-                    f"[dim red]{_('文件 {name} 已存在，将强制覆盖。').format(name=filename)}[/]"
+                    f"[cx.error]{_('文件 {name} 已存在，将强制覆盖。').format(name=filename)}[/]"
                 )
             else:
                 self.appenv.say(
@@ -309,7 +305,7 @@ class MediaKillerApp(IApplication):
             WealthyDetailPanel(
                 mission,
                 title=(
-                    f"[bright_black]M[/] [dim green]{short_id}[/] "
+                    f"[cx.debug]M[/] [cx.mk.badge]{short_id}[/] "
                     f"[{index + 1}/{total}] {mission.name}"
                 ),
             )
@@ -356,7 +352,7 @@ class MediaKillerApp(IApplication):
         from rich.text import Text
         from rich.columns import Columns
 
-        header = f"[bright_black]M[/] [dim green][{len(mission.inputs)}->{len(mission.outputs)}][/] "
+        header = f"[cx.debug]M[/] [cx.whisper][{len(mission.inputs)}->{len(mission.outputs)}][/] "
         name_part = f"[cx.mk.mission.name]{mission.name}[/]"
         label = header + name_part
 
@@ -367,9 +363,9 @@ class MediaKillerApp(IApplication):
         elif result == MissionResult.CANCELED:
             right_str = f"[cx.mk.status.canceled]{_('被取消')}[/]"
         elif result == MissionResult.SKIPPED:
-            right_str = f"[dim]{_('已跳过')}[/]"
+            right_str = f"[cx.whisper]{_('已跳过')}[/]"
         else:
-            right_str = f"[dim]{result.value}[/]"
+            right_str = f"[cx.whisper]{result.value}[/]"
 
         left = Text.from_markup(label, justify="left", overflow="ellipsis")
         left.no_wrap = True
@@ -445,14 +441,16 @@ class MediaKillerApp(IApplication):
                 self.appenv.whisper(
                     WealthyDetailPanel(
                         preset,
-                        title=f"{_('预设')} [cx.mk.preset.name]{preset.name}[/]",
+                        title=f"{_('预设')} [cx.info]{preset.name}[/]",
                     )
                 )
-                self.appenv.whisper(f"[cyan]{_('配置文件路径')}[/] [cx.filepath]{p}[/]")
+                self.appenv.whisper(
+                    f"[cx.info]{_('配置文件路径')}[/] [cx.filepath]{p}[/]"
+                )
             else:
                 self.sources.append(p)
                 self.appenv.whisper(
-                    f"[green]{_('媒体来源路径')}[/] [cx.filepath]{p}[/]"
+                    f"[cx.info]{_('媒体来源路径')}[/] [cx.filepath]{p}[/]"
                 )
 
         if self.presets:
@@ -552,7 +550,7 @@ class MediaKillerApp(IApplication):
         # 11. 模拟运行
         if ctx.pretending_mode:
             self.appenv.say(
-                f"[dim]{_('检测到[italic cyan underline]假装模式[/]，将不会真正执行任何操作。')}[/]"
+                f"[cx.whisper]{_('检测到[cx.info]假装模式[/]，将不会真正执行任何操作。')}[/]"
             )
             self._execute_missions(pretend=True)
             return

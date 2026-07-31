@@ -23,7 +23,7 @@ class Whisperer:
     消息前缀包含简短 mission ID，便于在 debug 输出中区分并发任务。
 
     Attributes:
-        _prefix: Rich markup 格式的消息前缀 ``[bright_black]M[/] [dim green]⟨short_id⟩[/]``
+        _prefix: Rich markup 格式的消息前缀 ``[cx.debug]M[/] [cx.mk.badge]⟨short_id⟩[/]``
         _env: 应用环境引用，用于 whisper() 调用
     """
 
@@ -35,7 +35,7 @@ class Whisperer:
             env: 应用环境，调用其 whisper() 方法输出 debug 消息
         """
         short_id = executor.status.mission_id[:6]
-        self._prefix = f"[bright_black]M[/] [dim green]{short_id}[/]"
+        self._prefix = f"[cx.debug]M[/] [cx.mk.badge]{short_id}[/]"
         self._env = env
 
     def __call__(self, msg: str) -> None:

@@ -76,15 +76,15 @@ msgstr ""
 "                "
 
 #: media_killer/app_help.py:73
-msgid "启用[red bold]强制覆盖模式[/]，忽略预设文件中的覆盖选项。"
+msgid "启用[cx.error]强制覆盖模式[/]，忽略预设文件中的覆盖选项。"
 msgstr ""
-"When [red bold]force overwrite mode[/] is enabled, overwrite options in "
+"When [cx.error]force overwrite mode[/] is enabled, overwrite options in "
 "presets are ignored."
 
 #: media_killer/app_help.py:78
-msgid "启用[green bold]安全模式[/]，无论如何也不覆盖已有目标文件。"
+msgid "启用[cx.success]安全模式[/]，无论如何也不覆盖已有目标文件。"
 msgstr ""
-"When [green bold]safe mode[/] is enabled, all overwrite options are "
+"When [cx.success]safe mode[/] is enabled, all overwrite options are "
 "ignored; target files will never be overwritten."
 
 #: media_killer/app_help.py:82
@@ -96,8 +96,8 @@ msgid "除转码之外的辅助操作"
 msgstr "Run operations other than transcoding"
 
 #: media_killer/app_help.py:88
-msgid "以示例内容生成预设文件。[uu]示例文件不可直接运行！[/]"
-msgstr "Generate a sample preset file. [uu]Sample file cannot be run directly![/]"
+msgid "以示例内容生成预设文件。[cx.warning]示例文件不可直接运行！[/]"
+msgstr "Generate a sample preset file. [cx.warning]Sample file cannot be run directly![/]"
 
 #: media_killer/app_help.py:94
 msgid "将转码任务保存为脚本文件，不执行转码。"
@@ -130,9 +130,9 @@ msgid "开启调试模式以显示更多后台信息"
 msgstr "Enable debug mode to see more background information"
 
 #: media_killer/app_help.py:116
-msgid "启用[cx.mk.mode.simulate]模拟运行模式[/]，不执行任何文件操作。"
+msgid "启用[cx.info]模拟运行模式[/]，不执行任何文件操作。"
 msgstr ""
-"Enable [bold blue]pretending mode[/], no file operations will be "
+"Enable [cx.info]pretending mode[/], no file operations will be "
 "performed."
 
 #: media_killer/appcontext.py:91
