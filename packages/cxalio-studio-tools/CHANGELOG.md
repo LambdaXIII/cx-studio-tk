@@ -1,6 +1,18 @@
 # Change Log of Cxalio Studio Tools
 
 
+### [最新修改] 统一 Mission 失败反馈链路
+
+- **`MissionFailureInfo` 升级为统一失败数据包**：任何导致 Mission 未正常完成的失败（FFmpeg 执行失败、校验失败、提交失败、executor 外部逃逸异常）均通过它反馈；新增 `ffmpeg: FfmpegErrorInfo | None` 嵌套详情字段（keyword-only），`exception` 改为可选，`stage` 扩展为三值（`factory`/`execution`/`post-execution`）
+- **新增 `is_ffmpeg_failure` 属性**：以 `exit_code` 非零判定 FFmpeg 真失败——校验/提交失败（exit_code 为 None/0）不再被误判为「FFmpeg 异常退出」
+- **`__rich_detail__` 重构为「头行 + 详情」两层**：所有 execution 失败先展示 `failure_reason`（为什么失败），仅 FFmpeg 真失败才补 FFmpeg 调用详情；校验失败不再显示孤立的 FFmpeg 路径噪音行
+- **`MissionHQ._report_failure()` 统一报告入口**：收敛 `_run_one` 中两段平行报告代码（FFmpeg 面板 + 异常面板），统一标题判定（「FFmpeg 异常退出」/「任务失败」）+ 面板渲染 + `MISSION_RESULT(FAILED)` 事件发射
+- **executor 全 FAILED 路径统一 whisper**：`execute()` 的 4 个失败返回路径（校验/FFmpeg/提交/兜底）统一 `emit(WHISPERED, failure_reason)`，debug 时间线可看到高层失败原因
+- **ffpretty `MissionRunner` 接入统一失败模型**：`_last_error_info`/`make_error_info()` 替换为 `_failure_info`/`failure_info` 属性；`run()` 新增 try/except/finally 包裹全生命周期——修复 `_wire` 失败时 executor 泄漏，逃逸异常构建 `MissionFailureInfo(stage="factory"/"post-execution")`
+- **ffpretty 失败面板统一**：FAILED 分支从 `error_tail` 守卫 + `FfmpegErrorInfo` 面板改为 `failure_info` + 动态标题；移除守卫后校验失败等无 stderr 场景也能看到失败原因
+- **`FfmpegErrorInfo` 保持为纯详情数据类**：作为 `MissionFailureInfo.ffmpeg` 的嵌套详情，字段与渲染不变
+
+
 ### [最新修改] IAppComponent 存储重构 & 类型修复
 
 - **IAppComponent 不再存储 appenv/context**：删除 `_appenv`/`_context` 私有属性和 `appenv`/`context` property，`__init__` 参数变更为 optional，仅作签名契约提示

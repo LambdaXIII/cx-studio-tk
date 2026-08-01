@@ -15,7 +15,7 @@ import asyncio
 from cx_studio.core.cx_time import CxTime
 from typing import ClassVar
 from rich.text import Text
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import os
 from enum import Enum
 from pathlib import Path
@@ -144,23 +144,46 @@ class FfmpegErrorInfo:
 
 @dataclass
 class MissionFailureInfo:
-    """Mission 装配/后处理阶段的失败信息，实现 __rich_detail__ 供 WealthyDetailPanel 渲染。
+    """Mission 失败的统一数据包：任何导致任务未正常完成的失败。
 
-    用于 executor.execute() 之外的失败：工厂创建、索引查找、事件处理器等。
-    与 FfmpegErrorInfo 的区别：后者用于 executor 内部的 FFmpeg 执行失败。
+    stage 标识失败发生的阶段：
+      - "factory"：executor 创建失败（工厂/索引阶段）
+      - "execution"：executor.execute() 返回 FAILED（含 FFmpeg 和非 FFmpeg 原因）
+      - "post-execution"：执行后周边步骤失败（缓存/事件处理器等）
     """
 
     mission: Mission
-    exception: Exception
-    stage: str  # "factory" | "post-execution"
+    stage: str  # "factory" | "execution" | "post-execution"
+    exception: Exception | None = field(default=None, kw_only=True)
+    ffmpeg: FfmpegErrorInfo | None = field(default=None, kw_only=True)
+
+    @property
+    def is_ffmpeg_failure(self) -> bool:
+        """是否为 FFmpeg 执行失败（FFmpeg 实际运行并异常退出）。
+
+        判别依据：FfmpegErrorInfo 存在且 exit_code 非零。
+        校验失败、提交失败等场景的 exit_code 为 None 或 0，不视为 FFmpeg 失败。
+        """
+        return self.ffmpeg is not None and self.ffmpeg.exit_code not in (None, 0)
 
     def __rich_detail__(self):
         yield "任务 ID", str(self.mission.mission_id)
         yield "源文件", str(self.mission.source)
         yield "目标文件", str(self.mission.standard_target)
         yield "失败阶段", self.stage
-        yield "异常类型", type(self.exception).__name__
-        yield "异常信息", Text(str(self.exception), style="cx.error", overflow="fold")
+        # 所有 execution 失败先展示 failure_reason（为什么失败）
+        if self.ffmpeg is not None and self.ffmpeg.failure_reason:
+            yield "失败原因", Text(
+                self.ffmpeg.failure_reason, style="cx.error", overflow="fold"
+            )
+        # 仅 FFmpeg 真失败（exit_code 非零）才补 FFmpeg 详情
+        if self.ffmpeg is not None and self.ffmpeg.exit_code not in (None, 0):
+            yield from self.ffmpeg.__rich_detail__()
+        elif self.exception is not None:
+            yield "异常类型", type(self.exception).__name__
+            yield "异常信息", Text(
+                str(self.exception), style="cx.error", overflow="fold"
+            )
 
 
 # ── 模块级校验函数 ──────────────────────────────────────────
@@ -353,6 +376,7 @@ class MissionExecutor(AsyncIOEventEmitter):
             self._validate()
         except Exception as e:
             self._failure_reason = str(e)
+            self.emit(WHISPERED, self._failure_reason)
             self.emit(FAILED)
             return MissionResult.FAILED
 
@@ -423,6 +447,7 @@ class MissionExecutor(AsyncIOEventEmitter):
 
             # FFmpeg 异常退出
             self._failure_reason = _("FFmpeg 执行失败")
+            self.emit(WHISPERED, self._failure_reason)
             self.emit(FAILED)
             return MissionResult.FAILED
 
@@ -440,6 +465,7 @@ class MissionExecutor(AsyncIOEventEmitter):
 
         except Exception as e:
             self._failure_reason = str(e)
+            self.emit(WHISPERED, self._failure_reason)
             self.emit(FAILED)
             return MissionResult.FAILED
 
@@ -537,6 +563,7 @@ class MissionExecutor(AsyncIOEventEmitter):
                 self.emit(FILE_LOGGED, FileLogType.SAVED, [target])
             except OSError as e:
                 self._failure_reason = _("重命名临时文件失败: {error}").format(error=e)
+                self.emit(WHISPERED, self._failure_reason)
                 self.emit(FAILED)
                 return MissionResult.FAILED
         self.emit(FINISHED)

@@ -30,7 +30,7 @@ from typing import TYPE_CHECKING
 
 from pyee.asyncio import AsyncIOEventEmitter
 
-from .executor import FfmpegErrorInfo, MissionFailureInfo, MissionResult
+from .executor import MissionFailureInfo, MissionResult
 from .executor_factory import ExecutorFactory
 from .executor_scheduler import ExecutorScheduler
 from cx_studio.clikit import FIRST_TRIGGERED, SECOND_TRIGGERED
@@ -326,6 +326,13 @@ class MissionHQ(AsyncIOEventEmitter):
         self.finish()
         self.abort()
 
+    def _report_failure(self, failure: MissionFailureInfo) -> None:
+        """统一失败报告入口：渲染详情面板 + 发射 MISSION_RESULT(FAILED)。"""
+        title = "FFmpeg 异常退出" if failure.is_ffmpeg_failure else "任务失败"
+        if self._env is not None:
+            self._env.say(WealthyDetailPanel(failure, title=f"[cx.error]{title}[/]"))
+        self.emit(MISSION_RESULT, failure.mission, MissionResult.FAILED)
+
     async def _run_one(self, mission: Mission) -> MissionResult:
         """执行单个 Mission 的完整生命周期，统一捕获所有异常并报告。
 
@@ -341,9 +348,11 @@ class MissionHQ(AsyncIOEventEmitter):
         6. emit mission_result
         7. finally 中清理子进度条（确保异常安全）
 
-        错误处理：
-        - executor 内部失败（FFmpeg/校验/提交）：executor 返回 FAILED，调用 make_error_info() 报告
-        - executor 外部失败（工厂/索引/事件处理器）：本方法捕获异常，构建 MissionFailureInfo 报告
+        错误处理（统一失败模型）：
+        - executor 返回 FAILED：构建 MissionFailureInfo(stage="execution")，
+          嵌套 FfmpegErrorInfo 详情，通过 _report_failure 统一报告
+        - 逃逸异常（工厂/索引/事件处理器）：构建 MissionFailureInfo
+          (stage="factory"/"post-execution")，通过 _report_failure 统一报告
         - 所有失败均发射 MISSION_RESULT 事件，确保结果行显示
 
         Args:
@@ -371,33 +380,26 @@ class MissionHQ(AsyncIOEventEmitter):
             result = await self._scheduler.run_one(executor, on_start=_on_start)
             # 缓存已完成任务的 duration，防止进度条跳变
             self._cache_completed_duration(executor, mission)
-            if result == MissionResult.FAILED and self._env is not None:
-                error_info = executor.make_error_info()
-                self._env.say(
-                    WealthyDetailPanel(
-                        error_info,
-                        title="[cx.error]FFmpeg 异常退出[/]",
-                    )
+
+            if result == MissionResult.FAILED:
+                failure = MissionFailureInfo(
+                    mission=mission,
+                    stage="execution",
+                    ffmpeg=executor.make_error_info(),
                 )
+                self._report_failure(failure)
+                return result
+
             self.emit(MISSION_RESULT, mission, result)
             return result
 
         except Exception as e:
-            # 捕获所有逃逸异常：工厂/索引/on_start/缓存/whisper/emit 失败
-            stage = "factory" if executor is None else "post-execution"
-            failure_info = MissionFailureInfo(
+            failure = MissionFailureInfo(
                 mission=mission,
+                stage="factory" if executor is None else "post-execution",
                 exception=e,
-                stage=stage,
             )
-            if self._env is not None:
-                self._env.say(
-                    WealthyDetailPanel(
-                        failure_info,
-                        title="[cx.error]任务失败[/]",
-                    )
-                )
-            self.emit(MISSION_RESULT, mission, MissionResult.FAILED)
+            self._report_failure(failure)
             return MissionResult.FAILED
 
         finally:

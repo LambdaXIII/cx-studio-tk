@@ -16,6 +16,7 @@ from media_killer.media import (
     FileLogType,
     Mission,
     MissionExecutor,
+    MissionFailureInfo,
     MissionResult,
     Whisperer,
 )
@@ -23,7 +24,6 @@ from media_killer.media.executor import (
     CANCELED,
     ExecutorStatus,
     FAILED,
-    FfmpegErrorInfo,
     FILE_LOGGED,
     FINISHED,
     PROGRESS_UPDATED,
@@ -49,7 +49,7 @@ class MissionRunner:
         self._pretending = pretending
         self._task_id: TaskID | None = None
         self._executor: MissionExecutor | None = None
-        self._last_error_info: FfmpegErrorInfo | None = None
+        self._failure_info: MissionFailureInfo | None = None
         self._last_status: ExecutorStatus | None = None
         self._file_handler: Callable[[FileLogType, list], None] | None = None
 
@@ -60,15 +60,10 @@ class MissionRunner:
             self._executor.status if self._executor is not None else self._last_status
         )
 
-    def make_error_info(self) -> FfmpegErrorInfo | None:
-        """返回当前或最近一次执行的 FFmpeg 错误信息对象。
-
-        executor 运行时取自 live status，executor 已清时取自缓存的 _last_error_info。
-        仅失败后调用有意义，但方法本身在任何时刻均可调用。
-        """
-        if self._executor is not None:
-            return self._executor.make_error_info()
-        return self._last_error_info
+    @property
+    def failure_info(self) -> MissionFailureInfo | None:
+        """最近一次执行的失败信息，仅 FAILED 时有值。"""
+        return self._failure_info
 
     def set_file_handler(self, handler: Callable[[FileLogType, list], None]):
         """注册 FILE_LOGGED 文件事件的外部处理器（用于 garbage 追踪）。"""
@@ -143,14 +138,13 @@ class MissionRunner:
             self._progress.remove_task(self._task_id)
         if self._executor is not None:
             self._last_status = self._executor.status
-            self._last_error_info = self._executor.make_error_info()
         self._executor = None
 
     async def run(self) -> MissionResult:
-        """执行 Mission。
+        """执行 Mission。统一捕获所有失败，构建 MissionFailureInfo。
 
         Returns:
-            MissionResult: 执行结果
+            MissionResult: 执行结果（SUCCESS/FAILED/CANCELED/SKIPPED）
         """
         if self._pretending:
             from media_killer.media import MissionPretender
@@ -161,8 +155,22 @@ class MissionRunner:
         summary = (
             f"[cx.info][{len(self._mission.inputs)}->{len(self._mission.outputs)}][/]"
         )
-        self._wire(executor, summary)
         try:
-            return await executor.execute()
+            self._wire(executor, summary)
+            result = await executor.execute()
+            if result == MissionResult.FAILED:
+                self._failure_info = MissionFailureInfo(
+                    mission=self._mission,
+                    stage="execution",
+                    ffmpeg=executor.make_error_info(),
+                )
+            return result
+        except Exception as e:
+            self._failure_info = MissionFailureInfo(
+                mission=self._mission,
+                stage="factory" if self._executor is None else "post-execution",
+                exception=e,
+            )
+            return MissionResult.FAILED
         finally:
             self._unwire()
