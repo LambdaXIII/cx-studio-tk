@@ -31,7 +31,7 @@ Application 通过构造参数接收 `appenv` 和 `context`；progress 是工具
 
 ### 帮助系统
 
-每个工具使用 `WealthHelp` DSL（`add_group`/`add_action`/`add_note` 声明式构建），帮助文件通过 `importlib.resources.read_text()` 加载。
+每个工具使用 `WealthyHelp` DSL（`add_group`/`add_action`/`add_note` 声明式构建），帮助文件通过 `cx_studio.i18n.load_localized_text()` 加载（按 locale 自动选择 `help.md` / `help.<locale>.md`）。
 
 ### 异常体系
 

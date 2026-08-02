@@ -121,7 +121,7 @@ Protocol-only 不可取：Protocol 不允许带方法体，"协议即渲染"无�
 
 ### Rich 类型引用：内部真实路径
 
-根 AGENTS 规定"依赖 cx-wealth 的包必须通过 rich_types 引用 Rich 类型"。**本包特化此规则**：该约束针对使用方，不针对本包内部。库内部模块用 `from rich.table import Table` 真实路径，`rich_types` 仅作对外便利出口。
+根 AGENTS 规定"依赖 cx-wealthy 的包必须通过 rich_types 引用 Rich 类型"。**本包特化此规则**：该约束针对使用方，不针对本包内部。库内部模块用 `from rich.table import Table` 真实路径，`rich_types` 仅作对外便利出口。
 
 ### 私有命名：无双下划线
 

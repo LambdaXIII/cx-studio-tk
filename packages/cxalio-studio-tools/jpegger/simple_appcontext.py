@@ -2,7 +2,7 @@
 
 `SimpleAppContext` 是命令行参数解析后的值对象，采用 `from_arguments()`
 工厂方法构造，并通过 kwargs 白名单完成字段赋值。`JpeggerHelp` 使用
-`WealthHelp` DSL 提供与 argparse 一致的中文帮助文本，并支持加载
+`WealthyHelp` DSL 提供与 argparse 一致的中文帮助文本，并支持加载
 `help.md` 显示完整教程。
 """
 
@@ -214,7 +214,7 @@ class JpeggerHelp(IAppComponent, WealthyHelp):
     """Jpegger 的中文帮助文档。"""
 
     def __init__(self, appenv: IAppEnvironment, context: SimpleAppContext):
-        """使用 WealthHelp DSL 构建帮助内容。"""
+        """使用 WealthyHelp DSL 构建帮助内容。"""
         IAppComponent.__init__(self, appenv, context)
         self.appenv = appenv
         self.context = context

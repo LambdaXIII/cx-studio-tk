@@ -26,13 +26,13 @@ Three independently distributable packages, listed in dependency-chain order:
 
 Infrastructure library providing common components for post-production tool development. Includes timecode (CxTime), file size (FileSize), FFmpeg async wrapper, filesystem utilities, text template rendering (TagReplacer), value mapping, cross-platform system abstractions, and internationalization infrastructure. Can be installed and used independently.
 
-### [cx-wealth](packages/cx-wealth/README.md)  |  [PyPI](https://pypi.org/project/cx-wealth/)
+### [cx-wealthy](packages/cx-wealthy/README.md)  |  [PyPI](https://pypi.org/project/cx-wealthy/)
 
-A Rich-based terminal UI component library. Provides a declarative help system DSL (WealthHelp), composable label rendering (WealthLabel), object detail panels (WealthDetail), adaptive multi-column layouts (DynamicColumns), index lists, and other extensions. Depends on cx-studio.
+A terminal structured document and UI component library built on Rich. Provides the label (`__rich_label__`) and detail (`__rich_detail__`) dual rendering protocols, a declarative help system (WealthyHelp), indexed list panels (IndexedListPanel), and multi-column layouts (MaxColumnsLayout). Depends on rich.
 
 ### [cxalio-studio-tools](packages/cxalio-studio-tools/README.md)  |  [PyPI](https://pypi.org/project/cxalio-studio-tools/)
 
-5 ready-to-use CLI tools — Media Scout, Media Killer, FFpretty, Jpegger, HostsKeeper — along with a general-purpose CLI application framework (cx_tools.app). Depends on cx-studio and cx-wealth.
+5 ready-to-use CLI tools — Media Scout, Media Killer, FFpretty, Jpegger, HostsKeeper — along with a general-purpose CLI application framework (cx_tools.app). Depends on cx-studio and cx-wealthy.
 
 ## Tools
 
@@ -99,7 +99,7 @@ pip install cx-studio-tk
 
 # Install individual packages
 pip install cx-studio             # infrastructure library only
-pip install cx-wealth             # UI component library only
+pip install cx-wealthy           # UI component library only
 pip install cxalio-studio-tools   # CLI tools only
 ```
 
@@ -117,19 +117,22 @@ This project uses **gettext + Babel** for internationalization. Each distributab
 
 | Package | Translation File Location | Domain |
 |---|---|---|
-| cx-studio | `cx_studio/locales/` | `cx-studio` |
-| cx-wealth | `cx_wealth/locales/` | `cx-wealth` |
-| cxalio-studio-tools | `cx_tools/locales/` | `cx-tools` |
+| cx-studio | `cx_studio/i18n/locales/` | `cx-studio` |
+| cxalio-studio-tools (framework) | `cx_tools/i18n/locales/` | `cx-tools` |
+| cxalio-studio-tools / media_scout | `media_scout/i18n/locales/` | `media-scout` |
+| cxalio-studio-tools / media_killer | `media_killer/i18n/locales/` | `media-killer` |
+| cxalio-studio-tools / jpegger | `jpegger/i18n/locales/` | `jpegger` |
+| cxalio-studio-tools / hosts_keeper | `hosts_keeper/i18n/locales/` | `hosts-keeper` |
 
 > **Source Language Policy**: The standard language for this project is Simplified Chinese (zh_CN). `_()` calls in the code use Chinese as msgid, with translations (including English) provided via `.po` `msgstr` entries. Designs using English as the source language are not accepted.
 
 ### Quick Start for Translators
 
-1. Locate the `.po` file for the package you want to translate, e.g. `cx_tools/locales/en_US/LC_MESSAGES/cx-tools.po`
+1. Locate the `.po` file for the package you want to translate, e.g. `cx_tools/i18n/locales/en_US/LC_MESSAGES/cx-tools.po`
 2. Open it with **Poedit** (recommended) or any text editor, fill `msgstr ""` with your target language
 3. Save and submit a Pull Request
 
-You can verify that the `.po` compiles correctly to `.mo` using the full command (e.g. `uv run pybabel compile --domain cx-tools --directory cx_tools/locales`, executed in the corresponding package directory).
+You can verify that the `.po` compiles correctly to `.mo` using the full command (e.g. `uv run pybabel compile --domain cx-tools --directory cx_tools/i18n/locales`, executed in the corresponding package directory).
 
 ### Workflow for Developers
 
@@ -137,7 +140,6 @@ Wrap user-facing strings with `_()` in code:
 
 ```python
 from cx_studio.i18n import _   # inside cx-studio package
-from cx_wealth.i18n import _   # inside cx-wealth package
 from cx_tools.i18n import _    # inside cxalio-studio-tools package
 
 appenv.say(_("程序正常退出。"))
@@ -146,7 +148,7 @@ appenv.say(_("程序正常退出。"))
 appenv.say(_("已处理 {count} 个文件。").format(count=n))
 
 # Plural forms
-from cx_wealth.i18n import _ng
+from cx_tools.i18n import _ng
 appenv.say(_ng("找到 {n} 个结果", "找到 {n} 个结果", n).format(n=n))
 ```
 
@@ -159,19 +161,14 @@ Extract-Translate-Compile cycle (run in the corresponding package directory):
 
 ```shell
 # cx-studio (run in packages/cx-studio/)
-uv run pybabel extract --mapping babel.cfg --output-file cx_studio/locales/cx-studio.pot --project cx-studio --copyright-holder 'Cxalio' .
-uv run pybabel update --domain cx-studio --input-file cx_studio/locales/cx-studio.pot --output-dir cx_studio/locales
-uv run pybabel compile --domain cx-studio --directory cx_studio/locales
-
-# cx-wealth (run in packages/cx-wealth/)
-uv run pybabel extract --mapping babel.cfg --output-file cx_wealth/locales/cx-wealth.pot --project cx-wealth --copyright-holder 'Cxalio' .
-uv run pybabel update --domain cx-wealth --input-file cx_wealth/locales/cx-wealth.pot --output-dir cx_wealth/locales
-uv run pybabel compile --domain cx-wealth --directory cx_wealth/locales
+uv run pybabel extract --mapping babel.cfg --output-file cx_studio/i18n/locales/cx-studio.pot --project cx-studio --copyright-holder 'Cxalio' .
+uv run pybabel update --domain cx-studio --input-file cx_studio/i18n/locales/cx-studio.pot --output-dir cx_studio/i18n/locales
+uv run pybabel compile --domain cx-studio --directory cx_studio/i18n/locales
 
 # cxalio-studio-tools (run in packages/cxalio-studio-tools/)
-uv run pybabel extract --mapping babel.cfg --output-file cx_tools/locales/cx-tools.pot --project 'cxalio-studio-tools' --copyright-holder 'Cxalio' .
-uv run pybabel update --domain cx-tools --input-file cx_tools/locales/cx-tools.pot --output-dir cx_tools/locales
-uv run pybabel compile --domain cx-tools --directory cx_tools/locales
+uv run pybabel extract --mapping babel.cfg --output-file cx_tools/i18n/locales/cx-tools.pot --project 'cxalio-studio-tools' --copyright-holder 'Cxalio' .
+uv run pybabel update --domain cx-tools --input-file cx_tools/i18n/locales/cx-tools.pot --output-dir cx_tools/i18n/locales
+uv run pybabel compile --domain cx-tools --directory cx_tools/i18n/locales
 ```
 
 ### Help Text (help.md)

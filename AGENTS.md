@@ -1,7 +1,7 @@
 # Repository Guidelines
 
 `cx-studio-tk` 是一个面向影视后期制作的 Python 工具集，采用 uv workspace 组织的 monorepo。
-包含 `cx-studio`（基础设施）、`cx-wealthy`（Rich UI 组件）、`cxalio-studio-tools`（CLI 工具集）三个主力包，以及已废弃的 `cx-wealth`（被 `cx-wealthy` 取代）。
+包含 `cx-studio`（基础设施）、`cx-wealthy`（Rich UI 组件）、`cxalio-studio-tools`（CLI 工具集）三个主力包；已停止维护的旧包（`cx-wealth`、`media_killer_legacy`）存档于 `archived/`，仅作参考，不参与构建、不再维护。
 
 ## 命令与环境
 
@@ -33,18 +33,18 @@ uv build                  # 构建所有包
 | Directory | Purpose |
 |---|---|
 | `packages/cx-studio/cx_studio/` | 基础设施库——值对象、FFmpeg、文件系统、IO、系统抽象 |
-| `packages/cx-wealth/cx_wealth/` | Rich UI 扩展——标签、详情、帮助系统 DSL（已废弃，由 cx-wealthy 取代） |
+| `archived/cx-wealth/cx_wealth/` | Rich UI 扩展——标签、详情、帮助系统 DSL（已停止维护，仅存档） |
 | `packages/cxalio-studio-tools/` | CLI 工具集——应用框架 + 5 个工具（media_scout: Chain of Responsibility / media_killer: Async Mission Pipeline / jpegger: ImageFilterChain / ffpretty: FFmpeg 封装 / hosts_keeper: Plugin-based 管理） |
 | `packages/cxalio-studio-tools/cx_tools/app/` | 应用生命周期框架（IApplication + IAppEnvironment） |
 | `temp/` | 临时/调试文件（gitignored，勿在此编写正式代码） |
+| `archived/` | 已停止维护的旧代码存档（`cx-wealth`、`media_killer_legacy`），不参与构建，不修改 |
 
 ## 架构
 
 ### 依赖链
 `cx-studio` ← `cx-wealthy` ← `cxalio-studio-tools`
-`cx-studio` ← `cx-wealth`（已废弃，仅维护旧引用）
 
-### CLI 应用通用生命周期（所有 6 个工具一致）
+### CLI 应用通用生命周期（所有 5 个工具一致）
 1. `[project.scripts]` 入口 → `module:run()` 函数
 2. `Application.__enter__()` → `IAppEnvironment` 初始化（Rich console、SIGINT、debug 门控）
 3. `Application.run(appenv)` → 解析参数 → 执行业务逻辑
@@ -52,7 +52,11 @@ uv build                  # 构建所有包
 
 ### 项目特有模式
 
-详见 [cxalio-studio-tools CLI 工具编写规范](packages/cxalio-studio-tools/AGENTS.md)
+各工作区规范（与根文件叠加生效，处理对应目录时必读）：
+
+- [cxalio-studio-tools CLI 工具编写规范](packages/cxalio-studio-tools/AGENTS.md)
+- [cx-studio 开发指南](packages/cx-studio/AGENTS.md)
+- [cx-wealthy 工作区指南](packages/cx-wealthy/AGENTS.md)
 
 ## 开发规则
 
@@ -74,6 +78,7 @@ uv build                  # 构建所有包
 - 直接推送到 `main` 分支——始终通过 PR
 - 在生产环境运行未经测试的 CLI 工具
 - 在 Box→Dataclass 桥接场景之外使用 `# type: ignore`（详见下方「数据模型选择」）
+- 将测试、调研等临时产物直接散落在项目根目录或 `packages/` 下——一律放入 `temp/`
 - 删除 `.env` 文件或任何非临时的配置文件（如 `pyproject.toml`、`.github/`、CI 配置）
 
 ### 设计规范
@@ -175,8 +180,6 @@ uv build                  # 构建所有包
 | 所在包 | 导入路径 | 用途 |
 |---|---|---|
 | cx-studio | `from cx_studio.i18n import _, _ng` | 基础设施字符串 |
-| cx-wealth | `from cx_wealth.i18n import _, _ng` | UI 组件字符串（旧） |
-| cx-wealthy | `from cx_wealthy.i18n import _, _ng` | UI 组件字符串 |
 | cx_tools（框架） | `from cx_tools.i18n import _, _ng` | 框架自身字符串 |
 | media_scout | `from media_scout.i18n import _, _ng` | media_scout 工具字符串 |
 | media_killer | `from media_killer.i18n import _, _ng` | media_killer 工具字符串 |
@@ -184,6 +187,8 @@ uv build                  # 构建所有包
 | hosts_keeper | `from hosts_keeper.i18n import _, _ng` | hosts_keeper 工具字符串 |
 
 工具模块**必须**从所在工具自己的 `i18n` 模块导入——`media_killer` 中的模块从 `media_killer.i18n` 导入，不交叉导入 `cx_tools.i18n`。`cx_tools` 框架自身的模块仍从 `cx_tools.i18n` 导入。
+
+> `cx-wealthy` 不参与 gettext 翻译——UI 组件输出为框架固定文本，由使用方控制，详见 [cx-wealthy 工作区指南](packages/cx-wealthy/AGENTS.md)。
 
 > 每个工具独立 domain 和翻译文件：domain 分别为 `cx-tools`、`media-scout`、`media-killer`、`jpegger`、`hosts-keeper`。各工具自持 `i18n/locales/`，互不交叉。
 
@@ -214,11 +219,6 @@ uv run pybabel extract --mapping babel.cfg --output-file cx_studio/i18n/locales/
 uv run pybabel update --domain cx-studio --input-file cx_studio/i18n/locales/cx-studio.pot --output-dir cx_studio/i18n/locales
 uv run pybabel compile --domain cx-studio --directory cx_studio/i18n/locales
 
-# cx-wealth（在 packages/cx-wealth/ 执行）
-uv run pybabel extract --mapping babel.cfg --output-file cx_wealth/locales/cx-wealth.pot --project cx-wealth --copyright-holder 'Cxalio' .
-uv run pybabel update --domain cx-wealth --input-file cx_wealth/locales/cx-wealth.pot --output-dir cx_wealth/locales
-uv run pybabel compile --domain cx-wealth --directory cx_wealth/locales
-
 # cxalio-studio-tools — 每个工具分别提取（在 packages/cxalio-studio-tools/ 执行）
 uv run pybabel extract -k _ --output-file cx_tools/i18n/locales/cx-tools.pot cx_tools/
 uv run pybabel extract -k _ --output-file media_scout/i18n/locales/media-scout.pot media_scout/
@@ -233,6 +233,8 @@ uv run pybabel compile -d cx_tools/i18n/locales -l en_US -D cx-tools
 ```
 
 编译出的 `.mo` **必须提交到 git**——用户安装时不执行编译。
+
+验证：`compile` 成功后，可用 `LC_ALL= LANG=en_US.UTF-8 uv run <tool> ...` 运行目标工具观察翻译是否生效（locale 检测规则见上文「环境变量与 locale 检测」）。
 
 ### 帮助文本
 

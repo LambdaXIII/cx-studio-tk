@@ -43,7 +43,7 @@ class Mission:
     mission_id: ulid.ULID = field(default_factory=ulid.new, kw_only=True)
 
     def __rich_label__(self) -> Generator[str, None, None]:
-        """为 `WealthLabel` 提供紧凑的任务标签。"""
+        """提供紧凑的任务标签（`__rich_label__` 协议）。"""
         yield f"[yellow]>{self.target_format or 'auto'}[/]"
         yield self.source.name
         yield f"[blue]=={len(self.filter_chain)}=>[/]"

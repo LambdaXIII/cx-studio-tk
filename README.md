@@ -26,13 +26,13 @@
 
 基础设施库，为影视后期工具的开发提供通用组件。包含时间时码（CxTime）、文件大小（FileSize）、FFmpeg 异步封装、文件系统工具、文本模板渲染（TagReplacer）、数值映射、跨平台系统抽象、国际化基础设施等模块。可独立安装使用。
 
-### [cx-wealth](packages/cx-wealth/README.md)  |  [PyPI](https://pypi.org/project/cx-wealth/)
+### [cx-wealthy](packages/cx-wealthy/README.md)  |  [PyPI](https://pypi.org/project/cx-wealthy/)
 
-基于 Rich 的终端 UI 组件库。提供声明式帮助系统 DSL（WealthHelp）、可组合标签渲染（WealthLabel）、对象详情面板（WealthDetail）、自适应多列布局（DynamicColumns）、索引列表等扩展。依赖 cx-studio。
+基于 Rich 的终端结构化文档与 UI 组件库。提供标签（`__rich_label__`）与详情（`__rich_detail__`）双渲染协议、声明式帮助系统（WealthyHelp）、索引列表（IndexedListPanel）、多列布局（MaxColumnsLayout）等组件。依赖 rich。
 
 ### [cxalio-studio-tools](packages/cxalio-studio-tools/README.md)  |  [PyPI](https://pypi.org/project/cxalio-studio-tools/)
 
-5 个可直接使用的命令行工具 — Media Scout、Media Killer、FFpretty、Jpegger、HostsKeeper，以及通用的 CLI 应用框架（cx_tools.app）。依赖 cx-studio 和 cx-wealth。
+5 个可直接使用的命令行工具 — Media Scout、Media Killer、FFpretty、Jpegger、HostsKeeper，以及通用的 CLI 应用框架（cx_tools.app）。依赖 cx-studio 和 cx-wealthy。
 
 ## 工具
 
@@ -99,7 +99,7 @@ pip install cx-studio-tk
 
 # 单独安装某个包
 pip install cx-studio             # 仅基础设施库
-pip install cx-wealth             # 仅 UI 组件库
+pip install cx-wealthy           # 仅 UI 组件库
 pip install cxalio-studio-tools   # 仅 CLI 工具集
 ```
 
@@ -117,19 +117,22 @@ pipx install cxalio-studio-tools
 
 | 包 | 翻译文件位置 | Domain |
 |---|---|---|
-| cx-studio | `cx_studio/locales/` | `cx-studio` |
-| cx-wealth | `cx_wealth/locales/` | `cx-wealth` |
-| cxalio-studio-tools | `cx_tools/locales/` | `cx-tools` |
+| cx-studio | `cx_studio/i18n/locales/` | `cx-studio` |
+| cxalio-studio-tools（框架） | `cx_tools/i18n/locales/` | `cx-tools` |
+| cxalio-studio-tools / media_scout | `media_scout/i18n/locales/` | `media-scout` |
+| cxalio-studio-tools / media_killer | `media_killer/i18n/locales/` | `media-killer` |
+| cxalio-studio-tools / jpegger | `jpegger/i18n/locales/` | `jpegger` |
+| cxalio-studio-tools / hosts_keeper | `hosts_keeper/i18n/locales/` | `hosts-keeper` |
 
 > **源语言政策**：本项目的标准语言是简体中文（zh_CN）。代码中 `_()` 调用使用中文作为 msgid，英文等翻译通过 `.po` 的 `msgstr` 提供。不接受以英文为源语言的设计。
 
 ### 给翻译者的快速入门
 
-1. 找到想翻译的包的 `.po` 文件，例如 `cx_tools/locales/en_US/LC_MESSAGES/cx-tools.po`
+1. 找到想翻译的包的 `.po` 文件，例如 `cx_tools/i18n/locales/en_US/LC_MESSAGES/cx-tools.po`
 2. 用 **Poedit**（推荐）或任何文本编辑器打开，将 `msgstr ""` 填入目标语言
 3. 保存并发送 Pull Request
 
-可用完整命令（如 `uv run pybabel compile --domain cx-tools --directory cx_tools/locales`，在对应包目录执行）验证 `.po` 是否被正确编译为 `.mo`。
+可用完整命令（如 `uv run pybabel compile --domain cx-tools --directory cx_tools/i18n/locales`，在对应包目录执行）验证 `.po` 是否被正确编译为 `.mo`。
 
 ### 给开发者的工作流
 
@@ -137,7 +140,6 @@ pipx install cxalio-studio-tools
 
 ```python
 from cx_studio.i18n import _   # cx-studio 包内
-from cx_wealth.i18n import _   # cx-wealth 包内
 from cx_tools.i18n import _    # cxalio-studio-tools 包内
 
 appenv.say(_("程序正常退出。"))
@@ -146,7 +148,7 @@ appenv.say(_("程序正常退出。"))
 appenv.say(_("已处理 {count} 个文件。").format(count=n))
 
 # 复数形式
-from cx_wealth.i18n import _ng
+from cx_tools.i18n import _ng
 appenv.say(_ng("找到 {n} 个结果", "找到 {n} 个结果", n).format(n=n))
 ```
 
@@ -159,19 +161,14 @@ appenv.say(_ng("找到 {n} 个结果", "找到 {n} 个结果", n).format(n=n))
 
 ```shell
 # cx-studio（在 packages/cx-studio/ 执行）
-uv run pybabel extract --mapping babel.cfg --output-file cx_studio/locales/cx-studio.pot --project cx-studio --copyright-holder 'Cxalio' .
-uv run pybabel update --domain cx-studio --input-file cx_studio/locales/cx-studio.pot --output-dir cx_studio/locales
-uv run pybabel compile --domain cx-studio --directory cx_studio/locales
-
-# cx-wealth（在 packages/cx-wealth/ 执行）
-uv run pybabel extract --mapping babel.cfg --output-file cx_wealth/locales/cx-wealth.pot --project cx-wealth --copyright-holder 'Cxalio' .
-uv run pybabel update --domain cx-wealth --input-file cx_wealth/locales/cx-wealth.pot --output-dir cx_wealth/locales
-uv run pybabel compile --domain cx-wealth --directory cx_wealth/locales
+uv run pybabel extract --mapping babel.cfg --output-file cx_studio/i18n/locales/cx-studio.pot --project cx-studio --copyright-holder 'Cxalio' .
+uv run pybabel update --domain cx-studio --input-file cx_studio/i18n/locales/cx-studio.pot --output-dir cx_studio/i18n/locales
+uv run pybabel compile --domain cx-studio --directory cx_studio/i18n/locales
 
 # cxalio-studio-tools（在 packages/cxalio-studio-tools/ 执行）
-uv run pybabel extract --mapping babel.cfg --output-file cx_tools/locales/cx-tools.pot --project 'cxalio-studio-tools' --copyright-holder 'Cxalio' .
-uv run pybabel update --domain cx-tools --input-file cx_tools/locales/cx-tools.pot --output-dir cx_tools/locales
-uv run pybabel compile --domain cx-tools --directory cx_tools/locales
+uv run pybabel extract --mapping babel.cfg --output-file cx_tools/i18n/locales/cx-tools.pot --project 'cxalio-studio-tools' --copyright-holder 'Cxalio' .
+uv run pybabel update --domain cx-tools --input-file cx_tools/i18n/locales/cx-tools.pot --output-dir cx_tools/i18n/locales
+uv run pybabel compile --domain cx-tools --directory cx_tools/i18n/locales
 ```
 
 ### 帮助文本（help.md）
