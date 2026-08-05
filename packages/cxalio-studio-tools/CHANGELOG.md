@@ -1,6 +1,17 @@
 # Change Log of Cxalio Studio Tools
 
 
+### [最新修改] HostsKeeper update 行为重定义（排序/查重/异常可见性）
+
+- **优先级排序落地**：update 构建时启用的 profiles 按 `priority` 降序输出（此前未实现，help 声称与实际不符）；相同优先级保持配置文件发现顺序（stable sort，不引入 tie-break）
+- **冲突查重（first match wins）**：与平台 hosts 解析行为一致（Linux/Windows 均以首个匹配生效）——用户自定义内容最先输出且域名受保护（绝不覆盖）；profile 之间及同一 profile 内多内容源撞域名时，后出现者以 `# ` 注释保留在自身块内；注释行是生成产物，冲突消失后（如禁用高优先级 profile）下一次 update 自动恢复为有效行
+- **查重键提取**：按域名且大小写不敏感；独立实现，避开 `HostRecord.from_line` 对行内注释（`1.2.3.4 example.com # foo`）的解析缺陷
+- **L1 结构异常检测与汇报**：反推时检测不配对标记（有 START 无 END / 有 END 无 START）→ 报告 hosts 结构异常并提示手动检查；标记块对应 profile 未注册（已删除/改名）→ 报告残留标记块已清除。仅汇报不自动修复——识别与清除行为不变
+- **debug 模式输出生成内容全文**：补齐 help 声称但缺失的行为——`-d` 时 temp 文件生成后 whisper 输出全文（stderr），`-p` 维持 stdout 输出，两者可同时使用
+- **help.md / help.en_US.md 重写**：新增「标记契约」章节（`##### <id> START/END #####` 保留格式、块内领地整体覆盖、装饰分区警示）；「优先级机制」替换自相矛盾的旧表述（"后出现者覆盖前者" → 先出现者生效 + 注释保留）
+- **i18n**：新报告消息接入 gettext（en_US 翻译完成）；顺带修正既有错误翻译（"已处理配置文件" 误译为 "Profile created"）
+
+
 ### [最新修改] 统一 Mission 失败反馈链路
 
 - **`MissionFailureInfo` 升级为统一失败数据包**：任何导致 Mission 未正常完成的失败（FFmpeg 执行失败、校验失败、提交失败、executor 外部逃逸异常）均通过它反馈；新增 `ffmpeg: FfmpegErrorInfo | None` 嵌套详情字段（keyword-only），`exception` 改为可选，`stage` 扩展为三值（`factory`/`execution`/`post-execution`）

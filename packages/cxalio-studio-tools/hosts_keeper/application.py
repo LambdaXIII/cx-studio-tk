@@ -163,7 +163,10 @@ class HostsKeeperApp(IApplication):
         self.appenv.whisper(_("update 模式已启动"))
         assert self.progress is not None
         builder = HostsBuilder(
-            context=self.context, appenv=self.appenv, progress=self.progress
+            context=self.context,
+            appenv=self.appenv,
+            progress=self.progress,
+            registered_profile_ids=self.profile_manager.profiles.keys(),
         )
         self.appenv.whisper(_("已构建 HostBuilder"))
 
@@ -185,6 +188,14 @@ class HostsKeeperApp(IApplication):
         self.appenv.whisper(
             _("已写入新的内容到临时文件 {path}").format(path=self.context.temp_hosts)
         )
+
+        if self.context.debug_mode:
+            # debug 模式输出生成的完整内容（whisper 走 stderr，且仅在 debug 门控
+            # 开启时显示）——补齐 help.md 声称的「调试模式显示最终生成的 hosts 内容」。
+            self.appenv.whisper(_("生成的 hosts 内容如下："))
+            with self.context.temp_hosts.open("r", encoding="utf-8-sig") as f:
+                for line in f:
+                    self.appenv.whisper(line.rstrip("\n"))
 
         saver = HostsSaver(context=self.context, appenv=self.appenv)
         save_target = None
