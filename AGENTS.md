@@ -134,26 +134,53 @@ uv build                  # 构建所有包
 
 ## 版本管理
 
-### 版本号变量
-- 每个 Python 发行包在 `__init__.py` 顶层定义 `__version__: str`（PEP 396 惯例）
-- 对于有自己 `pyproject.toml` 的包（`cx-studio`、`cx-wealthy`、`cxalio-studio-tools`）：`__version__` 为版本权威来源，`pyproject.toml` 中的 `version` 须与其保持一致
-- CLI 工具包（`ffpretty`、`media_scout` 等）没有独立的 `pyproject.toml`，其 `__version__` 单独管理，遵循下方的版本联动规则
-- CLI 工具的 `appenv.py` 不再硬编码版本号，改为从所在包 `__init__.py` 引入：
-  ```python
-  from . import __version__
-  self.app_version = __version__
-  ```
+### 概念：两个版本号
+- `__version__`（包的真实版本）：每个真正的包在 `__init__.py` 顶层定义 `__version__: str`（PEP 396）。它是该包实际版本的语义载体；CLI 工具 `appenv.py` 从所在包引入并展示（`from . import __version__`）。
+- pyproject `version`（发布单元版本）：机制性版本，用于触发更新、解析依赖。发布单元内容发生变化时它必须迭代——否则依赖机制认为该版本没有变化，不会触发更新。
+- 正常情况下两者数值同步；区别在用途与地位，不在数值。
 
-### 版本策略
-- 格式：`major.minor.patch[.hotfix]`（SemVer + 热修复段）
-- 迭代版本时须更新 `__init__.py` 中的 `__version__`、`pyproject.toml` 中的 `version` 和 `CHANGELOG`
-- `cx-studio` 和 `cx-wealthy`：各自 `pyproject.toml` 中独立管理版本号
+### 迭代逻辑（因果链，重读时以此为准）
+- 迭代的**旧值来源永远是 pyproject**，而不是 `__version__`。原因：pyproject 是实际发布过的版本的可靠记录（依赖解析、分发都以它为准），即使 `__version__` 因历史原因与它不一致，pyproject 仍是事实来源——从它出发迭代不会建立在错误基础上。
+- 迭代出的**新版本号写入 `__version__`**：真实版本的地位不变，新版本号落在它上面。
+- 因为 `__version__` 更新了，**pyproject 随之同步**为新版本号。
+- 即：读 pyproj 旧值 → 基于该值判断新版本号 → 写 `__version__` → pyproj 同步。pyproject 是起点（旧值来源），`__version__` 是落点（真实版本），同时 pyproject 也是跟随者。
 
-#### cxalio-studio-tools — 内部联动规则
-- 内部工具（media_scout、media_killer、jpegger、ffpretty、hosts_keeper）任一发生变更时：
-  1. **先**修改该工具自身 `__init__.py` 中的 `__version__`
-  2. **然后**响应迭代 `cxalio-studio-tools` 的 `pyproject.toml` 版本号
-- 未变更的工具**不**同步修改其自身版本号
+### 迭代流程（所有包统一）
+- 读取 pyproject 当前版本 → 参考幅度策略判断新版本号 → 新版本号写入变更包的 `__version__` → pyproject 同步。
+- 时机：修改后不立即迭代；agent 不直接修改版本号，应向用户建议（含建议的新版本号），**由用户确认触发、拍板最终版本号**。
+
+### 版本号幅度策略（判断提示）
+格式：`major.minor.patch[.hotfix]`。以下映射是迭代版本号时的**初步判断提示**；实际迭代由用户确认触发，最终版本号由用户拍板。
+
+| 档位 | 步进 | 判断依据 |
+|---|---|---|
+| hotfix | 第四段 +1 | 笔误、格式修正等不影响任何功能的修改 |
+| patch | patch 位 +1 | 修复、重构已有功能；bug、算法修复 |
+| minor | minor 位 +1 | 新增功能、组件、能力、新 tool；删除此类内容（单点能力面变化） |
+| major | major 位 +1 | 大幅架构调整、大量功能重构、里程碑式进化；API 级变更、明显破坏兼容性的变更 |
+
+补充约定：
+- **hotfix 段在本项目表示最低档变更**，非标准 SemVer 的"发布后紧急修复"语义
+- 一次迭代含多档变更时，按最高档位判断
+- hotfix 段存在时向更高位步进，低段位清零（1.0.0.3 → patch 1.0.1 / minor 1.1.0）
+- 纯文档、注释、i18n 译文修改：hotfix 档
+- 删除功能/组件属于单点能力面变化 → minor；**删除公开 API 或改变接口契约、明显破坏兼容性 → major**（即使单点）
+
+### 单包发布单元（cx-studio / cx-wealthy）
+- 发布单元即包本身。包内容变更 → 按迭代流程执行，该包 `__version__` 与 pyproject 同步更新。
+
+### cxalio-studio-tools 多包发布单元
+- 5 个工具与 cx_tools **没有自己的 pyproject，共享 cxalio-studio-tools 的 pyproject**——它是这些包共同的发布版本。
+- 某包（工具或 cx_tools）内容变更 → 从共享 pyproject 读当前发布版本 → 判断新版本号 → 写入该包 `__version__` → pyproject 同步。
+- **同一迭代批次中多个变更包共享同一个新版本号**：各包从同一旧值判断一次，分别写入各自 `__version__`，pyproject 只同步一次（如 ffpretty 与 media_scout 同批变更都得到 2.0）。
+- **未变更包的 `__version__` 不动**。因此每个包 `__version__` 的数值 = 该包最后一次变更时的发布版本快照：各包之间、以及与最终 pyproject 之间数值都允许不同——这是设计而非失控。
+- 推论（快照语义的自然结果）：某包在其它包多次迭代之后再变更时，会直接从当前 pyproject 版本继续迭代（如停在 1.1 的包在发布版本到 2.0 后再次变更 → 2.1），版本号"跳级"是正常的。
+- cx_tools 与其它工具同一逻辑，无专项同步。
+
+### CHANGELOG
+- 任何内容修改后，在 CHANGELOG 顶部追加 `[最新修改]` 段落（此时尚未产生新版本号）；commit 前校对记述是否完整。
+- 迭代执行时，将累积的 `[最新修改]` 标题改写为新版本号章节——CHANGELOG 中的版本号即发布单元的版本。
+- cxalio-studio-tools 的 CHANGELOG 多工具组织规则见其下层 AGENTS.md。
 
 ## Git 工作流
 
