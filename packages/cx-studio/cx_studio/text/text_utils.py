@@ -3,6 +3,7 @@ from collections.abc import Callable, Iterable
 
 
 def quick_search_chars(text: str, chars: str | Iterable[str]) -> bool:
+    """通用文本引用域：判断文本中是否出现任一目标字符。"""
     for x in chars:
         if x in text:
             return True
@@ -13,6 +14,7 @@ def auto_quote(
     text: str,
     needs_quote: Callable[[str], bool] | str | Iterable[str] | bool | None = None,
 ) -> str:
+    """通用文本引用域：按需为文本添加双引号（与路径域 quote_path、shell 域 escape_arg 区分）。"""
     needs_quote = needs_quote or [" "]  # type: ignore[assignment]  # or chain narrows to Iterable[str]
     quote = False
     if isinstance(needs_quote, Callable):
@@ -23,6 +25,7 @@ def auto_quote(
 
 
 def auto_unquote(text: str, quotes="'\"") -> str:
+    """通用文本引用域：去除文本首尾的引号（与路径域 quote_path、shell 域 escape_arg 区分）。"""
     for q in quotes:
         if text.startswith(q) and text.endswith(q):
             text = text[1:-1]

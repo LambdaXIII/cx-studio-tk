@@ -10,13 +10,11 @@ import asyncio
 import time
 from typing import TYPE_CHECKING
 
-from rich.progress import TaskID
+from cx_wealthy import rich_types as r
 
 from media_killer.i18n import _
 
 if TYPE_CHECKING:
-    from rich.progress import Progress
-
     from .mission_hq import MissionHQ
 
 
@@ -41,8 +39,8 @@ class TotalProgress:
             hq: MissionHQ 实例引用
         """
         self._hq = hq
-        self._bar: TaskID | None = None
-        self._progress: "Progress | None" = None
+        self._bar: r.TaskID | None = None
+        self._progress: r.Progress | None = None
 
     async def run(self) -> None:
         """后台协程：对齐时间网格轮询，超时跳过不补。

@@ -15,8 +15,8 @@
 
 ```python
 def run() -> None:
-    context = AppContext.from_arguments(sys.argv[1:])
-    appenv = AppEnv()
+    context = <Tool>Context.from_arguments(sys.argv[1:])
+    appenv = <Tool>Env()
     with appenv:
         with Application(appenv=appenv, context=context, progress=appenv.progress) as app:
             app.run()
@@ -27,7 +27,7 @@ Application 通过构造参数接收 `appenv` 和 `context`；progress 是工具
 
 ### 参数解析
 
-每个工具使用 `AppContext` 类（`from_arguments()` 唯一工厂，`kwargs` 白名单赋值），不直接暴露 argparse。
+每个工具使用 `<Tool>Context` 类（`from_arguments()` 唯一工厂，`kwargs` 白名单赋值），不直接暴露 argparse。
 
 ### 帮助系统
 
@@ -35,7 +35,7 @@ Application 通过构造参数接收 `appenv` 和 `context`；progress 是工具
 
 ### 异常体系
 
-`SafeError`（可恢复应用异常，带 style）由 `Application.__exit__` 捕获；`FFmpegError` 子类通过正则自动匹配工厂 `create(msg)`。
+`SafeError`（可恢复应用异常，带 style）由 `Application.__exit__` 捕获。
 
 ### 分级输出
 
@@ -69,12 +69,12 @@ Application 通过构造参数接收 `appenv` 和 `context`；progress 是工具
 
 CLI 工具采用三层分层，确保各层职责清晰、可独立复用：
 
-1. **环境层（IAppEnvironment / AppEnv）**——全局交互能力
+1. **环境层（IAppEnvironment / `<Tool>Env`）**——全局交互能力
    - 职责：say/whisper 输出、中断处理、banner 显示；具体子类按需提供 progress，不覆盖 say/whisper
    - 特征：单例，但不被 Application 绑定
    - 互不依赖：不持有 context，不解析参数
 
-2. **上下文层（IAppContext / AppContext）**——参数 + 运行状态
+2. **上下文层（IAppContext / `<Tool>Context`）**——参数 + 运行状态
    - 职责：参数解析结果、运行时状态（temp_dir 等）、惰性能力
    - 特征：实现上下文管理器协议（__enter__/__exit__ + start/stop）
    - 生命周期：由 Application 管理
@@ -111,6 +111,17 @@ CLI 工具中的所有类按是否依赖运行环境分为两层：
 - 只需要 `IAppEnvironment`（不需要 context）的组件 → 接收 `env: IAppEnvironment` 参数，不继承 IAppComponent（如 MissionHQ）
 - 只需要 `appenv` 的可选耦合 → 用 `appenv=None` 可选参数（如 UrlContenter）
 
+### 工具内部分层：common / components
+
+工具包内部按能力归属分两层：
+
+- **`common/`** — 不需要 appenv 的非耦合能力（对外提供面）。如 ffpretty.common（Mission/Executor/MediaDB）、media_killer.common（MissionHQ 调度层）、media_scout.common（inspectors）。
+- **`components/`** — 需要 appenv 或含工具特定转化/包装逻辑的组件。如 ffpretty.components（mission_runner/mission_maker/info_elements）、media_killer.components（preset/expander/script_maker/mission_store）。
+
+判别标准 = **appenv 依赖 + 特化与否**：不依赖 appenv 且非工具特定 → common；否则 → components。公共能力在设计之初规划（非消费者驱动），避免事后从 components 反向抽取。
+
+**组合面契约**：工具间 import 只允许指向 `package.common`（可到 `package.common.subpackage`，如 `ffpretty.common.executor` 的事件常量）；ToolApp/ToolHelp 一级内容可从包根直接导入。不提供 common 的工具（hosts_keeper、jpegger）不强制区分 common/components。
+
 ### 为什么不使用全局单例注入
 
 旧模式中 Application 通过 `from .appenv import appenv` 直接导入全局单例。
@@ -119,9 +130,9 @@ CLI 工具中的所有类按是否依赖运行环境分为两层：
 新模式中 Application 通过构造参数接收 appenv，appenv 仍然是单例，
 但 Application 不绑定到它——调用方可以传入任何兼容的 IAppEnvironment。
 
-### 为什么 AppContext 实现上下文管理器
+### 为什么 <Tool>Context 实现上下文管理器
 
-AppContext 持有运行时资源（如临时目录、MediaDB 连接、FileList），
+`<Tool>Context` 持有运行时资源（如临时目录、MediaDB 连接、FileList），
 需要确定性清理。实现 `__enter__`/`__exit__` + `start()`/`stop()` 与
 Application 的生命周期协议一致，允许 Application 在 `__enter__` 中启动
 context、在 `__exit__` 中停止 context。`cleanup()` 方法作为 `stop()`
@@ -133,8 +144,8 @@ say/whisper 只需要 console，不需要知道具体的 Live 组件类型。工
 
 - **IAppEnvironment 不应持有 Progress 引用**：IAppEnvironment 是通用接口，提供 say/whisper 输出能力。say/whisper 内部只需要 console，不应知道 Progress 或其他具体 Live 组件的存在。如果 IAppEnvironment 持有 Progress 引用，就假设了所有工具都使用 Progress，破坏了通用性。
 - **IApplication 不应接受 Progress 参数**：IApplication 是通用接口，编排 appenv + context。Progress 是工具特定的 UI 组件，不是所有工具都需要（media_scout、jpegger 不需要），也不是所有工具都用 Progress（可能用其他 Live 组件）。
-- **正确做法**：Progress 完全属于工具内部——具体 AppEnv 子类创建 progress（`console=self.console`），Rich Live 接管该 console 的输出，`self.console.print()` 在 Live 运行期间自动暂停渲染、输出文本、恢复渲染，无需手动 stop/start。AppEnv 子类不应 override `say()`/`whisper()` 来协调 progress；具体 Application 子类可接受 progress 参数（从 `appenv.progress` 获取）
-- **第三方复用 Application 时**：提供自己的 appenv（如果有 progress 则在 appenv 中提供），Application 从 appenv 获取。这样不同工具可以使用不同的 Live 组件，say/whisper 的协调逻辑在各自的 AppEnv 子类中实现，互不干扰
+- **正确做法**：Progress 完全属于工具内部——具体 `<Tool>Env` 子类创建 progress（`console=self.console`），Rich Live 接管该 console 的输出，`self.console.print()` 在 Live 运行期间自动暂停渲染、输出文本、恢复渲染，无需手动 stop/start。`<Tool>Env` 子类不应 override `say()`/`whisper()` 来协调 progress；具体 Application 子类可接受 progress 参数（从 `appenv.progress` 获取）
+- **第三方复用 Application 时**：提供自己的 appenv（如果有 progress 则在 appenv 中提供），Application 从 appenv 获取。这样不同工具可以使用不同的 Live 组件，say/whisper 的协调逻辑在各自的 `<Tool>Env` 子类中实现，互不干扰
 
 ### 为什么 appenv 上下文在 Application 外部管理
 
@@ -153,17 +164,17 @@ Application 只负责 context 的生命周期管理和工具特定的启动/清�
 
 旧设计中 `IAppComponent` 通过 `self._context = context` + `@property context(self) -> IAppContext`
 提供统一的 appenv/context 访问。但这导致子类的 `self.context` 类型被物化为 `IAppContext`——
-即使子类的 `__init__` 签名为 `context: AppContext`，Pylance 仍通过基类 property 将类型收窄为接口。
+即使子类的 `__init__` 签名为 `context: <Tool>Context`，Pylance 仍通过基类 property 将类型收窄为接口。
 
 在新设计中，`IAppComponent.__init__` 仅作为签名契约（参数 optional），不存储、不暴露。
 子类在各自的 `__init__` 中自行赋值：
 
 ```python
 class SomeToolComponent(IAppComponent):
-    def __init__(self, appenv: IAppEnvironment, context: AppContext, ...):
+    def __init__(self, appenv: IAppEnvironment, context: <Tool>Context, ...):
         super().__init__(appenv, context)
         self.appenv = appenv      # 类型为 IAppEnvironment
-        self.context = context    # Pylance 推断为 AppContext
+        self.context = context    # Pylance 推断为 <Tool>Context
 ```
 
 这样 `self.context` 的类型从子类的参数声明推断，不再被基类收窄。
@@ -201,7 +212,7 @@ self.say(r.Group(*banners))
 
 ### Progress 与输出时序
 
-Progress 用 `console=self.console` 创建。Rich Live 接管该 console 的输出——`self.console.print()`（基类 `say()`/`whisper()` 调用的方法）在 Live 运行期间会自动暂停 Live 渲染、输出文本、恢复 Live，无需手动 stop/start progress。AppEnv 子类不应 override `say()`/`whisper()` 来协调 progress。
+Progress 用 `console=self.console` 创建。Rich Live 接管该 console 的输出——`self.console.print()`（基类 `say()`/`whisper()` 调用的方法）在 Live 运行期间会自动暂停 Live 渲染、输出文本、恢复 Live，无需手动 stop/start progress。`<Tool>Env` 子类不应 override `say()`/`whisper()` 来协调 progress。
 
 #### 约束
 
@@ -251,7 +262,7 @@ def __exit__(self, exc_type, exc_val, exc_tb) -> bool | None:
 
 #### 策略 B：DoubleTrigger 信号机制
 
-`IAppEnvironment` 内置 `DoubleTrigger` 对象。在 `AppEnv.__init__` 中注册回调：
+`IAppEnvironment` 内置 `DoubleTrigger` 对象。在 `<Tool>Env.__init__` 中注册回调：
 
 ```python
 @self.interrupt_handler.on("first_triggered")
@@ -288,8 +299,8 @@ Application 不再全局获取 appenv，而是通过构造参数注入。`__init
 def run() -> None:
     from rich.traceback import install
     install(...)
-    context = AppContext.from_arguments(sys.argv[1:])
-    appenv = AppEnv()
+    context = <Tool>Context.from_arguments(sys.argv[1:])
+    appenv = <Tool>Env()
     with appenv:
         with Application(appenv=appenv, context=context, progress=appenv.progress) as app:
             app.run()
@@ -300,7 +311,7 @@ def run() -> None:
 每个工具的 `appenv.py` 末尾仍定义模块级单例（用于 signal handler 注册）：
 
 ```python
-appenv = AppEnv()
+appenv = <Tool>Env()
 signal.signal(signal.SIGINT, appenv.handle_interrupt)
 ```
 
@@ -316,6 +327,7 @@ signal.signal(signal.SIGINT, appenv.handle_interrupt)
 | cx_tools（框架） | `from cx_tools.i18n import _, _ng` |
 | media_scout | `from media_scout.i18n import _, _ng` |
 | media_killer | `from media_killer.i18n import _, _ng` |
+| ffpretty | `from ffpretty.i18n import _, _ng` |
 | jpegger | `from jpegger.i18n import _, _ng` |
 | hosts_keeper | `from hosts_keeper.i18n import _, _ng` |
 

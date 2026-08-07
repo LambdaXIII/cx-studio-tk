@@ -12,7 +12,7 @@ from cx_tools.app import IApplication, IAppEnvironment
 from cx_wealthy import WealthyDetailPanel, IndexedListPanel, RichLabel
 from cx_wealthy import rich_types as r
 from .app_help import HostsKeeperHelp
-from .appcontext import AppContext
+from .appcontext import HostsKeeperContext
 from .hosts_builder import HostsBuilder
 from .hosts_saver import HostsSaver, dns_flush
 from .profile_manager import ProfileManager
@@ -23,7 +23,7 @@ class HostsKeeperApp(IApplication):
     def __init__(
         self,
         appenv: IAppEnvironment,
-        context: AppContext,
+        context: HostsKeeperContext,
         progress: r.Progress | None = None,
     ) -> None:
         super().__init__(appenv, context)

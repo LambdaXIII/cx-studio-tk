@@ -2,12 +2,11 @@ import asyncio
 from abc import ABC
 from typing import Self
 
-from rich.console import Console
-from rich.text import Text
 from rich.highlighter import RegexHighlighter
 
 from cx_tools.i18n import _
 from cx_wealthy import default_theme as cx_default_theme
+from cx_wealthy import rich_types as r
 from cx_studio import system
 from cx_studio.clikit import DoubleTrigger, FIRST_TRIGGERED, SECOND_TRIGGERED
 
@@ -72,7 +71,7 @@ class IAppEnvironment(ABC):
         # Console 初始化为 stderr=True：所有提示性输出走 stderr，
         # stdout 空闲给数据管道。say() 中开启高亮，whisper() 和平常
         # 的 console.print() 默认不开启。
-        self.console = Console(
+        self.console = r.Console(
             stderr=True,
             theme=self.console_theme,
             highlighter=self.highlighter,
@@ -182,7 +181,7 @@ class IAppEnvironment(ABC):
         args_list = list(args)
         for i, a in enumerate(args_list):
             if isinstance(a, str):
-                t = Text.from_markup(a)
+                t = r.Text.from_markup(a)
                 t.stylize("dim")
                 args_list[i] = t
         self.console.print(*args_list, **kwargs)

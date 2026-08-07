@@ -4,12 +4,12 @@
 入口点，负责安装 Rich 异常追踪并启动 `JpeggerApp`。
 """
 
-__version__ = "0.8.3"
+__version__ = "0.8.4"
 
 import sys
 
-from .simple_application import JpeggerApp
-from .simple_appcontext import SimpleAppContext
+from .application import JpeggerApp
+from .appcontext import JpeggerContext
 from .appenv import appenv
 
 
@@ -18,7 +18,7 @@ def run() -> None:
     from rich.traceback import install
 
     _ = install(show_locals=False, word_wrap=True, suppress=["rich"])
-    context = SimpleAppContext.from_arguments(sys.argv[1:])
+    context = JpeggerContext.from_arguments(sys.argv[1:])
     with appenv:
         with JpeggerApp(appenv=appenv, context=context) as app:
             app.run()

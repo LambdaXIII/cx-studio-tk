@@ -30,18 +30,16 @@ from typing import TYPE_CHECKING
 
 from pyee.asyncio import AsyncIOEventEmitter
 
-from .executor import MissionFailureInfo, MissionResult
+from ffpretty.common import Mission, MissionFailureInfo, MissionResult
+
 from .executor_factory import ExecutorFactory
 from .executor_scheduler import ExecutorScheduler
 from cx_studio.clikit import FIRST_TRIGGERED, SECOND_TRIGGERED
-from cx_wealthy import WealthyDetailPanel
-from .mission import Mission
+from cx_wealthy import WealthyDetailPanel, rich_types as r
 from .task_progress import TaskProgress
 from .total_progress import TotalProgress
 
 if TYPE_CHECKING:
-    from rich.progress import Progress
-
     from cx_tools.app import IAppEnvironment
 
 # ── HQ 级事件名常量 ─────────────────────────────────────────
@@ -99,7 +97,7 @@ class MissionHQ(AsyncIOEventEmitter):
         self,
         max_workers: int = 1,
         pretending: bool = False,
-        progress: "Progress | None" = None,
+        progress: "r.Progress | None" = None,
         env: "IAppEnvironment | None" = None,
         media_db=None,
         scheduler: "ExecutorScheduler | None" = None,

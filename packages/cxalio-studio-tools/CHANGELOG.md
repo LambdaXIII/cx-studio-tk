@@ -1,6 +1,18 @@
 # Change Log of Cxalio Studio Tools
 
 
+### [最新修改] 架构重构：能力归位 + 命名空间即契约（v0.9.4）
+
+- **执行核心归位 ffpretty**：Mission/Executor/Pretender/Whisperer/MediaInfo/MediaProber/MediaDB 七个模块从 `media_killer.media` 迁入 `ffpretty/common/`（对外提供面）；media_killer 作为组合者从 `ffpretty.common` 消费，`media_killer/media/` 目录消失
+- **media_killer.common 落位**：MissionHQ/ExecutorFactory/ExecutorScheduler/TaskProgress/TotalProgress 五个调度层模块迁入 `media_killer/common/`
+- **media_scout.common 落位**：inspectors 八个模块迁入 `media_scout/common/inspectors`；消费方改走 `media_scout.common.inspectors` 出口（含 media_killer 深导入）
+- **五工具命名统一**：`AppEnv`/`AppContext` → `<Tool>Env`/`<Tool>Context`（FFPrettyEnv/HostsKeeperEnv/JpeggerEnv/MediaKillerEnv/MediaScoutEnv）；jpegger `simple_application.py`/`simple_appcontext.py` 按四件套拆分（application/appcontext/app_help）；media_scout `arg_parser.py` 拆分为 appcontext/app_help
+- **MediaDB 共享缓存空间**：`db_path` 允许 None，默认 `~/.config/cx-studio/shared/media_info.db`（工具无关共享缓存）；ffpretty 删除借名 `ConfigManager("MediaKiller")`；media_killer 私有 ConfigManager 保留（last_missions 持久化，支撑 -c/--continue）
+- **ffpretty 补齐 i18n**：新建 `ffpretty/i18n/`（domain `ffpretty`，babel/pyproject 配置就位）；迁入模块与既有代码全部接入 `ffpretty.i18n`；翻译条目从 media-killer catalog 物理迁移，新 msgid 补齐英文译文
+- **rich_types 出口兑现**：工具层与 cx_tools 的绕路 `from rich.*` 导入迁移至 `cx_wealthy.rich_types`（`rich.traceback.install` 入口与 RegexHighlighter 保留直导）；`__exit__` 修正——ffpretty 删除 `exc_type is None: pass` 空分支，media_killer 的 SafeError 精确比较改为 issubclass
+- **开放库清理对齐**：sync FFmpeg/ff_errors/get_root/render_tutorial/progress_task_agent 删除（含 README/AGENTS 文档对齐）；TimeRange duration/end getter 语义修复；FileInfoCache 纳入 `cx_studio.filesystem` 导出；AGENTS.md 新增 common/components 分层规范与组合面契约（工具间 import 只允许指向 `package.common`）
+
+
 ### [最新修改] HostsKeeper update 行为重定义（排序/查重/异常可见性）
 
 - **优先级排序落地**：update 构建时启用的 profiles 按 `priority` 降序输出（此前未实现，help 声称与实际不符）；相同优先级保持配置文件发现顺序（stable sort，不引入 tie-break）

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.10.0
+
+### 开放库清理
+
+- **删除 `render_tutorial`**：tutorial 模块（render_tutorial + 内部 locale 检测）零调用者，且与「零 i18n 零本地化」定位冲突——连同包入口导出、README 引用一并移除
+- **rich_types 新增 `Rule`**：高频类型便利出口补齐分隔线组件
+- **AGENTS.md 补强**：「cx-wealthy 完全不需要国际化和本地化」声明
+
 ## 0.9.0
 
 ### 版本统一

@@ -14,7 +14,7 @@ MissionExecutor 通过 asyncio 运行 FFmpeg，使用 pyee 事件模型向外报
 import asyncio
 from cx_studio.core.cx_time import CxTime
 from typing import ClassVar
-from rich.text import Text
+from cx_wealthy import rich_types as r
 from dataclasses import dataclass, field
 import os
 from enum import Enum
@@ -33,7 +33,7 @@ from cx_studio.ffmpeg import (
     FFmpegAsync,
 )
 from cx_studio.filesystem import CmdFinder
-from media_killer.i18n import _
+from ffpretty.i18n import _
 
 from .mission import Mission
 
@@ -131,15 +131,15 @@ class FfmpegErrorInfo:
     failure_reason: str | None
 
     def __rich_detail__(self):
-        yield "FFmpeg", Text(self.ffmpeg_executable, overflow="fold")
+        yield "FFmpeg", r.Text(self.ffmpeg_executable, overflow="fold")
         if self.exit_code is not None:
             yield "退出码", str(self.exit_code)
         if self.arguments:
-            yield "调用参数", Text(
+            yield "调用参数", r.Text(
                 "ffmpeg " + " ".join(self.arguments), overflow="fold"
             )
         if self.error_tail:
-            yield "错误信息", Text(self.error_tail, style="cx.error", overflow="fold")
+            yield "错误信息", r.Text(self.error_tail, style="cx.error", overflow="fold")
 
 
 @dataclass
@@ -173,7 +173,7 @@ class MissionFailureInfo:
         yield "失败阶段", self.stage
         # 所有 execution 失败先展示 failure_reason（为什么失败）
         if self.ffmpeg is not None and self.ffmpeg.failure_reason:
-            yield "失败原因", Text(
+            yield "失败原因", r.Text(
                 self.ffmpeg.failure_reason, style="cx.error", overflow="fold"
             )
         # 仅 FFmpeg 真失败（exit_code 非零）才补 FFmpeg 详情
@@ -181,7 +181,7 @@ class MissionFailureInfo:
             yield from self.ffmpeg.__rich_detail__()
         elif self.exception is not None:
             yield "异常类型", type(self.exception).__name__
-            yield "异常信息", Text(
+            yield "异常信息", r.Text(
                 str(self.exception), style="cx.error", overflow="fold"
             )
 

@@ -1,5 +1,13 @@
 # Change logs of cx-studio
 
+### v0.11.0
+
+- **开放库清理**：删除未完成/未文档化的 sync FFmpeg（`cx_studio.ffmpeg.ffmpeg`）与 `ff_errors` 错误家族、零调用的 `get_root()`；README 删除含不存在 API 的「快速示例」章节并修正 Timebase 描述（无预置帧率常量，仅 `from_fps()` 工厂）
+- **TimeRange getter 修复**：`duration`/`end` 语义互换 bug——`duration` 现在返回存储时长，`end` 返回 `start + duration`（与 ITimeRange 契约一致）
+- **FileInfoCache 正式出口**：纳入 `cx_studio.filesystem` 包级导出（`__all__`），对齐文档声明
+- **text_utils 定位注释**：`quick_search_chars`/`auto_quote`/`auto_unquote` 补充通用文本引用域定位注释（与 `quote_path` 路径域、`escape_arg` shell 域区分）
+- **AGENTS.md 新增「时间域与开放库原则」**：时间域（CxTime/Timebase/TimeRange/timecode）为多年积累的核心资产，禁止以"零引用"为由删除；开放库零引用 ≠ 死代码
+
 ### v0.10.0
 
 - **子包重组（10→8）**：`number/`、`collectiontools/` 合并入 `core/`；`iotools/` → `process/`；`tui/` → `clikit/`（扁平化，移除 `tools/` 子层级）。旧路径（`cx_studio.tui`/`.number`/`.collectiontools`/`.iotools`）已移除

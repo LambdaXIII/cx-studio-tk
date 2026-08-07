@@ -109,7 +109,7 @@ class Profile:
                 回调可读取 contenter.status_text 获取动态状态文本。
             pretend_delay: 假装模式下每个 contenter 处理前的固定模拟延迟（秒）。
                 None 表示不延迟。
-            appenv: 可选的 AppEnv 实例，传递给 contenter 用于输出。
+            appenv: 可选的 HostsKeeperEnv 实例，传递给 contenter 用于输出。
         """
         self.metadata.path = str(self.path)  # type: ignore[attr-defined]  # Box 动态属性注入
 

@@ -9,10 +9,11 @@
 
 from collections.abc import Callable
 
-from rich.progress import Progress, TaskID
-
 from cx_tools.app import IAppEnvironment
-from media_killer.media import (
+from cx_wealthy import rich_types as r
+from ffpretty.i18n import _
+
+from ..common import (
     FileLogType,
     Mission,
     MissionExecutor,
@@ -20,7 +21,7 @@ from media_killer.media import (
     MissionResult,
     Whisperer,
 )
-from media_killer.media.executor import (
+from ..common.executor import (
     CANCELED,
     ExecutorStatus,
     FAILED,
@@ -39,7 +40,7 @@ class MissionRunner:
     def __init__(
         self,
         mission: Mission,
-        progress: Progress,
+        progress: r.Progress,
         env: IAppEnvironment,
         pretending: bool = False,
     ):
@@ -47,7 +48,7 @@ class MissionRunner:
         self._progress = progress
         self._env = env
         self._pretending = pretending
-        self._task_id: TaskID | None = None
+        self._task_id: r.TaskID | None = None
         self._executor: MissionExecutor | None = None
         self._failure_info: MissionFailureInfo | None = None
         self._last_status: ExecutorStatus | None = None
@@ -77,14 +78,14 @@ class MissionRunner:
     def _wire(self, executor: MissionExecutor, summary: str):
         """挂载进度条 + 事件转发。"""
         self._task_id = self._progress.add_task(
-            description=f"{summary}[cx.success]准备中...[/]", total=None
+            description=f"{summary}[cx.success]{_('准备中...')}[/]", total=None
         )
 
         executor.on(
             STARTED,
             lambda: self._progress.update(
                 self._task_id,  # type: ignore[arg-type]
-                description=f"{summary}[cx.success]开始转码...[/]",
+                description=f"{summary}[cx.success]{_('开始转码...')}[/]",
             ),
         )
         executor.on(
@@ -101,28 +102,28 @@ class MissionRunner:
             STATUS_UPDATED,
             lambda ci: self._progress.update(
                 self._task_id,  # type: ignore[arg-type]
-                description=f"{summary}[cx.debug][{ci.current_speed:.2f}x][/][cx.success]转码中[/]",
+                description=f"{summary}[cx.debug][{ci.current_speed:.2f}x][/][cx.success]{_('转码中')}[/]",
             ),
         )
         executor.on(
             FINISHED,
             lambda: self._progress.update(
                 self._task_id,  # type: ignore[arg-type]
-                description=f"{summary}[cx.success]转码完成[/]",
+                description=f"{summary}[cx.success]{_('转码完成')}[/]",
             ),
         )
         executor.on(
             FAILED,
             lambda: self._progress.update(
                 self._task_id,  # type: ignore[arg-type]
-                description=f"{summary}[cx.error]转码失败[/]",
+                description=f"{summary}[cx.error]{_('转码失败')}[/]",
             ),
         )
         executor.on(
             CANCELED,
             lambda: self._progress.update(
                 self._task_id,  # type: ignore[arg-type]
-                description=f"{summary}[cx.warning]已取消[/]",
+                description=f"{summary}[cx.warning]{_('已取消')}[/]",
             ),
         )
 
@@ -147,7 +148,7 @@ class MissionRunner:
             MissionResult: 执行结果（SUCCESS/FAILED/CANCELED/SKIPPED）
         """
         if self._pretending:
-            from media_killer.media import MissionPretender
+            from ..common import MissionPretender
 
             executor = MissionPretender(self._mission)
         else:

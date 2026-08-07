@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-22 21:59+0800\n"
+"POT-Creation-Date: 2026-08-07 14:25+0800\n"
 "PO-Revision-Date: 2026-07-22 21:59+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en_US\n"
@@ -18,64 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: jpegger/simple_appcontext.py:36
-#, python-brace-format
-msgid "不支持的格式：{value}。可用格式：{formats}"
-msgstr ""
-
-#: jpegger/simple_appcontext.py:109
-msgid "Jpegger 是一个简单的批量转换图片的命令行工具。"
-msgstr "Jpegger is a simple command-line tool for batch image conversion."
-
-#: jpegger/simple_appcontext.py:118 jpegger/simple_appcontext.py:285
-msgid "显示帮助信息"
-msgstr "Show help message"
-
-#: jpegger/simple_appcontext.py:125
-msgid "显示完整教程"
-msgstr "Show full tutorial"
-
-#: jpegger/simple_appcontext.py:162
-msgid "缩放因子"
-msgstr "Scale Factor"
-
-#: jpegger/simple_appcontext.py:164
-msgid "缩放尺寸"
-msgstr "Scale Size"
-
-#: jpegger/simple_appcontext.py:166
-msgid "缩放宽度"
-msgstr "Scale Width"
-
-#: jpegger/simple_appcontext.py:170
-msgid "缩放高度"
-msgstr "Scale Height"
-
-#: jpegger/simple_appcontext.py:174
-msgid "颜色空间"
-msgstr "Color Space"
-
-#: jpegger/simple_appcontext.py:176
-msgid "编码质量"
-msgstr "Encoding Quality"
-
-#: jpegger/simple_appcontext.py:178
-msgid "输出目录"
-msgstr "Output Directory"
-
-#: jpegger/simple_appcontext.py:180
-msgid "强制覆盖"
-msgstr "Force Overwrite"
-
-#: jpegger/simple_appcontext.py:182
-msgid "调试模式"
-msgstr "Debug mode"
-
-#: jpegger/simple_appcontext.py:204
-msgid "输入文件"
-msgstr "Input Files"
-
-#: jpegger/simple_appcontext.py:217
+#: jpegger/app_help.py:24
 msgid ""
 "Jpegger是一个简单的批量转换图片的命令行工具。\n"
 "\n"
@@ -91,85 +34,138 @@ msgstr ""
 "advanced customization is not available.\n"
 "            "
 
-#: jpegger/simple_appcontext.py:227
+#: jpegger/app_help.py:34
 msgid "基本选项"
 msgstr "Basic Options"
 
-#: jpegger/simple_appcontext.py:229
+#: jpegger/app_help.py:36
 msgid "需要转码的文件"
 msgstr "Files to process"
 
-#: jpegger/simple_appcontext.py:236
+#: jpegger/app_help.py:43
 #, python-brace-format
 msgid "指定输出格式（名称或扩展名，不区分大小写），默认沿用原始格式。可用：{formats}"
 msgstr ""
 
-#: jpegger/simple_appcontext.py:243
+#: jpegger/app_help.py:50
 msgid "指定输出质量，默认使用内置的常用质量设置"
 msgstr "Specify output quality; defaults to built-in quality settings"
 
-#: jpegger/simple_appcontext.py:246
+#: jpegger/app_help.py:53
 msgid "输出目录，默认为当前目录"
 msgstr "Output directory; defaults to the current directory"
 
-#: jpegger/simple_appcontext.py:249
+#: jpegger/app_help.py:56
 msgid "图片处理"
 msgstr "Image Processing"
 
-#: jpegger/simple_appcontext.py:249
+#: jpegger/app_help.py:56
 msgid "对图像进行处理"
 msgstr "Process images"
 
-#: jpegger/simple_appcontext.py:251
+#: jpegger/app_help.py:58
 msgid "按比例缩放图片的尺寸"
 msgstr "Scale image dimensions proportionally"
 
-#: jpegger/simple_appcontext.py:257
+#: jpegger/app_help.py:64
 msgid "指定图片的尺寸，接受包含两个数字的表达式"
 msgstr "Specify image dimensions; accepts an expression with two numbers"
 
-#: jpegger/simple_appcontext.py:262
+#: jpegger/app_help.py:69
 msgid "指定图片的宽度，如果未指定高度则保持原始图像比例"
 msgstr ""
 "Specify image width; keeps original aspect ratio if height is not "
 "specified"
 
-#: jpegger/simple_appcontext.py:267
+#: jpegger/app_help.py:74
 msgid "指定图片的高度，如果未指定宽度则保持原始图像比例"
 msgstr ""
 "Specify image height; keeps original aspect ratio if width is not "
 "specified"
 
-#: jpegger/simple_appcontext.py:273
+#: jpegger/app_help.py:80
 #, python-brace-format
 msgid "设置目标色彩空间，可用：{choices}"
 msgstr ""
 
-#: jpegger/simple_appcontext.py:278
+#: jpegger/app_help.py:85
 msgid "其它选项"
 msgstr "Other Options"
 
-#: jpegger/simple_appcontext.py:282
+#: jpegger/app_help.py:89
 msgid "强制覆盖已存在的文件，未设置时将会跳过"
 msgstr "Force overwrite existing files; target will be auto-renamed when not set"
 
-#: jpegger/simple_appcontext.py:284
+#: jpegger/app_help.py:91
 msgid "显示调试信息"
 msgstr "Show debug information"
 
-#: jpegger/simple_appcontext.py:289
+#: jpegger/app_help.py:92 jpegger/appcontext.py:114
+msgid "显示帮助信息"
+msgstr "Show help message"
+
+#: jpegger/app_help.py:96
 msgid "显示完整的教程内容"
 msgstr "Show full tutorial"
 
-#: jpegger/simple_appcontext.py:305
+#: jpegger/app_help.py:110
 msgid "Jpegger 教程"
 msgstr ""
 
-#: jpegger/simple_application.py:47
-msgid "应用上下文尚未初始化"
+#: jpegger/appcontext.py:31
+#, python-brace-format
+msgid "不支持的格式：{value}。可用格式：{formats}"
 msgstr ""
 
-#: jpegger/simple_application.py:68
+#: jpegger/appcontext.py:105
+msgid "Jpegger 是一个简单的批量转换图片的命令行工具。"
+msgstr "Jpegger is a simple command-line tool for batch image conversion."
+
+#: jpegger/appcontext.py:121
+msgid "显示完整教程"
+msgstr "Show full tutorial"
+
+#: jpegger/appcontext.py:158
+msgid "缩放因子"
+msgstr "Scale Factor"
+
+#: jpegger/appcontext.py:160
+msgid "缩放尺寸"
+msgstr "Scale Size"
+
+#: jpegger/appcontext.py:162
+msgid "缩放宽度"
+msgstr "Scale Width"
+
+#: jpegger/appcontext.py:166
+msgid "缩放高度"
+msgstr "Scale Height"
+
+#: jpegger/appcontext.py:170
+msgid "颜色空间"
+msgstr "Color Space"
+
+#: jpegger/appcontext.py:172
+msgid "编码质量"
+msgstr "Encoding Quality"
+
+#: jpegger/appcontext.py:174
+msgid "输出目录"
+msgstr "Output Directory"
+
+#: jpegger/appcontext.py:176
+msgid "强制覆盖"
+msgstr "Force Overwrite"
+
+#: jpegger/appcontext.py:178
+msgid "调试模式"
+msgstr "Debug mode"
+
+#: jpegger/appcontext.py:204
+msgid "输入文件"
+msgstr "Input Files"
+
+#: jpegger/application.py:70
 msgid "未指定输入文件，无事可做"
 msgstr "No input file specified, nothing to do"
 
@@ -209,44 +205,44 @@ msgstr "Options"
 msgid "加载选项"
 msgstr "Options"
 
-#: jpegger/components/mission_runner.py:58
+#: jpegger/components/mission_runner.py:64
 msgid "创建目录"
 msgstr "Create Directory"
 
-#: jpegger/components/mission_runner.py:78
+#: jpegger/components/mission_runner.py:84
 #, python-brace-format
 msgid "源文件 {path} 不存在"
 msgstr "Source file {path} does not exist"
 
-#: jpegger/components/mission_runner.py:86
+#: jpegger/components/mission_runner.py:92
 #, python-brace-format
 msgid "目标文件 {path} 与源文件相同"
 msgstr "Target file {path} is the same as the source file"
 
-#: jpegger/components/mission_runner.py:90
+#: jpegger/components/mission_runner.py:96
 #, python-brace-format
 msgid "目标文件 {name} 已存在，跳过。"
 msgstr "Profile {name} already exists."
 
-#: jpegger/components/mission_runner.py:105
+#: jpegger/components/mission_runner.py:111
 #, python-brace-format
 msgid "文件 {path} 无法识别，任务跳过！"
 msgstr "File {path} not recognized, task skipped!"
 
-#: jpegger/components/mission_runner.py:113
+#: jpegger/components/mission_runner.py:119
 #, python-brace-format
 msgid "文件 {path} 处理失败！"
 msgstr "File {path} processing failed!"
 
-#: jpegger/components/mission_runner.py:122
+#: jpegger/components/mission_runner.py:128
 msgid "正在执行任务..."
 msgstr "Executing tasks..."
 
-#: jpegger/components/mission_runner.py:136
+#: jpegger/components/mission_runner.py:142
 msgid "任务发生未捕获异常："
 msgstr ""
 
-#: jpegger/components/mission_runner.py:139
+#: jpegger/components/mission_runner.py:145
 #, python-brace-format
 msgid "正在执行{count}个任务..."
 msgstr "Executing {count} tasks..."
@@ -297,4 +293,7 @@ msgstr "Resize image to {width}x{height}"
 #, python-brace-format
 msgid "按宽 {wf}×、高 {hf}× 缩放图像"
 msgstr ""
+
+#~ msgid "应用上下文尚未初始化"
+#~ msgstr ""
 

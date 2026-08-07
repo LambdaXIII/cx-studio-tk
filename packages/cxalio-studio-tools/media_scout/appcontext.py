@@ -1,13 +1,11 @@
-from cx_studio.i18n import load_localized_text
-from media_scout.i18n import _
+"""MediaScout 命令行上下文与参数解析。"""
+
 from argparse import ArgumentParser
 from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Literal
 
-from cx_tools.app import IAppComponent, IAppContext, IAppEnvironment
-from cx_wealthy import WealthyHelp
-from cx_wealthy import rich_types as r
+from cx_tools.app import IAppContext
 
 
 class ArgParser(ArgumentParser):
@@ -68,7 +66,7 @@ class ArgParser(ArgumentParser):
 
 
 @dataclass
-class AppContext(IAppContext):
+class MediaScoutContext(IAppContext):
     """MediaScout 命令行上下文。
 
     持有 argparse 解析后的参数，继承 IAppContext 的 temp_dir 能力和生命周期管理。
@@ -109,72 +107,3 @@ class AppContext(IAppContext):
 
     def __rich_detail__(self):
         yield from self.__dict__.items()
-
-
-class MediaScoutHelp(IAppComponent, WealthyHelp):
-    def __init__(self, appenv: IAppEnvironment, context: AppContext):
-        IAppComponent.__init__(self, appenv, context)
-        self.appenv = appenv
-        self.context = context
-        WealthyHelp.__init__(
-            self,
-            prog="MediaScout",
-            description=_(
-                "解析时间线、元数据表格等项目文件，从中提取包含的文件路径。支持干净的输出流或输出到文件。"
-                "目前可以解析的类型包括：EDL表、FCP7 经典XML、FCP XML文件或包、Davinci Resolve 媒体池元数据、纯文本路径列表等。"
-            ),
-        )
-        p_group = self.add_group(
-            _("文件输入"), _("输入需要解析的文件，可以一次解析多个。")
-        )
-        p_group.add_action(
-            "inputs", metavar="FILE", nargs="*", detail=_("需要解析的文件")
-        )
-
-        o_group = self.add_group(_("选项"), _("对结果进行处理的若干选项"))
-        o_group.add_action(
-            "-i",
-            "--include",
-            metavar="DIR",
-            nargs="**",
-            detail=_("指定用于搜索无路径文件名的文件夹"),
-        )
-        o_group.add_action("-e", "--existed-only", detail=_("仅输出已存在的文件路径"))
-        o_group.add_action("--allow-duplicated", detail=_("允许重复输出文件路径"))
-        o_group.add_action("--auto-resolve", detail=_("自动解析并整理文件路径"))
-        o_group.add_action(
-            "-q",
-            "--quote-mode",
-            metavar="auto|force|escape|none",
-            detail=_("指定对于包含空格的路径的处理方式"),
-        )
-        o_group.add_action(
-            "-o",
-            "--output",
-            metavar="OUTPUT",
-            detail=_("将文件列表保存到目标文件"),
-        )
-
-        x_group = self.add_group(_("其它"))
-        x_group.add_action("-d", "--debug", detail=_("开启调试模式"))
-        x_group.add_action("-h", "--help", detail=_("显示帮助信息"))
-        x_group.add_action("--tutorial", "--full-help", detail=_("显示完整的帮助信息"))
-
-        self.epilog = (
-            "[link https://github.com/LambdaXIII/cx-studio-tk]Cxalio Studio Tools[/]"
-        )
-
-    def show_help(self) -> None:
-        self.appenv.console.print(self)
-
-    def show_full_help(self) -> None:
-        md = load_localized_text("media_scout", "help.md")
-        content = r.Markdown(md, style="default")
-        panel = r.Panel(
-            content,
-            title="MediaScout 教程",
-            title_align="left",
-            style="cx.debug",
-            width=90,
-        )
-        self.appenv.console.print(r.Align.center(panel))

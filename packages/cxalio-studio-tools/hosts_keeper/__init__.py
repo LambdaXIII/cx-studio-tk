@@ -1,7 +1,7 @@
-__version__ = "0.9.0"
+__version__ = "0.9.1"
 
 from .application import HostsKeeperApp
-from .appcontext import AppContext
+from .appcontext import HostsKeeperContext
 from .appenv import appenv
 
 
@@ -10,7 +10,7 @@ def run():
     import sys
 
     install(show_locals=False, word_wrap=True, suppress=["rich"])
-    context = AppContext.from_arguments(sys.argv[1:])
+    context = HostsKeeperContext.from_arguments(sys.argv[1:])
     with appenv:
         with HostsKeeperApp(
             appenv=appenv, context=context, progress=appenv.progress

@@ -8,11 +8,11 @@
 
 from typing import TYPE_CHECKING
 
-from rich.progress import TaskID
-
 from cx_studio.ffmpeg import FFmpegCodingInfo
+from cx_wealthy import rich_types as r
 
-from .executor import PROGRESS_UPDATED, STATUS_UPDATED, MissionExecutor
+from ffpretty.common import MissionExecutor
+from ffpretty.common.executor import PROGRESS_UPDATED, STATUS_UPDATED
 
 if TYPE_CHECKING:
     from .mission_hq import MissionHQ
@@ -40,7 +40,7 @@ class TaskProgress:
             hq: MissionHQ 实例引用
         """
         self._hq = hq
-        self._bars: dict[int, TaskID] = {}
+        self._bars: dict[int, r.TaskID] = {}
         self._last_completed: dict[int, float] = {}
         self._last_total: dict[int, float] = {}
 

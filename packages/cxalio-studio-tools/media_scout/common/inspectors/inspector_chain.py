@@ -3,7 +3,7 @@ from collections.abc import Iterable
 from pathlib import PurePath, Path
 from typing import Self
 
-from media_scout.inspectors.media_path_inspector import MediaPathInspector
+from media_scout.common.inspectors.media_path_inspector import MediaPathInspector
 from .inspector_info import InspectorInfo
 
 

@@ -10,7 +10,7 @@ from typing import Any
 from cx_tools.app import IAppContext, ConfigManager
 
 
-class AppContext(IAppContext):
+class HostsKeeperContext(IAppContext):
     """HostsKeeper 命令行上下文。
 
     持有 argparse 解析后的参数和运行时状态。
@@ -75,7 +75,7 @@ class AppContext(IAppContext):
         yield from self.__dict__.items()
 
     @classmethod
-    def from_arguments(cls, args: Sequence[str]) -> "AppContext":
+    def from_arguments(cls, args: Sequence[str]) -> "HostsKeeperContext":
         global_parser = cls.__global_parser()
         main_parser = cls.__command_parser()
 

@@ -1,6 +1,6 @@
 """Jpegger 全局应用环境。
 
-`AppEnv` 继承 `IAppEnvironment`，提供 Rich 控制台、debug 输出门控。
+`JpeggerEnv` 继承 `IAppEnvironment`，提供 Rich 控制台、debug 输出门控。
 """
 
 from cx_tools.app import IAppEnvironment
@@ -8,7 +8,7 @@ from cx_tools.app import IAppEnvironment
 from . import __version__
 
 
-class AppEnv(IAppEnvironment):
+class JpeggerEnv(IAppEnvironment):
     """Jpegger 应用环境单例。"""
 
     app_name: str
@@ -23,4 +23,4 @@ class AppEnv(IAppEnvironment):
     # 不再在此处覆盖。
 
 
-appenv = AppEnv()
+appenv = JpeggerEnv()

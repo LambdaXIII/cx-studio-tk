@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-07-22 21:59+0800\n"
+"POT-Creation-Date: 2026-08-07 14:25+0800\n"
 "PO-Revision-Date: 2026-07-22 21:59+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en_US\n"
@@ -18,45 +18,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: media_scout/application.py:36
-msgid "MediaScout 启动"
-msgstr "MediaScout started"
-
-#: media_scout/application.py:47
-msgid "不存在"
-msgstr "does not exist"
-
-#: media_scout/application.py:62
-msgid "在搜索路径中搜索："
-msgstr "Searching in search path:"
-
-#: media_scout/application.py:66
-msgid "找到："
-msgstr "Found:"
-
-#: media_scout/application.py:102
-msgid "允许输出重复项"
-msgstr "Allow duplicate output"
-
-#: media_scout/application.py:105
-msgid "自动整理或折叠路径"
-msgstr "Auto-collapse paths"
-
-#: media_scout/application.py:108
-msgid "只输出存在的文件"
-msgstr "Only output existing files"
-
-#: media_scout/application.py:117
-#, python-brace-format
-msgid "共找到 {count} 个媒体路径。"
-msgstr "Found {count} media paths."
-
-#: media_scout/application.py:127
-#, python-brace-format
-msgid "列表已保存到：{path}"
-msgstr "List saved to: {path}"
-
-#: media_scout/arg_parser.py:108
+#: media_scout/app_help.py:21
 msgid ""
 "解析时间线、元数据表格等项目文件，从中提取包含的文件路径。支持干净的输出流或输出到文件。目前可以解析的类型包括：EDL表、FCP7 "
 "经典XML、FCP XML文件或包、Davinci Resolve 媒体池元数据、纯文本路径列表等。"
@@ -66,63 +28,105 @@ msgstr ""
 "Supported types: EDL, FCP7 Classic XML, FCP XML, DaVinci Resolve media "
 "pool, plain text paths, etc."
 
-#: media_scout/arg_parser.py:113
+#: media_scout/app_help.py:26
 msgid "文件输入"
 msgstr "File Input"
 
-#: media_scout/arg_parser.py:113
+#: media_scout/app_help.py:26
 msgid "输入需要解析的文件，可以一次解析多个。"
 msgstr "Input files to parse; multiple files can be parsed at once."
 
-#: media_scout/arg_parser.py:116
+#: media_scout/app_help.py:29
 msgid "需要解析的文件"
 msgstr "Files to Parse"
 
-#: media_scout/arg_parser.py:119
+#: media_scout/app_help.py:32
 msgid "选项"
 msgstr "Options"
 
-#: media_scout/arg_parser.py:119
+#: media_scout/app_help.py:32
 msgid "对结果进行处理的若干选项"
 msgstr "Options for processing results"
 
-#: media_scout/arg_parser.py:125
+#: media_scout/app_help.py:38
 msgid "指定用于搜索无路径文件名的文件夹"
 msgstr "Specify folder for searching pathless filenames"
 
-#: media_scout/arg_parser.py:127
+#: media_scout/app_help.py:40
 msgid "仅输出已存在的文件路径"
 msgstr "Only output existing file paths"
 
-#: media_scout/arg_parser.py:128
+#: media_scout/app_help.py:41
 msgid "允许重复输出文件路径"
 msgstr "Allow duplicate output file paths"
 
-#: media_scout/arg_parser.py:129
+#: media_scout/app_help.py:42
 msgid "自动解析并整理文件路径"
 msgstr "Auto-parse and collapse file paths"
 
-#: media_scout/arg_parser.py:134
+#: media_scout/app_help.py:47
 msgid "指定对于包含空格的路径的处理方式"
 msgstr "Specify how to handle paths containing spaces"
 
-#: media_scout/arg_parser.py:140
+#: media_scout/app_help.py:53
 msgid "将文件列表保存到目标文件"
 msgstr "Save file list to target file"
 
-#: media_scout/arg_parser.py:143
+#: media_scout/app_help.py:56
 msgid "其它"
 msgstr "Other"
 
-#: media_scout/arg_parser.py:144
+#: media_scout/app_help.py:57
 msgid "开启调试模式"
 msgstr "Enable debug mode"
 
-#: media_scout/arg_parser.py:145
+#: media_scout/app_help.py:58
 msgid "显示帮助信息"
 msgstr "Show help message"
 
-#: media_scout/arg_parser.py:146
+#: media_scout/app_help.py:59
 msgid "显示完整的帮助信息"
 msgstr "Show full help information"
+
+#: media_scout/application.py:48
+msgid "MediaScout 启动"
+msgstr "MediaScout started"
+
+#: media_scout/application.py:58
+msgid "用户中断"
+msgstr ""
+
+#: media_scout/application.py:69
+msgid "不存在"
+msgstr "does not exist"
+
+#: media_scout/application.py:84
+msgid "在搜索路径中搜索："
+msgstr "Searching in search path:"
+
+#: media_scout/application.py:88
+msgid "找到："
+msgstr "Found:"
+
+#: media_scout/application.py:128
+msgid "允许输出重复项"
+msgstr "Allow duplicate output"
+
+#: media_scout/application.py:131
+msgid "自动整理或折叠路径"
+msgstr "Auto-collapse paths"
+
+#: media_scout/application.py:134
+msgid "只输出存在的文件"
+msgstr "Only output existing files"
+
+#: media_scout/application.py:143
+#, python-brace-format
+msgid "共找到 {count} 个媒体路径。"
+msgstr "Found {count} media paths."
+
+#: media_scout/application.py:153
+#, python-brace-format
+msgid "列表已保存到：{path}"
+msgstr "List saved to: {path}"
 

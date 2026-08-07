@@ -6,7 +6,7 @@
 
 from cx_tools.app import IAppComponent, IAppEnvironment
 from media_killer.i18n import _
-from .appcontext import AppContext
+from .appcontext import MediaKillerContext
 from cx_studio.i18n import load_localized_text
 
 from cx_studio import text as tt
@@ -23,7 +23,7 @@ class MediaKillerHelp(IAppComponent, WealthyHelp):
     声明式构建命令行帮助文档。
     """
 
-    def __init__(self, appenv: IAppEnvironment, context: "AppContext") -> None:
+    def __init__(self, appenv: IAppEnvironment, context: "MediaKillerContext") -> None:
         IAppComponent.__init__(self, appenv, context)
         self.appenv = appenv
         self.context = context

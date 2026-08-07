@@ -13,7 +13,7 @@ import asyncio
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from .executor import MissionExecutor, MissionResult
+from ffpretty.common import MissionExecutor, MissionResult
 
 if TYPE_CHECKING:
     from .mission_hq import MissionHQ

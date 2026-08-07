@@ -13,7 +13,7 @@ from PIL import Image
 
 from cx_tools.app import IAppComponent, IAppEnvironment, SafeError
 from jpegger.i18n import _
-from jpegger.simple_appcontext import SimpleAppContext
+from jpegger.appcontext import JpeggerContext
 from cx_wealthy import RichLabel
 from cx_wealthy import rich_types as r
 
@@ -34,7 +34,7 @@ class MissionRunner(IAppComponent):
     def __init__(
         self,
         appenv: IAppEnvironment,
-        context: SimpleAppContext,
+        context: JpeggerContext,
         missions: list[Mission],
         max_workers: int = 10,
     ):

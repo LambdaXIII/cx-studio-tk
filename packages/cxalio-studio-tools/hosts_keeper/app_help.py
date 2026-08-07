@@ -6,11 +6,11 @@ from cx_studio import text as tt
 from cx_wealthy import WealthyHelp
 from cx_wealthy import rich_types as r
 from cx_tools.app import IAppComponent, IAppEnvironment
-from .appcontext import AppContext
+from .appcontext import HostsKeeperContext
 
 
 class HostsKeeperHelp(IAppComponent, WealthyHelp):
-    def __init__(self, appenv: IAppEnvironment, context: AppContext) -> None:
+    def __init__(self, appenv: IAppEnvironment, context: HostsKeeperContext) -> None:
         IAppComponent.__init__(self, appenv, context)
         self.appenv = appenv
         self.context = context

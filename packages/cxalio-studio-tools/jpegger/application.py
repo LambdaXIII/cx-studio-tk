@@ -10,8 +10,9 @@ from cx_tools.app import IApplication, IAppEnvironment
 from cx_wealthy import IndexedListPanel, RichLabel, WealthyDetailPanel
 from jpegger.i18n import _
 
+from .app_help import JpeggerHelp
+from .appcontext import JpeggerContext
 from .components.mission_runner import MissionRunner
-from .simple_appcontext import SimpleAppContext, JpeggerHelp
 from .simple_filter_chain_builder import SimpleFilterChainBuilder
 from .simple_mission_builder import SimpleMissionBuilder
 
@@ -27,7 +28,7 @@ class JpeggerApp(IApplication):
     def __init__(
         self,
         appenv: IAppEnvironment,
-        context: SimpleAppContext,
+        context: JpeggerContext,
     ):
         super().__init__(appenv, context)
         self.context = context

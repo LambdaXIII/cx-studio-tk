@@ -19,7 +19,7 @@ from cx_wealthy import rich_types as r
 from .theme import media_killer_theme
 
 
-class AppEnv(IAppEnvironment):
+class MediaKillerEnv(IAppEnvironment):
     """media_killer 应用环境。
 
     继承 IAppEnvironment，提供 media_killer 专用的运行环境：
@@ -32,7 +32,7 @@ class AppEnv(IAppEnvironment):
     """
 
     def __init__(self) -> None:
-        """初始化 AppEnv。
+        """初始化 MediaKillerEnv。
 
         设置应用元数据、合并自定义主题、初始化 Progress。
         """
@@ -84,7 +84,7 @@ class AppEnv(IAppEnvironment):
 
 
 # 全局单例
-appenv = AppEnv()
+appenv = MediaKillerEnv()
 
 # 注册 SIGINT 处理器
 signal.signal(signal.SIGINT, appenv.handle_interrupt)

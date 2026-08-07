@@ -8,7 +8,7 @@ from cx_tools.app import IAppEnvironment
 from cx_wealthy import rich_types as r
 
 
-class AppEnv(IAppEnvironment):
+class HostsKeeperEnv(IAppEnvironment):
     def __init__(self) -> None:
         super().__init__()
         self.app_name = "HostsKeeper"
@@ -42,7 +42,9 @@ class AppEnv(IAppEnvironment):
 
     def show_banners(self) -> None:
         banners = []
-        assert __package__ is not None, "AppEnv must be imported as part of a package"
+        assert (
+            __package__ is not None
+        ), "HostsKeeperEnv must be imported as part of a package"
         banner_text = importlib.resources.read_text(
             __package__, "banner.txt", encoding="utf-8"
         )
@@ -60,4 +62,4 @@ class AppEnv(IAppEnvironment):
         self.say(r.Group(*banners))
 
 
-appenv = AppEnv()
+appenv = HostsKeeperEnv()
