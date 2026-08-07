@@ -27,6 +27,7 @@ def _elevated_replace_linux(source: Path, target: Path) -> bool:
     尝试 sudo / doas / pkexec 替换，若均失败则回退。
     """
     # 尝试 sudo
+    appenv.whisper(_("[提权][Linux] 尝试 sudo 替换"))
     try:
         subprocess.run(
             ["sudo", "cp", str(source), str(target)],
@@ -34,15 +35,17 @@ def _elevated_replace_linux(source: Path, target: Path) -> bool:
             capture_output=True,
             timeout=30,
         )
+        appenv.whisper(_("[提权][Linux] sudo 替换成功"))
         return True
     except (
         subprocess.CalledProcessError,
         FileNotFoundError,
         subprocess.TimeoutExpired,
     ):
-        pass
+        appenv.whisper(_("[提权][Linux] sudo 替换失败"))
 
     # 尝试 doas
+    appenv.whisper(_("[提权][Linux] 尝试 doas 替换"))
     try:
         subprocess.run(
             ["doas", "cp", str(source), str(target)],
@@ -50,15 +53,17 @@ def _elevated_replace_linux(source: Path, target: Path) -> bool:
             capture_output=True,
             timeout=30,
         )
+        appenv.whisper(_("[提权][Linux] doas 替换成功"))
         return True
     except (
         subprocess.CalledProcessError,
         FileNotFoundError,
         subprocess.TimeoutExpired,
     ):
-        pass
+        appenv.whisper(_("[提权][Linux] doas 替换失败"))
 
     # 尝试 pkexec
+    appenv.whisper(_("[提权][Linux] 尝试 pkexec 替换"))
     try:
         subprocess.run(
             ["pkexec", "cp", str(source), str(target)],
@@ -66,13 +71,14 @@ def _elevated_replace_linux(source: Path, target: Path) -> bool:
             capture_output=True,
             timeout=30,
         )
+        appenv.whisper(_("[提权][Linux] pkexec 替换成功"))
         return True
     except (
         subprocess.CalledProcessError,
         FileNotFoundError,
         subprocess.TimeoutExpired,
     ):
-        pass
+        appenv.whisper(_("[提权][Linux] pkexec 替换失败"))
 
     return False
 
@@ -84,6 +90,7 @@ def _elevated_replace_macos(source: Path, target: Path) -> bool:
     尝试 sudo / osascript 提权替换。
     """
     # 尝试 sudo
+    appenv.whisper(_("[提权][macOS] 尝试 sudo 替换"))
     try:
         subprocess.run(
             ["sudo", "cp", str(source), str(target)],
@@ -91,15 +98,17 @@ def _elevated_replace_macos(source: Path, target: Path) -> bool:
             capture_output=True,
             timeout=30,
         )
+        appenv.whisper(_("[提权][macOS] sudo 替换成功"))
         return True
     except (
         subprocess.CalledProcessError,
         FileNotFoundError,
         subprocess.TimeoutExpired,
     ):
-        pass
+        appenv.whisper(_("[提权][macOS] sudo 替换失败"))
 
     # 尝试 osascript 提权
+    appenv.whisper(_("[提权][macOS] 尝试 osascript 提权"))
     escaped_source = shlex.quote(str(source))
     escaped_target = shlex.quote(str(target))
     script = (
@@ -113,13 +122,14 @@ def _elevated_replace_macos(source: Path, target: Path) -> bool:
             capture_output=True,
             timeout=30,
         )
+        appenv.whisper(_("[提权][macOS] osascript 提权成功"))
         return True
     except (
         subprocess.CalledProcessError,
         FileNotFoundError,
         subprocess.TimeoutExpired,
     ):
-        pass
+        appenv.whisper(_("[提权][macOS] osascript 提权失败"))
 
     return False
 
@@ -128,57 +138,54 @@ def _elevated_replace_macos(source: Path, target: Path) -> bool:
 def _elevated_replace_windows(source: Path, target: Path) -> bool:
     """Windows 提权替换。
 
-    尝试 sudo / PowerShell UAC 提权替换。
-    """
-    # 尝试 sudo（Windows 11+ 24H2）
-    try:
-        subprocess.run(
-            ["sudo", "copy", "/Y", str(source), str(target)],
-            check=True,
-            capture_output=True,
-            timeout=30,
-        )
-        return True
-    except (
-        subprocess.CalledProcessError,
-        FileNotFoundError,
-        subprocess.TimeoutExpired,
-    ):
-        pass
+    通过 PowerShell UAC（弹 UAC 对话框）提权复制。
+    子进程命令使用 -EncodedCommand + base64 编码整体传递，
+    避免路径空格、引号嵌套导致的命令行解析问题。
 
-    # 尝试 PowerShell UAC 提权
-    encoded_source = base64.b64encode(source.as_posix().encode("utf-16-le")).decode(
-        "ascii"
+    历史教训：Windows 原生 sudo（Win11 24H2+）的 `copy`/`cp` 为 cmd
+    内建命令，sudo 用 CreateProcess 直接执行找不到可执行文件（退出码
+    9009，终端报"找不到命令"），故不设 sudo 分支——PowerShell UAC
+    是唯一提权路径。
+    """
+    appenv.whisper(_("[提权][Windows] 尝试 PowerShell UAC 提权"))
+    ps_command = (
+        f"Copy-Item -Path '{str(source.resolve())}' "
+        f"-Destination '{str(target.resolve())}' -Force"
     )
-    encoded_target = base64.b64encode(target.as_posix().encode("utf-16-le")).decode(
-        "ascii"
-    )
-    ps_cmd = (
-        f"$s = [System.Text.Encoding]::Unicode.GetString([System.Convert]::FromBase64String('{encoded_source}'));"
-        f"$t = [System.Text.Encoding]::Unicode.GetString([System.Convert]::FromBase64String('{encoded_target}'));"
-        "Copy-Item -Path $s -Destination $t -Force"
-    )
+    encoded = base64.b64encode(ps_command.encode("utf-16-le")).decode("ascii")
     try:
         subprocess.run(
             [
                 "powershell",
                 "-NoProfile",
                 "-Command",
-                f"Start-Process -Verb RunAs -Wait -FilePath 'powershell' -ArgumentList '-NoProfile', '-Command', '{ps_cmd}'",
+                f"Start-Process powershell -Verb RunAs -Wait"
+                f" -ArgumentList '-NoProfile','-EncodedCommand','{encoded}'",
             ],
             check=True,
             capture_output=True,
-            timeout=30,
+            timeout=120,
         )
+        appenv.whisper(_("[提权][Windows] PowerShell UAC 提权成功"))
         return True
-    except (
-        subprocess.CalledProcessError,
-        FileNotFoundError,
-        subprocess.TimeoutExpired,
-    ):
-        pass
-
-    return False
+    except subprocess.CalledProcessError as e:
+        appenv.whisper(
+            _("[提权][Windows] PowerShell UAC 失败: 退出码 {code}").format(
+                code=e.returncode
+            )
+        )
+        appenv.whisper(
+            _("[提权][Windows] PowerShell stderr: {error}").format(
+                error=e.stderr.decode(errors="replace").strip()
+            )
+        )
+        return False
+    except FileNotFoundError:
+        appenv.whisper(_("[提权][Windows] 未找到 powershell 命令"))
+        return False
+    except subprocess.TimeoutExpired:
+        appenv.whisper(_("[提权][Windows] PowerShell UAC 超时（用户未确认）"))
+        return False
 
 
 dns_flush = CrossRunner()
@@ -354,6 +361,11 @@ class HostsSaver(IAppComponent):
             True 表示成功保存，False 表示失败（失败时会输出内容作为手动备选）。
         """
         target = target or self.target_hosts
+        self.appenv.whisper(
+            _("[分流] save() 目标: {target}，pretending_mode={mode}").format(
+                target=target, mode=self.pretending_mode
+            )
+        )
         if self.pretending_mode:
             self.appenv.say(
                 f"[cx.info]{_('假装模式已开启，新的内容将输出到标准输出。')}"
@@ -361,11 +373,24 @@ class HostsSaver(IAppComponent):
             self._show_hosts_lines(self.source_hosts)
             return False
 
-        is_system_hosts = target.resolve() == self.context.system_hosts_path().resolve()
+        system_hosts = self.context.system_hosts_path()
+        is_system_hosts = target.resolve() == system_hosts.resolve()
+        self.appenv.whisper(
+            _(
+                "[分流] is_system_hosts={result}（target={target}，系统路径={system}）"
+            ).format(
+                result=is_system_hosts,
+                target=target.resolve(),
+                system=system_hosts.resolve(),
+            )
+        )
 
         if is_system_hosts:
             # 系统 hosts 路径：需要备份，可能需提权
             backup_result = self._backup_target_hosts(target)
+            self.appenv.whisper(
+                _("[分流] 备份结果: {result}").format(result=backup_result)
+            )
             if not backup_result:
                 self.appenv.say(
                     f"[cx.warning]{_('目标文件已存在且无法备份，将直接输出生成的 hosts 内容。')}"
@@ -373,12 +398,20 @@ class HostsSaver(IAppComponent):
                 self._show_hosts_lines(self.source_hosts)
                 return False
 
-            if system.is_user_admin():
+            admin = system.is_user_admin()
+            self.appenv.whisper(
+                _("[分流] is_user_admin()={result}").format(result=admin)
+            )
+            if admin:
                 # 已有系统权限，直接替换
                 try:
                     shutil.copyfile(self.source_hosts, target)
+                    self.appenv.whisper(_("[分流] 管理员直写成功"))
                     return True
-                except OSError:
+                except OSError as e:
+                    self.appenv.whisper(
+                        _("[分流] 管理员直写失败: {error}").format(error=e)
+                    )
                     self.appenv.say(
                         f"[cx.error]{_('替换失败。目标文件 {path} 无法写入。').format(path=target)}"
                     )
@@ -387,6 +420,9 @@ class HostsSaver(IAppComponent):
                 # 需提权替换
                 try:
                     ok = elevated_replace(self.source_hosts, target)
+                    self.appenv.whisper(
+                        _("[分流] elevated_replace 返回: {result}").format(result=ok)
+                    )
                     if not ok:
                         self._show_hosts_lines(self.source_hosts)
                     return ok

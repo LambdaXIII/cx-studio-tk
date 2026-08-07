@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-08-06 00:22+0800\n"
+"POT-Creation-Date: 2026-08-08 05:25+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -169,7 +169,7 @@ msgstr ""
 msgid "编辑指定配置文件"
 msgstr ""
 
-#: hosts_keeper/appenv.py:55
+#: hosts_keeper/appenv.py:57
 msgid "你的 hosts 由我来守护！"
 msgstr ""
 
@@ -309,80 +309,200 @@ msgstr ""
 msgid "已清除残留标记块 {profile_id}（对应配置文件不存在或已改名）。"
 msgstr ""
 
-#: hosts_keeper/hosts_builder.py:150
+#: hosts_keeper/hosts_builder.py:159
 #, python-brace-format
 msgid "已处理配置文件 {name}"
 msgstr ""
 
-#: hosts_keeper/hosts_saver.py:194
+#: hosts_keeper/hosts_saver.py:30
+msgid "[提权][Linux] 尝试 sudo 替换"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:38
+msgid "[提权][Linux] sudo 替换成功"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:45
+msgid "[提权][Linux] sudo 替换失败"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:48
+msgid "[提权][Linux] 尝试 doas 替换"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:56
+msgid "[提权][Linux] doas 替换成功"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:63
+msgid "[提权][Linux] doas 替换失败"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:66
+msgid "[提权][Linux] 尝试 pkexec 替换"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:74
+msgid "[提权][Linux] pkexec 替换成功"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:81
+msgid "[提权][Linux] pkexec 替换失败"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:93
+msgid "[提权][macOS] 尝试 sudo 替换"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:101
+msgid "[提权][macOS] sudo 替换成功"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:108
+msgid "[提权][macOS] sudo 替换失败"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:111
+msgid "[提权][macOS] 尝试 osascript 提权"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:125
+msgid "[提权][macOS] osascript 提权成功"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:132
+msgid "[提权][macOS] osascript 提权失败"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:150
+msgid "[提权][Windows] 尝试 PowerShell UAC 提权"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:169
+msgid "[提权][Windows] PowerShell UAC 提权成功"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:173
+#, python-brace-format
+msgid "[提权][Windows] PowerShell UAC 失败: 退出码 {code}"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:178
+#, python-brace-format
+msgid "[提权][Windows] PowerShell stderr: {error}"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:184
+msgid "[提权][Windows] 未找到 powershell 命令"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:187
+msgid "[提权][Windows] PowerShell UAC 超时（用户未确认）"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:201
 msgid "跳过 DNS 缓存刷新。请手动运行: ipconfig /flushdns"
 msgstr ""
 
-#: hosts_keeper/hosts_saver.py:204 hosts_keeper/hosts_saver.py:241
+#: hosts_keeper/hosts_saver.py:211 hosts_keeper/hosts_saver.py:248
 msgid "DNS 缓存已刷新。"
 msgstr ""
 
-#: hosts_keeper/hosts_saver.py:207
+#: hosts_keeper/hosts_saver.py:214
 msgid "DNS 缓存刷新失败。请手动运行: ipconfig /flushdns"
 msgstr ""
 
-#: hosts_keeper/hosts_saver.py:210
+#: hosts_keeper/hosts_saver.py:217
 msgid "未找到 ipconfig 命令。请手动刷新 DNS 缓存。"
 msgstr ""
 
-#: hosts_keeper/hosts_saver.py:223
+#: hosts_keeper/hosts_saver.py:230
 msgid ""
 "跳过 DNS 缓存刷新。请手动运行: sudo dscacheutil -flushcache; sudo killall -HUP "
 "mDNSResponder"
 msgstr ""
 
-#: hosts_keeper/hosts_saver.py:250
+#: hosts_keeper/hosts_saver.py:257
 msgid ""
 "DNS 缓存刷新失败。请手动运行: sudo dscacheutil -flushcache; sudo killall -HUP "
 "mDNSResponder"
 msgstr ""
 
-#: hosts_keeper/hosts_saver.py:270
+#: hosts_keeper/hosts_saver.py:277
 msgid "跳过 DNS 缓存刷新。你可尝试以下命令之一: "
 msgstr ""
 
-#: hosts_keeper/hosts_saver.py:273
+#: hosts_keeper/hosts_saver.py:280
 msgid "请手动刷新 DNS 缓存。你可尝试以下命令之一: "
 msgstr ""
 
-#: hosts_keeper/hosts_saver.py:316
+#: hosts_keeper/hosts_saver.py:323
 #, python-brace-format
 msgid "目标 hosts 文件 {path} 不存在，跳过备份。"
 msgstr ""
 
-#: hosts_keeper/hosts_saver.py:324
+#: hosts_keeper/hosts_saver.py:331
 #, python-brace-format
 msgid "无法创建备份文件，错误：{error}"
 msgstr ""
 
-#: hosts_keeper/hosts_saver.py:359
-msgid "假装模式已开启，新的内容将输出到标准输出。"
+#: hosts_keeper/hosts_saver.py:365
+#, python-brace-format
+msgid "[分流] save() 目标: {target}，pretending_mode={mode}"
 msgstr ""
 
 #: hosts_keeper/hosts_saver.py:371
+msgid "假装模式已开启，新的内容将输出到标准输出。"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:379
+#, python-brace-format
+msgid "[分流] is_system_hosts={result}（target={target}，系统路径={system}）"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:387
+#, python-brace-format
+msgid "[分流] 备份结果: {result}"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:390
 msgid "目标文件已存在且无法备份，将直接输出生成的 hosts 内容。"
 msgstr ""
 
-#: hosts_keeper/hosts_saver.py:383
+#: hosts_keeper/hosts_saver.py:397
+#, python-brace-format
+msgid "[分流] is_user_admin()={result}"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:403
+msgid "[分流] 管理员直写成功"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:407
+#, python-brace-format
+msgid "[分流] 管理员直写失败: {error}"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:410
 #, python-brace-format
 msgid "替换失败。目标文件 {path} 无法写入。"
 msgstr ""
 
-#: hosts_keeper/hosts_saver.py:395
+#: hosts_keeper/hosts_saver.py:418
+#, python-brace-format
+msgid "[分流] elevated_replace 返回: {result}"
+msgstr ""
+
+#: hosts_keeper/hosts_saver.py:425
 msgid "当前平台不支持自动提权替换。请以管理员权限运行本程序。"
 msgstr ""
 
-#: hosts_keeper/hosts_saver.py:406
+#: hosts_keeper/hosts_saver.py:436
 #, python-brace-format
 msgid "目标文件 {path} 没有写入权限。"
 msgstr ""
 
-#: hosts_keeper/hosts_saver.py:409
+#: hosts_keeper/hosts_saver.py:439
 msgid "请自行处理目标文件的权限问题，或以管理员权限运行本程序。"
 msgstr ""
 

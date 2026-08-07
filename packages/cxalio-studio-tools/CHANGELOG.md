@@ -1,6 +1,17 @@
 # Change Log of Cxalio Studio Tools
 
 
+### 0.99.0.1
+
+#### HostsKeeper Windows 提权链路修复（回归）
+
+- **根因**：`_elevated_replace_windows` 的 PowerShell UAC 命令将含单引号的脚本字符串嵌套进外层单引号，PowerShell 把 base64 内容当作 `Start-Process` 的位置参数、参数绑定失败（退出码 1）——**UAC 对话框从未弹出**；此前先尝试的 `sudo copy /Y` 分支同样必败（`copy` 为 cmd 内建命令，sudo 以 CreateProcess 执行找不到可执行文件，退出码 9009，终端曾报"找不到命令"）。两路提权全灭后 `save()` 回退打印 hosts 内容，表现为"不提示鉴权、直接打印 hosts"
+- **修复**：删除 `sudo` 分支（历史教训：Windows 原生 sudo 无法执行 cmd 内建命令，PowerShell UAC 为唯一提权路径）；UAC 命令改回 `-EncodedCommand` 整体 base64 编码传递（路径空格/引号不再破坏命令行），超时放宽至 120s，失败时 whisper 输出退出码与 stderr
+- **回归源**：7/31 `c601b77` 架构重构重写提权函数时引入（此前 7/17 `6c3dec1` 修复"找不到命令"后的正确实现被替换）
+- **debug 分流可观测性**：`save()` 与三个平台提权函数补齐 whisper 诊断——目标路径/pretending 状态、`is_system_hosts` 判断、备份结果、`is_user_admin()` 结果、提权各分支尝试/成功/失败原因，`-d` 模式可完整追踪保存流程走向
+- **i18n**：新增 28 条诊断消息接入 gettext（en_US 翻译完成），`.mo` 已重新编译
+
+
 ### 0.99.0
 
 - **版本统一**：cx_tools 与全部 5 个工具的 `__version__`、发布单元 pyproject 同步为 0.99.0，消除历史迭代造成的版本号分叉（此前 cx_tools 0.8.8 与 pyproject 0.9.4 不一致）；此后按根 AGENTS.md 版本管理规则规范迭代
