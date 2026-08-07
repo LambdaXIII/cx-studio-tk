@@ -4,11 +4,11 @@
 工厂方法构造，并通过 kwargs 白名单完成字段赋值。
 """
 
-from argparse import ArgumentParser, ArgumentTypeError
+from argparse import ArgumentParser
 from collections.abc import Generator, Sequence
 from typing import Any
 
-from cx_tools.app import IAppContext
+from cx_tools.app import IAppContext, SafeError
 from jpegger.i18n import _
 
 from .components.format_database import FormatDB
@@ -24,10 +24,10 @@ def _validate_format(value: str) -> str:
     与 FormatDB.search() 的现有行为一致。校验通过后返回原始输入字符串
     （不规范化），保持 SimpleMissionBuilder 现有扩展名推导行为不变。
 
-    无效输入抛出 ArgumentTypeError，argparse 自动终止并打印错误。
+    无效输入抛出 SafeError，由入口统一展示。
     """
     if FormatDB.search(value) is None:
-        raise ArgumentTypeError(
+        raise SafeError(
             _("不支持的格式：{value}。可用格式：{formats}").format(
                 value=value, formats=", ".join(FormatDB.formats())
             )

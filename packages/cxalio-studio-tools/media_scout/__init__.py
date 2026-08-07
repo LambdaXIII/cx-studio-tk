@@ -9,7 +9,7 @@ def run():
     from rich.traceback import install
 
     install(show_locals=True)
-    context = MediaScoutContext.load()
+    context = MediaScoutContext.from_arguments()
     appenv = MediaScoutEnv()
     with appenv:
         with MediaScoutApp(appenv=appenv, context=context) as app:

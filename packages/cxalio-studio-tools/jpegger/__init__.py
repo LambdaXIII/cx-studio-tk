@@ -8,6 +8,8 @@ __version__ = "0.8.4"
 
 import sys
 
+from cx_tools.app import SafeError
+
 from .application import JpeggerApp
 from .appcontext import JpeggerContext
 from .appenv import appenv
@@ -18,7 +20,11 @@ def run() -> None:
     from rich.traceback import install
 
     _ = install(show_locals=False, word_wrap=True, suppress=["rich"])
-    context = JpeggerContext.from_arguments(sys.argv[1:])
+    try:
+        context = JpeggerContext.from_arguments(sys.argv[1:])
+    except SafeError as e:
+        appenv.say(f"[{e.style}]{e}[/]")
+        return
     with appenv:
         with JpeggerApp(appenv=appenv, context=context) as app:
             app.run()

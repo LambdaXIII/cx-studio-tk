@@ -32,9 +32,6 @@ class IAppContext(ABC):
     - 基类提供以下共享状态字段（默认 False，子类可通过 dataclass field 或 __init__ 覆盖）：
         debug_mode: bool
         pretending_mode: bool
-    - 子类应定义以下字段（duck-typing 兼容，IAppEnvironment 通过 getattr 安全访问）：
-        show_help: bool
-        show_full_help: bool
     - 子类的 from_arguments() 工厂方法负责参数解析
     - 子类可覆盖 start()/stop() 增加工具特定的资源初始化/清理
     """

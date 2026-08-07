@@ -198,7 +198,7 @@ msgstr "Cannot interpret arguments."
 #: ffpretty/common/executor.py:215
 #, python-brace-format
 msgid "检测到重叠的输入输出文件: {files}"
-msgstr "Overlapping input/output files detected"
+msgstr "Overlapping input/output files detected: {files}"
 
 #: ffpretty/common/executor.py:223
 #, python-brace-format
@@ -225,7 +225,7 @@ msgstr "Stopping FFmpeg…"
 
 #: ffpretty/common/executor.py:449
 msgid "FFmpeg 执行失败"
-msgstr "FFmpeg Output"
+msgstr "FFmpeg execution failed"
 
 #: ffpretty/common/executor.py:455 ffpretty/common/pretender.py:105
 msgid "调度器强制取消"
@@ -233,7 +233,7 @@ msgstr "Force canceled by scheduler"
 
 #: ffpretty/common/executor.py:518
 msgid "FFmpeg 已启动"
-msgstr "FFmpeg Path"
+msgstr "FFmpeg started"
 
 #: ffpretty/common/executor.py:565
 #, python-brace-format
@@ -274,7 +274,7 @@ msgstr "Mission ID"
 
 #: ffpretty/common/mission.py:190
 msgid "源文件"
-msgstr "Source File Extension"
+msgstr "Source File"
 
 #: ffpretty/common/mission.py:191
 msgid "目标文件"
@@ -302,7 +302,7 @@ msgstr "No"
 
 #: ffpretty/common/mission.py:197
 msgid "全局选项"
-msgstr "Options"
+msgstr "Global Options"
 
 #: ffpretty/common/pretender.py:95 ffpretty/common/pretender.py:106
 msgid "正在停止…"

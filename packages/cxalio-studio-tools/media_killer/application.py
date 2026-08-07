@@ -395,6 +395,7 @@ class MediaKillerApp(IApplication):
         if ctx.show_full_help:
             help_component = MediaKillerHelp(self.appenv, self.context)
             help_component.show_full_help()
+            return
         # 2. generate
         if ctx.generate:
             generated: list[Path] = []

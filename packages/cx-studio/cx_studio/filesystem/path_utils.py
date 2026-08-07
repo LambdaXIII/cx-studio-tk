@@ -51,10 +51,15 @@ def is_executable(cmd: Path) -> bool:
 
 
 def is_file_in_dir(file: Path, dir: Path) -> bool:
-    f = str(normalize_path(file).resolve().absolute())
-    d = str(normalize_path(dir).resolve().absolute())
-    # TODO: 考虑使用pathlib的relative_to方法，避免使用字符串比较
-    return f in d
+    """判断 file 是否位于 dir 目录内（含子目录）。
+
+    归一化大小写与分隔符后做前缀比较；rstrip(os.sep) 保证
+    dir 为根目录（如 "C:\\"、"/"）时边界正确，避免
+    "C:\\foo\\bar" 与 "C:\\foo\\bar2" 类误判。
+    """
+    f = os.path.normcase(str(normalize_path(file).resolve()))
+    d = os.path.normcase(str(normalize_path(dir).resolve()))
+    return f.startswith(d.rstrip(os.sep) + os.sep)
 
 
 def get_basename(source: Path | str) -> str:

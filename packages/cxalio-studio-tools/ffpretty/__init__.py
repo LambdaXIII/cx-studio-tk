@@ -22,6 +22,5 @@ def run():
         with FFPrettyApp(
             appenv=appenv, context=context, progress=appenv.progress
         ) as app:
-            result = app.run()
-            return 0 if result else -1
+            app.run()
     return None

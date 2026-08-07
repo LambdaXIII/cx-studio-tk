@@ -51,9 +51,8 @@ class IAppEnvironment(ABC):
     参见 cxalio-studio-tools/AGENTS.md「输出通道」章节。
 
     生命周期：
-    with IAppEnvironment() as env:
-        env.run(...)
-    ── 进入时调用 start()，退出时调用 stop()。
+    进入时调用 start()，退出时调用 stop()。业务执行（run）由 Application
+    承担，不属于本接口。
 
     子类覆盖约定：
     - start() 中先调用 super().start()，再启动本工具特有的资源（如 Progress）。
@@ -86,19 +85,23 @@ class IAppEnvironment(ABC):
 
         self.interrupt_handler = DoubleTrigger()
 
+        # 两级中断提示文案——子类可在 __init__ 中覆写（如 ffpretty 使用自己的措辞）。
+        self.first_interrupt_message = _(
+            "正在取消运行中的任务，再次按下 Ctrl+C 取消全部任务"
+        )
+        self.second_interrupt_message = _("正在中止执行")
+
         # debug 模式状态（由 Application 通过 set_debug_mode 注入）。
         self._debug_mode: bool = False
 
         @self.interrupt_handler.on(FIRST_TRIGGERED)
         def __when_wanna_quit():
-            self.say(
-                f"[cx.warning]{_('正在取消运行中的任务，再次按下 Ctrl+C 取消全部任务')}[/]"
-            )
+            self.say(f"[cx.warning]{self.first_interrupt_message}[/]")
             self.wanna_quit_event.set()
 
         @self.interrupt_handler.on(SECOND_TRIGGERED)
         def __when_really_wanna_quit():
-            self.say(f"[cx.error]{_('正在中止执行')}[/]")
+            self.say(f"[cx.error]{self.second_interrupt_message}[/]")
             self.really_wanna_quit_event.set()
 
     def set_debug_mode(self, value: bool) -> None:
