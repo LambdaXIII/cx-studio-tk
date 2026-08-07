@@ -19,12 +19,10 @@ Requires Python >= 3.12, < 3.15.
 - **CxTime**: SMPTE timecode parsing and calculation, supporting common frame rates such as 23.976 / 24 / 25 / 29.97 / 30 / 50 / 59.94 / 60 fps.
 - **FileSize**: Typed representation of file size, supporting both binary (KiB/MiB/GiB) and international (KB/MB/GB) standards, with `pretty_string()` for human-readable output.
 - **TimeRange**: Time range operations, supporting overlap detection, containment checks, and relationship determination between time points and ranges.
-- **Timebase**: Frame rate abstract base class with presets for common frame rate constants.
+- **Timebase**: Frame rate abstraction (fps + drop_frame), with a `from_fps()` factory to construct from a frame rate.
 
 ### ffmpeg — FFmpeg Wrapper
 
-- **FFmpeg**: Asynchronous FFmpeg process manager. Event-driven design based on `pyee` EventEmitter, supporting start, abort, and terminate operations, automatic stderr output stream parsing, and encoding information probing.
-- **FFmpegError**: Error classification factory with regex matching. Subclasses cover scenarios such as file not found, invalid parameters, unsupported codecs, missing executables, and process-in-conflict errors.
 - **FFmpegCodingInfo**: Encoding information value object containing fields such as codec, duration, resolution, and bitrate.
 - **FFmpegFilePathPreprocessor**: Path preprocessing for quote compatibility and Windows path adaptation.
 
@@ -68,29 +66,6 @@ Cross-platform subprocess creation (automatically configures `CREATE_NEW_PROCESS
 ### i18n — Internationalization
 
 Gettext-based translation infrastructure providing `_()` and `_ng()` (plural) functions. Simplified Chinese is the source language.
-
-## Quick Examples
-
-```python
-from cx_studio.core import CxTime, FileSize, Timebase
-
-# Timecode parsing
-t = CxTime.from_str("01:23:45:12", rate=Timebase.fps_25)
-print(t.total_frames)  # 124587
-
-# File size
-fs = FileSize.from_bytes(1_234_567_890)
-print(fs.pretty_string())  # "1.15 GiB" (binary)
-print(fs.pretty_string(standard="international"))  # "1.23 GB"
-```
-
-```python
-from cx_studio.ffmpeg import FFmpeg
-
-async def transcode():
-    ff = FFmpeg(executable="/usr/bin/ffmpeg")
-    await ff.run(["-i", "input.mp4", "output.avi"])
-```
 
 ## Links
 

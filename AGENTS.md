@@ -94,7 +94,7 @@ uv build                  # 构建所有包
 - 通用包使用别名导入，将符号来源带到调用点：
   - `r` → `cx_wealthy.rich_types`（Rich 类型统一出口）
   - `tt` → `cx_studio.text`（文本工具）
-- 依赖 `cx-wealthy` 的包**必须**通过 `cx_wealthy.rich_types` 引用 Rich 类型，禁止使用 `rich.table`、`rich.panel` 等原生路径；`cx_studio` 本身不依赖 `cx-wealthy`，可直接使用 Rich 原生导入
+- 依赖 `cx-wealthy` 的包**优先**通过 `cx_wealthy.rich_types` 引用常用 Rich 类型；非组件类功能（如 `rich.traceback.install`）与低频类型可直接 import rich；`cx_studio` 本身不依赖 `cx-wealthy`，可直接使用 Rich 原生导入
 
 #### 数据模型选择
 
@@ -183,6 +183,7 @@ uv build                  # 构建所有包
 | cx_tools（框架） | `from cx_tools.i18n import _, _ng` | 框架自身字符串 |
 | media_scout | `from media_scout.i18n import _, _ng` | media_scout 工具字符串 |
 | media_killer | `from media_killer.i18n import _, _ng` | media_killer 工具字符串 |
+| ffpretty | `from ffpretty.i18n import _, _ng` | ffpretty 工具字符串 |
 | jpegger | `from jpegger.i18n import _, _ng` | jpegger 工具字符串 |
 | hosts_keeper | `from hosts_keeper.i18n import _, _ng` | hosts_keeper 工具字符串 |
 
@@ -190,7 +191,7 @@ uv build                  # 构建所有包
 
 > `cx-wealthy` 不参与 gettext 翻译——UI 组件输出为框架固定文本，由使用方控制，详见 [cx-wealthy 工作区指南](packages/cx-wealthy/AGENTS.md)。
 
-> 每个工具独立 domain 和翻译文件：domain 分别为 `cx-tools`、`media-scout`、`media-killer`、`jpegger`、`hosts-keeper`。各工具自持 `i18n/locales/`，互不交叉。
+> 每个工具独立 domain 和翻译文件：domain 分别为 `cx-tools`、`media-scout`、`media-killer`、`ffpretty`、`jpegger`、`hosts-keeper`。各工具自持 `i18n/locales/`，互不交叉。
 
 ### 环境变量与 locale 检测
 
@@ -223,13 +224,14 @@ uv run pybabel compile --domain cx-studio --directory cx_studio/i18n/locales
 uv run pybabel extract -k _ --output-file cx_tools/i18n/locales/cx-tools.pot cx_tools/
 uv run pybabel extract -k _ --output-file media_scout/i18n/locales/media-scout.pot media_scout/
 uv run pybabel extract -k _ --output-file media_killer/i18n/locales/media-killer.pot media_killer/
+uv run pybabel extract -k _ --output-file ffpretty/i18n/locales/ffpretty.pot ffpretty/
 uv run pybabel extract -k _ --output-file jpegger/i18n/locales/jpegger.pot jpegger/
 uv run pybabel extract -k _ --output-file hosts_keeper/i18n/locales/hosts-keeper.pot hosts_keeper/
 
 # 然后对每个工具 update 和 compile
 uv run pybabel update -i cx_tools/i18n/locales/cx-tools.pot -d cx_tools/i18n/locales -l en_US -D cx-tools
 uv run pybabel compile -d cx_tools/i18n/locales -l en_US -D cx-tools
-# （对 media_scout、media_killer、jpegger、hosts_keeper 重复同样操作）
+# （对 media_scout、media_killer、ffpretty、jpegger、hosts_keeper 重复同样操作）
 ```
 
 编译出的 `.mo` **必须提交到 git**——用户安装时不执行编译。

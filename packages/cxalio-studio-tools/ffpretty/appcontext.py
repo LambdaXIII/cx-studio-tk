@@ -8,10 +8,10 @@ from argparse import ArgumentParser
 from collections.abc import Sequence
 
 from cx_tools.app import IAppContext, SafeError
-from cx_tools.i18n import _
+from ffpretty.i18n import _
 
 
-class AppContext(IAppContext):
+class FFPrettyContext(IAppContext):
     """FFPretty 命令行上下文。
 
     职责：
@@ -30,14 +30,14 @@ class AppContext(IAppContext):
         self.ffmpeg_executable: str | None = None
 
     @classmethod
-    def from_arguments(cls, arguments: Sequence[str]) -> "AppContext":
+    def from_arguments(cls, arguments: Sequence[str]) -> "FFPrettyContext":
         """从命令行参数构造上下文。
 
         Args:
             arguments: 命令行参数列表（不含程序名）。
 
         Returns:
-            构造好的 AppContext 实例。
+            构造好的 FFPrettyContext 实例。
 
         Raises:
             SafeError: 当 -y 和 -n 同时使用时。

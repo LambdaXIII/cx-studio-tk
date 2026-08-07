@@ -4,7 +4,7 @@ from typing import override
 from cx_studio.clikit import FIRST_TRIGGERED, SECOND_TRIGGERED
 from cx_tools.app import IAppEnvironment
 from cx_wealthy import rich_types as r
-from rich.theme import Theme
+from ffpretty.i18n import _
 
 from . import __version__
 
@@ -21,16 +21,16 @@ FFPRETTY_STYLES: dict[str, str] = {
 }
 
 
-class AppEnv(IAppEnvironment):
+class FFPrettyEnv(IAppEnvironment):
     """FFPretty 应用环境。
 
     职责：console 输出、Progress 管理、中断处理、banner 显示。
-    不持有业务状态（配置、MediaDB、ffmpeg 路径等已迁移到 AppContext/Application）。
+    不持有业务状态（配置、MediaDB、ffmpeg 路径等已迁移到 FFPrettyContext/Application）。
     """
 
     def __init__(self):
         super().__init__()
-        self.console.push_theme(Theme(FFPRETTY_STYLES))
+        self.console.push_theme(r.Theme(FFPRETTY_STYLES))
         self.app_name = "FFpretty"
         self.app_version = __version__
 
@@ -50,11 +50,11 @@ class AppEnv(IAppEnvironment):
 
         @self.interrupt_handler.on(FIRST_TRIGGERED)
         def __when_wanna_quit():
-            self.say("[cx.info]再次按下 Ctrl+C 确认退出[/]")
+            self.say(f"[cx.info]{_('再次按下 Ctrl+C 确认退出')}[/]")
 
         @self.interrupt_handler.on(SECOND_TRIGGERED)
         def __when_really_wanna_quit():
-            self.say("[cx.error]正在强制中断程序……[/]")
+            self.say(f"[cx.error]{_('正在强制中断程序……')}[/]")
 
     @override
     def start(self):
@@ -69,5 +69,5 @@ class AppEnv(IAppEnvironment):
         super().stop()
 
 
-appenv = AppEnv()
+appenv = FFPrettyEnv()
 signal.signal(signal.SIGINT, appenv.handle_interrupt)

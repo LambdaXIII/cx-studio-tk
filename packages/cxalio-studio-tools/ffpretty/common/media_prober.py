@@ -9,6 +9,8 @@ import json
 from pathlib import Path
 
 from cx_studio.filesystem.file_sizer import FileSizer
+from ffpretty.i18n import _
+
 from .media_info import MediaInfo, StreamInfo, _safe_int
 
 
@@ -47,7 +49,7 @@ class MediaProber:
             RuntimeError: ffprobe 调用失败或解析失败
         """
         if not file.exists():
-            raise FileNotFoundError(f"文件不存在: {file}")
+            raise FileNotFoundError(_("文件不存在: {path}").format(path=file))
 
         result = subprocess.run(
             [
@@ -68,13 +70,17 @@ class MediaProber:
 
         if result.returncode != 0:
             raise RuntimeError(
-                f"ffprobe 调用失败 (退出码 {result.returncode}): {result.stderr.strip()}"
+                _("ffprobe 调用失败 (退出码 {code}): {output}").format(
+                    code=result.returncode, output=result.stderr.strip()
+                )
             )
 
         try:
             data = json.loads(result.stdout)
         except json.JSONDecodeError as e:
-            raise RuntimeError(f"ffprobe 输出解析失败: {e}") from e
+            raise RuntimeError(
+                _("ffprobe 输出解析失败: {error}").format(error=e)
+            ) from e
 
         return self._parse(data, file)
 

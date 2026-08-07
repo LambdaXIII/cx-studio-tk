@@ -76,7 +76,7 @@ def iter_option_tokens(options: tuple[FfmpegOption, ...]) -> Generator[str, None
 
 from cx_studio.core import iter_with_separator
 from cx_studio.filesystem import PathUtils
-from media_killer.i18n import _
+from ffpretty.i18n import _
 from cx_wealthy import rich_types as r
 
 

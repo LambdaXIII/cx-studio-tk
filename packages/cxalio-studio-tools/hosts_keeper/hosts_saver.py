@@ -13,7 +13,7 @@ from cx_studio.system import CrossRunner, SystemType
 from cx_studio.text import random_string
 from .appenv import appenv
 from cx_tools.app import IAppComponent, IAppEnvironment
-from .appcontext import AppContext
+from .appcontext import HostsKeeperContext
 
 # elevated_replace: CrossRunner 实例，调用签名 (source, target) -> bool
 # 已注册平台：LINUX(sudo/doas/pkexec), MACOS(sudo/osascript), WINDOWS(sudo/PowerShell UAC)
@@ -279,7 +279,7 @@ class HostsSaver(IAppComponent):
     def __init__(
         self,
         appenv: IAppEnvironment,
-        context: AppContext,
+        context: HostsKeeperContext,
         target_hosts: Path | None = None,
         source_hosts: Path | Iterable[str] | None = None,
         pretending_mode: bool | None = None,

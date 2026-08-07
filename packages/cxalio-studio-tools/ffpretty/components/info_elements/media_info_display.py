@@ -1,4 +1,4 @@
-"""MediaInfoDisplay — 基于 media_killer.media.MediaInfo 的 Rich 渲染器。
+"""MediaInfoDisplay — 基于 ffpretty.common.MediaInfo 的 Rich 渲染器。
 
 提供探测模式的 Rich 终端输出，将 MediaInfo + StreamInfo 渲染为 ffpretty 风格的面板。
 """
@@ -8,7 +8,9 @@ from collections.abc import Generator
 from cx_studio.core.file_size import FileSize
 from cx_studio.core.cx_time import CxTime
 from cx_wealthy import RichLabel, WealthyDetailTable, rich_types as r
-from media_killer.media import MediaInfo, StreamInfo
+from ffpretty.i18n import _
+
+from ...common import MediaInfo, StreamInfo
 
 # ── FormatSummary ──────────────────────────────────────────────
 
@@ -23,36 +25,38 @@ class FormatSummary:
         info = self._info
 
         # 文件名
-        yield "文件名", r.Text(info.file_path.name, style="ffpretty.info.filename")
+        yield _("文件名"), r.Text(info.file_path.name, style="ffpretty.info.filename")
 
         # 编码代码（短格式名）
         if info.container_format:
-            yield "编码代码", r.Text(
+            yield _("编码代码"), r.Text(
                 info.container_format, style="ffpretty.info.format_name"
             )
 
         # 混流格式（长格式名）
         if info.container_long_name:
-            yield "混流格式", r.Text(
+            yield _("混流格式"), r.Text(
                 info.container_long_name, style="ffpretty.info.format_long_name"
             )
 
         # 时长
         if info.duration is not None:
             duration = CxTime.from_seconds(info.duration)
-            yield "时长", r.Text(duration.pretty_string, style="ffpretty.info.duration")
+            yield _("时长"), r.Text(
+                duration.pretty_string, style="ffpretty.info.duration"
+            )
 
         # 码率
         if info.bit_rate is not None:
             bitrate = FileSize.from_bytes(info.bit_rate)
-            yield "码率", r.Text(
+            yield _("码率"), r.Text(
                 f"{bitrate.pretty_string}/s", style="ffpretty.info.bit_rate"
             )
 
         # 文件大小
         if info.file_size is not None:
             size = FileSize.from_bytes(info.file_size)
-            yield "大小", r.Text(size.pretty_string, style="ffpretty.info.file_size")
+            yield _("大小"), r.Text(size.pretty_string, style="ffpretty.info.file_size")
 
 
 # ── StreamSummary ──────────────────────────────────────────────
@@ -61,7 +65,7 @@ class FormatSummary:
 class StreamSummary:
     """单流信息摘要，实现 __rich_label__ 供 RichLabel 渲染。
 
-    对齐当前 StreamInfo.__rich_label__ 逻辑，基于 media_killer.media.StreamInfo 的 @property。
+    对齐当前 StreamInfo.__rich_label__ 逻辑，基于 ffpretty.common.StreamInfo 的 @property。
     """
 
     def __init__(self, stream: StreamInfo):
@@ -73,11 +77,20 @@ class StreamSummary:
 
         match s_type:
             case "video":
-                yield r.Text(f"视频流 #{s.index}", style="ffpretty.info.stream_label")
+                yield r.Text(
+                    _("视频流 #{index}").format(index=s.index),
+                    style="ffpretty.info.stream_label",
+                )
             case "audio":
-                yield r.Text(f"音频流 #{s.index}", style="ffpretty.info.stream_label")
+                yield r.Text(
+                    _("音频流 #{index}").format(index=s.index),
+                    style="ffpretty.info.stream_label",
+                )
             case "subtitle":
-                yield r.Text(f"字幕流 #{s.index}", style="ffpretty.info.stream_label")
+                yield r.Text(
+                    _("字幕流 #{index}").format(index=s.index),
+                    style="ffpretty.info.stream_label",
+                )
             case _:
                 yield r.Text(f"未知流 #{s.index}", style="ffpretty.info.stream_label")
 
@@ -122,7 +135,7 @@ class StreamSummary:
 
 
 class MediaInfoDisplay:
-    """基于 media_killer.media.MediaInfo 的 Rich 渲染器。"""
+    """基于 ffpretty.common.MediaInfo 的 Rich 渲染器。"""
 
     def __init__(self, info: MediaInfo):
         self._info = info

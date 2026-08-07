@@ -10,7 +10,7 @@ from __future__ import annotations
 import threading
 from pathlib import Path
 
-from cx_studio.filesystem.file_info_cache import FileInfoCache
+from cx_studio.filesystem import FileInfoCache
 
 from .media_info import MediaInfo
 from .media_prober import MediaProber
@@ -27,15 +27,21 @@ class MediaDB(FileInfoCache):
 
     def __init__(
         self,
-        db_path: Path,
+        db_path: Path | None = None,
         prober: MediaProber | None = None,
     ) -> None:
         """初始化 MediaDB。
 
         Args:
-            db_path: SQLite 数据库文件路径
+            db_path: SQLite 数据库文件路径。默认使用共享缓存空间
+                ``~/.config/cx-studio/shared/media_info.db``（工具无关，
+                所有工具共享同一媒体元数据缓存）；传入可注入隔离缓存。
             prober: MediaProber 实例。若为 None，则创建默认实例。
         """
+        if db_path is None:
+            db_path = Path.home() / ".config" / "cx-studio" / "shared" / "media_info.db"
+            # 共享缓存空间：sqlite 不自动创建父目录，由本层确保可写
+            db_path.parent.mkdir(parents=True, exist_ok=True)
         super().__init__(db_path=db_path)
         self._prober: MediaProber = prober if prober is not None else MediaProber()
         self._probe_lock = threading.Lock()

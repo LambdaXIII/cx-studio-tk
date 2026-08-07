@@ -6,7 +6,7 @@ from pathlib import Path
 
 from cx_studio.filesystem import PathUtils
 from cx_tools.app import IAppComponent, IAppEnvironment
-from .appcontext import AppContext
+from .appcontext import HostsKeeperContext
 from .profile import Profile
 
 
@@ -15,7 +15,7 @@ class ProfileManager(IAppComponent):
     def __init__(
         self,
         appenv: IAppEnvironment,
-        context: AppContext,
+        context: HostsKeeperContext,
         profile_dir: Path | None = None,
     ) -> None:
         super().__init__(appenv, context)

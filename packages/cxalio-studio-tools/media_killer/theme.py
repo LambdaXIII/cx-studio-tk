@@ -8,8 +8,8 @@
 避免同一视觉含义散落为多个自定义 token。
 """
 
-from rich.theme import Theme
 from cx_wealthy import default_theme as cx_default_theme
+from cx_wealthy import rich_types as r
 
 MEDIA_KILLER_STYLES: dict[str, str] = {
     # Mission 徽章（short_id 前缀标识，media_killer 独有视觉元素）
@@ -24,6 +24,6 @@ MEDIA_KILLER_STYLES: dict[str, str] = {
     "cx.mk.status.canceled": "bright_blue",
 }
 
-media_killer_theme = Theme({**cx_default_theme.styles, **MEDIA_KILLER_STYLES})
+media_killer_theme = r.Theme({**cx_default_theme.styles, **MEDIA_KILLER_STYLES})
 
 __all__ = ["MEDIA_KILLER_STYLES", "media_killer_theme"]

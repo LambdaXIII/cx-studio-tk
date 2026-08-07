@@ -16,7 +16,7 @@ from cx_studio.filesystem import FileList
 from cx_tools.app import ConfigManager, IAppContext, SafeError
 from media_killer.i18n import _
 
-from .media import MediaDB
+from ffpretty.common import MediaDB
 
 # 覆盖模式三态
 OVERWRITE_DANGER = "danger"  # -y 指定，强制覆盖
@@ -24,7 +24,7 @@ OVERWRITE_SAFE = "safe"  # -n 指定，安全模式
 
 
 @dataclass
-class AppContext(IAppContext):
+class MediaKillerContext(IAppContext):
     """命令行参数上下文。
 
     封装 mediakiller 所有命令行选项的解析结果。
@@ -73,9 +73,8 @@ class AppContext(IAppContext):
         # 配置管理器
         self._config_manager = ConfigManager("MediaKiller")
 
-        # MediaDB 实例（延迟 connect）
-        db_path = self._config_manager.get_file("media_info.db")
-        self._media_db = MediaDB(db_path=db_path)
+        # MediaDB 实例（延迟 connect，默认共享缓存空间）
+        self._media_db = MediaDB()
 
         # 文件列表（FileList 自动去重 + 延迟大小计算）
         sizer = self._media_db.make_file_bytes_getter()
@@ -209,14 +208,14 @@ class AppContext(IAppContext):
             await asyncio.sleep(interval)
 
     @classmethod
-    def from_arguments(cls, arguments: list[str]) -> AppContext:
+    def from_arguments(cls, arguments: list[str]) -> MediaKillerContext:
         """从命令行参数解析。
 
         Args:
             arguments: 命令行参数列表（不含程序名）
 
         Returns:
-            AppContext: 解析后的上下文
+            MediaKillerContext: 解析后的上下文
 
         Raises:
             SafeError: 参数互斥冲突时抛出

@@ -4,16 +4,14 @@ from collections.abc import Iterable
 from pathlib import Path, PurePath
 from typing import override
 
-from rich.console import Console
-from rich.rule import Rule
-from media_scout.i18n import _
-
 from cx_studio.filesystem import PathUtils
 from cx_tools.app import IApplication, IAppContext, IAppEnvironment
-from cx_wealthy import WealthyDetailPanel
-from media_scout.inspectors.filelist_inspector import FileListInspector
-from .arg_parser import MediaScoutHelp, AppContext
-from .inspectors import (
+from cx_wealthy import WealthyDetailPanel, rich_types as r
+from media_scout.common.inspectors.filelist_inspector import FileListInspector
+from media_scout.i18n import _
+from .app_help import MediaScoutHelp
+from .appcontext import MediaScoutContext
+from .common.inspectors import (
     ResolveMetadataInspector,
     InspectorInfo,
     EDLInspector,
@@ -33,11 +31,11 @@ class MediaScoutApp(IApplication):
     def __init__(
         self,
         appenv: IAppEnvironment,
-        context: AppContext,
+        context: MediaScoutContext,
     ) -> None:
         super().__init__(appenv, context)
         self.context = context
-        self._data_console = Console()
+        self._data_console = r.Console()
 
     def start(self):
         self.appenv.set_debug_mode(self.context.debug_mode)
@@ -104,7 +102,7 @@ class MediaScoutApp(IApplication):
 
         for path in self.context.inputs:
             path = Path(path)
-            self.appenv.say(Rule(path.name, style="dim green"))
+            self.appenv.say(r.Rule(path.name, style="dim green"))
             info = InspectorInfo(Path(path))
             for result in chain.inspect(info):
                 for x in self.auto_expand(result, info):

@@ -29,8 +29,7 @@ from cx_tools.app import (
 from media_killer.i18n import _
 from cx_wealthy import IndexedListPanel, WealthyDetailPanel, rich_types as r
 
-from .appcontext import OVERWRITE_DANGER, OVERWRITE_SAFE, AppContext
-from .appenv import AppEnv
+from .appcontext import OVERWRITE_DANGER, OVERWRITE_SAFE, MediaKillerContext
 from .app_help import MediaKillerHelp
 from .components import (
     MissionMaker,
@@ -40,13 +39,10 @@ from .components import (
     ScriptMaker,
     SourceExpander,
 )
-from .media import (
-    FileLogType,
-    Mission,
-    MissionHQ,
-    MissionResult,
-)
-from .media.mission_hq import MISSION_FILE_LOGGED, MISSION_RESULT, MISSION_STARTED
+from ffpretty.common import FileLogType, Mission, MissionResult
+
+from .common import MissionHQ
+from .common.mission_hq import MISSION_FILE_LOGGED, MISSION_RESULT, MISSION_STARTED
 
 
 class MediaKillerApp(IApplication):
@@ -55,7 +51,7 @@ class MediaKillerApp(IApplication):
     def __init__(
         self,
         appenv: IAppEnvironment,
-        context: AppContext,
+        context: MediaKillerContext,
         progress: r.Progress,
     ) -> None:
         super().__init__(appenv, context)
@@ -145,7 +141,7 @@ class MediaKillerApp(IApplication):
         result = super().__exit__(exc_type, exc_val, exc_tb)
         if exc_type is None:
             self.appenv.whisper(_("程序正常退出。"))
-        elif exc_type is SafeError:
+        elif exc_type is not None and issubclass(exc_type, SafeError):
             self.appenv.say(exc_val)
             result = True
         return result
@@ -349,9 +345,6 @@ class MediaKillerApp(IApplication):
             mission: 已完成的 Mission
             result: 执行结果
         """
-        from rich.text import Text
-        from rich.columns import Columns
-
         header = f"[cx.debug]M[/] [cx.whisper][{len(mission.inputs)}->{len(mission.outputs)}][/] "
         name_part = f"[cx.mk.mission.name]{mission.name}[/]"
         label = header + name_part
@@ -367,10 +360,10 @@ class MediaKillerApp(IApplication):
         else:
             right_str = f"[cx.whisper]{result.value}[/]"
 
-        left = Text.from_markup(label, justify="left", overflow="ellipsis")
+        left = r.Text.from_markup(label, justify="left", overflow="ellipsis")
         left.no_wrap = True
-        right = Text.from_markup(right_str, justify="right")
-        self.appenv.say(Columns([left, right], expand=True))
+        right = r.Text.from_markup(right_str, justify="right")
+        self.appenv.say(r.Columns([left, right], expand=True))
 
     def _report_summary(self, results: list[MissionResult]) -> None:
         """输出批量执行统计。
@@ -468,7 +461,7 @@ class MediaKillerApp(IApplication):
         for preset in self.presets:
             merged_suffixes |= preset.source_suffixes
 
-        from media_scout.inspectors import (
+        from media_scout.common.inspectors import (
             ResolveMetadataInspector,
             EDLInspector,
             LegacyXMLInspector,
@@ -476,7 +469,7 @@ class MediaKillerApp(IApplication):
             FCPXMLDInspector,
             InspectorChain,
         )
-        from media_scout.inspectors.filelist_inspector import FileListInspector
+        from media_scout.common.inspectors.filelist_inspector import FileListInspector
 
         scout_chain = InspectorChain(
             ResolveMetadataInspector(),

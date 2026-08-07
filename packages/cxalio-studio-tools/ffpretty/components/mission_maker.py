@@ -10,7 +10,7 @@ Preset 模板和标签替换，ffpretty 不需要这些——直接从原始命�
 from pathlib import Path
 
 from cx_studio.ffmpeg import FFmpegArgumentsPreProcessor
-from media_killer.media import InputSpec, Mission, OutputSpec, options_from_flat
+from ..common import InputSpec, Mission, OutputSpec, options_from_flat
 
 # -i 不从属于任何 input/output，构造选项列表时排除
 # （-y/-n 已被 argparse 在 Application 层消费，不会出现在参数中）

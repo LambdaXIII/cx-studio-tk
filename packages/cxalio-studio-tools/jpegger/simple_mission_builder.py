@@ -1,4 +1,4 @@
-"""从 `SimpleAppContext` 构建 `Mission` 列表。
+"""从 `JpeggerContext` 构建 `Mission` 列表。
 
 `SimpleMissionBuilder` 接收已经构建好的 `ImageFilterChain` 与命令行
 上下文，为每个输入文件生成对应的 `Mission`，包括目标路径、目标格式、
@@ -14,7 +14,7 @@ from jpegger.components.format_database import FormatDB, FormatInfo
 from jpegger.components.mission import Mission
 from jpegger.filters import ImageFilterChain
 
-from .simple_appcontext import SimpleAppContext
+from .appcontext import JpeggerContext
 
 
 class SimpleMissionBuilder:
@@ -41,7 +41,7 @@ class SimpleMissionBuilder:
     def __init__(
         self,
         filter_chain: ImageFilterChain,
-        app_context: SimpleAppContext,
+        app_context: JpeggerContext,
     ):
         self.filter_chain = filter_chain
         self.output_dir = PathUtils.normalize_path(app_context.output_dir or Path.cwd())

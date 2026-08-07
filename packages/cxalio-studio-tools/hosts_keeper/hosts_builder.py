@@ -7,7 +7,7 @@ from pathlib import Path
 from cx_studio.filesystem import detect_file_encoding
 from hosts_keeper.i18n import _
 from cx_tools.app import IAppComponent, IAppEnvironment
-from .appcontext import AppContext
+from .appcontext import HostsKeeperContext
 from cx_wealthy import rich_types as r
 from .profile import Profile
 
@@ -16,7 +16,7 @@ class HostsBuilder(IAppComponent):
     def __init__(
         self,
         appenv: IAppEnvironment,
-        context: AppContext,
+        context: HostsKeeperContext,
         progress: r.Progress,
         hosts_file_path: Path | None = None,
         max_workers: int = -1,
@@ -76,7 +76,11 @@ class HostsBuilder(IAppComponent):
                         # 契约：命中保留标记格式即按 profile 块处理
                         profile_depth += 1
                         orphan_start_id = start_match.group(1).strip()
-                        if orphan_start_id not in self.registered_profile_ids:
+                        # group(1) 随整体匹配必然非空；is not None 仅为 pyright 窄化（Any 污染）
+                        if (
+                            orphan_start_id is not None
+                            and orphan_start_id not in self.registered_profile_ids
+                        ):
                             unregistered_blocks.add(orphan_start_id)
                         continue
                     end_match = self.PROFILE_END_MARKER.match(striped_line)

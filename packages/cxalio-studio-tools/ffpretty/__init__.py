@@ -1,8 +1,8 @@
-__version__ = "0.9.0"
+__version__ = "0.9.1"
 
 import sys
 
-from .appcontext import AppContext
+from .appcontext import FFPrettyContext
 from .application import FFPrettyApp
 from .appenv import appenv
 
@@ -15,7 +15,7 @@ def run():
 
     with appenv:
         try:
-            context = AppContext.from_arguments(sys.argv[1:])
+            context = FFPrettyContext.from_arguments(sys.argv[1:])
         except SafeError as e:
             appenv.say(f"[{e.style}]{e}[/]")
             return

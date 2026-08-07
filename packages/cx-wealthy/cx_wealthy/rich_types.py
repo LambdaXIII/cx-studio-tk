@@ -12,6 +12,7 @@ from rich.markdown import Markdown
 from rich.measure import Measurement
 from rich.padding import Padding
 from rich.panel import Panel
+from rich.rule import Rule
 from rich.segment import Segment
 from rich.style import Style
 from rich.table import Column, Table
@@ -47,6 +48,7 @@ __all__ = [
     "Segment",
     "protocol",
     "RenderableType",
+    "Rule",
     "Progress",
     "TaskID",
     "SpinnerColumn",

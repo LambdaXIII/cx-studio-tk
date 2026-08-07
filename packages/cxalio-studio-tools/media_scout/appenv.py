@@ -2,7 +2,7 @@ from cx_tools.app import IAppEnvironment
 from . import __version__
 
 
-class AppEnv(IAppEnvironment):
+class MediaScoutEnv(IAppEnvironment):
     """MediaScout 应用环境。
 
     提供输出能力（say/whisper）。
