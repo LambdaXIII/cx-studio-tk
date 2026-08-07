@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.99.0
+
+### 版本统一
+
+- 与 cx-studio、cxalio-studio-tools 及全部 CLI 工具同步为 0.99.0，消除历史迭代造成的版本号分叉；此后按根 AGENTS.md 版本管理规则规范迭代
+
 ## 0.10.0
 
 ### 开放库清理

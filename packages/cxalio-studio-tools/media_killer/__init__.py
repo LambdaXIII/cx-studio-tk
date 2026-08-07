@@ -3,7 +3,7 @@
 CLI 入口：mediakiller = "media_killer:run"
 """
 
-__version__ = "0.9.3"
+__version__ = "0.99.0"
 
 import sys
 

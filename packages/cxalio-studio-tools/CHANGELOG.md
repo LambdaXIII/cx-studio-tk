@@ -1,7 +1,13 @@
 # Change Log of Cxalio Studio Tools
 
 
-### [最新修改] 架构重构：能力归位 + 命名空间即契约（v0.9.4）
+### 0.99.0
+
+- **版本统一**：cx_tools 与全部 5 个工具的 `__version__`、发布单元 pyproject 同步为 0.99.0，消除历史迭代造成的版本号分叉（此前 cx_tools 0.8.8 与 pyproject 0.9.4 不一致）；此后按根 AGENTS.md 版本管理规则规范迭代
+- **依赖版本机制**：对 `cx-studio`、`cx-wealthy` 的依赖由不限版本改为 `>=0.99.0` 下限约束，与发布版本对齐
+
+
+#### 架构重构：能力归位 + 命名空间即契约
 
 - **执行核心归位 ffpretty**：Mission/Executor/Pretender/Whisperer/MediaInfo/MediaProber/MediaDB 七个模块从 `media_killer.media` 迁入 `ffpretty/common/`（对外提供面）；media_killer 作为组合者从 `ffpretty.common` 消费，`media_killer/media/` 目录消失
 - **media_killer.common 落位**：MissionHQ/ExecutorFactory/ExecutorScheduler/TaskProgress/TotalProgress 五个调度层模块迁入 `media_killer/common/`
@@ -13,7 +19,7 @@
 - **开放库清理对齐**：sync FFmpeg/ff_errors/get_root/render_tutorial/progress_task_agent 删除（含 README/AGENTS 文档对齐）；TimeRange duration/end getter 语义修复；FileInfoCache 纳入 `cx_studio.filesystem` 导出；AGENTS.md 新增 common/components 分层规范与组合面契约（工具间 import 只允许指向 `package.common`）
 
 
-### [最新修改] HostsKeeper update 行为重定义（排序/查重/异常可见性）
+#### HostsKeeper update 行为重定义（排序/查重/异常可见性）
 
 - **优先级排序落地**：update 构建时启用的 profiles 按 `priority` 降序输出（此前未实现，help 声称与实际不符）；相同优先级保持配置文件发现顺序（stable sort，不引入 tie-break）
 - **冲突查重（first match wins）**：与平台 hosts 解析行为一致（Linux/Windows 均以首个匹配生效）——用户自定义内容最先输出且域名受保护（绝不覆盖）；profile 之间及同一 profile 内多内容源撞域名时，后出现者以 `# ` 注释保留在自身块内；注释行是生成产物，冲突消失后（如禁用高优先级 profile）下一次 update 自动恢复为有效行
@@ -24,7 +30,7 @@
 - **i18n**：新报告消息接入 gettext（en_US 翻译完成）；顺带修正既有错误翻译（"已处理配置文件" 误译为 "Profile created"）
 
 
-### [最新修改] 统一 Mission 失败反馈链路
+#### 统一 Mission 失败反馈链路
 
 - **`MissionFailureInfo` 升级为统一失败数据包**：任何导致 Mission 未正常完成的失败（FFmpeg 执行失败、校验失败、提交失败、executor 外部逃逸异常）均通过它反馈；新增 `ffmpeg: FfmpegErrorInfo | None` 嵌套详情字段（keyword-only），`exception` 改为可选，`stage` 扩展为三值（`factory`/`execution`/`post-execution`）
 - **新增 `is_ffmpeg_failure` 属性**：以 `exit_code` 非零判定 FFmpeg 真失败——校验/提交失败（exit_code 为 None/0）不再被误判为「FFmpeg 异常退出」
@@ -36,7 +42,7 @@
 - **`FfmpegErrorInfo` 保持为纯详情数据类**：作为 `MissionFailureInfo.ffmpeg` 的嵌套详情，字段与渲染不变
 
 
-### [最新修改] IAppComponent 存储重构 & 类型修复
+#### IAppComponent 存储重构 & 类型修复
 
 - **IAppComponent 不再存储 appenv/context**：删除 `_appenv`/`_context` 私有属性和 `appenv`/`context` property，`__init__` 参数变更为 optional，仅作签名契约提示
 - **IApplication 直接存储**：IApplication 的 `__init__` 直接赋值 `self.appenv = appenv; self.context = context`，子类在 `super().__init__()` 后通过 `self.context = context` 收窄为具体子类类型
@@ -44,7 +50,7 @@
 - **app_description 从 AppEnv 移除**：media_killer 和 hosts_keeper 的 AppEnv 删除 `app_description` 字段；media_killer 的使用处改为 `_()` 包装的 i18n 字符串
 - **AGENTS.md 更新**：补充"为什么 IAppComponent 不存储 appenv/context"设计说明
 
-### [最新修改] 应用架构重构：依赖注入化
+#### 应用架构重构：依赖注入化
 
 - **新增 `IAppContext` 抽象基类**（`cx_tools/app/iappcontext.py`）：统一所有工具的 AppContext 契约——持有参数解析结果 + 运行时状态（temp_dir 惰性能力），实现上下文管理器协议（`__enter__`/`__exit__` + `start()`/`stop()`）
 - **`IApplication` 签名重构**：从 `(arguments)` 改为 `(appenv, context)`——Application 不再绑定全局 appenv 单例，通过构造参数注入依赖，可被其他工具复用
@@ -55,7 +61,7 @@
 - **appenv 瘦身**：各工具 AppEnv 移除业务状态（context、config_manager、media_db、temp_dir 等），仅保留环境能力（console/say/whisper/中断/banner/progress）
 - **已知例外**：hosts_keeper `hosts_saver.py` 中 CrossRunner 模块级函数保留全局 appenv 导入（装饰器注册机制要求）
 
-### 修复
+#### 修复
 
 - 修复 Progress Live 显示被 say/whisper override 永久杀死的问题（ffpretty、hosts_keeper、media_killer）
 - 修复 media_scout SIGINT handler 挂在死实例上导致 Ctrl+C 无响应

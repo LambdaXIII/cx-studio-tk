@@ -1,4 +1,4 @@
-__version__ = "0.8.7"
+__version__ = "0.99.0"
 
 from .application import MediaScoutApp
 from .appcontext import MediaScoutContext

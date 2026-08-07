@@ -1,4 +1,4 @@
-__version__ = "0.9.1"
+__version__ = "0.99.0"
 
 from .application import HostsKeeperApp
 from .appcontext import HostsKeeperContext

@@ -1,5 +1,9 @@
 # Change logs of cx-studio
 
+### v0.99.0
+
+- **版本统一**：与 cx-wealthy、cxalio-studio-tools 及全部 CLI 工具同步为 0.99.0，消除历史迭代造成的版本号分叉；此后按根 AGENTS.md 版本管理规则规范迭代
+
 ### v0.11.0
 
 - **开放库清理**：删除未完成/未文档化的 sync FFmpeg（`cx_studio.ffmpeg.ffmpeg`）与 `ff_errors` 错误家族、零调用的 `get_root()`；README 删除含不存在 API 的「快速示例」章节并修正 Timebase 描述（无预置帧率常量，仅 `from_fps()` 工厂）

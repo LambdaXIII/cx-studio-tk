@@ -114,7 +114,7 @@ wheels = [
 
 [[package]]
 name = "cx-studio"
-version = "0.11.0"
+version = "0.99.0"
 source = { editable = "packages/cx-studio" }
 dependencies = [
     { name = "chardet" },
@@ -160,7 +160,7 @@ dev = [
 
 [[package]]
 name = "cx-wealthy"
-version = "0.10.0"
+version = "0.99.0"
 source = { editable = "packages/cx-wealthy" }
 dependencies = [
     { name = "rich" },
@@ -171,7 +171,7 @@ requires-dist = [{ name = "rich", specifier = ">=14.0.0" }]
 
 [[package]]
 name = "cxalio-studio-tools"
-version = "0.9.4"
+version = "0.99.0"
 source = { editable = "packages/cxalio-studio-tools" }
 dependencies = [
     { name = "cachetools" },

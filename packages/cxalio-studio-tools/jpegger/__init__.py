@@ -4,7 +4,7 @@
 入口点，负责安装 Rich 异常追踪并启动 `JpeggerApp`。
 """
 
-__version__ = "0.8.4"
+__version__ = "0.99.0"
 
 import sys
 
