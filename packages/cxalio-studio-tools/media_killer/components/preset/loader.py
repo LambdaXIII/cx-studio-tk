@@ -10,7 +10,7 @@ import tomllib
 from pathlib import Path
 from typing import Any
 
-from cx_tools.i18n import _
+from media_killer.i18n import _
 
 from .preset import InputTemplate, OutputTemplate, Preset
 

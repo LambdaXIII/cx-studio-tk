@@ -1,0 +1,367 @@
+# Translations template for PROJECT.
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-08-07 14:24+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#: ffpretty/app_help.py:17
+msgid ""
+"FFmpeg 友好前端。将 FFmpeg 参数直接转发给后台进程，并在前台\n"
+"            输出美化过的转码信息和进度。附赠媒体文件的详细信息查询功能。\n"
+"            "
+msgstr ""
+
+#: ffpretty/app_help.py:28
+msgid "转码模式"
+msgstr ""
+
+#: ffpretty/app_help.py:29
+msgid "ffpretty -i <输入文件> [FFmpeg 选项] <输出文件>"
+msgstr ""
+
+#: ffpretty/app_help.py:33
+msgid "强制覆盖"
+msgstr ""
+
+#: ffpretty/app_help.py:34
+msgid "覆盖已存在的输出文件。注意此选项由 ffpretty 自身处理，不会透传给 FFmpeg。"
+msgstr ""
+
+#: ffpretty/app_help.py:38
+msgid "安全模式"
+msgstr ""
+
+#: ffpretty/app_help.py:39
+msgid "跳过已存在的输出文件（默认启用）。此选项由 ffpretty 自身处理，不会透传给 FFmpeg。"
+msgstr ""
+
+#: ffpretty/app_help.py:44
+msgid "查询模式"
+msgstr ""
+
+#: ffpretty/app_help.py:45
+msgid "ffpretty <媒体文件1> [<媒体文件2> …]"
+msgstr ""
+
+#: ffpretty/app_help.py:49
+msgid "媒体文件"
+msgstr ""
+
+#: ffpretty/app_help.py:53
+msgid ""
+"输入媒体文件的路径，多个文件以空格分隔。查询结果会被缓存到数据库中，重复查询直接读取缓存。\n"
+"\n"
+"提示：也可以通过 -i 语法传入文件且不指定输出目标来进入查询模式，此时会忽略非文件选项。"
+msgstr ""
+
+#: ffpretty/app_help.py:62
+msgid "杂项"
+msgstr ""
+
+#: ffpretty/app_help.py:63
+msgid "显示此帮助信息"
+msgstr ""
+
+#: ffpretty/app_help.py:64
+msgid "开启调试模式，显示内部诊断信息"
+msgstr ""
+
+#: ffpretty/app_help.py:65
+msgid "模拟运行，不调用 FFmpeg、不写文件"
+msgstr ""
+
+#: ffpretty/appcontext.py:60
+msgid "-y/--overwrite 与 -n/--no-overwrite 不可同时使用。"
+msgstr ""
+
+#: ffpretty/appenv.py:54
+msgid "再次按下 Ctrl+C 确认退出"
+msgstr ""
+
+#: ffpretty/appenv.py:58
+msgid "正在强制中断程序……"
+msgstr ""
+
+#: ffpretty/application.py:73
+msgid "执行结束，用时"
+msgstr ""
+
+#: ffpretty/application.py:74
+msgid "。"
+msgstr ""
+
+#: ffpretty/application.py:86 ffpretty/application.py:164
+#: ffpretty/common/executor.py:432 ffpretty/common/pretender.py:94
+msgid "用户中断"
+msgstr ""
+
+#: ffpretty/application.py:97
+msgid "输入文件不存在:"
+msgstr ""
+
+#: ffpretty/application.py:107
+#, python-brace-format
+msgid "临时文件: {path}（待清理）"
+msgstr ""
+
+#: ffpretty/application.py:111
+#, python-brace-format
+msgid "输出文件: {path}"
+msgstr ""
+
+#: ffpretty/application.py:118
+#, python-brace-format
+msgid "清理 {count} 个残留临时文件..."
+msgstr ""
+
+#: ffpretty/application.py:131 ffpretty/application.py:243
+msgid "当前环境中未找到"
+msgstr ""
+
+#: ffpretty/application.py:131 ffpretty/application.py:243
+msgid "可执行文件。"
+msgstr ""
+
+#: ffpretty/application.py:170
+msgid "目标文件已存在，跳过执行。如需覆盖请添加"
+msgstr ""
+
+#: ffpretty/application.py:171
+msgid "参数。"
+msgstr ""
+
+#: ffpretty/application.py:178
+msgid "FFmpeg 异常退出"
+msgstr ""
+
+#: ffpretty/application.py:180
+msgid "任务失败"
+msgstr ""
+
+#: ffpretty/application.py:203 ffpretty/common/mission.py:200
+msgid "输入"
+msgstr ""
+
+#: ffpretty/application.py:204 ffpretty/common/mission.py:201
+msgid "输出"
+msgstr ""
+
+#: ffpretty/application.py:205
+msgid "压缩至"
+msgstr ""
+
+#: ffpretty/application.py:205
+msgid "膨胀"
+msgstr ""
+
+#: ffpretty/application.py:222
+#, python-brace-format
+msgid "探测失败: {path} — {error}"
+msgstr ""
+
+#: ffpretty/application.py:227
+#, python-brace-format
+msgid "无法识别媒体文件: {path}"
+msgstr ""
+
+#: ffpretty/application.py:247
+msgid "未提供任何参数。"
+msgstr ""
+
+#: ffpretty/application.py:257
+msgid "没有提供需要处理的文件，请按照 ffmpeg 的规则制定输入输出文件，或直接制定需要探测的文件。"
+msgstr ""
+
+#: ffpretty/application.py:267
+msgid "参数无法解读。"
+msgstr ""
+
+#: ffpretty/common/executor.py:215
+#, python-brace-format
+msgid "检测到重叠的输入输出文件: {files}"
+msgstr ""
+
+#: ffpretty/common/executor.py:223
+#, python-brace-format
+msgid "FFmpeg 可执行文件无效: {path}"
+msgstr ""
+
+#: ffpretty/common/executor.py:230
+#, python-brace-format
+msgid "输入文件不存在: {files}"
+msgstr ""
+
+#: ffpretty/common/executor.py:241
+#, python-brace-format
+msgid "输出目录无写权限: {dirs}"
+msgstr ""
+
+#: ffpretty/common/executor.py:417
+msgid "参数构建完成"
+msgstr ""
+
+#: ffpretty/common/executor.py:433 ffpretty/common/executor.py:456
+msgid "正在停止 FFmpeg…"
+msgstr ""
+
+#: ffpretty/common/executor.py:449
+msgid "FFmpeg 执行失败"
+msgstr ""
+
+#: ffpretty/common/executor.py:455 ffpretty/common/pretender.py:105
+msgid "调度器强制取消"
+msgstr ""
+
+#: ffpretty/common/executor.py:518
+msgid "FFmpeg 已启动"
+msgstr ""
+
+#: ffpretty/common/executor.py:565
+#, python-brace-format
+msgid "重命名临时文件失败: {error}"
+msgstr ""
+
+#: ffpretty/common/media_prober.py:52
+#, python-brace-format
+msgid "文件不存在: {path}"
+msgstr ""
+
+#: ffpretty/common/media_prober.py:73
+#, python-brace-format
+msgid "ffprobe 调用失败 (退出码 {code}): {output}"
+msgstr ""
+
+#: ffpretty/common/media_prober.py:81
+#, python-brace-format
+msgid "ffprobe 输出解析失败: {error}"
+msgstr ""
+
+#: ffpretty/common/mission.py:97 ffpretty/common/mission.py:117
+msgid "文件"
+msgstr ""
+
+#: ffpretty/common/mission.py:98 ffpretty/common/mission.py:118
+msgid "选项"
+msgstr ""
+
+#: ffpretty/common/mission.py:99 ffpretty/common/mission.py:119
+#: ffpretty/common/mission.py:198
+msgid "无"
+msgstr ""
+
+#: ffpretty/common/mission.py:189
+msgid "任务 ID"
+msgstr ""
+
+#: ffpretty/common/mission.py:190
+msgid "源文件"
+msgstr ""
+
+#: ffpretty/common/mission.py:191
+msgid "目标文件"
+msgstr ""
+
+#: ffpretty/common/mission.py:193
+msgid "预设 ID"
+msgstr ""
+
+#: ffpretty/common/mission.py:195
+msgid "预设名称"
+msgstr ""
+
+#: ffpretty/common/mission.py:196
+msgid "覆盖模式"
+msgstr ""
+
+#: ffpretty/common/mission.py:196
+msgid "是"
+msgstr ""
+
+#: ffpretty/common/mission.py:196
+msgid "否"
+msgstr ""
+
+#: ffpretty/common/mission.py:197
+msgid "全局选项"
+msgstr ""
+
+#: ffpretty/common/pretender.py:95 ffpretty/common/pretender.py:106
+msgid "正在停止…"
+msgstr ""
+
+#: ffpretty/components/mission_runner.py:82
+msgid "准备中..."
+msgstr ""
+
+#: ffpretty/components/mission_runner.py:89
+msgid "开始转码..."
+msgstr ""
+
+#: ffpretty/components/mission_runner.py:106
+msgid "转码中"
+msgstr ""
+
+#: ffpretty/components/mission_runner.py:113
+msgid "转码完成"
+msgstr ""
+
+#: ffpretty/components/mission_runner.py:120
+msgid "转码失败"
+msgstr ""
+
+#: ffpretty/components/mission_runner.py:127
+msgid "已取消"
+msgstr ""
+
+#: ffpretty/components/info_elements/media_info_display.py:28
+msgid "文件名"
+msgstr ""
+
+#: ffpretty/components/info_elements/media_info_display.py:32
+msgid "编码代码"
+msgstr ""
+
+#: ffpretty/components/info_elements/media_info_display.py:38
+msgid "混流格式"
+msgstr ""
+
+#: ffpretty/components/info_elements/media_info_display.py:45
+msgid "时长"
+msgstr ""
+
+#: ffpretty/components/info_elements/media_info_display.py:50
+msgid "码率"
+msgstr ""
+
+#: ffpretty/components/info_elements/media_info_display.py:57
+msgid "大小"
+msgstr ""
+
+#: ffpretty/components/info_elements/media_info_display.py:79
+#, python-brace-format
+msgid "视频流 #{index}"
+msgstr ""
+
+#: ffpretty/components/info_elements/media_info_display.py:84
+#, python-brace-format
+msgid "音频流 #{index}"
+msgstr ""
+
+#: ffpretty/components/info_elements/media_info_display.py:89
+#, python-brace-format
+msgid "字幕流 #{index}"
+msgstr ""
+

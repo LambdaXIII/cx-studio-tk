@@ -1,11 +1,16 @@
-__version__ = "0.8.6"
+__version__ = "0.99.0"
 
-from .application import Application
+from .application import MediaScoutApp
+from .appcontext import MediaScoutContext
+from .appenv import MediaScoutEnv
 
 
 def run():
     from rich.traceback import install
 
     install(show_locals=True)
-    with Application() as app:
-        app.run()
+    context = MediaScoutContext.from_arguments()
+    appenv = MediaScoutEnv()
+    with appenv:
+        with MediaScoutApp(appenv=appenv, context=context) as app:
+            app.run()

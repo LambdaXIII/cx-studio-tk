@@ -1,19 +1,28 @@
-from cx_tools.i18n import _
+from hosts_keeper.i18n import _
 
 import fnmatch
 from collections.abc import Iterable
 from pathlib import Path
 
 from cx_studio.filesystem import PathUtils
-from .appenv import appenv
+from cx_tools.app import IAppComponent, IAppEnvironment
+from .appcontext import HostsKeeperContext
 from .profile import Profile
 
 
-class ProfileManager:
+class ProfileManager(IAppComponent):
 
-    def __init__(self, profile_dir: Path | None = None) -> None:
+    def __init__(
+        self,
+        appenv: IAppEnvironment,
+        context: HostsKeeperContext,
+        profile_dir: Path | None = None,
+    ) -> None:
+        super().__init__(appenv, context)
+        self.appenv = appenv
+        self.context = context
         self.profile_dir = (
-            profile_dir.resolve() if profile_dir else appenv.config_manager.config_dir
+            profile_dir.resolve() if profile_dir else context.config_manager.config_dir
         )
         self.__profiles: dict[str, Profile] = {}
         self.__needs_refresh: bool = True
@@ -28,13 +37,13 @@ class ProfileManager:
             for filename in self.__find_profiles():
                 profile = Profile.load(filename)
                 if profile is None:
-                    appenv.whisper(
+                    self.appenv.whisper(
                         f"[cx.error]{filename} {_('为非法配置文件，已跳过。')}"
                     )
                     continue
                 if profile.id in self.__profiles:
                     old_profile = self.__profiles[profile.id]
-                    appenv.whisper(
+                    self.appenv.whisper(
                         f"[cx.warning]{_('配置文件 {id} 已经由 {old_name} 提供，将被 {new_name} 覆盖。').format(id=profile.id, old_name=old_profile.path.name, new_name=profile.path.name)}"
                     )
                 self.__profiles[profile.id] = profile

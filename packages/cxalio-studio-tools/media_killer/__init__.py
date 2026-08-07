@@ -3,9 +3,15 @@
 CLI 入口：mediakiller = "media_killer:run"
 """
 
-__version__ = "0.9.2"
+__version__ = "0.99.0"
 
-from .application import Application
+import sys
+
+from cx_tools.app import SafeError
+
+from .appcontext import MediaKillerContext
+from .appenv import appenv
+from .application import MediaKillerApp
 
 
 def run() -> None:
@@ -14,8 +20,16 @@ def run() -> None:
 
     install(show_locals=False, word_wrap=True, suppress=["rich"])
 
-    with Application() as app:
-        app.run()
+    try:
+        context = MediaKillerContext.from_arguments(sys.argv[1:])
+    except SafeError as e:
+        appenv.say(f"[{e.style}]{e}[/]")
+        return
+    with appenv:
+        with MediaKillerApp(
+            appenv=appenv, context=context, progress=appenv.progress
+        ) as app:
+            app.run()
 
 
-__all__ = ["Application", "run"]
+__all__ = ["MediaKillerApp", "run"]

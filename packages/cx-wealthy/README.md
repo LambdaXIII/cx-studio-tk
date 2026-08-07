@@ -108,14 +108,12 @@ update_cmd.add_action("--force", description="强制更新")
 |---|---|
 | `IndexedListPanel` | 带行号索引的列表面板，支持截断（`max_lines=None` 不限） |
 | `MaxColumnsLayout` | 固定最大列数的多列布局 |
-| `render_tutorial()` | 按 locale 加载 Markdown 教程文件并渲染为 Panel |
 
 ```python
-from cx_wealthy import IndexedListPanel, MaxColumnsLayout, render_tutorial
+from cx_wealthy import IndexedListPanel, MaxColumnsLayout
 
 console.print(IndexedListPanel(["a", "b", "c"], title="文件列表"))
 console.print(MaxColumnsLayout(["one", "two", "three", "four"], max_columns=3))
-console.print(render_tutorial(__package__, "help.md", title="教程"))
 ```
 
 ## 主题预设
@@ -160,7 +158,6 @@ r.Console().print(table)
 | `help` | `Action` · `HelpGroup` · `WealthyHelp` |
 | `indexed_list` | `IndexedListPanel` |
 | `columns` | `MaxColumnsLayout` |
-| `tutorial` | `render_tutorial` |
 | `theme` | `CX_STYLES` · `HELP_STYLES` · `default_theme` |
 | `rich_types` | Rich 高频类型别名出口 |
 

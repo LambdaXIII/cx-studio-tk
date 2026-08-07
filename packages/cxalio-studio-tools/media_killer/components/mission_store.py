@@ -14,7 +14,7 @@ from pathlib import Path
 import ulid
 
 from cx_studio.filesystem import PathUtils
-from ..media import FfmpegOption, InputSpec, Mission, OutputSpec
+from ffpretty.common import FfmpegOption, InputSpec, Mission, OutputSpec
 
 
 def _text(element: ET.Element | None) -> str | None:

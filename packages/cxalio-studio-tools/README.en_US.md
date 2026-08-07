@@ -74,12 +74,7 @@ See the [HostsKeeper help document](hosts_keeper/help.md) for details.
 
 ## Application Framework
 
-All tools are built on top of the `cx_tools.app` application framework, which provides unified CLI application lifecycle management:
-
-- **IApplication** — Application lifecycle interface (`start` → `run` → `stop`)
-- **IAppEnvironment** — Runtime environment abstraction, providing Rich console, SIGINT handling, `say()` / `whisper()` tiered output, and administrator privilege detection
-- **SafeError** — Unified exception handling with Rich-styled display for recoverable application errors
-- **AppContext** — Unified argument parsing pattern (`from_arguments()` factory method)
+All tools are built on the `cx_tools.app` application framework, which provides unified CLI lifecycle management, Rich output, and interrupt handling.
 
 ## Installation
 

@@ -1,3 +1,1 @@
-__version__ = "0.8.7"
-
-from .filesize_counter import *
+__version__ = "0.99.0"

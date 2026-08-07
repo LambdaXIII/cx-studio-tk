@@ -1,8 +1,10 @@
 {
-  "pythonVersion": "3.14",
-  "pythonPlatform": "All",
-  "venvPath": ".",
-  "venv": ".venv",
-  "reportMissingModuleSource": false,
-  "reportMissingTypeStubs": false
+  "exclude": [
+    "**/archived",
+    "**/archived/**",
+    "**/node_modules",
+    "**/__pycache__",
+    "**/.*",
+    ".venv"
+  ]
 }

@@ -93,14 +93,12 @@ console.print(help)
 |---|---|
 | `IndexedListPanel` | List panel with row index, supports truncation (`max_lines=None` for unlimited) |
 | `MaxColumnsLayout` | Multi-column layout with a fixed maximum column count |
-| `render_tutorial()` | Loads a Markdown tutorial file by locale and renders it as a Panel |
 
 ```python
-from cx_wealthy import IndexedListPanel, MaxColumnsLayout, render_tutorial
+from cx_wealthy import IndexedListPanel, MaxColumnsLayout
 
 console.print(IndexedListPanel(["a", "b", "c"], title="Files"))
 console.print(MaxColumnsLayout(["one", "two", "three", "four"], max_columns=3))
-console.print(render_tutorial(__package__, "help.md", title="Tutorial"))
 ```
 
 ## Theme Presets
@@ -145,7 +143,6 @@ r.Console().print(table)
 | `help` | `Action` · `WealthyHelp` |
 | `indexed_list` | `IndexedListPanel` |
 | `columns` | `MaxColumnsLayout` |
-| `tutorial` | `render_tutorial` |
 | `theme` | `CX_STYLES` · `HELP_STYLES` · `default_theme` |
 | `rich_types` | Rich high-frequency type aliases |
 

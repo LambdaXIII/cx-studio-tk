@@ -41,11 +41,11 @@ class TimeRange(ITimeRange):
 
     @property
     def duration(self) -> CxTime:
-        return self.__start + self.__duration
+        return self.__duration
 
     @property
     def end(self) -> CxTime:
-        return self.duration - self.start
+        return self.start + self.duration
 
     @start.setter
     def start(self, start: CxTime):

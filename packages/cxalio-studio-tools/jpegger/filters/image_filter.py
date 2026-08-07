@@ -41,7 +41,7 @@ class IImageFilter(ABC):
         ...
 
     def __rich_label__(self) -> Generator[str, None, None]:
-        """为 `WealthLabel` 提供紧凑标签片段。
+        """提供紧凑标签片段（`__rich_label__` 协议）。
 
         Yields:
             可渲染字符串或 Rich 对象片段。

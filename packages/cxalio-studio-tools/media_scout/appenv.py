@@ -1,32 +1,15 @@
-from rich.console import Console
-
 from cx_tools.app import IAppEnvironment
 from . import __version__
-from .arg_parser import AppContext
 
 
-class AppEnv(IAppEnvironment):
+class MediaScoutEnv(IAppEnvironment):
+    """MediaScout 应用环境。
+
+    提供输出能力（say/whisper）。
+    不持有 context——context 由 Application 通过构造参数注入。
+    """
+
     def __init__(self):
         super().__init__()
         self.app_name = "MediaScout"
         self.app_version = __version__
-        self.output_console = Console()
-        self.context: AppContext
-
-    def print(self, *args, **kwargs):
-        self.output_console.print(*args, **kwargs)
-
-    def start(self):
-        self.context = AppContext.load()
-
-    def stop(self):
-        pass
-
-    def is_debug_mode_on(self):
-        return self.context.debug_mode
-
-    def show_banner(self):
-        self.say(f"[cx.info]{self.app_name}[/] [cx.number]v{self.app_version}[/]")
-
-
-appenv = AppEnv()

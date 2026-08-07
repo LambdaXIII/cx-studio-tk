@@ -5,7 +5,7 @@ import os
 from functools import cache
 from pathlib import Path
 
-_LOCALE_DIR = Path(__file__).resolve().parent.parent / "locales"
+_LOCALE_DIR = Path(__file__).resolve().parent / "locales"
 
 
 @cache

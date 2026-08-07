@@ -1,0 +1,127 @@
+# Translations template for PROJECT.
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-08-07 14:25+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#: media_scout/app_help.py:21
+msgid ""
+"解析时间线、元数据表格等项目文件，从中提取包含的文件路径。支持干净的输出流或输出到文件。目前可以解析的类型包括：EDL表、FCP7 "
+"经典XML、FCP XML文件或包、Davinci Resolve 媒体池元数据、纯文本路径列表等。"
+msgstr ""
+
+#: media_scout/app_help.py:26
+msgid "文件输入"
+msgstr ""
+
+#: media_scout/app_help.py:26
+msgid "输入需要解析的文件，可以一次解析多个。"
+msgstr ""
+
+#: media_scout/app_help.py:29
+msgid "需要解析的文件"
+msgstr ""
+
+#: media_scout/app_help.py:32
+msgid "选项"
+msgstr ""
+
+#: media_scout/app_help.py:32
+msgid "对结果进行处理的若干选项"
+msgstr ""
+
+#: media_scout/app_help.py:38
+msgid "指定用于搜索无路径文件名的文件夹"
+msgstr ""
+
+#: media_scout/app_help.py:40
+msgid "仅输出已存在的文件路径"
+msgstr ""
+
+#: media_scout/app_help.py:41
+msgid "允许重复输出文件路径"
+msgstr ""
+
+#: media_scout/app_help.py:42
+msgid "自动解析并整理文件路径"
+msgstr ""
+
+#: media_scout/app_help.py:47
+msgid "指定对于包含空格的路径的处理方式"
+msgstr ""
+
+#: media_scout/app_help.py:53
+msgid "将文件列表保存到目标文件"
+msgstr ""
+
+#: media_scout/app_help.py:56
+msgid "其它"
+msgstr ""
+
+#: media_scout/app_help.py:57
+msgid "开启调试模式"
+msgstr ""
+
+#: media_scout/app_help.py:58
+msgid "显示帮助信息"
+msgstr ""
+
+#: media_scout/app_help.py:59
+msgid "显示完整的帮助信息"
+msgstr ""
+
+#: media_scout/application.py:48
+msgid "MediaScout 启动"
+msgstr ""
+
+#: media_scout/application.py:58
+msgid "用户中断"
+msgstr ""
+
+#: media_scout/application.py:69
+msgid "不存在"
+msgstr ""
+
+#: media_scout/application.py:84
+msgid "在搜索路径中搜索："
+msgstr ""
+
+#: media_scout/application.py:88
+msgid "找到："
+msgstr ""
+
+#: media_scout/application.py:128
+msgid "允许输出重复项"
+msgstr ""
+
+#: media_scout/application.py:131
+msgid "自动整理或折叠路径"
+msgstr ""
+
+#: media_scout/application.py:134
+msgid "只输出存在的文件"
+msgstr ""
+
+#: media_scout/application.py:143
+#, python-brace-format
+msgid "共找到 {count} 个媒体路径。"
+msgstr ""
+
+#: media_scout/application.py:153
+#, python-brace-format
+msgid "列表已保存到：{path}"
+msgstr ""
+

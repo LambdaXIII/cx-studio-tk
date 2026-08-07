@@ -8,8 +8,8 @@
 from collections.abc import Generator
 from pathlib import Path
 
-from media_scout.inspectors import InspectorChain
-from media_scout.inspectors.inspector_info import InspectorInfo
+from media_scout.common.inspectors import InspectorChain
+from media_scout.common.inspectors.inspector_info import InspectorInfo
 
 # 项目文件扩展名集合
 _PROJECT_FILE_EXTENSIONS: set[str] = {

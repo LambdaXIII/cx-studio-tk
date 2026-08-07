@@ -159,6 +159,12 @@ In pretend mode, the program still fully executes the entire pipeline — config
 - Does not actually modify the hosts file; final content is printed to stdout
 - Useful for previewing update results and verifying configuration correctness
 
+**Output order and deduplication:**
+
+- **Output order**: user-customized content (areas not wrapped by markers) comes first → enabled configurations in descending `priority` order (higher value first; equal priorities keep discovery order) → entries within a configuration in content source order
+- **Domain conflicts**: when the same domain appears multiple times, **the first occurrence wins** (consistent with system resolution — Linux/Windows both take the first match); later occurrences are kept as `# ` comments inside their own configuration block
+- Commented-out entries are **generated artifacts**: once the conflict disappears (e.g. a higher-priority configuration is disabled), the next update restores them as active entries automatically — no manual work needed
+
 **The update command will automatically detect whether administrator privileges are needed, but currently only supports sudo.**
 
 ## Configuration File Format
@@ -323,6 +329,28 @@ comment = 'Company internal services'
 
 ## Security Mechanisms
 
+### Marker Contract
+
+HostsKeeper marks configuration blocks with `##### <id> START #####` and
+`##### <id> END #####` (five `#` at the start and end of the line, capital
+`START` / `END`, `<id>` is the profile ID). This is HostsKeeper's **reserved
+marker format** — please understand its behavior:
+
+- Any line matching this format is treated as a configuration block: the content
+  between the two markers belongs to that configuration's territory and is
+  **overwritten wholesale on rebuild — manually added content inside a block
+  will be deleted**
+- **Do not** use five `#` with capital START/END as decorative separators (e.g.
+  `##### Manually maintained section START #####`) — once the format is matched
+  it is treated as a configuration block and its content will be overwritten.
+  Accidentally colliding with the format is the operator's responsibility; the
+  program does not auto-repair
+- On update, if **unpaired** markers are found (START without END / END without
+  START), the program reports a hosts structure anomaly and prompts you to
+  check manually — it does not auto-repair
+- On update, if a marker block refers to a profile that has been deleted or
+  renamed, the program reports the **residual block has been removed**
+
 ### Automatic Backup
 
 Each time the hosts file is updated, the original file is automatically backed up:
@@ -359,12 +387,12 @@ This will:
 
 Hosts entries from multiple configuration files are merged according to the following rules:
 
-1. **Higher priority configurations are output first** (larger priority value = higher rank)
-2. **Same domain: later occurrence overwrites earlier**
-3. **Configuration sections are clearly marked** (for easy identification and manual maintenance)
+1. **User-customized content is output first**, and its domains are **never overwritten by any configuration** (custom content wins)
+2. **Higher priority configurations are output first** (larger priority value = higher rank; equal priorities keep discovery order, which is unspecified)
+3. **On domain conflicts, the first occurrence wins**; later occurrences are kept as `# ` comments inside their own configuration block (restored to active entries automatically once the conflict disappears)
 
 ```
-Original hosts free area
+Original hosts free area (custom content, domains protected)
 ------------------------------
 [google START]                 # High priority configuration
 Google-related entries...
@@ -372,6 +400,7 @@ Google-related entries...
 ------------------------------
 [github START]                 # Low priority configuration
 GitHub-related entries...
+# Conflicting entry with google kept as comment
 [github END]
 ------------------------------
 Original hosts free area
@@ -471,7 +500,7 @@ Debug mode will display:
 - List of discovered configuration files
 - Detailed information for each configuration file
 - Content processing progress
-- The final generated hosts content
+- The final generated hosts content (full text printed to **stderr**, not affecting the formal stdout output; when combined with `-p`, both stdout and stderr carry the full text)
 
 ### View Help Information
 
@@ -488,7 +517,7 @@ hostskeeper --tutorial
 1. **Take small steps**: After creating a new configuration, preview with `-p` first, then update once confirmed correct
 2. **Version control**: Include configuration files in Git management (be mindful of sensitive information)
 3. **Regular backups**: Keep backups of important hosts versions
-4. **Reasonable priority**: Set higher priority for frequently used configurations to avoid being overwritten
+4. **Reasonable priority**: Set higher priority for frequently used configurations so their entries appear first and win over conflicting lower-priority entries
 5. **Clear comments**: Add descriptions to each configuration and entry for easier maintenance
 
 ---

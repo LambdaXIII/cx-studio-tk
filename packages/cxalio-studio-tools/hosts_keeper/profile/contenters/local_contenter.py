@@ -1,5 +1,5 @@
 import asyncio
-from cx_tools.i18n import _
+from hosts_keeper.i18n import _
 
 from pathlib import Path
 from typing import override, AsyncGenerator
@@ -19,9 +19,10 @@ class LocalContenter(AbstractContenter):
         self,
         package: Box | dict | None = None,
         profile_metadata: Box | dict | None = None,
+        appenv=None,
         **kwargs,
     ) -> None:
-        super().__init__(package, profile_metadata, **kwargs)
+        super().__init__(package, profile_metadata, appenv=appenv, **kwargs)
         self.file: str = self.package.get("file")
         self.description: str | None = self.package.get("description")
         self.encoding: str = self.package.get("encoding") or "utf-8"

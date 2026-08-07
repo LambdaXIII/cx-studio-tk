@@ -1,0 +1,16 @@
+from pathlib import Path
+
+from .path_validator import IPathValidator
+
+
+class EmptyDirValidator(IPathValidator):
+
+    def __init__(self, reverse=False):
+        self.__reverse = reverse
+
+    def validate(self, path: str | Path) -> bool:
+        path = Path(path)
+        if not path.is_dir():
+            return False
+        is_empty = len(list(path.iterdir())) == 0
+        return not is_empty if self.__reverse else is_empty
