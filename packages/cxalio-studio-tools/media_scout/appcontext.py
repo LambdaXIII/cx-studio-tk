@@ -88,7 +88,9 @@ class MediaScoutContext(IAppContext):
         super().__init__()
 
     @classmethod
-    def load(cls, arguments: Sequence[str] | None = None):
+    def from_arguments(
+        cls, arguments: Sequence[str] | None = None
+    ) -> "MediaScoutContext":
         """从命令行参数构造上下文。"""
         parser = ArgParser()
         args = parser.parse_args(arguments)

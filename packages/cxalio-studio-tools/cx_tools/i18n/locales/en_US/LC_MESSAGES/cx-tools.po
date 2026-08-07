@@ -20,9 +20,9 @@ msgstr ""
 
 #: cx_tools/app/iappenv.py:96
 msgid "正在取消运行中的任务，再次按下 Ctrl+C 取消全部任务"
-msgstr ""
+msgstr "Canceling running tasks; press Ctrl+C again to cancel all"
 
 #: cx_tools/app/iappenv.py:102
 msgid "正在中止执行"
-msgstr ""
+msgstr "Aborting execution"
 

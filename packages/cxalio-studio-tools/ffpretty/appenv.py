@@ -1,7 +1,6 @@
 import signal
 from typing import override
 
-from cx_studio.clikit import FIRST_TRIGGERED, SECOND_TRIGGERED
 from cx_tools.app import IAppEnvironment
 from cx_wealthy import rich_types as r
 from ffpretty.i18n import _
@@ -48,13 +47,8 @@ class FFPrettyEnv(IAppEnvironment):
             transient=True,
         )
 
-        @self.interrupt_handler.on(FIRST_TRIGGERED)
-        def __when_wanna_quit():
-            self.say(f"[cx.info]{_('再次按下 Ctrl+C 确认退出')}[/]")
-
-        @self.interrupt_handler.on(SECOND_TRIGGERED)
-        def __when_really_wanna_quit():
-            self.say(f"[cx.error]{_('正在强制中断程序……')}[/]")
+        self.first_interrupt_message = _("再次按下 Ctrl+C 确认退出")
+        self.second_interrupt_message = _("正在强制中断程序……")
 
     @override
     def start(self):

@@ -7,6 +7,8 @@ __version__ = "0.9.3"
 
 import sys
 
+from cx_tools.app import SafeError
+
 from .appcontext import MediaKillerContext
 from .appenv import appenv
 from .application import MediaKillerApp
@@ -18,7 +20,11 @@ def run() -> None:
 
     install(show_locals=False, word_wrap=True, suppress=["rich"])
 
-    context = MediaKillerContext.from_arguments(sys.argv[1:])
+    try:
+        context = MediaKillerContext.from_arguments(sys.argv[1:])
+    except SafeError as e:
+        appenv.say(f"[{e.style}]{e}[/]")
+        return
     with appenv:
         with MediaKillerApp(
             appenv=appenv, context=context, progress=appenv.progress
