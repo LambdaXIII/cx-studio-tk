@@ -2,7 +2,7 @@
 name = "cx-studio-tk"
 description = "Cxalio 影视后期制作工具集 — workspace 容器"
 requires-python = ">=3.12,<3.15"
-version = "0.0.0"
+version = "1.0.0"
 dependencies = ["cx-studio", "cx-wealthy", "cxalio-studio-tools"]
 
 [tool.uv]

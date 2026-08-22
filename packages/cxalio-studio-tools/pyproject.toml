@@ -1,13 +1,13 @@
 [project]
 name = "cxalio-studio-tools"
-version = "0.99.0.1"
+version = "1.0.0"
 description = "Cxalio CLI toolkit — practical tools for media post-production workflows and easy system administration."
 readme = "README.md"
 requires-python = ">=3.12,<3.15"
 dependencies = [
     "cachetools>=5.5.2",
-    "cx-studio>=0.99.0",
-    "cx-wealthy>=0.99.0",
+    "cx-studio>=1.0.0",
+    "cx-wealthy>=1.0.0",
     "pillow>=11.2.1",
     "python-box[all]~=7.0",
     "rich>=14.0.0",

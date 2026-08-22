@@ -1,4 +1,5 @@
-## [最新修改]
+## 1.0.0
+- **正式版发布**：与 cx-studio、cxalio-studio-tools 及全部 CLI 工具同步发布 1.0.0，作为首个稳定发布版本号
 
 ### README 同步
 

@@ -1,6 +1,13 @@
 # Change Log of Cxalio Studio Tools
 
 
+### 1.0.0
+
+#### 正式版发布
+
+- **版本统一**：cx_tools 与全部 5 个工具（media_scout / media_killer / jpegger / ffpretty / hosts_keeper）的 `__version__`、发布单元 pyproject 同步跳至 1.0.0，作为首个稳定发布版本号；对 `cx-studio`、`cx-wealthy` 的依赖下限同步升到 `>=1.0.0`
+
+
 ### 0.99.0.1
 
 #### HostsKeeper Windows 提权链路修复（回归）
