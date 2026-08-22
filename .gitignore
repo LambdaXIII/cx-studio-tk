@@ -169,9 +169,6 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
-
-
-/temp/
 py.typed
 # Agent & IDE directories
 .vscode/
@@ -191,5 +188,4 @@ py.typed
 
 
 # Other files and directories
-*.log
 *.bak

@@ -1,6 +1,6 @@
 [project]
 name = "cx-wealthy"
-version = "0.9.0"
+version = "1.0.0"
 description = "Cxalio Rich UI component library — declarative structured document rendering for terminal applications."
 readme = "README.md"
 authors = [{ name = "xiii_1991", email = "xiii_1991@163.com" }]

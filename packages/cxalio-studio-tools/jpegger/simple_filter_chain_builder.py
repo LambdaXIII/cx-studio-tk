@@ -1,4 +1,4 @@
-"""从 `SimpleAppContext` 构建 `ImageFilterChain`。
+"""从 `JpeggerContext` 构建 `ImageFilterChain`。
 
 本模块负责将命令行参数中的尺寸与色彩空间选项翻译为具体的
 `IImageFilter` 实例。缩放相关参数按以下优先级处理：
@@ -10,7 +10,7 @@
 
 import re
 
-from jpegger.simple_appcontext import SimpleAppContext
+from .appcontext import JpeggerContext
 
 from .filters import (
     AutoResizeFilter,
@@ -48,7 +48,7 @@ class SimpleFilterChainBuilder:
 
     @staticmethod
     def build_filter_chain_from_simple_context(
-        app_context: SimpleAppContext,
+        app_context: JpeggerContext,
     ) -> ImageFilterChain:
         """根据命令行上下文构建过滤器链。
 

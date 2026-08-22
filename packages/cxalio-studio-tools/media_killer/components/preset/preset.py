@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Generator
 
-from cx_tools.i18n import _
+from media_killer.i18n import _
 from cx_studio import text as tt
 from cx_studio.filesystem import PathUtils
 
@@ -196,12 +196,12 @@ class Preset:
 
         格式：P [inputs->outputs] name description (path)
         """
-        yield "[cx.mk.mission.type]P[/]"
-        yield f"[cx.mk.mission.metadata][{len(self.inputs)}->{len(self.outputs)}][/"
+        yield "[cx.debug]P[/]"
+        yield f"[cx.whisper][{len(self.inputs)}->{len(self.outputs)}][/]"
         yield f"[cx.mk.mission.name]{self.name}[/]"
         if self.description:
-            yield f"[italic dim]{self.description}[/]"
-        yield f"[bright_black]({self.path})[/]"
+            yield f"[cx.whisper]{self.description}[/]"
+        yield f"[cx.debug]({self.path})[/]"
 
     def __rich_detail__(self) -> Generator[tuple[str, Any], None, None]:
         """详情面板渲染，展示完整 Preset 信息。

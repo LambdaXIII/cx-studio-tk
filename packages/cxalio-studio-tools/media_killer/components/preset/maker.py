@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from ...media import InputSpec, Mission, OutputSpec
+from ffpretty.common import InputSpec, Mission, OutputSpec
 from .preset import Preset
 from .tag_replacer import PresetTagReplacer
 

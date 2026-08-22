@@ -1,6 +1,105 @@
 # Change Log of Cxalio Studio Tools
 
 
+### 1.0.0
+
+#### 正式版发布
+
+- **版本统一**：cx_tools 与全部 5 个工具（media_scout / media_killer / jpegger / ffpretty / hosts_keeper）的 `__version__`、发布单元 pyproject 同步跳至 1.0.0，作为首个稳定发布版本号；对 `cx-studio`、`cx-wealthy` 的依赖下限同步升到 `>=1.0.0`
+
+
+### 0.99.0.1
+
+#### HostsKeeper Windows 提权链路修复（回归）
+
+- **根因**：`_elevated_replace_windows` 的 PowerShell UAC 命令将含单引号的脚本字符串嵌套进外层单引号，PowerShell 把 base64 内容当作 `Start-Process` 的位置参数、参数绑定失败（退出码 1）——**UAC 对话框从未弹出**；此前先尝试的 `sudo copy /Y` 分支同样必败（`copy` 为 cmd 内建命令，sudo 以 CreateProcess 执行找不到可执行文件，退出码 9009，终端曾报"找不到命令"）。两路提权全灭后 `save()` 回退打印 hosts 内容，表现为"不提示鉴权、直接打印 hosts"
+- **修复**：删除 `sudo` 分支（历史教训：Windows 原生 sudo 无法执行 cmd 内建命令，PowerShell UAC 为唯一提权路径）；UAC 命令改回 `-EncodedCommand` 整体 base64 编码传递（路径空格/引号不再破坏命令行），超时放宽至 120s，失败时 whisper 输出退出码与 stderr
+- **回归源**：7/31 `c601b77` 架构重构重写提权函数时引入（此前 7/17 `6c3dec1` 修复"找不到命令"后的正确实现被替换）
+- **debug 分流可观测性**：`save()` 与三个平台提权函数补齐 whisper 诊断——目标路径/pretending 状态、`is_system_hosts` 判断、备份结果、`is_user_admin()` 结果、提权各分支尝试/成功/失败原因，`-d` 模式可完整追踪保存流程走向
+- **i18n**：新增 28 条诊断消息接入 gettext（en_US 翻译完成），`.mo` 已重新编译
+
+
+### 0.99.0
+
+- **版本统一**：cx_tools 与全部 5 个工具的 `__version__`、发布单元 pyproject 同步为 0.99.0，消除历史迭代造成的版本号分叉（此前 cx_tools 0.8.8 与 pyproject 0.9.4 不一致）；此后按根 AGENTS.md 版本管理规则规范迭代
+- **依赖版本机制**：对 `cx-studio`、`cx-wealthy` 的依赖由不限版本改为 `>=0.99.0` 下限约束，与发布版本对齐
+
+
+#### 架构重构：能力归位 + 命名空间即契约
+
+- **执行核心归位 ffpretty**：Mission/Executor/Pretender/Whisperer/MediaInfo/MediaProber/MediaDB 七个模块从 `media_killer.media` 迁入 `ffpretty/common/`（对外提供面）；media_killer 作为组合者从 `ffpretty.common` 消费，`media_killer/media/` 目录消失
+- **media_killer.common 落位**：MissionHQ/ExecutorFactory/ExecutorScheduler/TaskProgress/TotalProgress 五个调度层模块迁入 `media_killer/common/`
+- **media_scout.common 落位**：inspectors 八个模块迁入 `media_scout/common/inspectors`；消费方改走 `media_scout.common.inspectors` 出口（含 media_killer 深导入）
+- **五工具命名统一**：`AppEnv`/`AppContext` → `<Tool>Env`/`<Tool>Context`（FFPrettyEnv/HostsKeeperEnv/JpeggerEnv/MediaKillerEnv/MediaScoutEnv）；jpegger `simple_application.py`/`simple_appcontext.py` 按四件套拆分（application/appcontext/app_help）；media_scout `arg_parser.py` 拆分为 appcontext/app_help
+- **MediaDB 共享缓存空间**：`db_path` 允许 None，默认 `~/.config/cx-studio/shared/media_info.db`（工具无关共享缓存）；ffpretty 删除借名 `ConfigManager("MediaKiller")`；media_killer 私有 ConfigManager 保留（last_missions 持久化，支撑 -c/--continue）
+- **ffpretty 补齐 i18n**：新建 `ffpretty/i18n/`（domain `ffpretty`，babel/pyproject 配置就位）；迁入模块与既有代码全部接入 `ffpretty.i18n`；翻译条目从 media-killer catalog 物理迁移，新 msgid 补齐英文译文
+- **rich_types 出口兑现**：工具层与 cx_tools 的绕路 `from rich.*` 导入迁移至 `cx_wealthy.rich_types`（`rich.traceback.install` 入口与 RegexHighlighter 保留直导）；`__exit__` 修正——ffpretty 删除 `exc_type is None: pass` 空分支，media_killer 的 SafeError 精确比较改为 issubclass
+- **开放库清理对齐**：sync FFmpeg/ff_errors/get_root/render_tutorial/progress_task_agent 删除（含 README/AGENTS 文档对齐）；TimeRange duration/end getter 语义修复；FileInfoCache 纳入 `cx_studio.filesystem` 导出；AGENTS.md 新增 common/components 分层规范与组合面契约（工具间 import 只允许指向 `package.common`）
+
+
+#### HostsKeeper update 行为重定义（排序/查重/异常可见性）
+
+- **优先级排序落地**：update 构建时启用的 profiles 按 `priority` 降序输出（此前未实现，help 声称与实际不符）；相同优先级保持配置文件发现顺序（stable sort，不引入 tie-break）
+- **冲突查重（first match wins）**：与平台 hosts 解析行为一致（Linux/Windows 均以首个匹配生效）——用户自定义内容最先输出且域名受保护（绝不覆盖）；profile 之间及同一 profile 内多内容源撞域名时，后出现者以 `# ` 注释保留在自身块内；注释行是生成产物，冲突消失后（如禁用高优先级 profile）下一次 update 自动恢复为有效行
+- **查重键提取**：按域名且大小写不敏感；独立实现，避开 `HostRecord.from_line` 对行内注释（`1.2.3.4 example.com # foo`）的解析缺陷
+- **L1 结构异常检测与汇报**：反推时检测不配对标记（有 START 无 END / 有 END 无 START）→ 报告 hosts 结构异常并提示手动检查；标记块对应 profile 未注册（已删除/改名）→ 报告残留标记块已清除。仅汇报不自动修复——识别与清除行为不变
+- **debug 模式输出生成内容全文**：补齐 help 声称但缺失的行为——`-d` 时 temp 文件生成后 whisper 输出全文（stderr），`-p` 维持 stdout 输出，两者可同时使用
+- **help.md / help.en_US.md 重写**：新增「标记契约」章节（`##### <id> START/END #####` 保留格式、块内领地整体覆盖、装饰分区警示）；「优先级机制」替换自相矛盾的旧表述（"后出现者覆盖前者" → 先出现者生效 + 注释保留）
+- **i18n**：新报告消息接入 gettext（en_US 翻译完成）；顺带修正既有错误翻译（"已处理配置文件" 误译为 "Profile created"）
+
+
+#### 统一 Mission 失败反馈链路
+
+- **`MissionFailureInfo` 升级为统一失败数据包**：任何导致 Mission 未正常完成的失败（FFmpeg 执行失败、校验失败、提交失败、executor 外部逃逸异常）均通过它反馈；新增 `ffmpeg: FfmpegErrorInfo | None` 嵌套详情字段（keyword-only），`exception` 改为可选，`stage` 扩展为三值（`factory`/`execution`/`post-execution`）
+- **新增 `is_ffmpeg_failure` 属性**：以 `exit_code` 非零判定 FFmpeg 真失败——校验/提交失败（exit_code 为 None/0）不再被误判为「FFmpeg 异常退出」
+- **`__rich_detail__` 重构为「头行 + 详情」两层**：所有 execution 失败先展示 `failure_reason`（为什么失败），仅 FFmpeg 真失败才补 FFmpeg 调用详情；校验失败不再显示孤立的 FFmpeg 路径噪音行
+- **`MissionHQ._report_failure()` 统一报告入口**：收敛 `_run_one` 中两段平行报告代码（FFmpeg 面板 + 异常面板），统一标题判定（「FFmpeg 异常退出」/「任务失败」）+ 面板渲染 + `MISSION_RESULT(FAILED)` 事件发射
+- **executor 全 FAILED 路径统一 whisper**：`execute()` 的 4 个失败返回路径（校验/FFmpeg/提交/兜底）统一 `emit(WHISPERED, failure_reason)`，debug 时间线可看到高层失败原因
+- **ffpretty `MissionRunner` 接入统一失败模型**：`_last_error_info`/`make_error_info()` 替换为 `_failure_info`/`failure_info` 属性；`run()` 新增 try/except/finally 包裹全生命周期——修复 `_wire` 失败时 executor 泄漏，逃逸异常构建 `MissionFailureInfo(stage="factory"/"post-execution")`
+- **ffpretty 失败面板统一**：FAILED 分支从 `error_tail` 守卫 + `FfmpegErrorInfo` 面板改为 `failure_info` + 动态标题；移除守卫后校验失败等无 stderr 场景也能看到失败原因
+- **`FfmpegErrorInfo` 保持为纯详情数据类**：作为 `MissionFailureInfo.ffmpeg` 的嵌套详情，字段与渲染不变
+
+
+#### IAppComponent 存储重构 & 类型修复
+
+- **IAppComponent 不再存储 appenv/context**：删除 `_appenv`/`_context` 私有属性和 `appenv`/`context` property，`__init__` 参数变更为 optional，仅作签名契约提示
+- **IApplication 直接存储**：IApplication 的 `__init__` 直接赋值 `self.appenv = appenv; self.context = context`，子类在 `super().__init__()` 后通过 `self.context = context` 收窄为具体子类类型
+- **14 个框架子类全量适配**：5 个 Application 子类（FFPrettyApp/MediaKillerApp/HostsKeeperApp/JpeggerApp/MediaScoutApp）和 9 个 IAppComponent 子类（Help 组件 + HostsBuilder/HostsSaver/ProfileManager/MissionRunner）各自在 `__init__` 中按需存储 appenv/context，不再依赖基类 property
+- **app_description 从 AppEnv 移除**：media_killer 和 hosts_keeper 的 AppEnv 删除 `app_description` 字段；media_killer 的使用处改为 `_()` 包装的 i18n 字符串
+- **AGENTS.md 更新**：补充"为什么 IAppComponent 不存储 appenv/context"设计说明
+
+#### 应用架构重构：依赖注入化
+
+- **新增 `IAppContext` 抽象基类**（`cx_tools/app/iappcontext.py`）：统一所有工具的 AppContext 契约——持有参数解析结果 + 运行时状态（temp_dir 惰性能力），实现上下文管理器协议（`__enter__`/`__exit__` + `start()`/`stop()`）
+- **`IApplication` 签名重构**：从 `(arguments)` 改为 `(appenv, context)`——Application 不再绑定全局 appenv 单例，通过构造参数注入依赖，可被其他工具复用
+- **`IAppEnvironment` 增强**：新增 `set_debug_mode()`（debug 状态注入）；`say()`/`whisper()` 恢复为纯输出，Progress 协调逻辑回归各工具 AppEnv 子类覆盖
+- **appenv 上下文改为在 Application 外部管理**：工具入口 `with appenv:` 嵌套 `with Application(...)`，appenv 生命周期与 Application 解耦
+- **5 个工具全量迁移**：hosts_keeper、ffpretty、media_scout、jpegger、media_killer 的 Application 和子组件改为构造注入，不再 `from .appenv import appenv`
+- **ffpretty 新增 `AppContext`**：参数解析从 Application._parse_arguments() 迁移到独立的 AppContext.from_arguments()
+- **appenv 瘦身**：各工具 AppEnv 移除业务状态（context、config_manager、media_db、temp_dir 等），仅保留环境能力（console/say/whisper/中断/banner/progress）
+- **已知例外**：hosts_keeper `hosts_saver.py` 中 CrossRunner 模块级函数保留全局 appenv 导入（装饰器注册机制要求）
+
+#### 修复
+
+- 修复 Progress Live 显示被 say/whisper override 永久杀死的问题（ffpretty、hosts_keeper、media_killer）
+- 修复 media_scout SIGINT handler 挂在死实例上导致 Ctrl+C 无响应
+- 修复 media_killer asyncio.run() 覆盖 SIGINT handler 导致 Ctrl+C 无响应
+- 修复 hosts_keeper 注册 SIGINT handler 但同步代码不轮询事件导致 Ctrl+C 无响应
+- 修复 IApplication.__enter__/__exit__ 缺异常安全导致 context 资源泄漏
+- 修复 media_killer garbage 清理计数永远显示 0
+- 修复 hosts_saver subprocess.TimeoutExpired 未捕获
+- 修复 hosts_builder prepare_custom_lines 静默丢弃用户注释行
+- 修复 AbstractContenter appenv 参数泄漏进 package 数据
+- 修复 ffpretty SafeError 移出 with 块后无法捕获
+- 修复 jpegger SimpleAppContext _temp_dir 泄漏到富文本显示
+- 引入 IAppComponent 抽象基类，统一 CLI 特化组件的 appenv+context 持有模式
+- 提取 run_async() 共享函数，避免 asyncio.run() 覆盖 SIGINT handler
+
+### v0.9.3
+
+- **适配 cx-studio 0.10.0**：所有 import 路径更新——`collectiontools` → `core`（`flatten_list`/`iter_with_separator`）、`tui` → `clikit`（`DoubleTrigger`/`FIRST_TRIGGERED`/`SECOND_TRIGGERED`）
+- **删除弃用代码**：`cx_tools/filesize_counter.py`
+
 ### v0.9.2
 
 - **MediaKiller 迭代至 0.9.2**：Mission 数据模型重构——options 从扁平字符串列表改为结构化键值对

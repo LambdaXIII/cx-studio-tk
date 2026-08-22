@@ -13,18 +13,24 @@ import importlib.resources
 import sys
 from collections import Counter
 from collections.abc import Iterable, Sequence
+from datetime import datetime
 from pathlib import Path
 from typing import override
 
+from cx_studio.core.cx_time import CxTime
+from cx_studio.filesystem import FileList, PathUtils
+from cx_tools.app import (
+    IApplication,
+    IAppEnvironment,
+    SafeError,
+    run_async,
+    try_open_text_file,
+)
+from media_killer.i18n import _
+from cx_wealthy import IndexedListPanel, WealthyDetailPanel, rich_types as r
 
-from cx_studio.filesystem import PathUtils
-from cx_tools.app import IApplication, SafeError, try_open_text_file
-from cx_tools.i18n import _
-from cx_wealthy import IndexedListPanel, WealthyDetailPanel
-
-from .appenv import appenv
-from .appcontext import OVERWRITE_DANGER, OVERWRITE_SAFE
-from .app_help import AppHelp
+from .appcontext import OVERWRITE_DANGER, OVERWRITE_SAFE, MediaKillerContext
+from .app_help import MediaKillerHelp
 from .components import (
     MissionMaker,
     MissionStore,
@@ -33,43 +39,110 @@ from .components import (
     ScriptMaker,
     SourceExpander,
 )
-from .media import (
-    FileLogType,
-    Mission,
-    MissionHQ,
-    MissionResult,
-)
-from .media.mission_hq import MISSION_FILE_LOGGED, MISSION_RESULT, MISSION_STARTED
+from ffpretty.common import FileLogType, Mission, MissionResult
+
+from .common import MissionHQ
+from .common.mission_hq import MISSION_FILE_LOGGED, MISSION_RESULT, MISSION_STARTED
 
 
-class Application(IApplication):
+class MediaKillerApp(IApplication):
     """media_killer CLI 应用。"""
 
-    def __init__(self, arguments: Sequence[str] | None = None) -> None:
-        super().__init__(arguments or sys.argv[1:])
+    def __init__(
+        self,
+        appenv: IAppEnvironment,
+        context: MediaKillerContext,
+        progress: r.Progress,
+    ) -> None:
+        super().__init__(appenv, context)
+        self.context = context
+        self.progress = progress
         self.presets: list[Preset] = []
         self.sources: list[Path] = []
         self.missions: list[Mission] = []
+        self._app_start_time: datetime | None = None
 
     @override
     def start(self) -> None:
-        appenv.load_arguments(self.sys_arguments)
-        appenv.start()
-        appenv.show_banner()
+        self.appenv.set_debug_mode(self.context.debug_mode)
+        # 显示 banner
+        banners = []
+        with importlib.resources.open_text("media_killer", "banner.txt") as f:
+            banner_text = r.Text(
+                f.read(),
+                style="cx.mk.banner",
+                no_wrap=True,
+                overflow="crop",
+                justify="center",
+            )
+            banners.append(r.Align.center(banner_text))
+        version_info = r.Text.from_markup(
+            f"[cx.info]{self.appenv.app_name}[/] [cx.number]v{self.appenv.app_version}[/]"
+        )
+        banners.append(r.Align.center(version_info))
+        description = r.Text(_("媒体文件批量转码工具"), style="cx.debug")
+        tags = []
+        if self.context.pretending_mode:
+            tags.append(f"[cx.info]{_('模拟运行')}[/]")
+        mode = self.context.overwrite_mode
+        if mode == OVERWRITE_SAFE:
+            tags.append(f"[cx.success]{_('安全模式启动，将拒绝任何覆盖操作')}[/]")
+        elif mode == OVERWRITE_DANGER:
+            tags.append(f"[cx.error]{_('覆盖模式已启动，将自动覆盖任何输出')}[/]")
+        if tags:
+            description = r.Text.from_markup(" · ".join(tags))
+        banners.append(r.Align.center(description))
+        self.appenv.say(r.Group(*banners))
+        self._app_start_time = datetime.now()
 
     @override
     def stop(self) -> None:
-        if not appenv.context.continue_mode:
+        if not self.context.continue_mode:
             self._save_missions(self.missions)
-        appenv.stop()
+
+        # 输出文件统计报告（从 _report_file_list 逻辑迁移）
+        text = self._report_file_list(
+            self.context.processed_files, _("本次执行处理了 {n} 个文件")
+        )
+        if text:
+            self.appenv.say(text)
+        text = self._report_file_list(
+            self.context.generated_files, _("本次执行生成了 {n} 个文件")
+        )
+        if text:
+            self.appenv.say(text)
+
+        # garbage 清理
+        ctx = self.context
+        if len(ctx.garbage_files) > 0:
+            self.appenv.say(f"[cx.error]{_('正在清理失败的目标文件...')}[/]")
+            for filename in ctx.garbage_files:
+                self.appenv.whisper(f"[cx.filepath]{filename}[/]")
+            count = len(ctx.garbage_files)
+            ctx.cleanup()
+            self.appenv.say(
+                f"[cx.error]{_('清理了 {n} 个失败的目标文件').format(n=count)}[/]"
+            )
+
+        # 输出耗时统计（超过 5 秒）
+        if self._app_start_time is not None:
+            time_spent = datetime.now() - self._app_start_time
+            if time_spent.total_seconds() > 5:
+                self.appenv.say(
+                    _("总共耗时 {time_str}。").format(
+                        time_str=CxTime.from_seconds(
+                            time_spent.total_seconds()
+                        ).pretty_string
+                    )
+                )
 
     @override
     def __exit__(self, exc_type, exc_val, exc_tb) -> bool | None:
         result = super().__exit__(exc_type, exc_val, exc_tb)
         if exc_type is None:
-            appenv.whisper(_("程序正常退出。"))
-        elif exc_type is SafeError:
-            appenv.say(exc_val)
+            self.appenv.whisper(_("程序正常退出。"))
+        elif exc_type is not None and issubclass(exc_type, SafeError):
+            self.appenv.say(exc_val)
             result = True
         return result
 
@@ -93,33 +166,30 @@ class Application(IApplication):
                 return path
         return None
 
-    @staticmethod
-    def _save_missions(missions: Iterable[Mission]) -> None:
+    def _save_missions(self, missions: Iterable[Mission]) -> None:
         """保存 Mission 列表供 -c/--continue 使用。"""
         store = MissionStore()
-        store.save(appenv.config_manager.get_file("last_missions.xml"), missions)
+        store.save(self.context.config_manager.get_file("last_missions.xml"), missions)
 
-    @staticmethod
-    def _load_missions() -> list[Mission]:
+    def _load_missions(self) -> list[Mission]:
         """加载上次保存的 Mission 列表。"""
-        path = appenv.config_manager.get_file("last_missions.xml")
+        path = self.context.config_manager.get_file("last_missions.xml")
         if not path.exists():
             return []
         store = MissionStore()
         return store.load(path)
 
-    @staticmethod
-    def export_example_preset(filename: Path) -> None:
+    def export_example_preset(self, filename: Path) -> None:
         """导出示例预设文件。"""
         filename = Path(PathUtils.force_suffix(filename, ".toml"))
 
         if filename.exists():
-            if appenv.context.overwrite_mode == OVERWRITE_DANGER:
-                appenv.say(
-                    f"[dim red]{_('文件 {name} 已存在，将强制覆盖。').format(name=filename)}[/]"
+            if self.context.overwrite_mode == OVERWRITE_DANGER:
+                self.appenv.say(
+                    f"[cx.error]{_('文件 {name} 已存在，将强制覆盖。').format(name=filename)}[/]"
                 )
             else:
-                appenv.say(
+                self.appenv.say(
                     f"[cx.warning]{_('文件 {name} 已存在，跳过覆盖。').format(name=filename)}[/]"
                 )
                 return
@@ -127,12 +197,41 @@ class Application(IApplication):
         with importlib.resources.open_text("media_killer", "example_preset.toml") as f:
             content = f.read()
         filename.write_text(content, encoding="utf-8")
-        appenv.say(f"{_('已生成示例预设文件:')} [cx.filepath]{filename}[/]")
+        self.appenv.say(f"{_('已生成示例预设文件:')} [cx.filepath]{filename}[/]")
 
     @staticmethod
     def _open_in_editor(path: Path) -> None:
         """如果有可用编辑器，打开指定文件供用户编辑。静默失败。"""
         try_open_text_file(path)
+
+    # --- 文件统计报告 ---
+
+    @staticmethod
+    def _report_file_list(file_list: FileList, msgid: str) -> str | None:
+        """输出单个文件列表的统计报告（一行）。
+
+        文件数为 0 时整句不输出。文件数 > 0 但总大小为 0 时
+        仅输出计数句，不带括号大小部分。文件数和大小均 > 0 时
+        输出 '文案（大小）' 格式。
+
+        注意：此方法不直接输出（Application 不持有 self.appenv 的输出方法），
+        由调用方自行输出。
+
+        Args:
+            file_list: 要报告的 FileList
+            msgid: 带 {n} 占位符的中文 msgid，如 "本次执行处理了 {n} 个文件"
+
+        Returns:
+            str | None: 格式化后的报告文本，文件数为 0 时返回 None
+        """
+        count = len(file_list)
+        if count == 0:
+            return None
+        text = f"[cx.info]{_(msgid).format(n=count)}[/]"
+        total = file_list.total_size
+        if total.total_bytes > 0:
+            text += f"（[cx.number]{total.pretty_string}[/]）"
+        return text
 
     # --- Mission 整理 ---
 
@@ -146,7 +245,7 @@ class Application(IApplication):
                 seen.add(key)
                 unique.append(m)
 
-        sort_mode = appenv.context.sort_mode
+        sort_mode = self.context.sort_mode
         if sort_mode == "source":
             unique.sort(key=lambda m: str(m.source))
         elif sort_mode == "preset":
@@ -159,8 +258,6 @@ class Application(IApplication):
 
     # --- Mission 执行 ---
 
-    # --- Mission 执行 ---
-
     def _execute_missions(self, pretend: bool) -> None:
         """使用 MissionHQ 执行 Mission 列表。
 
@@ -170,12 +267,13 @@ class Application(IApplication):
         Args:
             pretend: True = 模拟运行，False = 实际转码
         """
-        ctx = appenv.context
+        ctx = self.context
         hq = MissionHQ(
             max_workers=ctx.max_workers,
             pretending=pretend,
-            progress=appenv.progress,
-            env=appenv,
+            progress=self.progress,
+            env=self.appenv,
+            media_db=ctx.media_db,
         )
         # 订阅 HQ 总线事件
         hq.on(MISSION_STARTED, self._on_mission_started)
@@ -184,7 +282,7 @@ class Application(IApplication):
         # 投喂 + 执行
         hq.add_missions(self.missions)
         hq.finish()
-        results = asyncio.run(hq.run())
+        results = run_async(hq.run())
         self._report_summary(results)
 
     def _on_mission_started(self, mission: Mission) -> None:
@@ -199,11 +297,11 @@ class Application(IApplication):
         index = self.missions.index(mission)
         total = len(self.missions)
         short_id = str(mission.mission_id)[:6]
-        appenv.whisper(
+        self.appenv.whisper(
             WealthyDetailPanel(
                 mission,
                 title=(
-                    f"[bright_black]M[/] [dim green]{short_id}[/] "
+                    f"[cx.debug]M[/] [cx.mk.badge]{short_id}[/] "
                     f"[{index + 1}/{total}] {mission.name}"
                 ),
             )
@@ -221,8 +319,8 @@ class Application(IApplication):
     def _on_file_logged(self, log_type: FileLogType, paths: list[Path]) -> None:
         """file_logged 事件处理：追踪文件的处理状态。
 
-        根据事件类型将文件路径分发到 appenv 的相应文件列表中，
-        在 appenv.cleanup() 阶段输出统计报告和清理 garbage。
+        根据事件类型将文件路径分发到 context 的相应文件列表中，
+        在 stop() 阶段输出统计报告和清理 garbage。
 
         Args:
             log_type: 文件事件类型
@@ -230,16 +328,15 @@ class Application(IApplication):
         """
         if log_type == FileLogType.LOADED:
             for p in paths:
-                appenv.processed_files.append(p)
+                self.context.processed_files.append(p)
         elif log_type == FileLogType.SAVED:
             for p in paths:
-                appenv.generated_files.append(p)
+                self.context.generated_files.append(p)
         elif log_type == FileLogType.DEPRECATED:
             for p in paths:
-                appenv.garbage_files.append(p)
+                self.context.garbage_files.append(p)
 
-    @staticmethod
-    def _report_mission_result(mission: Mission, result: MissionResult) -> None:
+    def _report_mission_result(self, mission: Mission, result: MissionResult) -> None:
         """输出单个 Mission 的结果文字行（旧版 make_line_report 风格）。
 
         格式：[M] [n→m] 任务名 ........ 状态（左对齐任务名 + 右对齐状态）
@@ -248,10 +345,7 @@ class Application(IApplication):
             mission: 已完成的 Mission
             result: 执行结果
         """
-        from rich.text import Text
-        from rich.columns import Columns
-
-        header = f"[bright_black]M[/] [dim green][{len(mission.inputs)}->{len(mission.outputs)}][/] "
+        header = f"[cx.debug]M[/] [cx.whisper][{len(mission.inputs)}->{len(mission.outputs)}][/] "
         name_part = f"[cx.mk.mission.name]{mission.name}[/]"
         label = header + name_part
 
@@ -262,14 +356,14 @@ class Application(IApplication):
         elif result == MissionResult.CANCELED:
             right_str = f"[cx.mk.status.canceled]{_('被取消')}[/]"
         elif result == MissionResult.SKIPPED:
-            right_str = f"[dim]{_('已跳过')}[/]"
+            right_str = f"[cx.whisper]{_('已跳过')}[/]"
         else:
-            right_str = f"[dim]{result.value}[/]"
+            right_str = f"[cx.whisper]{result.value}[/]"
 
-        left = Text.from_markup(label, justify="left", overflow="ellipsis")
+        left = r.Text.from_markup(label, justify="left", overflow="ellipsis")
         left.no_wrap = True
-        right = Text.from_markup(right_str, justify="right")
-        appenv.say(Columns([left, right], expand=True))
+        right = r.Text.from_markup(right_str, justify="right")
+        self.appenv.say(r.Columns([left, right], expand=True))
 
     def _report_summary(self, results: list[MissionResult]) -> None:
         """输出批量执行统计。
@@ -280,25 +374,28 @@ class Application(IApplication):
         counts = Counter(results)
 
         if n := counts.get(MissionResult.SUCCESS, 0):
-            appenv.say(_("成功执行 {n} 个任务。").format(n=n))
+            self.appenv.say(_("成功执行 {n} 个任务。").format(n=n))
         if n := counts.get(MissionResult.FAILED, 0):
-            appenv.say(_("{n} 个任务失败。").format(n=n))
+            self.appenv.say(_("{n} 个任务失败。").format(n=n))
         if n := counts.get(MissionResult.CANCELED, 0):
-            appenv.say(_("{n} 个任务取消。").format(n=n))
+            self.appenv.say(_("{n} 个任务取消。").format(n=n))
         if n := counts.get(MissionResult.SKIPPED, 0):
-            appenv.say(_("{n} 个任务跳过。").format(n=n))
+            self.appenv.say(_("{n} 个任务跳过。").format(n=n))
 
     # --- 主流程 ---
 
     def run(self) -> None:
-        ctx = appenv.context
+        ctx = self.context
 
         # 1. help / tutorial
         if ctx.show_help:
-            AppHelp.show_help(appenv.console)
+            help_component = MediaKillerHelp(self.appenv, self.context)
+            help_component.show_help()
             return
         if ctx.show_full_help:
-            AppHelp.show_full_help(appenv.console)
+            help_component = MediaKillerHelp(self.appenv, self.context)
+            help_component.show_full_help()
+            return
         # 2. generate
         if ctx.generate:
             generated: list[Path] = []
@@ -311,7 +408,7 @@ class Application(IApplication):
                     self.export_example_preset(p)
                     generated.append(resolved)
                 else:
-                    appenv.whisper(f"{p} {_('并非合法的文件名，不予处理。')}")
+                    self.appenv.whisper(f"{p} {_('并非合法的文件名，不予处理。')}")
             for p in generated:
                 self._open_in_editor(p)
             return
@@ -335,19 +432,23 @@ class Application(IApplication):
                     )
                 self.presets.append(preset)
                 # 输出 Preset 详情面板（whisper，仅 --debug 可见）
-                appenv.whisper(
+                self.appenv.whisper(
                     WealthyDetailPanel(
                         preset,
-                        title=f"{_('预设')} [cx.mk.preset.name]{preset.name}[/]",
+                        title=f"{_('预设')} [cx.info]{preset.name}[/]",
                     )
                 )
-                appenv.whisper(f"[cyan]{_('配置文件路径')}[/] [cx.filepath]{p}[/]")
+                self.appenv.whisper(
+                    f"[cx.info]{_('配置文件路径')}[/] [cx.filepath]{p}[/]"
+                )
             else:
                 self.sources.append(p)
-                appenv.whisper(f"[green]{_('媒体来源路径')}[/] [cx.filepath]{p}[/]")
+                self.appenv.whisper(
+                    f"[cx.info]{_('媒体来源路径')}[/] [cx.filepath]{p}[/]"
+                )
 
         if self.presets:
-            appenv.say(
+            self.appenv.say(
                 _(
                     "已添加 {preset_count} 个配置文件和 {source_count} 个来源路径。"
                 ).format(preset_count=len(self.presets), source_count=len(self.sources))
@@ -361,7 +462,7 @@ class Application(IApplication):
         for preset in self.presets:
             merged_suffixes |= preset.source_suffixes
 
-        from media_scout.inspectors import (
+        from media_scout.common.inspectors import (
             ResolveMetadataInspector,
             EDLInspector,
             LegacyXMLInspector,
@@ -369,7 +470,7 @@ class Application(IApplication):
             FCPXMLDInspector,
             InspectorChain,
         )
-        from media_scout.inspectors.filelist_inspector import FileListInspector
+        from media_scout.common.inspectors.filelist_inspector import FileListInspector
 
         scout_chain = InspectorChain(
             ResolveMetadataInspector(),
@@ -392,7 +493,7 @@ class Application(IApplication):
         output_dir = None
         if ctx.output_dir:
             output_dir = Path(ctx.output_dir).resolve()
-            appenv.say(f"{_('输出目录将被替换为:')} [cx.filepath]{output_dir}[/]")
+            self.appenv.say(f"{_('输出目录将被替换为:')} [cx.filepath]{output_dir}[/]")
 
         current_missions: list[Mission] = []
         for preset in self.presets:
@@ -406,23 +507,27 @@ class Application(IApplication):
                 current_missions.append(mission)
 
         if current_missions:
-            appenv.say(_("生成了 {count} 个任务。").format(count=len(current_missions)))
+            self.appenv.say(
+                _("生成了 {count} 个任务。").format(count=len(current_missions))
+            )
 
         # 8. continue 叠加
         all_missions = list(current_missions)
         if ctx.continue_mode:
             last = self._load_missions()
-            appenv.say(_("从上次执行中恢复了 {count} 个任务……").format(count=len(last)))
+            self.appenv.say(
+                _("从上次执行中恢复了 {count} 个任务……").format(count=len(last))
+            )
             all_missions.extend(last)
 
         # 9. 排序去重
         self.missions = self._sort_and_dedup_missions(all_missions)
 
         if not self.missions:
-            appenv.say(_("没有任务需要执行。"))
+            self.appenv.say(_("没有任务需要执行。"))
             return
 
-        appenv.whisper(IndexedListPanel(self.missions, _("整理完的任务列表")))
+        self.appenv.whisper(IndexedListPanel(self.missions, _("整理完的任务列表")))
 
         # 10. 脚本保存
         if ctx.save_script:
@@ -438,8 +543,8 @@ class Application(IApplication):
 
         # 11. 模拟运行
         if ctx.pretending_mode:
-            appenv.say(
-                f"[dim]{_('检测到[italic cyan underline]假装模式[/]，将不会真正执行任何操作。')}[/]"
+            self.appenv.say(
+                f"[cx.whisper]{_('检测到[cx.info]假装模式[/]，将不会真正执行任何操作。')}[/]"
             )
             self._execute_missions(pretend=True)
             return

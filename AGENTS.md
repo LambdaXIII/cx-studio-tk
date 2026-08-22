@@ -1,7 +1,7 @@
 # Repository Guidelines
 
 `cx-studio-tk` 是一个面向影视后期制作的 Python 工具集，采用 uv workspace 组织的 monorepo。
-包含 `cx-studio`（基础设施）、`cx-wealthy`（Rich UI 组件）、`cxalio-studio-tools`（CLI 工具集）三个主力包，以及已废弃的 `cx-wealth`（被 `cx-wealthy` 取代）。
+包含 `cx-studio`（基础设施）、`cx-wealthy`（Rich UI 组件）、`cxalio-studio-tools`（CLI 工具集）三个主力包；已停止维护的旧包（`cx-wealth`、`media_killer_legacy`）存档于 `archived/`，仅作参考，不参与构建、不再维护。
 
 ## 命令与环境
 
@@ -33,18 +33,18 @@ uv build                  # 构建所有包
 | Directory | Purpose |
 |---|---|
 | `packages/cx-studio/cx_studio/` | 基础设施库——值对象、FFmpeg、文件系统、IO、系统抽象 |
-| `packages/cx-wealth/cx_wealth/` | Rich UI 扩展——标签、详情、帮助系统 DSL（已废弃，由 cx-wealthy 取代） |
+| `archived/cx-wealth/cx_wealth/` | Rich UI 扩展——标签、详情、帮助系统 DSL（已停止维护，仅存档） |
 | `packages/cxalio-studio-tools/` | CLI 工具集——应用框架 + 5 个工具（media_scout: Chain of Responsibility / media_killer: Async Mission Pipeline / jpegger: ImageFilterChain / ffpretty: FFmpeg 封装 / hosts_keeper: Plugin-based 管理） |
 | `packages/cxalio-studio-tools/cx_tools/app/` | 应用生命周期框架（IApplication + IAppEnvironment） |
 | `temp/` | 临时/调试文件（gitignored，勿在此编写正式代码） |
+| `archived/` | 已停止维护的旧代码存档（`cx-wealth`、`media_killer_legacy`），不参与构建，不修改 |
 
 ## 架构
 
 ### 依赖链
 `cx-studio` ← `cx-wealthy` ← `cxalio-studio-tools`
-`cx-studio` ← `cx-wealth`（已废弃，仅维护旧引用）
 
-### CLI 应用通用生命周期（所有 6 个工具一致）
+### CLI 应用通用生命周期（所有 5 个工具一致）
 1. `[project.scripts]` 入口 → `module:run()` 函数
 2. `Application.__enter__()` → `IAppEnvironment` 初始化（Rich console、SIGINT、debug 门控）
 3. `Application.run(appenv)` → 解析参数 → 执行业务逻辑
@@ -52,7 +52,11 @@ uv build                  # 构建所有包
 
 ### 项目特有模式
 
-详见 [cxalio-studio-tools CLI 工具编写规范](packages/cxalio-studio-tools/AGENTS.md)
+各工作区领域文档（与根文件叠加生效，处理对应目录时先阅读）：
+
+- [cxalio-studio-tools 领域文档](packages/cxalio-studio-tools/CONTEXT.md)（决策见 `docs/adr/`）
+- [cx-studio 领域文档](packages/cx-studio/CONTEXT.md)（决策见 `docs/adr/`）
+- [cx-wealthy 领域文档](packages/cx-wealthy/CONTEXT.md)（决策见 `docs/adr/`）
 
 ## 开发规则
 
@@ -61,7 +65,7 @@ uv build                  # 构建所有包
 ### 流程
 
 #### 执行规则
-- 处理 `packages/` 下某个 workspace 的内容时，先阅读该 workspace 目录下的 `AGENTS.md`（如有）。它与本文件叠加生效——本文件是全局基线，workspace 级文件补充该工作区独有的约定、偏离点和防回退记录
+- 处理 `packages/` 下某个 workspace 的内容时，先阅读该 workspace 的 `CONTEXT.md` 与 `docs/adr/`（如有）。本文件是全局基线，workspace 级领域文档承载该工作区独有的架构、约定与决策记录
 - 修改代码后运行 `uv run black .`
 - 为新公共函数/类添加 docstring
 
@@ -74,6 +78,7 @@ uv build                  # 构建所有包
 - 直接推送到 `main` 分支——始终通过 PR
 - 在生产环境运行未经测试的 CLI 工具
 - 在 Box→Dataclass 桥接场景之外使用 `# type: ignore`（详见下方「数据模型选择」）
+- 将测试、调研等临时产物直接散落在项目根目录或 `packages/` 下——一律放入 `temp/`
 - 删除 `.env` 文件或任何非临时的配置文件（如 `pyproject.toml`、`.github/`、CI 配置）
 
 ### 设计规范
@@ -89,7 +94,7 @@ uv build                  # 构建所有包
 - 通用包使用别名导入，将符号来源带到调用点：
   - `r` → `cx_wealthy.rich_types`（Rich 类型统一出口）
   - `tt` → `cx_studio.text`（文本工具）
-- 依赖 `cx-wealthy` 的包**必须**通过 `cx_wealthy.rich_types` 引用 Rich 类型，禁止使用 `rich.table`、`rich.panel` 等原生路径；`cx_studio` 本身不依赖 `cx-wealthy`，可直接使用 Rich 原生导入
+- 依赖 `cx-wealthy` 的包**优先**通过 `cx_wealthy.rich_types` 引用常用 Rich 类型；非组件类功能（如 `rich.traceback.install`）与低频类型可直接 import rich；`cx_studio` 本身不依赖 `cx-wealthy`，可直接使用 Rich 原生导入
 
 #### 数据模型选择
 
@@ -129,26 +134,53 @@ uv build                  # 构建所有包
 
 ## 版本管理
 
-### 版本号变量
-- 每个 Python 发行包在 `__init__.py` 顶层定义 `__version__: str`（PEP 396 惯例）
-- 对于有自己 `pyproject.toml` 的包（`cx-studio`、`cx-wealthy`、`cxalio-studio-tools`）：`__version__` 为版本权威来源，`pyproject.toml` 中的 `version` 须与其保持一致
-- CLI 工具包（`ffpretty`、`media_scout` 等）没有独立的 `pyproject.toml`，其 `__version__` 单独管理，遵循下方的版本联动规则
-- CLI 工具的 `appenv.py` 不再硬编码版本号，改为从所在包 `__init__.py` 引入：
-  ```python
-  from . import __version__
-  self.app_version = __version__
-  ```
+### 概念：两个版本号
+- `__version__`（包的真实版本）：每个真正的包在 `__init__.py` 顶层定义 `__version__: str`（PEP 396）。它是该包实际版本的语义载体；CLI 工具 `appenv.py` 从所在包引入并展示（`from . import __version__`）。
+- pyproject `version`（发布单元版本）：机制性版本，用于触发更新、解析依赖。发布单元内容发生变化时它必须迭代——否则依赖机制认为该版本没有变化，不会触发更新。
+- 正常情况下两者数值同步；区别在用途与地位，不在数值。
 
-### 版本策略
-- 格式：`major.minor.patch[.hotfix]`（SemVer + 热修复段）
-- 迭代版本时须更新 `__init__.py` 中的 `__version__`、`pyproject.toml` 中的 `version` 和 `CHANGELOG`
-- `cx-studio` 和 `cx-wealthy`：各自 `pyproject.toml` 中独立管理版本号
+### 迭代逻辑（因果链，重读时以此为准）
+- 迭代的**旧值来源永远是 pyproject**，而不是 `__version__`。原因：pyproject 是实际发布过的版本的可靠记录（依赖解析、分发都以它为准），即使 `__version__` 因历史原因与它不一致，pyproject 仍是事实来源——从它出发迭代不会建立在错误基础上。
+- 迭代出的**新版本号写入 `__version__`**：真实版本的地位不变，新版本号落在它上面。
+- 因为 `__version__` 更新了，**pyproject 随之同步**为新版本号。
+- 即：读 pyproj 旧值 → 基于该值判断新版本号 → 写 `__version__` → pyproj 同步。pyproject 是起点（旧值来源），`__version__` 是落点（真实版本），同时 pyproject 也是跟随者。
 
-#### cxalio-studio-tools — 内部联动规则
-- 内部工具（media_scout、media_killer、jpegger、ffpretty、hosts_keeper）任一发生变更时：
-  1. **先**修改该工具自身 `__init__.py` 中的 `__version__`
-  2. **然后**响应迭代 `cxalio-studio-tools` 的 `pyproject.toml` 版本号
-- 未变更的工具**不**同步修改其自身版本号
+### 迭代流程（所有包统一）
+- 读取 pyproject 当前版本 → 参考幅度策略判断新版本号 → 新版本号写入变更包的 `__version__` → pyproject 同步。
+- 时机：修改后不立即迭代；agent 不直接修改版本号，应向用户建议（含建议的新版本号），**由用户确认触发、拍板最终版本号**。
+
+### 版本号幅度策略（判断提示）
+格式：`major.minor.patch[.hotfix]`。以下映射是迭代版本号时的**初步判断提示**；实际迭代由用户确认触发，最终版本号由用户拍板。
+
+| 档位 | 步进 | 判断依据 |
+|---|---|---|
+| hotfix | 第四段 +1 | 笔误、格式修正等不影响任何功能的修改 |
+| patch | patch 位 +1 | 修复、重构已有功能；bug、算法修复 |
+| minor | minor 位 +1 | 新增功能、组件、能力、新 tool；删除此类内容（单点能力面变化） |
+| major | major 位 +1 | 大幅架构调整、大量功能重构、里程碑式进化；API 级变更、明显破坏兼容性的变更 |
+
+补充约定：
+- **hotfix 段在本项目表示最低档变更**，非标准 SemVer 的"发布后紧急修复"语义
+- 一次迭代含多档变更时，按最高档位判断
+- hotfix 段存在时向更高位步进，低段位清零（1.0.0.3 → patch 1.0.1 / minor 1.1.0）
+- 纯文档、注释、i18n 译文修改：hotfix 档
+- 删除功能/组件属于单点能力面变化 → minor；**删除公开 API 或改变接口契约、明显破坏兼容性 → major**（即使单点）
+
+### 单包发布单元（cx-studio / cx-wealthy）
+- 发布单元即包本身。包内容变更 → 按迭代流程执行，该包 `__version__` 与 pyproject 同步更新。
+
+### cxalio-studio-tools 多包发布单元
+- 5 个工具与 cx_tools **没有自己的 pyproject，共享 cxalio-studio-tools 的 pyproject**——它是这些包共同的发布版本。
+- 某包（工具或 cx_tools）内容变更 → 从共享 pyproject 读当前发布版本 → 判断新版本号 → 写入该包 `__version__` → pyproject 同步。
+- **同一迭代批次中多个变更包共享同一个新版本号**：各包从同一旧值判断一次，分别写入各自 `__version__`，pyproject 只同步一次（如 ffpretty 与 media_scout 同批变更都得到 2.0）。
+- **未变更包的 `__version__` 不动**。因此每个包 `__version__` 的数值 = 该包最后一次变更时的发布版本快照：各包之间、以及与最终 pyproject 之间数值都允许不同——这是设计而非失控。
+- 推论（快照语义的自然结果）：某包在其它包多次迭代之后再变更时，会直接从当前 pyproject 版本继续迭代（如停在 1.1 的包在发布版本到 2.0 后再次变更 → 2.1），版本号"跳级"是正常的。
+- cx_tools 与其它工具同一逻辑，无专项同步。
+
+### CHANGELOG
+- 任何内容修改后，在 CHANGELOG 顶部追加 `[最新修改]` 段落（此时尚未产生新版本号）；commit 前校对记述是否完整。
+- 迭代执行时，将累积的 `[最新修改]` 标题改写为新版本号章节——CHANGELOG 中的版本号即发布单元的版本。
+- cxalio-studio-tools 的 CHANGELOG 多工具组织规则见其下层 CONTEXT.md。
 
 ## Git 工作流
 
@@ -175,13 +207,18 @@ uv build                  # 构建所有包
 | 所在包 | 导入路径 | 用途 |
 |---|---|---|
 | cx-studio | `from cx_studio.i18n import _, _ng` | 基础设施字符串 |
-| cx-wealth | `from cx_wealth.i18n import _, _ng` | UI 组件字符串（旧） |
-| cx-wealthy | `from cx_wealthy.i18n import _, _ng` | UI 组件字符串 |
-| cxalio-studio-tools | `from cx_tools.i18n import _, _ng` | CLI 工具字符串 |
+| cx_tools（框架） | `from cx_tools.i18n import _, _ng` | 框架自身字符串 |
+| media_scout | `from media_scout.i18n import _, _ng` | media_scout 工具字符串 |
+| media_killer | `from media_killer.i18n import _, _ng` | media_killer 工具字符串 |
+| ffpretty | `from ffpretty.i18n import _, _ng` | ffpretty 工具字符串 |
+| jpegger | `from jpegger.i18n import _, _ng` | jpegger 工具字符串 |
+| hosts_keeper | `from hosts_keeper.i18n import _, _ng` | hosts_keeper 工具字符串 |
 
-不要在包间交叉导入翻译函数——`cx_tools` 中的模块必须从 `cx_tools.i18n` 导入，不从 `cx_studio.i18n` 导入。
+工具模块**必须**从所在工具自己的 `i18n` 模块导入——`media_killer` 中的模块从 `media_killer.i18n` 导入，不交叉导入 `cx_tools.i18n`。`cx_tools` 框架自身的模块仍从 `cx_tools.i18n` 导入。
 
-> `cx_tools` 是 `cxalio-studio-tools` 分发包内各工具（media_scout、media_killer 等）的共享框架层。之所以 i18n 放在 `cx_tools` 而非各工具各自独立，是因为 domain 统一为 `cx-tools`，所有工具的字符串使用同一份 .po 文件翻译，避免碎片化。`cx_tools.i18n` 服务的是整个分发包，而非仅 `cx_tools` 自身。
+> `cx-wealthy` 不参与 gettext 翻译——UI 组件输出为框架固定文本，由使用方控制，详见 [cx-wealthy 领域文档](packages/cx-wealthy/CONTEXT.md)。
+
+> 每个工具独立 domain 和翻译文件：domain 分别为 `cx-tools`、`media-scout`、`media-killer`、`ffpretty`、`jpegger`、`hosts-keeper`。各工具自持 `i18n/locales/`，互不交叉。
 
 ### 环境变量与 locale 检测
 
@@ -206,22 +243,27 @@ LC_ALL= LANG=en_US.UTF-8 hostskeeper --help
 
 ```bash
 # cx-studio（在 packages/cx-studio/ 执行）
-uv run pybabel extract --mapping babel.cfg --output-file cx_studio/locales/cx-studio.pot --project cx-studio --copyright-holder 'Cxalio' .
-uv run pybabel update --domain cx-studio --input-file cx_studio/locales/cx-studio.pot --output-dir cx_studio/locales
-uv run pybabel compile --domain cx-studio --directory cx_studio/locales
+uv run pybabel extract --mapping babel.cfg --output-file cx_studio/i18n/locales/cx-studio.pot --project cx-studio --copyright-holder 'Cxalio' .
+uv run pybabel update --domain cx-studio --input-file cx_studio/i18n/locales/cx-studio.pot --output-dir cx_studio/i18n/locales
+uv run pybabel compile --domain cx-studio --directory cx_studio/i18n/locales
 
-# cx-wealth（在 packages/cx-wealth/ 执行）
-uv run pybabel extract --mapping babel.cfg --output-file cx_wealth/locales/cx-wealth.pot --project cx-wealth --copyright-holder 'Cxalio' .
-uv run pybabel update --domain cx-wealth --input-file cx_wealth/locales/cx-wealth.pot --output-dir cx_wealth/locales
-uv run pybabel compile --domain cx-wealth --directory cx_wealth/locales
+# cxalio-studio-tools — 每个工具分别提取（在 packages/cxalio-studio-tools/ 执行）
+uv run pybabel extract -k _ --output-file cx_tools/i18n/locales/cx-tools.pot cx_tools/
+uv run pybabel extract -k _ --output-file media_scout/i18n/locales/media-scout.pot media_scout/
+uv run pybabel extract -k _ --output-file media_killer/i18n/locales/media-killer.pot media_killer/
+uv run pybabel extract -k _ --output-file ffpretty/i18n/locales/ffpretty.pot ffpretty/
+uv run pybabel extract -k _ --output-file jpegger/i18n/locales/jpegger.pot jpegger/
+uv run pybabel extract -k _ --output-file hosts_keeper/i18n/locales/hosts-keeper.pot hosts_keeper/
 
-# cxalio-studio-tools（在 packages/cxalio-studio-tools/ 执行）
-uv run pybabel extract --mapping babel.cfg --output-file cx_tools/locales/cx-tools.pot --project 'cxalio-studio-tools' --copyright-holder 'Cxalio' .
-uv run pybabel update --domain cx-tools --input-file cx_tools/locales/cx-tools.pot --output-dir cx_tools/locales
-uv run pybabel compile --domain cx-tools --directory cx_tools/locales
+# 然后对每个工具 update 和 compile
+uv run pybabel update -i cx_tools/i18n/locales/cx-tools.pot -d cx_tools/i18n/locales -l en_US -D cx-tools
+uv run pybabel compile -d cx_tools/i18n/locales -l en_US -D cx-tools
+# （对 media_scout、media_killer、ffpretty、jpegger、hosts_keeper 重复同样操作）
 ```
 
 编译出的 `.mo` **必须提交到 git**——用户安装时不执行编译。
+
+验证：`compile` 成功后，可用 `LC_ALL= LANG=en_US.UTF-8 uv run <tool> ...` 运行目标工具观察翻译是否生效（locale 检测规则见上文「环境变量与 locale 检测」）。
 
 ### 帮助文本
 
@@ -233,3 +275,17 @@ md = load_localized_text(__package__, "help.md")
 ```
 
 翻译者将 `help.md` 复制为 `help.en_US.md`，逐段翻译。
+
+## Agent skills
+
+### Issue tracker
+
+本仓库的 issue 与 spec 跟踪在 GitHub Issues（`LambdaXIII/cx-studio-tk`），通过 `gh` CLI 操作。详见 `docs/agents/issue-tracker.md`。
+
+### Triage labels
+
+triage 使用五个默认标签：`needs-triage` / `needs-info` / `ready-for-agent` / `ready-for-human` / `wontfix`，标签字符串与角色名一致。详见 `docs/agents/triage-labels.md`。
+
+### Domain docs
+
+领域文档分别位于各 workspace 内：每个 workspace 的 `CONTEXT.md`（定位、架构、约定、词汇）与 `docs/adr/`（设计决策记录）承载该 workspace 的领域知识；不设根级 CONTEXT.md。处理对应 workspace 时先阅读。详见 `docs/agents/domain.md`。

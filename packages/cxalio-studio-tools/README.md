@@ -74,12 +74,7 @@ jpegger input_dir/ output_dir/ --format webp --scale 50%
 
 ## 应用框架
 
-所有工具均构建在 `cx_tools.app` 应用框架之上，该框架提供统一的 CLI 应用生命周期管理：
-
-- **IApplication** — 应用生命周期接口（`start` → `run` → `stop`）
-- **IAppEnvironment** — 运行环境抽象，提供 Rich console、SIGINT 处理、`say()` / `whisper()` 分级输出、管理员权限检测
-- **SafeError** — 统一异常处理，Rich 样式展示可恢复的应用错误
-- **AppContext** — 统一参数解析模式（`from_arguments()` 工厂方法）
+所有工具均构建在 `cx_tools.app` 应用框架之上，提供统一的 CLI 应用生命周期管理、Rich 输出与中断处理。
 
 ## 安装
 

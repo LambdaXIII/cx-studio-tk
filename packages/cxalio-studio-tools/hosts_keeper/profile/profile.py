@@ -99,6 +99,7 @@ class Profile:
             Callable[[AbstractContenter, int, int], None] | None
         ) = None,
         pretend_delay: float | None = None,
+        appenv=None,
     ) -> AsyncGenerator[HostRecord, None]:
         """迭代记录。
 
@@ -108,6 +109,7 @@ class Profile:
                 回调可读取 contenter.status_text 获取动态状态文本。
             pretend_delay: 假装模式下每个 contenter 处理前的固定模拟延迟（秒）。
                 None 表示不延迟。
+            appenv: 可选的 HostsKeeperEnv 实例，传递给 contenter 用于输出。
         """
         self.metadata.path = str(self.path)  # type: ignore[attr-defined]  # Box 动态属性注入
 
@@ -118,7 +120,7 @@ class Profile:
                 packages = [packages]
             for package in packages:
                 contenter = ContenterBase.create_contenter(
-                    schema, package, self.metadata
+                    schema, package, self.metadata, appenv=appenv
                 )
                 if contenter is not None:
                     contenters.append(contenter)
@@ -138,6 +140,7 @@ class Profile:
             Callable[[AbstractContenter, int, int], None] | None
         ) = None,
         pretend_delay: float | None = None,
+        appenv=None,
     ) -> AsyncGenerator[str, None]:
         """迭代行"""
         if include_markers:
@@ -146,6 +149,7 @@ class Profile:
         async for record in self.async_iter_records(
             on_contenter_status=on_contenter_status,
             pretend_delay=pretend_delay,
+            appenv=appenv,
         ):
             yield str(record)
         if include_markers:

@@ -6,7 +6,6 @@ requires-python = ">=3.12, <3.15"
 members = [
     "cx-studio",
     "cx-studio-tk",
-    "cx-wealth",
     "cx-wealthy",
     "cxalio-studio-tools",
 ]
@@ -115,7 +114,7 @@ wheels = [
 
 [[package]]
 name = "cx-studio"
-version = "0.9.2"
+version = "1.0.0"
 source = { editable = "packages/cx-studio" }
 dependencies = [
     { name = "chardet" },
@@ -132,11 +131,10 @@ requires-dist = [
 
 [[package]]
 name = "cx-studio-tk"
-version = "0.0.0"
+version = "1.0.0"
 source = { virtual = "." }
 dependencies = [
     { name = "cx-studio" },
-    { name = "cx-wealth" },
     { name = "cx-wealthy" },
     { name = "cxalio-studio-tools" },
 ]
@@ -150,7 +148,6 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "cx-studio", editable = "packages/cx-studio" },
-    { name = "cx-wealth", editable = "packages/cx-wealth" },
     { name = "cx-wealthy", editable = "packages/cx-wealthy" },
     { name = "cxalio-studio-tools", editable = "packages/cxalio-studio-tools" },
 ]
@@ -162,23 +159,8 @@ dev = [
 ]
 
 [[package]]
-name = "cx-wealth"
-version = "0.9.0"
-source = { editable = "packages/cx-wealth" }
-dependencies = [
-    { name = "cx-studio" },
-    { name = "rich" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "cx-studio", editable = "packages/cx-studio" },
-    { name = "rich", specifier = ">=14.0.0" },
-]
-
-[[package]]
 name = "cx-wealthy"
-version = "0.9.0"
+version = "1.0.0"
 source = { editable = "packages/cx-wealthy" }
 dependencies = [
     { name = "rich" },
@@ -189,12 +171,11 @@ requires-dist = [{ name = "rich", specifier = ">=14.0.0" }]
 
 [[package]]
 name = "cxalio-studio-tools"
-version = "0.9.2"
+version = "1.0.0"
 source = { editable = "packages/cxalio-studio-tools" }
 dependencies = [
     { name = "cachetools" },
     { name = "cx-studio" },
-    { name = "cx-wealth" },
     { name = "cx-wealthy" },
     { name = "pillow" },
     { name = "python-box", extra = ["all"] },
@@ -211,7 +192,6 @@ dev = [
 requires-dist = [
     { name = "cachetools", specifier = ">=5.5.2" },
     { name = "cx-studio", editable = "packages/cx-studio" },
-    { name = "cx-wealth", editable = "packages/cx-wealth" },
     { name = "cx-wealthy", editable = "packages/cx-wealthy" },
     { name = "pillow", specifier = ">=11.2.1" },
     { name = "python-box", extras = ["all"], specifier = "~=7.0" },

@@ -13,7 +13,7 @@ from cx_studio.filesystem import PathUtils
 from cx_studio.text import PathInfoProvider, TagReplacer
 
 from .preset import Preset
-from ...media import FfmpegOption, options_from_flat
+from ffpretty.common import FfmpegOption, options_from_flat
 
 
 class PresetTagReplacer:

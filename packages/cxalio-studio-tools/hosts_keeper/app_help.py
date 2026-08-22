@@ -1,16 +1,20 @@
-from cx_tools.i18n import _
+from hosts_keeper.i18n import _
 
 from cx_studio.i18n import load_localized_text
 
 from cx_studio import text as tt
 from cx_wealthy import WealthyHelp
 from cx_wealthy import rich_types as r
-from .appenv import appenv
+from cx_tools.app import IAppComponent, IAppEnvironment
+from .appcontext import HostsKeeperContext
 
 
-class AppHelp(WealthyHelp):
-    def __init__(self) -> None:
-        super().__init__(prog="hostskeeper")
+class HostsKeeperHelp(IAppComponent, WealthyHelp):
+    def __init__(self, appenv: IAppEnvironment, context: HostsKeeperContext) -> None:
+        IAppComponent.__init__(self, appenv, context)
+        self.appenv = appenv
+        self.context = context
+        WealthyHelp.__init__(self, prog="hostskeeper")
 
         # 直接运行（无子命令）—— 显示帮助
         self.add_group(
@@ -103,13 +107,13 @@ class AppHelp(WealthyHelp):
             "[link https://github.com/LambdaXIII/cx-studio-tk]Cxalio Studio Tools[/]"
         )
 
-    @staticmethod
-    def show_help() -> None:
-        appenv.say(AppHelp())
+    def show_help(self) -> None:
+        self.appenv.console.print(self)
 
-    @staticmethod
-    def show_full_help() -> None:
-        assert __package__ is not None, "AppHelp must be imported as part of a package"
+    def show_full_help(self) -> None:
+        assert (
+            __package__ is not None
+        ), "HostsKeeperHelp must be imported as part of a package"
         md = load_localized_text(__package__, "help.md")
         content = r.Markdown(md, style="default")
         panel = r.Panel(
@@ -119,4 +123,4 @@ class AppHelp(WealthyHelp):
             style="bright_black",
             title_align="left",
         )
-        appenv.say(r.Align.center(panel))
+        self.appenv.console.print(r.Align.center(panel))

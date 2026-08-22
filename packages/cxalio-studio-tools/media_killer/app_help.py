@@ -4,26 +4,30 @@
 通过 ``cx_studio.i18n.load_localized_text`` 加载本地化教程。
 """
 
-from cx_tools.i18n import _
+from cx_tools.app import IAppComponent, IAppEnvironment
+from media_killer.i18n import _
+from .appcontext import MediaKillerContext
 from cx_studio.i18n import load_localized_text
 
 from cx_studio import text as tt
 from cx_wealthy import WealthyHelp
 from cx_wealthy import rich_types as r
 
-__all__ = ["AppHelp"]
+__all__ = ["MediaKillerHelp"]
 
 
-class AppHelp(WealthyHelp):
+class MediaKillerHelp(IAppComponent, WealthyHelp):
     """media_killer 帮助信息。
 
     继承 :class:`WealthyHelp`，使用 ``add_group`` / ``add_action``
     声明式构建命令行帮助文档。
     """
 
-    def __init__(self) -> None:
-        """初始化帮助信息。"""
-        super().__init__(prog="mediakiller")
+    def __init__(self, appenv: IAppEnvironment, context: "MediaKillerContext") -> None:
+        IAppComponent.__init__(self, appenv, context)
+        self.appenv = appenv
+        self.context = context
+        WealthyHelp.__init__(self, prog="mediakiller")
 
         self.description = tt.auto_unwrap(
             _("""本工具从用户提供的输入中识别[u]预设文件[/]和[u]媒体源文件[/]，
@@ -70,12 +74,12 @@ class AppHelp(WealthyHelp):
         trans_opts.add_action(
             "-y",
             "--overwrite",
-            detail=_("启用[red bold]强制覆盖模式[/]，忽略预设文件中的覆盖选项。"),
+            detail=_("启用[cx.error]强制覆盖模式[/]，忽略预设文件中的覆盖选项。"),
         )
         trans_opts.add_action(
             "-n",
             "--no-overwrite",
-            detail=_("启用[green bold]安全模式[/]，无论如何也不覆盖已有目标文件。"),
+            detail=_("启用[cx.success]安全模式[/]，无论如何也不覆盖已有目标文件。"),
         )
 
         # ── 其它操作 ──
@@ -85,7 +89,7 @@ class AppHelp(WealthyHelp):
             "--generate",
             metavar="PRESET",
             nargs="+",
-            detail=_("以示例内容生成预设文件。[uu]示例文件不可直接运行！[/]"),
+            detail=_("以示例内容生成预设文件。[cx.warning]示例文件不可直接运行！[/]"),
         )
         other_ops.add_action(
             "-s",
@@ -113,20 +117,18 @@ class AppHelp(WealthyHelp):
         misc.add_action(
             "-p",
             "--pretend",
-            detail=_("启用[cx.mk.mode.simulate]模拟运行模式[/]，不执行任何文件操作。"),
+            detail=_("启用[cx.info]模拟运行模式[/]，不执行任何文件操作。"),
         )
 
         self.epilog = (
             "[link https://github.com/LambdaXIII/cx-studio-tk]Cxalio Studio Tools[/]"
         )
 
-    @staticmethod
-    def show_help(console: r.Console) -> None:
+    def show_help(self) -> None:
         """显示简要帮助。"""
-        console.print(AppHelp())
+        self.appenv.console.print(self)
 
-    @staticmethod
-    def show_full_help(console: r.Console) -> None:
+    def show_full_help(self) -> None:
         """显示完整教程。"""
         md = load_localized_text("media_killer", "help.md")
         content = r.Markdown(md, style="default")
@@ -134,7 +136,7 @@ class AppHelp(WealthyHelp):
             content,
             title="Media Killer 教程",
             width=90,
-            style="bright_black",
+            style="cx.debug",
             title_align="left",
         )
-        console.print(r.Align.center(panel))
+        self.appenv.console.print(r.Align.center(panel))

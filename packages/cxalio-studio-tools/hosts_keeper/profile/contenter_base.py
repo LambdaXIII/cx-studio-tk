@@ -23,11 +23,14 @@ class AbstractContenter(ABC):
         self,
         package: Box | dict | None = None,
         profile_metadata: Box | dict | None = None,
+        appenv=None,
         **kwargs,
     ) -> None:
         super().__init__()
-        self.package = package if isinstance(package, Box) else Box(package)
-        self.package.update(kwargs)
+        self._appenv = appenv
+        pkg = package if isinstance(package, Box) else Box(package)
+        pkg.update(kwargs)
+        self.package = pkg
         self.profile_metadata = (
             profile_metadata
             if isinstance(profile_metadata, Box)
@@ -69,10 +72,11 @@ class ContenterBase:
         schema: str,
         package: Box | dict | None = None,
         profile_metadata: Box | dict | None = None,
+        appenv=None,
         **kwargs,
     ) -> AbstractContenter | None:
         """获取内容器"""
         cls = ContenterBase.CONTENTERS.get(schema)
         if cls is None:
             return None
-        return cls(package, profile_metadata, **kwargs)
+        return cls(package, profile_metadata, appenv=appenv, **kwargs)

@@ -1,12 +1,23 @@
-from cx_tools.i18n import _
+from hosts_keeper.i18n import _
 
+import os
+import sys
 from argparse import ArgumentParser
 from collections.abc import Iterator, Sequence
+from pathlib import Path
 from typing import Any
 
+from cx_tools.app import IAppContext, ConfigManager
 
-class AppContext:
+
+class HostsKeeperContext(IAppContext):
+    """HostsKeeper 命令行上下文。
+
+    持有 argparse 解析后的参数和运行时状态。
+    """
+
     def __init__(self, **kwargs: Any) -> None:
+        super().__init__()
         self.command: str | None = None
 
         self.max_workers: int = 4
@@ -21,15 +32,50 @@ class AppContext:
         self.skip_flush: bool = False
         self.pretending_mode: bool = False
 
+        self.config_manager = ConfigManager("HostsKeeper")
+
         for k, v in kwargs.items():
             if k in self.__dict__:
-                self.__dict__[k] = v
+                setattr(self, k, v)
+
+    @property
+    def temp_hosts(self) -> Path:
+        """临时 hosts 文件路径。"""
+        return self.temp_dir / "hosts"
+
+    @staticmethod
+    def system_hosts_path() -> Path:
+        """返回系统 hosts 文件路径。"""
+        system = sys.platform
+
+        # Windows 系统（包括 win32, cygwin 等）
+        if system.startswith("win"):
+            # 优先使用 SYSTEMROOT 环境变量（Windows 标准）
+            system_root = os.environ.get(
+                "SYSTEMROOT", os.environ.get("WINDIR", "C:\\Windows")
+            )
+            return Path(system_root) / "System32" / "drivers" / "etc" / "hosts"
+
+        # Unix-like 系统（Linux, macOS, FreeBSD, Solaris 等）
+        elif system.startswith(("linux", "darwin", "freebsd", "sunos")):
+            return Path("/etc/hosts")
+
+        # 兜底：其他类 Unix 系统通常也使用 /etc/hosts
+        elif "bsd" in system or "unix" in system.lower():
+            return Path("/etc/hosts")
+
+        # 无法识别的操作系统
+        raise NotImplementedError(
+            _("不支持的操作系统：{system_system}。请手动提供 hosts 文件路径。").format(
+                system_system=system
+            )
+        )
 
     def __rich_repr__(self) -> Iterator[tuple[str, Any]]:
         yield from self.__dict__.items()
 
     @classmethod
-    def from_arguments(cls, args: Sequence[str]) -> "AppContext":
+    def from_arguments(cls, args: Sequence[str]) -> "HostsKeeperContext":
         global_parser = cls.__global_parser()
         main_parser = cls.__command_parser()
 

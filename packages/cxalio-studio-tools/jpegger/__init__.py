@@ -4,9 +4,15 @@
 入口点，负责安装 Rich 异常追踪并启动 `JpeggerApp`。
 """
 
-__version__ = "0.8.3"
+__version__ = "1.0.0"
 
-from .simple_application import JpeggerApp
+import sys
+
+from cx_tools.app import SafeError
+
+from .application import JpeggerApp
+from .appcontext import JpeggerContext
+from .appenv import appenv
 
 
 def run() -> None:
@@ -14,5 +20,11 @@ def run() -> None:
     from rich.traceback import install
 
     _ = install(show_locals=False, word_wrap=True, suppress=["rich"])
-    with JpeggerApp() as app:
-        app.run()
+    try:
+        context = JpeggerContext.from_arguments(sys.argv[1:])
+    except SafeError as e:
+        appenv.say(f"[{e.style}]{e}[/]")
+        return
+    with appenv:
+        with JpeggerApp(appenv=appenv, context=context) as app:
+            app.run()

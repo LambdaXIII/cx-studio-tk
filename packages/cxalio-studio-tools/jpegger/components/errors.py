@@ -5,7 +5,7 @@
 预设样式展示，不会打印完整的 Python 堆栈。
 """
 
-from cx_tools.i18n import _
+from jpegger.i18n import _
 from cx_tools.app import SafeError
 
 

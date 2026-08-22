@@ -1,0 +1,404 @@
+# Translations template for PROJECT.
+# Copyright (C) 2026 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2026.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-08-07 14:25+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#: media_killer/app_help.py:33
+msgid ""
+"本工具从用户提供的输入中识别[u]预设文件[/]和[u]媒体源文件[/]，\n"
+"                并基于它们生成一系列任务，调用 FFmpeg 进行转码。"
+msgstr ""
+
+#: media_killer/app_help.py:38
+msgid "输入"
+msgstr ""
+
+#: media_killer/app_help.py:38
+msgid "预设文件与源文件的混合输入"
+msgstr ""
+
+#: media_killer/app_help.py:44
+msgid "指定（多个）需要处理的文件，包括[u]预设文件[/]和[u]源文件路径[/]。"
+msgstr ""
+
+#: media_killer/app_help.py:49
+msgid "转码选项"
+msgstr ""
+
+#: media_killer/app_help.py:49
+msgid "控制转码操作的选项"
+msgstr ""
+
+#: media_killer/app_help.py:54
+msgid "指定目标文件夹，覆盖预设中的目标目录。"
+msgstr ""
+
+#: media_killer/app_help.py:61
+msgid ""
+"设置任务的排序模式。\n"
+"                    "
+"四种模式分别为[u]按源文件路径[/]、[u]按预设[/]、[u]按目标文件路径[/]、[u]按输入顺序（默认）[/]。"
+msgstr ""
+
+#: media_killer/app_help.py:71
+msgid ""
+"设置并行工作进程的数量，默认为 1。\n"
+"                    不建议设置大于 2 的数值，除非你知道你在干什么。"
+msgstr ""
+
+#: media_killer/app_help.py:77
+msgid "启用[cx.error]强制覆盖模式[/]，忽略预设文件中的覆盖选项。"
+msgstr ""
+
+#: media_killer/app_help.py:82
+msgid "启用[cx.success]安全模式[/]，无论如何也不覆盖已有目标文件。"
+msgstr ""
+
+#: media_killer/app_help.py:86
+msgid "其它操作"
+msgstr ""
+
+#: media_killer/app_help.py:86
+msgid "除转码之外的辅助操作"
+msgstr ""
+
+#: media_killer/app_help.py:92
+msgid "以示例内容生成预设文件。[cx.warning]示例文件不可直接运行！[/]"
+msgstr ""
+
+#: media_killer/app_help.py:98
+msgid "将转码任务保存为脚本文件，不执行转码。"
+msgstr ""
+
+#: media_killer/app_help.py:104
+msgid ""
+"加载上次的[u]所有[/]转码任务并叠加到本次任务中。\n"
+"建议附加 -n 选项以避免覆盖已完成的输出。"
+msgstr ""
+
+#: media_killer/app_help.py:109
+msgid "杂项"
+msgstr ""
+
+#: media_killer/app_help.py:110
+msgid "显示此帮助信息"
+msgstr ""
+
+#: media_killer/app_help.py:114
+msgid "显示完整的教程内容"
+msgstr ""
+
+#: media_killer/app_help.py:116
+msgid "开启调试模式以显示更多后台信息"
+msgstr ""
+
+#: media_killer/app_help.py:120
+msgid "启用[cx.info]模拟运行模式[/]，不执行任何文件操作。"
+msgstr ""
+
+#: media_killer/appcontext.py:228
+msgid "-y（强制覆盖）与 -n（强制不覆盖）不可同时使用。"
+msgstr ""
+
+#: media_killer/application.py:83
+msgid "媒体文件批量转码工具"
+msgstr ""
+
+#: media_killer/application.py:86
+msgid "模拟运行"
+msgstr ""
+
+#: media_killer/application.py:89
+msgid "安全模式启动，将拒绝任何覆盖操作"
+msgstr ""
+
+#: media_killer/application.py:91
+msgid "覆盖模式已启动，将自动覆盖任何输出"
+msgstr ""
+
+#: media_killer/application.py:105
+#, python-brace-format
+msgid "本次执行处理了 {n} 个文件"
+msgstr ""
+
+#: media_killer/application.py:110
+#, python-brace-format
+msgid "本次执行生成了 {n} 个文件"
+msgstr ""
+
+#: media_killer/application.py:118
+msgid "正在清理失败的目标文件..."
+msgstr ""
+
+#: media_killer/application.py:124
+#, python-brace-format
+msgid "清理了 {n} 个失败的目标文件"
+msgstr ""
+
+#: media_killer/application.py:132
+#, python-brace-format
+msgid "总共耗时 {time_str}。"
+msgstr ""
+
+#: media_killer/application.py:143
+msgid "程序正常退出。"
+msgstr ""
+
+#: media_killer/application.py:189
+#, python-brace-format
+msgid "文件 {name} 已存在，将强制覆盖。"
+msgstr ""
+
+#: media_killer/application.py:193
+#, python-brace-format
+msgid "文件 {name} 已存在，跳过覆盖。"
+msgstr ""
+
+#: media_killer/application.py:200
+msgid "已生成示例预设文件:"
+msgstr ""
+
+#: media_killer/application.py:356
+msgid "完成"
+msgstr ""
+
+#: media_killer/application.py:358
+msgid "运行异常"
+msgstr ""
+
+#: media_killer/application.py:360
+msgid "被取消"
+msgstr ""
+
+#: media_killer/application.py:362
+msgid "已跳过"
+msgstr ""
+
+#: media_killer/application.py:380
+#, python-brace-format
+msgid "成功执行 {n} 个任务。"
+msgstr ""
+
+#: media_killer/application.py:382
+#, python-brace-format
+msgid "{n} 个任务失败。"
+msgstr ""
+
+#: media_killer/application.py:384
+#, python-brace-format
+msgid "{n} 个任务取消。"
+msgstr ""
+
+#: media_killer/application.py:386
+#, python-brace-format
+msgid "{n} 个任务跳过。"
+msgstr ""
+
+#: media_killer/application.py:413
+msgid "并非合法的文件名，不予处理。"
+msgstr ""
+
+#: media_killer/application.py:420
+msgid "未提供任何输入项，请使用 -h 查看帮助。"
+msgstr ""
+
+#: media_killer/application.py:433
+#, python-brace-format
+msgid "加载预设文件 {path} 失败: {err}"
+msgstr ""
+
+#: media_killer/application.py:440
+msgid "预设"
+msgstr ""
+
+#: media_killer/application.py:444
+msgid "配置文件路径"
+msgstr ""
+
+#: media_killer/application.py:449
+msgid "媒体来源路径"
+msgstr ""
+
+#: media_killer/application.py:455
+#, python-brace-format
+msgid "已添加 {preset_count} 个配置文件和 {source_count} 个来源路径。"
+msgstr ""
+
+#: media_killer/application.py:460
+msgid "未提供任何预设文件。"
+msgstr ""
+
+#: media_killer/application.py:492
+#, python-brace-format
+msgid "源文件不存在: {path}"
+msgstr ""
+
+#: media_killer/application.py:498
+msgid "输出目录将被替换为:"
+msgstr ""
+
+#: media_killer/application.py:513
+#, python-brace-format
+msgid "生成了 {count} 个任务。"
+msgstr ""
+
+#: media_killer/application.py:521
+#, python-brace-format
+msgid "从上次执行中恢复了 {count} 个任务……"
+msgstr ""
+
+#: media_killer/application.py:529
+msgid "没有任务需要执行。"
+msgstr ""
+
+#: media_killer/application.py:532
+msgid "整理完的任务列表"
+msgstr ""
+
+#: media_killer/application.py:539
+#, python-brace-format
+msgid "脚本文件 {name} 已存在，请取消 --no-overwrite 选项。"
+msgstr ""
+
+#: media_killer/application.py:549
+msgid "检测到[cx.info]假装模式[/]，将不会真正执行任何操作。"
+msgstr ""
+
+#: media_killer/common/total_progress.py:57
+msgid "总进度"
+msgstr ""
+
+#: media_killer/components/preset/loader.py:54
+#, python-brace-format
+msgid "预设文件不存在：{path}"
+msgstr ""
+
+#: media_killer/components/preset/loader.py:73
+#, python-brace-format
+msgid "TOML 解析失败（{path}）：{error}"
+msgstr ""
+
+#: media_killer/components/preset/loader.py:86
+#, python-brace-format
+msgid "预设文件缺少必需节 [{section}]（{path}）"
+msgstr ""
+
+#: media_killer/components/preset/loader.py:96
+#, python-brace-format
+msgid "预设节 [general] 缺少必需字段 \"{field}\"（{path}）"
+msgstr ""
+
+#: media_killer/components/preset/loader.py:105
+#, python-brace-format
+msgid "预设节 [{section}] 必须是列表（{path}）"
+msgstr ""
+
+#: media_killer/components/preset/loader.py:113
+#, python-brace-format
+msgid "预设节 [{section}] 第 {index} 项必须是表格（{path}）"
+msgstr ""
+
+#: media_killer/components/preset/loader.py:120
+#, python-brace-format
+msgid "预设节 [{section}] 第 {index} 项缺少必需字段 \"{field}\"（{path}）"
+msgstr ""
+
+#: media_killer/components/preset/loader.py:144
+#, python-brace-format
+msgid ""
+"预设节 [{section}] 第 {index} 项的 filename 包含无效标签 \"${{{tag}}}\"：缺少命名空间分隔符 "
+"\"（{path}）"
+msgstr ""
+
+#: media_killer/components/preset/loader.py:158
+#, python-brace-format
+msgid ""
+"预设节 [{section}] 第 {index} 项的 filename 包含未知标签命名空间 \"${{{tag}}}\"：有效命名空间为 "
+"{valid}（{path}）"
+msgstr ""
+
+#: media_killer/components/preset/preset.py:123
+#: media_killer/components/preset/preset.py:141
+msgid "文件名模板"
+msgstr ""
+
+#: media_killer/components/preset/preset.py:124
+#: media_killer/components/preset/preset.py:142
+msgid "选项"
+msgstr ""
+
+#: media_killer/components/preset/preset.py:124
+#: media_killer/components/preset/preset.py:142
+msgid "无"
+msgstr ""
+
+#: media_killer/components/preset/preset.py:211
+msgid "ID"
+msgstr ""
+
+#: media_killer/components/preset/preset.py:212
+msgid "预设名称"
+msgstr ""
+
+#: media_killer/components/preset/preset.py:213
+msgid "预设描述"
+msgstr ""
+
+#: media_killer/components/preset/preset.py:214
+msgid "预设文件路径"
+msgstr ""
+
+#: media_killer/components/preset/preset.py:215
+msgid "FFmpeg 路径"
+msgstr ""
+
+#: media_killer/components/preset/preset.py:216
+msgid "是否覆盖"
+msgstr ""
+
+#: media_killer/components/preset/preset.py:217
+msgid "全局参数"
+msgstr ""
+
+#: media_killer/components/preset/preset.py:218
+msgid "源文件扩展名"
+msgstr ""
+
+#: media_killer/components/preset/preset.py:219
+msgid "目标文件扩展名"
+msgstr ""
+
+#: media_killer/components/preset/preset.py:220
+msgid "目标文件夹"
+msgstr ""
+
+#: media_killer/components/preset/preset.py:221
+msgid "保留父级层级"
+msgstr ""
+
+#: media_killer/components/preset/preset.py:222
+msgid "输入模板"
+msgstr ""
+
+#: media_killer/components/preset/preset.py:223
+msgid "输出模板"
+msgstr ""
+
+#: media_killer/components/preset/preset.py:224
+msgid "自定义参数"
+msgstr ""
+

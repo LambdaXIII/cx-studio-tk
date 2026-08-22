@@ -1,6 +1,6 @@
-from .cx_cmdfinder import *
-from .cx_pathexpander import *
-from .cx_suffix_finder import *
+from .cmd_finder import *
+from .path_expander import *
+from .suffix_finder import *
 
 __all__ = [
     "CmdFinder",

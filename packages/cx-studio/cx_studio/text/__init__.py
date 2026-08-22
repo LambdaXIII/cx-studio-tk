@@ -4,7 +4,7 @@ TagReplacer = tag_replacer.TagReplacer
 PathInfoProvider = tag_replacer.PathInfoProvider
 
 
-from .cx_textutils import *
+from .text_utils import *
 
 
-from .cx_shell_escape import *
+from .shell_escape import *

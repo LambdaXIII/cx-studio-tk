@@ -1,6 +1,6 @@
 """cx-wealthy: Rich 终端结构化文档与 UI 组件库。"""
 
-__version__ = "0.9.0"
+__version__ = "1.0.0"
 from .widgets import (
     IndexedListPanel,
     MaxColumnsLayout,
@@ -10,7 +10,6 @@ from .widgets import (
     WealthyDetailPanel,
     WealthyDetailTable,
 )
-from .tutorial import render_tutorial
 from .document import Group, Node, Note, WealthyDocument
 from .help import Action, HelpGroup, WealthyHelp
 from .theme import (
@@ -43,8 +42,6 @@ __all__ = [
     # 组件
     "IndexedListPanel",
     "MaxColumnsLayout",
-    # 教程
-    "render_tutorial",
     # 主题
     "BASE_STYLES",
     "CX_STYLES",

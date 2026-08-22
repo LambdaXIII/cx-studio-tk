@@ -1,5 +1,5 @@
 from typing import override, AsyncGenerator
-from cx_tools.i18n import _
+from hosts_keeper.i18n import _
 
 
 from box import Box
@@ -17,9 +17,10 @@ class DirectContenter(AbstractContenter):
         self,
         package: Box | dict | None = None,
         profile_metadata: Box | dict | None = None,
+        appenv=None,
         **kwargs,
     ) -> None:
-        super().__init__(package, profile_metadata, **kwargs)
+        super().__init__(package, profile_metadata, appenv=appenv, **kwargs)
         self.ip: str | None = self.package.get("ip") or None
         self.domains: list[str] = self.package.get("domains") or []
         self.comment: str | None = self.package.get("comment") or None

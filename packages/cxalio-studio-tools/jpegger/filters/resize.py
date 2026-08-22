@@ -7,7 +7,7 @@
 
 from typing import override
 
-from cx_tools.i18n import _
+from jpegger.i18n import _
 from PIL.Image import Image
 
 from .image_filter import IImageFilter

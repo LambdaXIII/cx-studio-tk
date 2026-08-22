@@ -1,4 +1,4 @@
-from cx_tools.i18n import _
+from hosts_keeper.i18n import _
 
 import asyncio
 import urllib.error
@@ -9,7 +9,6 @@ from box import Box
 
 from ..contenter_base import AbstractContenter, ContenterBase
 from ..hostrecord import HostRecord
-from ...appenv import appenv
 
 
 class UrlContenter(AbstractContenter):
@@ -21,9 +20,10 @@ class UrlContenter(AbstractContenter):
         self,
         package: Box | dict | None = None,
         profile_metadata: Box | dict | None = None,
+        appenv=None,
         **kwargs,
     ) -> None:
-        super().__init__(package, profile_metadata, **kwargs)
+        super().__init__(package, profile_metadata, appenv=appenv, **kwargs)
         self.url: str | None = self.package.get("url")
         self.description: str | None = self.package.get("description")
         self.encoding: str = self.package.get("encoding") or "utf-8"
@@ -49,9 +49,10 @@ class UrlContenter(AbstractContenter):
                 try:
                     return content_bytes.decode(self.encoding)
                 except UnicodeDecodeError:
-                    appenv.whisper(
-                        f"[cx.info]{_('使用配置编码 {encoding} 解码失败，尝试 utf-8 回退...').format(encoding=self.encoding)}"
-                    )
+                    if self._appenv:
+                        self._appenv.whisper(
+                            f"[cx.info]{_('使用配置编码 {encoding} 解码失败，尝试 utf-8 回退...').format(encoding=self.encoding)}"
+                        )
                     return content_bytes.decode("utf-8", errors="replace")
 
         try:
@@ -60,7 +61,10 @@ class UrlContenter(AbstractContenter):
             return result
         except urllib.error.URLError as e:
             self.status_text = _("下载失败")
-            appenv.say(f"[cx.error]{_('无法获取 URL 内容: {error}').format(error=e)}")
+            if self._appenv:
+                self._appenv.say(
+                    f"[cx.error]{_('无法获取 URL 内容: {error}').format(error=e)}"
+                )
             return ""
 
     @override
