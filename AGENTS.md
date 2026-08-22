@@ -52,11 +52,11 @@ uv build                  # 构建所有包
 
 ### 项目特有模式
 
-各工作区规范（与根文件叠加生效，处理对应目录时必读）：
+各工作区领域文档（与根文件叠加生效，处理对应目录时先阅读）：
 
-- [cxalio-studio-tools CLI 工具编写规范](packages/cxalio-studio-tools/AGENTS.md)
-- [cx-studio 开发指南](packages/cx-studio/AGENTS.md)
-- [cx-wealthy 工作区指南](packages/cx-wealthy/AGENTS.md)
+- [cxalio-studio-tools 领域文档](packages/cxalio-studio-tools/CONTEXT.md)（决策见 `docs/adr/`）
+- [cx-studio 领域文档](packages/cx-studio/CONTEXT.md)（决策见 `docs/adr/`）
+- [cx-wealthy 领域文档](packages/cx-wealthy/CONTEXT.md)（决策见 `docs/adr/`）
 
 ## 开发规则
 
@@ -65,7 +65,7 @@ uv build                  # 构建所有包
 ### 流程
 
 #### 执行规则
-- 处理 `packages/` 下某个 workspace 的内容时，先阅读该 workspace 目录下的 `AGENTS.md`（如有）。它与本文件叠加生效——本文件是全局基线，workspace 级文件补充该工作区独有的约定、偏离点和防回退记录
+- 处理 `packages/` 下某个 workspace 的内容时，先阅读该 workspace 的 `CONTEXT.md` 与 `docs/adr/`（如有）。本文件是全局基线，workspace 级领域文档承载该工作区独有的架构、约定与决策记录
 - 修改代码后运行 `uv run black .`
 - 为新公共函数/类添加 docstring
 
@@ -180,7 +180,7 @@ uv build                  # 构建所有包
 ### CHANGELOG
 - 任何内容修改后，在 CHANGELOG 顶部追加 `[最新修改]` 段落（此时尚未产生新版本号）；commit 前校对记述是否完整。
 - 迭代执行时，将累积的 `[最新修改]` 标题改写为新版本号章节——CHANGELOG 中的版本号即发布单元的版本。
-- cxalio-studio-tools 的 CHANGELOG 多工具组织规则见其下层 AGENTS.md。
+- cxalio-studio-tools 的 CHANGELOG 多工具组织规则见其下层 CONTEXT.md。
 
 ## Git 工作流
 
@@ -216,7 +216,7 @@ uv build                  # 构建所有包
 
 工具模块**必须**从所在工具自己的 `i18n` 模块导入——`media_killer` 中的模块从 `media_killer.i18n` 导入，不交叉导入 `cx_tools.i18n`。`cx_tools` 框架自身的模块仍从 `cx_tools.i18n` 导入。
 
-> `cx-wealthy` 不参与 gettext 翻译——UI 组件输出为框架固定文本，由使用方控制，详见 [cx-wealthy 工作区指南](packages/cx-wealthy/AGENTS.md)。
+> `cx-wealthy` 不参与 gettext 翻译——UI 组件输出为框架固定文本，由使用方控制，详见 [cx-wealthy 领域文档](packages/cx-wealthy/CONTEXT.md)。
 
 > 每个工具独立 domain 和翻译文件：domain 分别为 `cx-tools`、`media-scout`、`media-killer`、`ffpretty`、`jpegger`、`hosts-keeper`。各工具自持 `i18n/locales/`，互不交叉。
 
@@ -275,3 +275,17 @@ md = load_localized_text(__package__, "help.md")
 ```
 
 翻译者将 `help.md` 复制为 `help.en_US.md`，逐段翻译。
+
+## Agent skills
+
+### Issue tracker
+
+本仓库的 issue 与 spec 跟踪在 GitHub Issues（`LambdaXIII/cx-studio-tk`），通过 `gh` CLI 操作。详见 `docs/agents/issue-tracker.md`。
+
+### Triage labels
+
+triage 使用五个默认标签：`needs-triage` / `needs-info` / `ready-for-agent` / `ready-for-human` / `wontfix`，标签字符串与角色名一致。详见 `docs/agents/triage-labels.md`。
+
+### Domain docs
+
+领域文档分别位于各 workspace 内：每个 workspace 的 `CONTEXT.md`（定位、架构、约定、词汇）与 `docs/adr/`（设计决策记录）承载该 workspace 的领域知识；不设根级 CONTEXT.md。处理对应 workspace 时先阅读。详见 `docs/agents/domain.md`。
