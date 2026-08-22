@@ -6,101 +6,31 @@
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/cx-studio-tk)](https://pypi.org/project/cx-studio-tk/)
 [![License](https://img.shields.io/github/license/LambdaXIII/cx-studio-tk)](LICENSE)
 
-A Python toolkit for film and video post-production.
+**Post-production, hardcore.**
+
+A Python toolkit: footage location, ffmpeg batch transcoding, image batch processing, hosts management. Every feature is independent and open—standard flow doesn't fit your pipeline? Snap them together and build a post-production line that's yours.
 
 ## Table of Contents
 
-- [Packages](#packages)
+- [Packages & Installation](#packages--installation)
 - [Tools](#tools)
-- [Installation](#installation)
-- [Internationalization & Translation](#internationalization--translation)
-- [Building from Source](#building-from-source)
 - [Contributing](#contributing)
 - [License](#license)
 
-## Packages
+## Packages & Installation
 
 Three independently distributable packages, listed in dependency-chain order:
 
-### [cx-studio](packages/cx-studio/README.md)  |  [PyPI](https://pypi.org/project/cx-studio/)
+| Package | Description | Install |
+|---|---|---|
+| [cx-studio](packages/cx-studio/README.md) | Infrastructure library (timecode, FFmpeg wrapper, filesystem, text templates, system abstractions, i18n, etc.) | `pip install cx-studio` |
+| [cx-wealthy](packages/cx-wealthy/README.md) | Rich-based terminal document & UI component library (label/detail dual rendering protocols, declarative help system, etc.) | `pip install cx-wealthy` |
+| [cxalio-studio-tools](packages/cxalio-studio-tools/README.md) | 5 CLI tools + general-purpose app framework (cx_tools.app), depends on the above two | `pip install cxalio-studio-tools` |
 
-Infrastructure library providing common components for post-production tool development. Includes timecode (CxTime), file size (FileSize), FFmpeg async wrapper, filesystem utilities, text template rendering (TagReplacer), value mapping, cross-platform system abstractions, and internationalization infrastructure. Can be installed and used independently.
-
-### [cx-wealthy](packages/cx-wealthy/README.md)  |  [PyPI](https://pypi.org/project/cx-wealthy/)
-
-A terminal structured document and UI component library built on Rich. Provides the label (`__rich_label__`) and detail (`__rich_detail__`) dual rendering protocols, a declarative help system (WealthyHelp), indexed list panels (IndexedListPanel), and multi-column layouts (MaxColumnsLayout). Depends on rich.
-
-### [cxalio-studio-tools](packages/cxalio-studio-tools/README.md)  |  [PyPI](https://pypi.org/project/cxalio-studio-tools/)
-
-5 ready-to-use CLI tools — Media Scout, Media Killer, FFpretty, Jpegger, HostsKeeper — along with a general-purpose CLI application framework (cx_tools.app). Depends on cx-studio and cx-wealthy.
-
-## Tools
-
-### Media Scout | `mediascout`
-
-Extracts source media paths from post-production project files and outputs them to stdout.
-
-Supported formats:
-- Final Cut Pro 7 XML (`.xml`)
-- Final Cut Pro X / 11 FCPXML (`.fcpxml` / `.fcpxmld`)
-- Edit Decision List EDL (`.edl`)
-- DaVinci Resolve metadata tables (`.csv`)
-- Plain text file listings (`.txt`)
-
-Usage:
+To install everything (all tools included):
 
 ```shell
-mediascout "project.fcpxml" > sources.txt
-```
-
-→ [Media Scout Help](packages/cxalio-studio-tools/media_scout/help.md)
-
-### Media Killer | `mediakiller`
-
-A preset-driven ffmpeg batch transcoding tool. Defines transcoding parameters (codec, resolution, bitrate, filters, etc.) via TOML preset files. Automatically scans directories recursively, matches file types, and executes the transcoding queue.
-
-Usage:
-
-```shell
-mediakiller "preset.toml" "source.mp4" "source_dir/"
-```
-
-→ [Media Killer Help](packages/cxalio-studio-tools/media_killer/help.md)
-
-### FFpretty | `ffpretty`
-
-A simple ffmpeg command-line wrapper. Passes all arguments through to ffmpeg, provides a Rich progress bar, and suppresses ffmpeg's native output.
-
-```shell
-ffpretty -i input.mp4 -c:v libx264 output.mp4
-```
-
-### Jpegger | `jpegger`
-
-A batch image processing tool. Supports color space conversion, proportional scaling, and multi-format output (JPEG / PNG / WebP, etc.).
-
-```shell
-jpegger input_dir/ output_dir/ --format webp --scale 50%
-```
-
-### HostsKeeper | `hostskeeper`
-
-A hosts file manager. Fetches hosts content from multiple sources (local files, remote URLs), merges and deduplicates, then writes to the system hosts file. Supports rule-driven filtering and auto-updating, with automatic DNS cache flushing (Windows / macOS).
-
-> HostsKeeper requires administrator privileges to run.
-
-→ [HostsKeeper Help](packages/cxalio-studio-tools/hosts_keeper/help.md)
-
-## Installation
-
-```shell
-# Install everything (all tools included)
 pip install cx-studio-tk
-
-# Install individual packages
-pip install cx-studio             # infrastructure library only
-pip install cx-wealthy           # UI component library only
-pip install cxalio-studio-tools   # CLI tools only
 ```
 
 Using pipx for the tools package is recommended:
@@ -111,92 +41,64 @@ pipx install cxalio-studio-tools
 
 Requires Python >= 3.12, < 3.15.
 
-## Internationalization & Translation
+## Tools
 
-This project uses **gettext + Babel** for internationalization. Each distributable package maintains its own translation files under its source directory:
+### Media Scout | `mediascout`
 
-| Package | Translation File Location | Domain |
-|---|---|---|
-| cx-studio | `cx_studio/i18n/locales/` | `cx-studio` |
-| cxalio-studio-tools (framework) | `cx_tools/i18n/locales/` | `cx-tools` |
-| cxalio-studio-tools / media_scout | `media_scout/i18n/locales/` | `media-scout` |
-| cxalio-studio-tools / media_killer | `media_killer/i18n/locales/` | `media-killer` |
-| cxalio-studio-tools / jpegger | `jpegger/i18n/locales/` | `jpegger` |
-| cxalio-studio-tools / hosts_keeper | `hosts_keeper/i18n/locales/` | `hosts-keeper` |
-
-> **Source Language Policy**: The standard language for this project is Simplified Chinese (zh_CN). `_()` calls in the code use Chinese as msgid, with translations (including English) provided via `.po` `msgstr` entries. Designs using English as the source language are not accepted.
-
-### Quick Start for Translators
-
-1. Locate the `.po` file for the package you want to translate, e.g. `cx_tools/i18n/locales/en_US/LC_MESSAGES/cx-tools.po`
-2. Open it with **Poedit** (recommended) or any text editor, fill `msgstr ""` with your target language
-3. Save and submit a Pull Request
-
-You can verify that the `.po` compiles correctly to `.mo` using the full command (e.g. `uv run pybabel compile --domain cx-tools --directory cx_tools/i18n/locales`, executed in the corresponding package directory).
-
-### Workflow for Developers
-
-Wrap user-facing strings with `_()` in code:
-
-```python
-from cx_studio.i18n import _   # inside cx-studio package
-from cx_tools.i18n import _    # inside cxalio-studio-tools package
-
-appenv.say(_("程序正常退出。"))
-
-# Strings with variables — variables go outside _()
-appenv.say(_("已处理 {count} 个文件。").format(count=n))
-
-# Plural forms
-from cx_tools.i18n import _ng
-appenv.say(_ng("找到 {n} 个结果", "找到 {n} 个结果", n).format(n=n))
-```
-
-Rules:
-- Only wrap **user-facing fixed text** — not variables, file paths, or command-line argument names
-- Rich markup tags (`[cx.error]`, `[green]`) stay outside, never inside `_()`
-- After adding new strings, run the extraction command to update the `.po` template
-
-Extract-Translate-Compile cycle (run in the corresponding package directory):
+Extracts source media paths from post-production project files and outputs them to stdout. Supports Final Cut Pro 7 XML, FCPXML, EDL, DaVinci Resolve metadata tables, and plain-text file listings.
 
 ```shell
-# cx-studio (run in packages/cx-studio/)
-uv run pybabel extract --mapping babel.cfg --output-file cx_studio/i18n/locales/cx-studio.pot --project cx-studio --copyright-holder 'Cxalio' .
-uv run pybabel update --domain cx-studio --input-file cx_studio/i18n/locales/cx-studio.pot --output-dir cx_studio/i18n/locales
-uv run pybabel compile --domain cx-studio --directory cx_studio/i18n/locales
-
-# cxalio-studio-tools (run in packages/cxalio-studio-tools/)
-uv run pybabel extract --mapping babel.cfg --output-file cx_tools/i18n/locales/cx-tools.pot --project 'cxalio-studio-tools' --copyright-holder 'Cxalio' .
-uv run pybabel update --domain cx-tools --input-file cx_tools/i18n/locales/cx-tools.pot --output-dir cx_tools/i18n/locales
-uv run pybabel compile --domain cx-tools --directory cx_tools/i18n/locales
+mediascout "project.fcpxml" > sources.txt
 ```
 
-### Help Text (help.md)
+See the [Media Scout help](packages/cxalio-studio-tools/media_scout/help.md) for details.
 
-Help text uses filename suffixes to distinguish languages:
+### Media Killer | `mediakiller`
 
-```
-help.md            # Chinese (source language)
-help.en_US.md      # English
-```
-
-Help text contains no `_()` calls. Translators simply copy `help.md` to `help.<locale>.md` and translate section by section.
-
-## Building from Source
+A preset-driven ffmpeg batch transcoding tool. Defines transcoding parameters via TOML preset files, automatically scans directories recursively, and executes the transcoding queue.
 
 ```shell
-git clone git@github.com:LambdaXIII/cx-studio-tk.git
-cd cx-studio-tk
-uv sync
+mediakiller "preset.toml" "source.mp4" "source_dir/"
 ```
+
+See the [Media Killer help](packages/cxalio-studio-tools/media_killer/help.md) for details.
+
+### FFpretty | `ffpretty`
+
+A simple ffmpeg command-line wrapper. Passes all arguments through to ffmpeg, provides a Rich progress bar, and suppresses ffmpeg's native output.
+
+```shell
+ffpretty -i input.mp4 -c:v libx264 output.mp4
+```
+
+See `ffpretty -h` for details.
+
+### Jpegger | `jpegger`
+
+A batch image processing tool. Supports color space conversion, proportional scaling, and multi-format output (JPEG / PNG / WebP, etc.).
+
+```shell
+jpegger input_dir/ output_dir/ --format webp --scale 50%
+```
+
+See the [Jpegger help](packages/cxalio-studio-tools/jpegger/help.md) for details.
+
+### HostsKeeper | `hostskeeper`
+
+A hosts file manager. Fetches hosts content from multiple sources, merges and deduplicates them, then writes to the system hosts file. Supports rule-based filtering and auto-updating, with automatic DNS cache flushing (Windows / macOS).
+
+> HostsKeeper requires administrator privileges to run.
+
+```shell
+hostskeeper update -p   # preview what will be written
+hostskeeper update      # execute after confirmation
+```
+
+See the [HostsKeeper help](packages/cxalio-studio-tools/hosts_keeper/help.md) for details.
 
 ## Contributing
 
-Issues and Pull Requests are welcome. Before submitting a PR, please ensure:
-
-- Format code by running `uv run black .` in the project root
-- Add docstrings for new public functions and classes
-- Follow the code conventions described in AGENTS.md
+Issues and Pull Requests are welcome. Development workflow, code conventions, and internationalization (i18n) guidance are documented in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 

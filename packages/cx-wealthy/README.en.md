@@ -137,13 +137,10 @@ r.Console().print(table)
 
 | Module | Exports |
 |---|---|
-| `label` | `RichLabelMixin` · `RichLabel` |
-| `detail` | `RichDetailMixin` · `WealthyDetailTable` · `WealthyDetailPanel` |
+| `widgets` | `RichLabelMixin` · `RichLabel` · `RichDetailMixin` · `WealthyDetailTable` · `WealthyDetailPanel` · `IndexedListPanel` · `MaxColumnsLayout` |
 | `document` | `Node` · `Group` · `Note` · `WealthyDocument` |
-| `help` | `Action` · `WealthyHelp` |
-| `indexed_list` | `IndexedListPanel` |
-| `columns` | `MaxColumnsLayout` |
-| `theme` | `CX_STYLES` · `HELP_STYLES` · `default_theme` |
+| `help` | `Action` · `HelpGroup` · `WealthyHelp` |
+| `theme` | `BASE_STYLES` · `CX_STYLES` · `HELP_STYLES` · `DETAIL_STYLES` · `INDEXED_LIST_STYLES` · `FULL_HELP_STYLES` · `default_theme` |
 | `rich_types` | Rich high-frequency type aliases |
 
 ## License

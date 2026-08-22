@@ -1,4 +1,10 @@
-# Changelog
+## [最新修改]
+
+### README 同步
+
+- **模块索引更新**：平铺模块索引（label/detail/indexed_list/columns）改为当前 `widgets/` + `document/` + `help/` 三层结构，补齐 `HelpGroup` 与 theme 全部导出（`BASE_STYLES`/`DETAIL_STYLES`/`INDEXED_LIST_STYLES`/`FULL_HELP_STYLES`）
+
+## 0.99.0
 
 ## 0.99.0
 

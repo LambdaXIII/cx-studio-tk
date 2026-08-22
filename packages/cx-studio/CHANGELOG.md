@@ -1,4 +1,8 @@
-# Change logs of cx-studio
+### [最新修改]
+
+- **README 同步**：模块清单更新为当前 8 子包结构（core/text/filesystem/system/process/clikit/ffmpeg/i18n），修正过时模块名与符号名（`iotools`→`process`、`number`/`collectiontools`→`core`、`opener`→`system_open`、`cross_runner`→`CrossRunner`），补充 `clikit`、`process` 与新增符号
+
+### v0.99.0
 
 ### v0.99.0
 
