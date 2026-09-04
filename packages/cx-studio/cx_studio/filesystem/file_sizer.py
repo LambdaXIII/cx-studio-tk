@@ -1,3 +1,9 @@
+"""文件大小计算器与默认实现。
+
+FileSizer 将路径映射为字节大小，支持注入自定义计算函数（推荐带缓存
+的实现以提升重复查询性能），并提供 FileSize 值对象包装便于格式化输出。
+"""
+
 from collections.abc import Callable
 from pathlib import Path
 

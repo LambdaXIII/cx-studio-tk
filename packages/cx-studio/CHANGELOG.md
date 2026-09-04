@@ -1,3 +1,8 @@
+## [最新修改]
+
+- **docstring 全覆盖**：为 cx_studio 全部 47 个模块补齐模块级 docstring，并为全部公开符号补齐简体中文 Google 风格 docstring（193/193，含 dunder 非显然语义在类级 docstring 中的集中说明）；遗留英文 docstring（quick_tools、functional_utils、path_utils 等）统一转为中文
+- **规范落地**：docstring 语言/风格/覆盖要求写入根 AGENTS.md「文档与注释」节，全局适用
+
 ### v1.0.0
 - **正式版发布**：本包与全仓库（cx-wealthy、cxalio-studio-tools 及全部 CLI 工具）同步发布 1.0.0，作为首个稳定发布版本号
 

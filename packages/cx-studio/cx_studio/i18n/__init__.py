@@ -1,3 +1,19 @@
+"""cx-studio 的国际化（i18n）基础设施。
+
+提供三类能力：
+- make_gettext() / make_ngettext()：gettext 翻译函数工厂，按
+  (domain, locale_dir) 返回 _() / ngettext()；底层翻译对象按参数缓存
+- detect_locale()：检测用户 locale，遵循 GNU gettext 环境变量顺序
+  LANGUAGE → LC_ALL → LC_MESSAGES → LANG，全部缺失时回退 'zh_CN'
+- load_localized_text()：从包资源加载按 locale 后缀区分语言的文本
+  （如 help.md 的中文原文、help.en_US.md 的英文版），无匹配时回退
+  源语言文件
+
+模块级导出 cx-studio 包自身的翻译入口 _ 与 _ng（domain
+"cx-studio"，翻译目录为 i18n/locales）。源语言为简体中文，按仓库
+约定不提供 zh_CN 的 .po/.mo——gettext 找不到译文时直接返回中文 msgid。
+"""
+
 from __future__ import annotations
 
 import gettext

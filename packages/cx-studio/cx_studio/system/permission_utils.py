@@ -1,3 +1,10 @@
+"""permission_utils —— 权限检测工具。
+
+- is_user_admin()：跨平台判断当前进程是否具备管理员 / root 权限
+- check_file_permission()：检查路径是否具备指定访问权限（默认可写）；
+  路径不存在时沿父目录链向上回溯，对最近的存在祖先执行检查
+"""
+
 import os
 from pathlib import Path
 
