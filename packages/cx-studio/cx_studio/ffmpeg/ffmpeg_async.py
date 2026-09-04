@@ -1,3 +1,11 @@
+"""异步 FFmpeg 子进程执行器。
+
+基于 ``asyncio`` 管理 FFmpeg 子进程的启动、运行与结束，通过
+``FFMPEG_EVENT_*`` 事件向消费者报告启动、转码进度、帧级状态以及
+正常结束/取消/异常退出；并提供 ``-i`` 探测媒体基本信息的能力。
+事件常量及其参数见类 ``FFmpegAsync`` 的文档。
+"""
+
 import asyncio
 import re
 import signal
@@ -85,14 +93,29 @@ class FFmpegAsync(AsyncIOEventEmitter):
 
     @property
     def is_canceled(self) -> bool:
+        """本次 execute() 是否已被取消。
+
+        每次 execute() 开始时重置为 False；执行期间检测到 ``cancel()``
+        请求并以取消方式终止进程后为 True，直到下一次 execute()。
+        """
         return self._canceled
 
     @property
     def executable(self) -> str:
+        """当前使用的 FFmpeg 可执行文件路径。
+
+        构造时经 ``CmdFinder.which`` 解析得到（未显式传入时默认查找
+        ``"ffmpeg"``）的字符串路径。
+        """
         return self._executable
 
     @property
     def coding_info(self) -> FFmpegCodingInfo:
+        """当前转码状态的可变副本。
+
+        返回内部 ``FFmpegCodingInfo`` 的浅拷贝（``copy.copy``），避免
+        调用方直接改动实例内部状态。
+        """
         return copy(self._coding_info)
 
     @property
@@ -127,12 +150,29 @@ class FFmpegAsync(AsyncIOEventEmitter):
                 self.emit(FFMPEG_EVENT_STATUS_UPDATED, copy(self._coding_info))
 
     def is_running(self) -> bool:
+        """当前是否正在执行任务。
+
+        基于运行锁（``asyncio.Condition``）是否被持有判断：``execute()``
+        或 ``get_basic_info()`` 持锁期间返回 True，结束后返回 False。
+        """
         return self._is_running.locked()
 
     def cancel(self):
+        """请求取消当前执行的 FFmpeg 进程。
+
+        仅设置内部取消事件；execute() 的轮询循环检测到后向进程发送
+        终止信号并以取消方式结束。未在执行中调用只会残留标志，
+        下一次 execute() 开头会清空它，因此不影响后续执行。
+        """
         self._cancel_event.set()
 
     async def terminate(self):
+        """终止当前运行的 FFmpeg 子进程（协程）。
+
+        发送 SIGTERM（Windows 上为 ``CTRL_BREAK_EVENT``）并最多等待
+        4 秒退出；超时则改用 ``process.terminate()`` 强制结束。
+        须在进程运行期间（execute() 已启动进程后）调用，执行完毕即返回。
+        """
         sigterm = signal.SIGTERM if sys.platform != "win32" else signal.CTRL_BREAK_EVENT
         self._process.send_signal(sigterm)
         try:
@@ -154,6 +194,31 @@ class FFmpegAsync(AsyncIOEventEmitter):
         arguments: Iterable[str] | None = None,
         input_stream: asyncio.StreamReader | bytes | None = None,
     ) -> bool:
+        """以 ``executable + arguments`` 执行一次 FFmpeg 并等待结束（协程）。
+
+        运行期间的行为：
+        - 以管道捕获 stderr 并逐行解析：每行都发射
+          ``FFMPEG_EVENT_VERBOSE_UPDATED``，解析到时间字段时发射
+          ``FFMPEG_EVENT_PROGRESS_UPDATED``、解析到帧号时发射
+          ``FFMPEG_EVENT_STATUS_UPDATED``（同步更新 ``coding_info``）；
+        - 传入 ``input_stream`` 时将其内容经管道写入子进程 stdin
+          （提供与否也决定是否分配 stdin 管道）；
+        - 每 0.1 秒轮询 ``cancel()`` 请求，检测到即以终止信号取消进程，
+          使 ``is_canceled`` 为 True；
+        - 协程自身被取消（``CancelledError``）时同样请求取消。
+        进程退出后按结果发射 ``finished``/``canceled``/``terminated`` 之一
+        （参数见类 docstring 的事件表）。执行全程持有运行锁，与
+        ``get_basic_info()`` 互斥；期间调用 ``is_running()`` 为 True。
+
+        Args:
+            arguments: 追加在可执行文件之后的命令行参数；
+                ``None`` 或空则不追加任何参数。
+            input_stream: 要写入子进程 stdin 的数据，可为字节串或
+                ``asyncio.StreamReader``；``None`` 时不分配 stdin 管道。
+
+        Returns:
+            进程是否成功结束（退出码为 0）；取消/异常退出均返回 False。
+        """
         args = list(arguments or [])
         self._cancel_event.clear()
         self._canceled = False
@@ -247,6 +312,22 @@ class FFmpegAsync(AsyncIOEventEmitter):
         return result
 
     async def get_basic_info(self, filename: Path) -> dict:
+        """探测媒体文件基本信息（协程）：执行 ``ffmpeg -i <filename>`` 并解析 stderr。
+
+        与 execute() 共用运行锁（互斥）。返回 dict 的键（解析到才出现）：
+        - ``format_name``/``file_name``：来自
+          ``Input #0, <格式>, from '<文件>':`` 行；
+        - ``duration``/``start_time``/``bitrate``：来自
+          ``Duration: hh:mm:ss.xx, start: <秒>, bitrate: <值>/s`` 行，
+          时间转 ``CxTime``、码率转 ``FileSize``；
+        - ``streams``：所有以 ``Stream #0:N`` 开头的行文本列表。
+
+        Args:
+            filename: 待探测的媒体文件路径。
+
+        Returns:
+            解析结果 dict；无匹配行时为 ``{}``，部分字段缺失时省略对应键。
+        """
         async with self._is_running:
             self._process = await AsyncStreamUtils.create_subprocess(
                 self._executable,

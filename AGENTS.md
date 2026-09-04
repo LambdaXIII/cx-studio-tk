@@ -75,7 +75,7 @@ uv build                  # 构建所有包
 - 修改分支策略相关配置（branch protection / CI workflow / git hooks）
 
 #### 禁止项
-- 直接推送到 `main` 分支——始终通过 PR
+- 未经允许直接推送 `main` 分支（发布需用户确认）
 - 在生产环境运行未经测试的 CLI 工具
 - 在 Box→Dataclass 桥接场景之外使用 `# type: ignore`（详见下方「数据模型选择」）
 - 将测试、调研等临时产物直接散落在项目根目录或 `packages/` 下——一律放入 `temp/`
@@ -129,7 +129,10 @@ uv build                  # 构建所有包
 - 从 `collections.abc` 导入集合类型，不使用 `typing` 中已废弃的同名等价物
 
 #### 文档与注释
-- 公开类/方法必须有 docstring；行内注释只解释代码表达不了的决策理由
+- **docstring 语言**：统一简体中文。docstring 面向 IDE 悬停与代码阅读，属代码注释，不参与 gettext 翻译
+- **docstring 风格**：Google 风格——首段说明用途；参数、返回值、异常分别用 `Args:`、`Returns:`、`Raises:` 段落描述；类型信息写全，与签名一致
+- **覆盖要求**：公开类、函数、方法必须有 docstring。dunder 方法与 `_` 私有成员不逐条撰写；若成员含非显然语义（如与字面量比较的特判、跨类型转换规则），在类级 docstring 中集中说明
+- 行内注释只解释代码表达不了的决策理由
 - 修改代码后自底向上检查注释是否仍匹配（行内→方法→类→模块）
 
 ## 版本管理
@@ -189,7 +192,7 @@ uv build                  # 构建所有包
 - **临时分支** — 从 `dev` 迁出，完整实现后 merge 回 `dev`；一般不 push 到远程
 - 分支命名：`feat/<描述>`、`fix/<描述>`、`chore/<描述>`
 - Commit 格式：`type(scope): 描述`（type: feat/fix/docs/chore/refactor）
-- **禁止**：直接推送到 `main`
+- **禁止**：未经允许推送 `main`
 
 ## 国际化（i18n）
 

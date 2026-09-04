@@ -1,3 +1,10 @@
+"""FFmpeg 命令行参数预处理器。
+
+提供 ``FFmpegArgumentsPreProcessor``：解析 FFmpeg 命令行参数列表，
+区分输入文件（``-i`` 后的参数）、输出文件与选项键值对，供参数
+预处理（如统一路径格式）使用。
+"""
+
 from collections.abc import Iterable
 
 

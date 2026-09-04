@@ -1,3 +1,10 @@
+"""线程安全、自动去重的文件路径列表，按录入顺序追踪文件并延迟计算大小。
+
+FileList 以规范化后的绝对路径字符串为键维护文件集合：追加时自动去重，
+大小仅在访问 total_bytes 时通过 FileSizer 惰性获取并缓存，支持线程安全
+的追加（append/push）、取出（take/pop）、迭代与总大小统计。
+"""
+
 from collections.abc import Callable, Iterator
 from pathlib import Path
 import threading
