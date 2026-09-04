@@ -75,7 +75,7 @@ uv build                  # 构建所有包
 - 修改分支策略相关配置（branch protection / CI workflow / git hooks）
 
 #### 禁止项
-- 直接推送到 `main` 分支——始终通过 PR
+- 未经允许直接推送 `main` 分支（发布需用户确认）
 - 在生产环境运行未经测试的 CLI 工具
 - 在 Box→Dataclass 桥接场景之外使用 `# type: ignore`（详见下方「数据模型选择」）
 - 将测试、调研等临时产物直接散落在项目根目录或 `packages/` 下——一律放入 `temp/`
@@ -192,7 +192,7 @@ uv build                  # 构建所有包
 - **临时分支** — 从 `dev` 迁出，完整实现后 merge 回 `dev`；一般不 push 到远程
 - 分支命名：`feat/<描述>`、`fix/<描述>`、`chore/<描述>`
 - Commit 格式：`type(scope): 描述`（type: feat/fix/docs/chore/refactor）
-- **禁止**：直接推送到 `main`
+- **禁止**：未经允许推送 `main`
 
 ## 国际化（i18n）
 
