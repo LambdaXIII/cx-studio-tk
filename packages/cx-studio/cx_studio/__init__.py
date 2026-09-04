@@ -5,4 +5,4 @@ FFmpeg 封装与国际化(i18n)等，各领域按子包划分
 （core/text/filesystem/system/clikit/process/ffmpeg/i18n），供上层业务复用。
 """
 
-__version__ = "1.0.0"
+__version__ = "1.0.0.1"
