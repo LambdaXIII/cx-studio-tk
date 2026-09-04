@@ -1,3 +1,11 @@
+"""opener —— 跨平台「用系统默认程序打开」操作。
+
+基于 CrossRunner 构建 system_open 实例并注册平台实现：Windows 用
+os.startfile，macOS 用 open，Linux 用 xdg-open（Popen 启动，不阻塞
+等待）。调用 system_open(path)：路径存在且成功启动返回 True，否则
+返回 False；未注册实现平台的调用抛 NotImplementedError。
+"""
+
 from pathlib import Path
 
 from .cross_runner import CrossRunner
