@@ -526,11 +526,6 @@ signal.signal(signal.SIGINT, appenv.handle_interrupt)
 from cx_tools.app import IAppEnvironment, ConfigManager
 ```
 
-### CHANGELOG 编写
-
-- CHANGELOG 中的版本号为**整个发布单元**（cxalio-studio-tools）的版本，不是某个工具的版本
-- 一次迭代涉及多个工具时，可按工具分别组织编写（按标题分组）；也可以直接编写每个条目，并在每项中说清楚是在哪个包中进行的修改
-
 ### Language
 
 **IApplication**：

@@ -182,10 +182,11 @@ uv build                  # 构建所有包
 - 推论（快照语义的自然结果）：某包在其它包多次迭代之后再变更时，会直接从当前 pyproject 版本继续迭代（如停在 1.1 的包在发布版本到 2.0 后再次变更 → 2.1），版本号"跳级"是正常的。
 - cx_tools 与其它工具同一逻辑，无专项同步。
 
-### CHANGELOG
-- 任何内容修改后，在 CHANGELOG 顶部追加 `[最新修改]` 段落（此时尚未产生新版本号）；commit 前校对记述是否完整。
-- 迭代执行时，将累积的 `[最新修改]` 标题改写为新版本号章节——CHANGELOG 中的版本号即发布单元的版本。
-- cxalio-studio-tools 的 CHANGELOG 多工具组织规则见根 `CONTEXT.md` 的 cxalio-studio-tools Domain 分区。
+### CHANGELOG 政策：不设 CHANGELOG 文档
+- 各包**不再维护 `CHANGELOG.md`**（历史文件已移除；内容留存于 git 历史与 commit message）。
+- **commit message 即变更记录**：它是该次变更的唯一叙述，须**独立、完备、简洁、清晰**——脱离 diff 即可读懂「改了什么、为什么」。
+- commit message 记述变更的意图与影响边界，**不赘述实现细节**：具体内容由 diff 提供，正文不重复代码、不复述 diff 已呈现的事实。
+- 迭代发布时无 CHANGELOG 动作；版本号仍按上文流程由用户确认触发。
 
 ## Git 工作流
 
