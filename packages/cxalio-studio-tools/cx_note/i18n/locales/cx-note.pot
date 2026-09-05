@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-09-05 15:05+0800\n"
+"POT-Creation-Date: 2026-09-05 16:23+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,102 +17,248 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
+#: cx_note/app_help.py:37
+msgid "ID 或文本片段"
+msgstr ""
+
+#: cx_note/app_help.py:40
+msgid "目标条目：4 位 ID 全库精确匹配；或文本片段（当前域及下级域内匹配，须唯一命中）。"
+msgstr ""
+
+#: cx_note/app_help.py:46
+msgid "快速记录"
+msgstr ""
+
+#: cx_note/app_help.py:48
+msgid "记录一条内容到当前工作域；同域已有完全相同内容时不重复记录。"
+msgstr ""
+
+#: cx_note/app_help.py:52
+msgid "条目内容"
+msgstr ""
+
+#: cx_note/app_help.py:54
+msgid "条目文本；字面 [u]\\n[/] 转换为换行，如 [u]add \"买菜\\n做饭\"[/]。"
+msgstr ""
+
+#: cx_note/app_help.py:58
+msgid "查看列表"
+msgstr ""
+
+#: cx_note/app_help.py:59
+msgid "按域分组显示条目；不带动词运行时默认执行。"
+msgstr ""
+
+#: cx_note/app_help.py:62
+msgid "展开下级域的条目；默认下级域只显示标题行。"
+msgstr ""
+
+#: cx_note/app_help.py:66
+msgid "状态流转"
+msgstr ""
+
+#: cx_note/app_help.py:67
+msgid "把条目标记为已完成。"
+msgstr ""
+
+#: cx_note/app_help.py:69
+msgid "把条目转入进行中。"
+msgstr ""
+
+#: cx_note/app_help.py:71
+msgid "把条目重置为待办。"
+msgstr ""
+
+#: cx_note/app_help.py:75
+msgid "删除"
+msgstr ""
+
+#: cx_note/app_help.py:76
+msgid "删除单条条目。"
+msgstr ""
+
+#: cx_note/app_help.py:80
+msgid "清空当前工作域的直属条目（不含子域），交互确认一次。"
+msgstr ""
+
+#: cx_note/app_help.py:84
+msgid "域选项"
+msgstr ""
+
+#: cx_note/app_help.py:88
+msgid "域字面"
+msgstr ""
+
+#: cx_note/app_help.py:91
+msgid "指定工作域：以 [u]/[/] 开头为绝对域，否则相对当前域；对所有动词生效。"
+msgstr ""
+
+#: cx_note/app_help.py:95
+msgid "在根域操作。"
+msgstr ""
+
+#: cx_note/app_help.py:98
+msgid "输出选项"
+msgstr ""
+
+#: cx_note/app_help.py:100
+msgid "向 stdout 输出纯净 JSON，跳过标题与一切装饰。"
+msgstr ""
+
+#: cx_note/app_help.py:103
+msgid "展开下级域；同时扩大 [u]list --json[/] 的输出范围。"
+msgstr ""
+
+#: cx_note/app_help.py:105
+msgid "开启 debug 模式。"
+msgstr ""
+
+#: cx_note/app_help.py:108
+msgid "杂项"
+msgstr ""
+
+#: cx_note/app_help.py:109
+msgid "显示此分组帮助。"
+msgstr ""
+
+#: cx_note/app_help.py:110
+msgid "显示完整教程。"
+msgstr ""
+
+#: cx_note/app_help.py:115
+msgid "定位规则：[u]ID[/] 全库精确定位；[u]文本片段[/] 限可见域（当前域 + 下级域）且须唯一命中；[u]-p[/] 改变所有动词的工作域。"
+msgstr ""
+
+#: cx_note/app_help.py:123
+msgid ""
+"cxnote —— 终端里的快速便签。\n"
+"        以 [u]add[/] 记录、[u]list[/] 查看、[u]finish[/] [u]pend[/] [u]reset[/] "
+"流转状态、\n"
+"        [u]erase[/] [u]clear[/] 删除。运行 [u]cxnote --tutorial[/] 学习完整用法。"
+msgstr ""
+
+#: cx_note/app_help.py:144
+msgid "CxNote 教程"
+msgstr ""
+
 #: cx_note/appcontext.py:74
 msgid "cxnote —— 终端里的快速便签。"
 msgstr ""
 
-#: cx_note/appcontext.py:81
+#: cx_note/appcontext.py:82
 msgid "要执行的动作，缺省为 list"
 msgstr ""
 
 #: cx_note/appcontext.py:87
-msgid "动词参数：add 为条目内容；done/doing/reset/clear 为 ID 或文本片段；config 为保留天数整数"
+msgid "动词参数：add 为条目内容；finish/pend/reset/erase 为 ID 或文本片段"
 msgstr ""
 
-#: cx_note/appcontext.py:95
+#: cx_note/appcontext.py:93
 msgid "指定域字面（以 / 开头为绝对域，否则相对当前域）"
 msgstr ""
 
-#: cx_note/appcontext.py:102
+#: cx_note/appcontext.py:100
 msgid "在根域操作"
 msgstr ""
 
-#: cx_note/appcontext.py:108
+#: cx_note/appcontext.py:106
 msgid "向 stdout 输出纯净 JSON"
 msgstr ""
 
-#: cx_note/appcontext.py:114
+#: cx_note/appcontext.py:112
 msgid "同时显示下级域的条目"
 msgstr ""
 
-#: cx_note/appcontext.py:121
+#: cx_note/appcontext.py:119
 msgid "开启 debug 模式"
 msgstr ""
 
-#: cx_note/application.py:42
-msgid "已完成"
+#: cx_note/appcontext.py:127
+msgid "显示分组帮助"
+msgstr ""
+
+#: cx_note/appcontext.py:134
+msgid "显示完整教程"
 msgstr ""
 
 #: cx_note/application.py:43
-msgid "已开始"
+msgid "已完成"
 msgstr ""
 
 #: cx_note/application.py:44
+msgid "已转入进行中"
+msgstr ""
+
+#: cx_note/application.py:45
 msgid "已重置"
 msgstr ""
 
-#: cx_note/application.py:88
+#: cx_note/application.py:89
 msgid "用户中断"
 msgstr ""
 
-#: cx_note/application.py:133
+#: cx_note/application.py:143
 msgid "缺少条目内容"
 msgstr ""
 
-#: cx_note/application.py:140
+#: cx_note/application.py:154
+msgid "已存在相同内容的条目"
+msgstr ""
+
+#: cx_note/application.py:163
 msgid "已记录"
 msgstr ""
 
-#: cx_note/application.py:167
+#: cx_note/application.py:190
 msgid "当前域暂无条目"
 msgstr ""
 
-#: cx_note/application.py:196
-msgid "已清除"
+#: cx_note/application.py:219
+msgid "已删除"
 msgstr ""
 
-#: cx_note/application.py:206
-msgid "当前域没有可清理的条目"
+#: cx_note/application.py:235
+msgid "当前域没有条目"
 msgstr ""
 
-#: cx_note/application.py:209
+#: cx_note/application.py:238
 #, python-brace-format
-msgid "已清理 {n} 条。"
+msgid "将清空域 {domain} 的 {n} 条条目（不含子域，不可恢复）。"
 msgstr ""
 
-#: cx_note/application.py:225
-msgid "保留天数需为整数"
+#: cx_note/application.py:242
+msgid "确认清空？[y/N] "
 msgstr ""
 
-#: cx_note/application.py:252
+#: cx_note/application.py:244
+msgid "已取消"
+msgstr ""
+
+#: cx_note/application.py:249
+#, python-brace-format
+msgid "已清空 {n} 条条目。"
+msgstr ""
+
+#: cx_note/application.py:272
 msgid "缺少条目 ID 或文本片段"
 msgstr ""
 
-#: cx_note/application.py:258
+#: cx_note/application.py:278
 #, python-brace-format
 msgid "未找到匹配的条目: {text}"
 msgstr ""
 
-#: cx_note/application.py:261
+#: cx_note/application.py:281
 msgid "匹配到多个条目，请改用 ID 或更精确的文本："
 msgstr ""
 
-#: cx_note/application.py:320
+#: cx_note/application.py:340
 #, python-brace-format
 msgid "配置文件已损坏: {path}"
 msgstr ""
 
-#: cx_note/common/note_store.py:51 cx_note/common/note_store.py:121
+#: cx_note/common/note_store.py:55 cx_note/common/note_store.py:136
+#: cx_note/common/note_store.py:220
 #, python-brace-format
 msgid "笔记存储已损坏: {path}"
 msgstr ""

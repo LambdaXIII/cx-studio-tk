@@ -1,4 +1,4 @@
-"""`NoteStore` —— 单 JSON 文件存储（ADR-0009：所有域共用一个 notes.json）。
+"""`NoteStore` —— 单 JSON 文件存储（所有域共用一个 notes.json）。
 
 纯 IO 层：不依赖 appenv，域语义只用到 `is_within` 边界判定；
 清理时机由 application 层显式调用 `clean()` 决定（store 不感知配置）。
@@ -43,6 +43,10 @@ class NoteStore:
     def _load(self) -> None:
         """读取存储文件；损坏时置损坏标记并立即抛出。
 
+        status 容错：无法识别的状态 token（如 v1.1.0 存量数据中的
+        `doing`）一律视为 `todo`，回存时自动合规——只放宽 status，
+        时间戳非法仍按损坏处理。
+
         Raises:
             SafeError: 文件存在但无法完整解析。
         """
@@ -58,12 +62,23 @@ class NoteStore:
             self._corrupted = True
             raise SafeError(corrupted)
         try:
-            self._entries = [entry_from_json(item) for item in raw]
+            self._entries = [
+                entry_from_json(self._normalize_status(item)) for item in raw
+            ]
         except (KeyError, ValueError, TypeError) as e:
             self._corrupted = True
             raise SafeError(corrupted) from e
         for entry in self._entries:
             self._record_literal(entry.domain)
+
+    @staticmethod
+    def _normalize_status(item: dict) -> dict:
+        """把无法识别的 status token 归一为 `todo`（加载容错，见 `_load`）。"""
+        if not isinstance(item, dict):
+            return item
+        if item.get("status") not in {s.value for s in EntryStatus}:
+            return {**item, "status": EntryStatus.TODO.value}
+        return item
 
     def _record_literal(self, domain: str) -> str:
         """登记并返回域字面：canonical 命中已存字面时返回首见字面。"""
@@ -148,10 +163,15 @@ class NoteStore:
         """返回当前域及其下级域内的全部条目（保持插入序）。"""
         return [e for e in self._entries if is_within(e.domain, current_domain)]
 
+    def domain_entries(self, domain: str) -> list[Entry]:
+        """返回指定域直属的全部条目（不含子域，保持插入序）。"""
+        key = canonical(domain)
+        return [e for e in self._entries if canonical(e.domain) == key]
+
     def transition(self, eid: str, status: EntryStatus) -> Entry | None:
         """把条目转移到目标状态并落盘。
 
-        仅 `DONE` 打 `completed_at`；`TODO`/`DOING` 一律清空打点。
+        仅 `DONE` 打 `completed_at`；`TODO`/`PENDING` 一律清空打点。
 
         Args:
             eid: 目标条目 ID。
@@ -175,14 +195,39 @@ class NoteStore:
         self._save()
         return updated
 
-    def clear(self, eid: str) -> Entry | None:
-        """移除条目并返回被删条目；ID 不存在时返回 None。"""
+    def erase(self, eid: str) -> Entry | None:
+        """删除单条条目并返回被删条目；ID 不存在时返回 None。"""
         entry = self.find_by_id(eid)
         if entry is None:
             return None
         self._entries.remove(entry)
         self._save()
         return entry
+
+    def clear_domain(self, domain: str) -> list[Entry]:
+        """清空指定域直属的全部条目（不含子域）并落盘。
+
+        Args:
+            domain: 目标域字面。
+
+        Returns:
+            被清除的条目列表；域内无条目时不落盘、返回空列表。
+
+        Raises:
+            SafeError: 存储处于损坏状态时拒绝写入。
+        """
+        if self._corrupted:
+            raise SafeError(_("笔记存储已损坏: {path}").format(path=self._store_path))
+        doomed = self.domain_entries(domain)
+        if not doomed:
+            return []
+        for entry in doomed:
+            self._entries.remove(entry)
+        self._save()
+        key = canonical(domain)
+        if not any(canonical(e.domain) == key for e in self._entries):
+            self._literal_by_key.pop(key, None)
+        return doomed
 
     def clean(self, domain: str, retention_days: int) -> list[Entry]:
         """清理指定域内超龄的已完成条目。

@@ -8,7 +8,7 @@
 
 **影视后期，硬核一点。**
 
-一套用 Python 实现的工具包：素材定位、ffmpeg 批量转码、图片批处理、hosts 管理。每个功能独立开放——预设流程不适配你的工作台？自由拼装，快速搭出你自己的后期流水线。
+一套用 Python 实现的工具包：素材定位、ffmpeg 批量转码、图片批处理、hosts 管理、终端速记。每个功能独立开放——预设流程不适配你的工作台？自由拼装，快速搭出你自己的后期流水线。
 
 ## 目录
 
@@ -25,7 +25,7 @@
 |---|---|---|
 | [cx-studio](packages/cx-studio/README.md) | 基础设施库（时间码、FFmpeg 封装、文件系统、文本模板、系统抽象、i18n 等） | `pip install cx-studio` |
 | [cx-wealthy](packages/cx-wealthy/README.md) | 基于 Rich 的终端结构化文档与 UI 组件库（标签/详情双渲染协议、声明式帮助系统等） | `pip install cx-wealthy` |
-| [cxalio-studio-tools](packages/cxalio-studio-tools/README.md) | 5 个 CLI 工具 + 通用应用框架（cx_tools.app），依赖前两者 | `pip install cxalio-studio-tools` |
+| [cxalio-studio-tools](packages/cxalio-studio-tools/README.md) | 6 个 CLI 工具 + 通用应用框架（cx_tools.app），依赖前两者 | `pip install cxalio-studio-tools` |
 
 安装全部（含所有工具）：
 
@@ -87,17 +87,30 @@ jpegger input_dir/ output_dir/ --format webp --scale 50%
 
 hosts 文件管理器。从多个来源获取 hosts 内容，合并去重后写入系统 hosts 文件，支持规则筛选与自动更新，并自动刷新 DNS 缓存（Windows / macOS）。
 
+> HostsKeeper 需要管理员权限才能修改 hosts 文件。
+
+```shell
 hostskeeper update -p   # 先预览将要写入的内容
 hostskeeper update      # 确认后执行
-```
-hostskeeper ...
 ```
 
 详情见 [HostsKeeper 帮助文档](packages/cxalio-studio-tools/hosts_keeper/help.md)。
 
+### CxNote | `cxnote`
+
+终端里的快速便签——记的速度要快，看的眼球要少。所有条目存在一个 JSON 文件里，按域组织；日常操作只有一个动词加一个参数：
+
+```shell
+cxnote add "买牛奶"      # 记一条
+cxnote                   # 看当前域
+cxnote finish 牛奶       # 做完划掉
+```
+
+详情见 [CxNote 帮助文档](packages/cxalio-studio-tools/cx_note/help.md)。
+
 ## 贡献
 
-欢迎提交 Issue 和 Pull Request。开发流程、代码约定、国际化（i18n）工作流等详见 [CONTRIBUTING.md](CONTRIBUTING.md)。
+欢迎提交 Issue 和 Pull Request。开发流程、代码约定、国际化（i18n）工作流等详见 [AGENTS.md](AGENTS.md) 与 [docs/agents/](docs/agents/)。
 
 ## 开源协议
 

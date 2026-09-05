@@ -1,5 +1,7 @@
 # cxnote 列表展示：默认折叠 + `--full` 展开 + 每域小表
 
+> 领域：cxalio-studio-tools（cxnote）· 适用范围：cxalio-studio-tools · cxnote
+
 ## 决策
 
 cxnote 人读列表采用**平铺域块**展示，废除树状排列与装饰符号：
