@@ -1,4 +1,4 @@
-"""`NoteStore` —— 单 JSON 文件存储（ADR-0009：所有域共用一个 notes.json）。
+"""`NoteStore` —— 单 JSON 文件存储（所有域共用一个 notes.json）。
 
 纯 IO 层：不依赖 appenv，域语义只用到 `is_within` 边界判定；
 清理时机由 application 层显式调用 `clean()` 决定（store 不感知配置）。

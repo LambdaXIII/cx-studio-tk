@@ -8,7 +8,7 @@
 
 **Post-production, hardcore.**
 
-A Python toolkit: footage location, ffmpeg batch transcoding, image batch processing, hosts management. Every feature is independent and open—standard flow doesn't fit your pipeline? Snap them together and build a post-production line that's yours.
+A Python toolkit: footage location, ffmpeg batch transcoding, image batch processing, hosts management, and terminal quick notes. Every feature is independent and open—standard flow doesn't fit your pipeline? Snap them together and build a post-production line that's yours.
 
 ## Table of Contents
 
@@ -25,7 +25,7 @@ Three independently distributable packages, listed in dependency-chain order:
 |---|---|---|
 | [cx-studio](packages/cx-studio/README.md) | Infrastructure library (timecode, FFmpeg wrapper, filesystem, text templates, system abstractions, i18n, etc.) | `pip install cx-studio` |
 | [cx-wealthy](packages/cx-wealthy/README.md) | Rich-based terminal document & UI component library (label/detail dual rendering protocols, declarative help system, etc.) | `pip install cx-wealthy` |
-| [cxalio-studio-tools](packages/cxalio-studio-tools/README.md) | 5 CLI tools + general-purpose app framework (cx_tools.app), depends on the above two | `pip install cxalio-studio-tools` |
+| [cxalio-studio-tools](packages/cxalio-studio-tools/README.md) | 6 CLI tools + general-purpose app framework (cx_tools.app), depends on the above two | `pip install cxalio-studio-tools` |
 
 To install everything (all tools included):
 
@@ -96,9 +96,21 @@ hostskeeper update      # execute after confirmation
 
 See the [HostsKeeper help](packages/cxalio-studio-tools/hosts_keeper/help.md) for details.
 
+### CxNote | `cxnote`
+
+Quick notes in the terminal—capture fast, read with minimal noise. All entries live in a single JSON file, organized by domains; everyday use is one verb plus one argument:
+
+```shell
+cxnote add "buy milk"    # jot it down
+cxnote                   # view current domain
+cxnote finish milk       # check it off
+```
+
+See the [CxNote help](packages/cxalio-studio-tools/cx_note/help.md) for details.
+
 ## Contributing
 
-Issues and Pull Requests are welcome. Development workflow, code conventions, and internationalization (i18n) guidance are documented in [CONTRIBUTING.md](CONTRIBUTING.md).
+Issues and Pull Requests are welcome. Development workflow, code conventions, and internationalization (i18n) guidance are documented in [AGENTS.md](AGENTS.md) and [docs/agents/](docs/agents/).
 
 ## License
 

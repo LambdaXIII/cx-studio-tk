@@ -2,7 +2,7 @@
 
 **语言 / Languages**: [中文](README.md) | [English](README.en_US.md)
 
-包含 5 个命令行工具和一个通用的 CLI 应用框架。
+包含 6 个命令行工具和一个通用的 CLI 应用框架。
 
 ## 工具
 
@@ -71,6 +71,18 @@ jpegger input_dir/ output_dir/ --format webp --scale 50%
 > HostsKeeper 需要管理员权限才能修改 hosts 文件。
 
 详细信息参见 [HostsKeeper 帮助文档](hosts_keeper/help.md)。
+
+### CxNote
+
+[CxNote](cx_note/help.md) 是终端里的快速便签工具。所有条目存在一个 JSON 文件里，按**域**组织；日常操作只有一个动词加一个参数：
+
+```shell
+cxnote add "买牛奶"      # 记一条
+cxnote                   # 看当前域
+cxnote finish 牛奶       # 做完划掉
+```
+
+详细信息参见 [CxNote 帮助文档](cx_note/help.md)。
 
 ## 应用框架
 

@@ -1,5 +1,7 @@
 # Progress 不入通用接口
 
+> 领域：cxalio-studio-tools（应用框架）· 适用范围：cxalio-studio-tools 框架与全部工具
+
 say/whisper 只需要 console，不需要知道具体的 Live 组件类型；工具可能使用任意 Live 组件（Progress、Status、自定义 Live 等），不仅仅是 Progress。通用接口不应假设具体类型——这样设计可以在特化融合的同时保证兼容性。因此决定：IAppEnvironment 不持有 Progress 引用，IApplication 不接受 Progress 参数。
 
 ## Considered Options
