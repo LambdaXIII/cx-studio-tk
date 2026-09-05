@@ -1,5 +1,7 @@
 # cxnote 命令面重设计：erase/clear 删除模型与 reset/pend/finish 状态动词
 
+> 领域：cxalio-studio-tools（cxnote）· 适用范围：cxalio-studio-tools · cxnote
+
 v1.1.0 发布后用户验收反馈：`clear`（删单条）与 `clean`（超龄清理）近形难分、`clear` 命名不传达删除语义（与 shell 清屏撞名），状态动词 `doing` 不符合用户口语（"进行中"），且帮助系统缺失（无 `WealthyHelp`/`help.md`，`-h` 仅 argparse 裸输出）。据此对 v1 动词面（`add/list/done/doing/reset/clear/clean/config`）整体重设计。
 
 ## 决策

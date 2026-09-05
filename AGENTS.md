@@ -52,11 +52,12 @@ uv build                  # 构建所有包
 
 ### 项目特有模式
 
-各工作区领域文档（与根文件叠加生效，处理对应目录时先阅读）：
+领域文档为仓库级单套，不按 workspace 分散：
 
-- [cxalio-studio-tools 领域文档](packages/cxalio-studio-tools/CONTEXT.md)（决策见 `docs/adr/`）
-- [cx-studio 领域文档](packages/cx-studio/CONTEXT.md)（决策见 `docs/adr/`）
-- [cx-wealthy 领域文档](packages/cx-wealthy/CONTEXT.md)（决策见 `docs/adr/`）
+- [CONTEXT.md](CONTEXT.md)——统一领域文档（按 `## Domain:` 分区，处理对应 workspace 时阅读相应分区）
+- [docs/adr/](docs/adr/)——设计决策记录（单一编号序列，每篇标注领域与适用范围）
+
+消费规则见 `docs/agents/domain.md`。
 
 ## 开发规则
 
@@ -65,7 +66,7 @@ uv build                  # 构建所有包
 ### 流程
 
 #### 执行规则
-- 处理 `packages/` 下某个 workspace 的内容时，先阅读该 workspace 的 `CONTEXT.md` 与 `docs/adr/`（如有）。本文件是全局基线，workspace 级领域文档承载该工作区独有的架构、约定与决策记录
+- 处理 `packages/` 下某个 workspace 的内容时，先阅读根 `CONTEXT.md` 的对应 `## Domain:` 分区与 `docs/adr/` 中适用范围覆盖该 workspace 的 ADR。本文件是全局基线，领域文档承载各 workspace 独有的架构、约定与决策记录（按 Domain 分区与适用范围标注组织）
 - 修改代码后运行 `uv run black .`
 - 为新公共函数/类添加 docstring
 
@@ -132,6 +133,7 @@ uv build                  # 构建所有包
 - **docstring 语言**：统一简体中文。docstring 面向 IDE 悬停与代码阅读，属代码注释，不参与 gettext 翻译
 - **docstring 风格**：Google 风格——首段说明用途；参数、返回值、异常分别用 `Args:`、`Returns:`、`Raises:` 段落描述；类型信息写全，与签名一致
 - **覆盖要求**：公开类、函数、方法必须有 docstring。dunder 方法与 `_` 私有成员不逐条撰写；若成员含非显然语义（如与字面量比较的特判、跨类型转换规则），在类级 docstring 中集中说明
+- **独立呈现**：docstring 禁止引用 ADR 编号、`docs/` 路径、issue 编号等仓库外部文档——代码文档自足，IDE 悬停读者不应被要求跳转其他文件才能理解；决策背景确有必要时，用一句话陈述语义本身，不写「见 ADR-00XX」。该约束单向：文档（CONTEXT/ADR）可引用代码符号，代码不反向引用文档
 - 行内注释只解释代码表达不了的决策理由
 - 修改代码后自底向上检查注释是否仍匹配（行内→方法→类→模块）
 
@@ -183,7 +185,7 @@ uv build                  # 构建所有包
 ### CHANGELOG
 - 任何内容修改后，在 CHANGELOG 顶部追加 `[最新修改]` 段落（此时尚未产生新版本号）；commit 前校对记述是否完整。
 - 迭代执行时，将累积的 `[最新修改]` 标题改写为新版本号章节——CHANGELOG 中的版本号即发布单元的版本。
-- cxalio-studio-tools 的 CHANGELOG 多工具组织规则见其下层 CONTEXT.md。
+- cxalio-studio-tools 的 CHANGELOG 多工具组织规则见根 `CONTEXT.md` 的 cxalio-studio-tools Domain 分区。
 
 ## Git 工作流
 
@@ -219,7 +221,7 @@ uv build                  # 构建所有包
 
 工具模块**必须**从所在工具自己的 `i18n` 模块导入——`media_killer` 中的模块从 `media_killer.i18n` 导入，不交叉导入 `cx_tools.i18n`。`cx_tools` 框架自身的模块仍从 `cx_tools.i18n` 导入。
 
-> `cx-wealthy` 不参与 gettext 翻译——UI 组件输出为框架固定文本，由使用方控制，详见 [cx-wealthy 领域文档](packages/cx-wealthy/CONTEXT.md)。
+> `cx-wealthy` 不参与 gettext 翻译——UI 组件输出为框架固定文本，由使用方控制，详见根 [CONTEXT.md](CONTEXT.md) 的 cx-wealthy Domain 分区。
 
 > 每个工具独立 domain 和翻译文件：domain 分别为 `cx-tools`、`media-scout`、`media-killer`、`ffpretty`、`jpegger`、`hosts-keeper`。各工具自持 `i18n/locales/`，互不交叉。
 
@@ -283,12 +285,12 @@ md = load_localized_text(__package__, "help.md")
 
 ### Issue tracker
 
-本仓库的 issue 与 spec 跟踪在 GitHub Issues（`LambdaXIII/cx-studio-tk`），通过 `gh` CLI 操作。详见 `docs/agents/issue-tracker.md`。
+issue 与 spec 以本地 markdown 跟踪：`.scratch/<feature-slug>/` 一特性一目录，spec 为 `spec.md`，票为 `issues/NN-<slug>.md`，文件顶部 `Status:` 行记录状态。详见 `docs/agents/issue-tracker.md`。
 
 ### Triage labels
 
-triage 使用五个默认标签：`needs-triage` / `needs-info` / `ready-for-agent` / `ready-for-human` / `wontfix`，标签字符串与角色名一致。详见 `docs/agents/triage-labels.md`。
+状态词汇 = 五个 triage 角色（`needs-triage` / `needs-info` / `ready-for-agent` / `ready-for-human` / `wontfix`）+ 落地标签 `implemented`；实现完成后置 `implemented` 收尾，`wontfix` 自身即终态。详见 `docs/agents/triage-labels.md`。
 
 ### Domain docs
 
-领域文档分别位于各 workspace 内：每个 workspace 的 `CONTEXT.md`（定位、架构、约定、词汇）与 `docs/adr/`（设计决策记录）承载该 workspace 的领域知识；不设根级 CONTEXT.md。处理对应 workspace 时先阅读。详见 `docs/agents/domain.md`。
+领域文档为仓库级单套：根 `CONTEXT.md`（按 Domain 分区，处理对应 workspace 时阅读相应分区）+ 根 `docs/adr/`（单一编号序列，每篇标注领域与适用范围）。详见 `docs/agents/domain.md`。

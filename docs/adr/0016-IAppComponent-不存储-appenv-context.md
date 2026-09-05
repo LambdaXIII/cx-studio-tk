@@ -1,5 +1,7 @@
 # IAppComponent 不存储 appenv/context
 
+> 领域：cxalio-studio-tools（应用框架）· 适用范围：cxalio-studio-tools 框架与全部工具
+
 旧设计中 `IAppComponent` 通过 `self._context = context` + `@property context(self) -> IAppContext` 提供统一的 appenv/context 访问。但这导致子类的 `self.context` 类型被物化为 `IAppContext`——即使子类的 `__init__` 签名为 `context: <Tool>Context`，Pylance 仍通过基类 property 将类型收窄为接口。因此决定：`IAppComponent.__init__` 仅作为签名契约（参数 optional），不存储、不暴露；子类在各自的 `__init__` 中自行赋值：
 
 ```python

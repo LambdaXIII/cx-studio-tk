@@ -1,5 +1,7 @@
 # 渲染协议用 mixin + 包装器双轨承载
 
+> 领域：cx-wealthy · 适用范围：cx-wealthy
+
 渲染协议用 mixin 承载（非 Protocol）：mixin 提供默认 `__rich__` 实现，使 `console.print(obj)` 直接输出正确渲染——"协议即渲染"。同时提供包装器（`RichLabel`/`WealthyDetailPanel`）给不愿或不能继承的使用方（第三方类型、frozen dataclass 继承位已满等），两者共享底层渲染逻辑。
 
 ## Considered Options

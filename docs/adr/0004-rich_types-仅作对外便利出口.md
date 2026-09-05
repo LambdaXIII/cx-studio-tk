@@ -1,5 +1,7 @@
 # rich_types 仅作对外便利出口
 
+> 领域：cx-wealthy · 适用范围：cx-wealthy
+
 `rich_types` 模块是给使用方的 `r` 别名出口（与项目 `r` 约定一致），收窄到高频类型。决定：库内部一律用真实 import 路径（`from rich.table import Table`），`rich_types` 只服务使用方。
 
 ## Considered Options
