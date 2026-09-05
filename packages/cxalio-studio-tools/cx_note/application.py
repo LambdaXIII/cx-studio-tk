@@ -17,6 +17,7 @@ from cx_tools.app import ConfigManager, IAppEnvironment, IApplication, SafeError
 from cx_wealthy import rich_types as r
 
 from . import __version__
+from .app_help import CxNoteHelp
 from .appcontext import CxNoteContext
 from .common import (
     Entry,
@@ -30,23 +31,23 @@ from .common import (
 # 配置文件缺省值：已完成条目保留 30 天
 DEFAULT_RETENTION_DAYS = 30
 
-# done/doing/reset 动词 → 目标状态
+# finish/pend/reset 动词 → 目标状态
 _TRANSITION_STATUS = {
-    "done": EntryStatus.DONE,
-    "doing": EntryStatus.DOING,
+    "finish": EntryStatus.DONE,
+    "pend": EntryStatus.PENDING,
     "reset": EntryStatus.TODO,
 }
 
 # 动词 → 人读确认文案
 _TRANSITION_DONE_MESSAGE = {
-    "done": _("已完成"),
-    "doing": _("已开始"),
+    "finish": _("已完成"),
+    "pend": _("已转入进行中"),
     "reset": _("已重置"),
 }
 
 
 def _content_preview(entry: Entry, limit: int = 60) -> str:
-    """条目内容的首行截断预览（候选列表与清理列表共用）。"""
+    """条目内容的首行截断预览（定位歧义的候选列表用）。"""
     first_line = entry.content.splitlines()[0] if entry.content else ""
     return first_line[:limit] + "…" if len(first_line) > limit else first_line
 
@@ -93,15 +94,24 @@ class CxNoteApp(IApplication):
 
     @override
     def run(self) -> None:
-        """执行应用主逻辑：标题行 + 逐动词分派。
+        """执行应用主逻辑：帮助路由 + 标题行 + 逐动词分派。
 
+        `-h`/`--tutorial` 在一切副作用之前路由（不触发配置初始化）；
         `--json` 时跳过标题行与一切 say 装饰，成功路径零 say，
         stdout 仅有 JSON（内置 print，防 Rich 折行破坏长行）。
         """
         ctx = self.context
         json_out = ctx.json_output
+        if ctx.show_help:
+            CxNoteHelp(self.appenv, ctx).show_help()
+            return
+        if ctx.show_full_help:
+            CxNoteHelp(self.appenv, ctx).show_full_help()
+            return
         if not json_out:
             self.appenv.say(f"[cx.info]cxnote[/] [cx.number]v{__version__}[/]")
+        if not self._config_file().exists():
+            self._write_retention(DEFAULT_RETENTION_DAYS)
 
         current = resolve_domain(Path.cwd(), ctx.domain_param, ctx.global_flag)
         store = NoteStore(ConfigManager("CxNote").get_file("notes.json"))
@@ -113,12 +123,10 @@ class CxNoteApp(IApplication):
             self._do_list(store, current)
         elif ctx.verb in _TRANSITION_STATUS:
             self._do_transition(store, current, retention)
+        elif ctx.verb == "erase":
+            self._do_erase(store, current, retention)
         elif ctx.verb == "clear":
-            self._do_clear(store, current, retention)
-        elif ctx.verb == "clean":
-            self._do_clean(store, current, retention)
-        elif ctx.verb == "config":
-            self._do_config()
+            self._do_clear_domain(store, current, retention)
 
     # ── 动词实现 ──
 
@@ -126,13 +134,28 @@ class CxNoteApp(IApplication):
         """add：登记一条内容到当前域。
 
         内容中字面 `\\n` 在此转换为真实换行（store 不处理）；
-        空内容与缺失同义，一并报「缺少条目内容」。
+        空内容与缺失同义，一并报「缺少条目内容」。当前域（不含子域）
+        已存在内容完全相同的条目时不重复写入，回执既有条目（`--json`
+        幂等返回该条目对象）。
         """
         raw = self.context.argument
         if not raw or not raw.strip():
             raise SafeError(_("缺少条目内容"))
-        entry = store.add(current, raw.replace("\\n", "\n"))
+        content = raw.replace("\\n", "\n")
+        existing = next(
+            (e for e in store.domain_entries(current) if e.content == content), None
+        )
         store.clean(current, retention)
+        if existing is not None:
+            if self.context.json_output:
+                self._print_json(entry_to_json(existing))
+            else:
+                self.appenv.say(
+                    r.Text(_("已存在相同内容的条目"), style="cx.info"),
+                    r.Text(f"[{existing.id}]"),
+                )
+            return
+        entry = store.add(current, content)
         if self.context.json_output:
             self._print_json(entry_to_json(entry))
         else:
@@ -169,7 +192,7 @@ class CxNoteApp(IApplication):
         self.appenv.say(build_list_renderable(groups, current, self.context.full))
 
     def _do_transition(self, store: NoteStore, current: str, retention: int) -> None:
-        """done/doing/reset：解析目标条目并转移到对应状态。"""
+        """finish/pend/reset：解析目标条目并转移到对应状态。"""
         verb = self.context.verb
         entry = self._resolve_target(store, current)
         updated = store.transition(entry.id, _TRANSITION_STATUS[verb])
@@ -183,51 +206,48 @@ class CxNoteApp(IApplication):
                 r.Text(f"[{updated.id}]"),
             )
 
-    def _do_clear(self, store: NoteStore, current: str, retention: int) -> None:
-        """clear：解析目标条目并从存储中移除。"""
+    def _do_erase(self, store: NoteStore, current: str, retention: int) -> None:
+        """erase：解析目标条目并从存储中删除。"""
         entry = self._resolve_target(store, current)
-        removed = store.clear(entry.id)
+        removed = store.erase(entry.id)
         assert removed is not None  # _resolve_target 保证存在
         store.clean(current, retention)
         if self.context.json_output:
             self._print_json(entry_to_json(removed))
         else:
             self.appenv.say(
-                r.Text(_("已清除"), style="cx.info"), r.Text(f"[{removed.id}]")
+                r.Text(_("已删除"), style="cx.info"), r.Text(f"[{removed.id}]")
             )
 
-    def _do_clean(self, store: NoteStore, current: str, retention: int) -> None:
-        """clean：显式清理当前域内超龄的已完成条目。"""
-        removed = store.clean(current, retention)
+    def _do_clear_domain(self, store: NoteStore, current: str, retention: int) -> None:
+        """clear：清空当前工作域直属条目（不含子域）。
+
+        人读模式先报告目标域与条目数、经确认（y）后执行；`--json`
+        跳过确认直接执行并输出被清条目数组。空域不确认、直接回执。
+        """
+        doomed = store.domain_entries(current)
         if self.context.json_output:
+            removed = store.clear_domain(current)
+            store.clean(current, retention)
             self._print_json([entry_to_json(e) for e in removed])
             return
-        if not removed:
-            self.appenv.say(_("当前域没有可清理的条目"))
+        if not doomed:
+            self.appenv.say(_("当前域没有条目"))
             return
         self.appenv.say(
-            r.Text(_("已清理 {n} 条。").format(n=len(removed)), style="cx.info")
-        )
-        for entry in removed:
-            self.appenv.say(
-                r.Text(f"[{entry.id}] {_content_preview(entry)}", style="cx.note.hint")
+            _("将清空域 {domain} 的 {n} 条条目（不含子域，不可恢复）。").format(
+                domain=current, n=len(doomed)
             )
-
-    def _do_config(self) -> None:
-        """config：无参数显示保留天数；参数为整数则写入配置。"""
-        raw = self.context.argument
-        if raw is None or not raw.strip():
-            value = self._read_retention()
-        else:
-            try:
-                value = int(raw.strip())
-            except ValueError:
-                raise SafeError(_("保留天数需为整数")) from None
-            self._write_retention(value)
-        if self.context.json_output:
-            self._print_json({"retention_days": value})
-        else:
-            self.appenv.say(r.Text(f"retention_days = {value}"))
+        )
+        answer = self.appenv.console.input(_("确认清空？[y/N] "))
+        if answer.strip().lower() != "y":
+            self.appenv.say(_("已取消"))
+            return
+        removed = store.clear_domain(current)
+        store.clean(current, retention)
+        self.appenv.say(
+            r.Text(_("已清空 {n} 条条目。").format(n=len(removed)), style="cx.info")
+        )
 
     # ── 目标解析 ──
 

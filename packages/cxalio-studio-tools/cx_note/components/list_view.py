@@ -22,7 +22,7 @@ from cx_wealthy import rich_types as r
 # 状态标号——每条目行首
 MARKER: dict[EntryStatus, str] = {
     EntryStatus.TODO: "[ ]",
-    EntryStatus.DOING: "[~]",
+    EntryStatus.PENDING: "[~]",
     EntryStatus.DONE: "[x]",
 }
 
