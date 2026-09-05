@@ -1,6 +1,19 @@
 # Change Log of Cxalio Studio Tools
 
 
+### [最新修改]
+
+#### cxnote 快速笔记工具（新增）
+
+- **新包 `cx_note`**（第 6 个工具，`__version__` 初始 1.0.0）：终端快速便签——条目 = 内容 + 三态（待办/正在做/已完成）+ 日期，归属「域」字面命名空间（ADR-0009），4 位小写 base36 ID 全局唯一终身不变
+- **动词**：`add`（字面 `\n` 转真实换行）/ `list`（缺省；按域分组、当前域在前）/ `done` / `doing` / `reset` / `clear`（ID 精确匹配全库、文本子串匹配可见域）/ `clean`（显式清理超龄已完成条目）/ `config`（读写保留天数，缺省 30，≤0 禁用自动清理）
+- **域解析**（`cx_note/common/domain.py` 纯函数）：HOME 下取相对字面、HOME 即根域、HOME 外取去盘符绝对字面；身份键大小写不敏感、首见字面保留；段边界包含判定（`/生活琐事2` 不被 `/生活琐事` 覆盖）
+- **存储**：`~/.config/cx-studio/CxNote/notes.json` 单文件；原子重写（tmp + os.replace）；损坏时报 SafeError 不静默清空；变更类动词后自动清理当前域超龄条目
+- **`--json`**：全动词 stdout 纯净 JSON（内置 print 防 Rich 折行），提示与错误一律 stderr、exit 0
+- **渲染**：无 Table 容器（长域分节行断行割裂触发预定回退）——逐条目行「标号 + 逐字符着色 ID 徽章 + 内容」，多行内容 Markdown 块；`cx.note.*` 样式经 push_theme 叠加
+- **i18n**：domain `cx-note`，23 条消息接入 gettext，en_US 翻译与 `.mo` 编译完成
+- **注册**：`pyproject.toml` scripts/wheel packages/mo include、`babel.cfg` 提取域；CONTEXT.md 词汇与 ADR-0009 随本批入库
+
 ### 1.0.0
 
 #### 正式版发布

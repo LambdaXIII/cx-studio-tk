@@ -20,6 +20,7 @@ mediascout = "media_scout:run"
 ffpretty = "ffpretty:run"
 jpegger = "jpegger:run"
 hostskeeper = "hosts_keeper:run"
+cxnote = "cx_note:run"
 
 [build-system]
 requires = ["hatchling"]
@@ -33,6 +34,7 @@ packages = [
     "ffpretty",
     "jpegger",
     "hosts_keeper",
+    "cx_note",
 ]
 include = [
     "cx_tools/i18n/locales/**/*.mo",
@@ -41,6 +43,7 @@ include = [
     "jpegger/i18n/locales/**/*.mo",
     "hosts_keeper/i18n/locales/**/*.mo",
     "ffpretty/i18n/locales/**/*.mo",
+    "cx_note/i18n/locales/**/*.mo",
 ]
 
 [dependency-groups]
