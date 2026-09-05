@@ -1,6 +1,6 @@
 # cxalio-studio-tools
 
-`packages/cxalio-studio-tools/` 是包含 5 个 CLI 工具（media_scout、media_killer、ffpretty、jpegger、hosts_keeper）与共享框架 `cx_tools` 的分发包。所有工具均构建在 `cx_tools.app` 应用框架之上，共享统一的应用生命周期管理、Rich 输出与中断处理。根目录 `AGENTS.md` 中的全局规则优先；本文档仅补充本工作空间特有的规则。
+`packages/cxalio-studio-tools/` 是包含 6 个 CLI 工具（media_scout、media_killer、ffpretty、jpegger、hosts_keeper、cxnote）与共享框架 `cx_tools` 的分发包。所有工具均构建在 `cx_tools.app` 应用框架之上，共享统一的应用生命周期管理、Rich 输出与中断处理。根目录 `AGENTS.md` 中的全局规则优先；本文档仅补充本工作空间特有的规则。
 
 ## 架构
 
@@ -316,3 +316,23 @@ CLI 工具，批量图片处理，支持色彩空间转换、按比例缩放与�
 
 **hosts_keeper**：
 CLI 工具，hosts 文件管理——多来源合并去重、规则筛选、自动更新、刷新 DNS 缓存（Windows/macOS）。
+
+**cxnote**：
+CLI 工具，终端快速笔记（包 `cx_note`）——以域组织的待办便签：快记字符串条目、按域浏览、跟踪待办状态并自动清除超龄已完成条目。
+
+**域**：
+cx-note 的字面命名空间——形如 `/a/b` 的路径式字符串，仅用作条目归属的组织单位，与文件系统目录结构无绑定；身份判定大小写不敏感，存储保留首次出现的字面。
+_Avoid_: 目录、文件夹（域不映射目录结构）
+
+**根域**：
+域树的顶层 `/`，对应 $HOME；`-g` 参数是它的快捷指定方式。
+
+**条目**：
+cx-note 记录的最小单元——字符串内容（可含换行）、三态状态、创建/完成日期、所属域与 4 位 ID。
+
+**清除**：
+将条目从存储中物理删除的动作（手动 `clear` 或超龄自动触发）；已完成只是状态标记，不等于清除，被清除的条目不可恢复。
+_Avoid_: 归档
+
+**清理**：
+cx-note 对超龄已完成条目的自动维护——保存时顺带执行、仅限当前域、尽力而为不保证完备；未完成条目永不参与清理。与「清除」的区别：清除是用户发起的动作，清理是工具的维护行为。
