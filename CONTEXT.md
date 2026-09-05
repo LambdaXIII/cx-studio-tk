@@ -1,6 +1,6 @@
 # CONTEXT —— 仓库统一领域文档
 
-本仓库（cx-studio-tk）为 uv workspace 单仓，含三个 workspace：`cx-studio`（基础设施库）、`cx-wealthy`（Rich UI 组件库）、`cxalio-studio-tools`（CLI 工具集与共享框架）。领域文档统一存放于本文件与 `docs/adr/`（单一编号序列）——处理 `packages/` 下某 workspace 的内容时，阅读本文件对应 `## Domain:` 分区与 `docs/adr/` 中适用范围覆盖该 workspace 的 ADR；消费规则见 `docs/agents/domain.md`。根 `AGENTS.md` 为全局规范基线（跨领域通用规则），优先于本文档。
+本仓库（cx-studio-tk）为 uv workspace 单仓，含三个 workspace：`cx-studio`（基础设施库）、`cx-wealthy`（Rich UI 组件库）、`cxalio-studio-tools`（CLI 工具集与共享框架）。领域文档统一存放于本文件与 `docs/adr/`（单一编号序列，索引见 `docs/adr/README.md`）——处理 `packages/` 下某 workspace 的内容时，阅读本文件对应 `## Domain:` 分区与 `docs/adr/` 中适用范围覆盖该 workspace 的 ADR；消费规则见 `docs/agents/domain.md`。根 `AGENTS.md` 为全局规范基线（跨领域通用规则），优先于本文档。
 
 ## Domain：cx-studio
 > 适用范围：cx-studio
@@ -65,7 +65,7 @@ ffmpeg      → core, filesystem, process, i18n
 2. 是否属于"通用基础设施"？若仅被一个工具使用，放该工具内部
 3. 是否与现有子包存在明确的边界？新子包的定位不与已有子包重叠
 
-### Language
+### 术语
 
 **CxTime**：
 core 包的基础时间值对象，毫秒级精度；属多年积累的时间域核心资产，直接兼容工业时间码标准（见 ADR 0001）。
@@ -200,7 +200,7 @@ text 包的文本标签替换器，用于模板/占位符替换。
 
 组件**不使用** Rich 私有 API（如 `console._theme_stack`）。曾考虑在 `__rich_console__` 中检测缺失样式并兜底补全，但因依赖私有 API 被否决——没有公开 API 能实现"选择性补全缺失样式但不覆盖用户定义"，而无条件的 `console.use_theme(default_theme)` 会覆盖调用方自定义的 `cx.*` 样式，违反透明性。
 
-### Language
+### 术语
 
 **WealthyDocument**：
 `document/` 中通用复合树的根节点类型，声明式结构化文档的入口；`WealthyHelp` 继承自它。
@@ -526,7 +526,7 @@ signal.signal(signal.SIGINT, appenv.handle_interrupt)
 from cx_tools.app import IAppEnvironment, ConfigManager
 ```
 
-### Language
+### 术语
 
 **IApplication**：
 应用层接口，CLI 工具的编排器抽象——组装 appenv + context、驱动生命周期，可被复用。

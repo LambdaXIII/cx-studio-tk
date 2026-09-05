@@ -10,7 +10,7 @@
 /
 ├── AGENTS.md     ← 全局规范基线（跨领域通用规则，含各 workspace 指引）
 ├── CONTEXT.md    ← 仓库统一领域文档：定位、架构、约定、领域词汇（按 `## Domain:` 分区）
-├── docs/adr/     ← 设计决策记录：单一编号序列（NNNN-<slug>.md），每篇标注领域与适用范围
+├── docs/adr/     ← 设计决策记录：单一编号序列（NNNN-<slug>.md），每篇标注领域与适用范围；索引与阅读规则见 docs/adr/README.md
 └── packages/     ← 代码本体；不再携带领域文档
 ```
 
