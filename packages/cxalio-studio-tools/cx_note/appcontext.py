@@ -12,7 +12,7 @@ from cx_note.i18n import _
 from cx_tools.app import IAppContext
 
 # 动词表——argparse choices 与运行时分派共用，防止两处漂移。
-VERBS = ["add", "list", "done", "doing", "reset", "clear", "clean", "config"]
+VERBS = ["add", "list", "finish", "pend", "reset", "erase", "clear"]
 
 
 class CxNoteContext(IAppContext):
@@ -20,16 +20,16 @@ class CxNoteContext(IAppContext):
 
     Fields:
         verb: 要执行的动词，缺省为 `list`。
-        argument: 动词参数——add 为条目内容；done/doing/reset/clear 为
-            ID 或文本片段；config 为要设置的 retention_days 整数字符串。
+        argument: 动词参数——add 为条目内容；finish/pend/reset/erase 为
+            ID 或文本片段。
         domain_param: `-p/--path` 给出的域字面。
         global_flag: 是否指定 `-g/--global`（在根域操作）。
         json_output: 是否指定 `--json`（stdout 纯净 JSON 输出）。
         full: 是否指定 `--full`（列表展开下级域条目，并扩大 `--json`
             范围为当前域 + 全部下级域）。
         debug_mode: debug 模式开关。
-        show_help: 帮助开关（当前帮助走 argparse 默认行为，字段保留）。
-        show_full_help: 完整教程开关（预留，暂未启用）。
+        show_help: 是否指定 `-h`（分组帮助）。
+        show_full_help: 是否指定 `--tutorial`（完整教程）。
     """
 
     def __init__(self, **kwargs: Any):
@@ -72,6 +72,7 @@ class CxNoteContext(IAppContext):
         """构建 CxNote 的 argparse 解析器。"""
         parser = ArgumentParser(
             description=_("cxnote —— 终端里的快速便签。"),
+            add_help=False,
         )
         parser.add_argument(
             "verb",
@@ -84,8 +85,7 @@ class CxNoteContext(IAppContext):
             "argument",
             nargs="?",
             help=_(
-                "动词参数：add 为条目内容；done/doing/reset/clear 为 ID 或文本片段；"
-                "config 为保留天数整数"
+                "动词参数：add 为条目内容；finish/pend/reset/erase 为 ID 或文本片段"
             ),
         )
         parser.add_argument(
@@ -119,5 +119,20 @@ class CxNoteContext(IAppContext):
             dest="debug_mode",
             action="store_true",
             help=_("开启 debug 模式"),
+        )
+        parser.add_argument(
+            "-h",
+            "--help",
+            dest="show_help",
+            action="store_true",
+            default=False,
+            help=_("显示分组帮助"),
+        )
+        parser.add_argument(
+            "--tutorial",
+            dest="show_full_help",
+            action="store_true",
+            default=False,
+            help=_("显示完整教程"),
         )
         return parser

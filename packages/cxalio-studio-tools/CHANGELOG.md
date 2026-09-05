@@ -1,6 +1,19 @@
 # Change Log of Cxalio Studio Tools
 
 
+
+### 1.1.1
+
+#### cxnote 命令面 v2 重设计
+
+- **动词面**：删除职责三分——`erase <id|文本>` 删单条（原 `clear` 改名）、`clear` 清空当前工作域直属条目（不含子域，人读确认一次、`--json` 跳过；`-p` 可指向任意域）、超龄清理取消手动命令（`clean` 移除，仅作为写路径顺带的自动维护）；`config` 命令取消，`retention_days` 只经配置文件调整。旧动词（`done`/`doing`/`clean`/`config`）不设 alias，由 argparse choices 直接拒绝
+- **状态语言**：命令与 JSON `status` 值同源——`finish`/`pend`/`reset` 三动词；序列化值 `doing` 更名 `pending`（**破坏性变更**，用户接受）；`completed_at` 仅 `finish` 写入、离开完成态即清空
+- **存量加载容错**：无法识别的状态 token（如 v1.1.0 存量的 `doing`）加载时一律视为 `todo`、回存自动合规；时间戳非法仍按损坏处理
+- **add 同域去重**：当前工作域（不含子域）已存在内容完全相同的条目时不重复写入，回执既有条目；`--json` 幂等返回该条目对象
+- **帮助系统补齐**：新增 `app_help.py`（WealthyHelp DSL 分组帮助，`-h`）与 `help.md` / `help.en_US.md` 教程（`--tutorial`），覆盖域与工作域、命令表、状态流转、删除三分、定位规则、`--json` 契约与配置说明；`-h`/`--tutorial` 在一切副作用之前路由
+- **配置自动初始化**：任何动词分派前配置文件不存在则写入默认 `retention_days = 30`（`--json` 仅写文件不污染 stdout）
+- **i18n**：cx-note domain 全量重提取，en_US 翻译补齐并编译 `.mo`
+
 ### 1.1.0
 
 #### cxnote 快速笔记工具

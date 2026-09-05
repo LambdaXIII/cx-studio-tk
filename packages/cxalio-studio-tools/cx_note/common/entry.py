@@ -11,12 +11,12 @@ from enum import Enum
 class EntryStatus(Enum):
     """条目三态。
 
-    `value` 是 JSON 里的英文 token（`todo`/`doing`/`done`），供脚本消费，
-    不参与 i18n；人读显示（待办/正在做/已完成）由渲染层映射。
+    `value` 是 JSON 里的英文 token（`todo`/`pending`/`done`），供脚本消费，
+    不参与 i18n；人读显示（待办/进行中/已完成）由渲染层映射。
     """
 
     TODO = "todo"
-    DOING = "doing"
+    PENDING = "pending"
     DONE = "done"
 
 
