@@ -2,7 +2,7 @@
 
 **语言 / Languages**: [中文](README.md) | [English](README.en_US.md)
 
-Contains 5 CLI tools and a general-purpose CLI application framework.
+Contains 6 CLI tools and a general-purpose CLI application framework.
 
 ## Tools
 
@@ -71,6 +71,18 @@ jpegger input_dir/ output_dir/ --format webp --scale 50%
 > HostsKeeper requires administrator privileges to modify the hosts file.
 
 See the [HostsKeeper help document](hosts_keeper/help.md) for details.
+
+### CxNote
+
+[CxNote](cx_note/help.md) is a quick notes tool in the terminal. All entries live in a single JSON file, organized by **domains**; everyday use is one verb plus one argument:
+
+```shell
+cxnote add "buy milk"    # jot it down
+cxnote                   # view current domain
+cxnote finish milk       # check it off
+```
+
+See the [CxNote help document](cx_note/help.md) for details.
 
 ## Application Framework
 
