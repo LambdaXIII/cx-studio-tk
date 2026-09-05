@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-09-05 14:26+0800\n"
+"POT-Creation-Date: 2026-09-05 15:05+0800\n"
 "PO-Revision-Date: 2026-09-05 14:26+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en_US\n"
@@ -18,35 +18,39 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.18.0\n"
 
-#: cx_note/appcontext.py:73
+#: cx_note/appcontext.py:74
 msgid "cxnote —— 终端里的快速便签。"
 msgstr "cxnote —— a quick sticky note for your terminal."
 
-#: cx_note/appcontext.py:80
+#: cx_note/appcontext.py:81
 msgid "要执行的动作，缺省为 list"
 msgstr "Action to perform (defaults to list)"
 
-#: cx_note/appcontext.py:86
-msgid ""
-"动词参数：add 为条目内容；done/doing/reset/clear 为 ID 或文本片段；config"
-" 为保留天数整数"
+#: cx_note/appcontext.py:87
+msgid "动词参数：add 为条目内容；done/doing/reset/clear 为 ID 或文本片段；config 为保留天数整数"
 msgstr ""
 "Verb argument: entry content for add; an ID or text fragment for "
 "done/doing/reset/clear; an integer retention days for config"
 
-#: cx_note/appcontext.py:94
+#: cx_note/appcontext.py:95
 msgid "指定域字面（以 / 开头为绝对域，否则相对当前域）"
-msgstr "Domain literal (leading / = absolute, otherwise relative to the current domain)"
+msgstr ""
+"Domain literal (leading / = absolute, otherwise relative to the current "
+"domain)"
 
-#: cx_note/appcontext.py:101
+#: cx_note/appcontext.py:102
 msgid "在根域操作"
 msgstr "Operate on the root domain"
 
-#: cx_note/appcontext.py:107
+#: cx_note/appcontext.py:108
 msgid "向 stdout 输出纯净 JSON"
 msgstr "Write pure JSON to stdout"
 
 #: cx_note/appcontext.py:114
+msgid "同时显示下级域的条目"
+msgstr "Also show entries in subdomains"
+
+#: cx_note/appcontext.py:121
 msgid "开启 debug 模式"
 msgstr "Enable debug mode"
 
@@ -74,46 +78,47 @@ msgstr "Missing entry content"
 msgid "已记录"
 msgstr "Added"
 
-#: cx_note/application.py:156
+#: cx_note/application.py:167
 msgid "当前域暂无条目"
 msgstr "No entries in the current domain"
 
-#: cx_note/application.py:187
+#: cx_note/application.py:196
 msgid "已清除"
 msgstr "Removed"
 
-#: cx_note/application.py:197
+#: cx_note/application.py:206
 msgid "当前域没有可清理的条目"
 msgstr "Nothing to clean up in the current domain"
 
-#: cx_note/application.py:199
+#: cx_note/application.py:209
 #, python-brace-format
 msgid "已清理 {n} 条。"
 msgstr "Cleaned up {n} entries."
 
-#: cx_note/application.py:214
+#: cx_note/application.py:225
 msgid "保留天数需为整数"
 msgstr "Retention days must be an integer"
 
-#: cx_note/application.py:241
+#: cx_note/application.py:252
 msgid "缺少条目 ID 或文本片段"
 msgstr "Missing entry ID or text fragment"
 
-#: cx_note/application.py:247
+#: cx_note/application.py:258
 #, python-brace-format
 msgid "未找到匹配的条目: {text}"
 msgstr "No matching entry: {text}"
 
-#: cx_note/application.py:250
+#: cx_note/application.py:261
 msgid "匹配到多个条目，请改用 ID 或更精确的文本："
 msgstr "Multiple entries matched; use an ID or a more precise text fragment:"
 
-#: cx_note/application.py:309
+#: cx_note/application.py:320
 #, python-brace-format
 msgid "配置文件已损坏: {path}"
 msgstr "Config file is corrupted: {path}"
 
-#: cx_note/common/note_store.py:51 cx_note/common/note_store.py:122
+#: cx_note/common/note_store.py:51 cx_note/common/note_store.py:121
 #, python-brace-format
 msgid "笔记存储已损坏: {path}"
 msgstr "Note store is corrupted: {path}"
+

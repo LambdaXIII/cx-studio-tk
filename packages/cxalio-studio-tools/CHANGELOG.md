@@ -9,9 +9,11 @@
 - **动词**：`add`（字面 `\n` 转真实换行）/ `list`（缺省；按域分组、当前域在前）/ `done` / `doing` / `reset` / `clear`（ID 精确匹配全库、文本子串匹配可见域）/ `clean`（显式清理超龄已完成条目）/ `config`（读写保留天数，缺省 30，≤0 禁用自动清理）
 - **域解析**（`cx_note/common/domain.py` 纯函数）：HOME 下取相对字面、HOME 即根域、HOME 外取去盘符绝对字面；身份键大小写不敏感、首见字面保留；段边界包含判定（`/生活琐事2` 不被 `/生活琐事` 覆盖）
 - **存储**：`~/.config/cx-studio/CxNote/notes.json` 单文件；原子重写（tmp + os.replace）；损坏时报 SafeError 不静默清空；变更类动词后自动清理当前域超龄条目
-- **`--json`**：全动词 stdout 纯净 JSON（内置 print 防 Rich 折行），提示与错误一律 stderr、exit 0
-- **渲染**：无 Table 容器（长域分节行断行割裂触发预定回退）——逐条目行「标号 + 逐字符着色 ID 徽章 + 内容」，多行内容 Markdown 块；`cx.note.*` 样式经 push_theme 叠加
-- **i18n**：domain `cx-note`，23 条消息接入 gettext，en_US 翻译与 `.mo` 编译完成
+- **展示语义**（列表展示重设计）：默认折叠——当前域条目全显、下级域仅标题行 + `(条目数)`；`--full` 展开下级域条目；当前域标题只显示域名字（末段），根域显示 `GLOBAL`，子域标题相对当前域显示
+- **渲染**（列表展示重设计，ADR-0010）：平铺域块——域标题行（`cx.note.section`）外置 + 每域独立无框三列小 Table（标号自然宽 / 内容 ratio=1、含换行按 Markdown 渲染 / ID 徽章 width=4 右对齐贴行尾），块间空行分隔；`cx.note.*` 样式经 push_theme 叠加。初版整表分节行断行割裂回退逐行、`█` 树状符号与徽章灰底均在本批验收返工中废弃
+- **ID 徽章**（列表展示重设计）：无底色，8 色高对比亮色池（bright_* + orange1）逐字符值定色（同字符同色）；已完成条目徽章随行 dim
+- **`--json`**：全动词 stdout 纯净 JSON（内置 print 防 Rich 折行），提示与错误一律 stderr、exit 0；列表默认仅当前域条目数组，`--full` 扩为当前域 + 全部下级域扁平数组（顺序与人读一致）
+- **i18n**：domain `cx-note`，24 条消息接入 gettext，en_US 翻译与 `.mo` 编译完成
 - **注册**：`pyproject.toml` scripts/wheel packages/mo include、`babel.cfg` 提取域；CONTEXT.md 词汇与 ADR-0009 随本批入库
 
 ### 1.0.0

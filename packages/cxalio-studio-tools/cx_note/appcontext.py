@@ -25,6 +25,8 @@ class CxNoteContext(IAppContext):
         domain_param: `-p/--path` 给出的域字面。
         global_flag: 是否指定 `-g/--global`（在根域操作）。
         json_output: 是否指定 `--json`（stdout 纯净 JSON 输出）。
+        full: 是否指定 `--full`（列表展开下级域条目，并扩大 `--json`
+            范围为当前域 + 全部下级域）。
         debug_mode: debug 模式开关。
         show_help: 帮助开关（当前帮助走 argparse 默认行为，字段保留）。
         show_full_help: 完整教程开关（预留，暂未启用）。
@@ -38,6 +40,7 @@ class CxNoteContext(IAppContext):
         self.domain_param: str | None = None
         self.global_flag: bool = False
         self.json_output: bool = False
+        self.full: bool = False
         self.debug_mode: bool = False
         self.show_help: bool = False
         self.show_full_help: bool = False
@@ -103,6 +106,12 @@ class CxNoteContext(IAppContext):
             dest="json_output",
             action="store_true",
             help=_("向 stdout 输出纯净 JSON"),
+        )
+        parser.add_argument(
+            "--full",
+            dest="full",
+            action="store_true",
+            help=_("同时显示下级域的条目"),
         )
         parser.add_argument(
             "-d",

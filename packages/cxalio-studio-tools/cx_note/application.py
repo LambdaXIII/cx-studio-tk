@@ -144,18 +144,29 @@ class CxNoteApp(IApplication):
         """list：按域分组显示可见域条目。
 
         分组：当前域组在前，其余按身份键（canonical）排序；组内按
-        创建时间升序。`--json` 输出扁平数组（顺序与人读一致，不保留树状分组）。
+        创建时间升序。`--json` 默认只含当前域组条目；加 `--full` 后
+        含全部下级域，顺序与人读一致（不保留树状分组）。
+
+        Args:
+            store: 条目存储。
+            current: 当前域字面。
         """
         groups = self._group_for_list(store.visible_entries(current), current)
         if self.context.json_output:
+            current_key = canonical(current)
+            scope = (
+                groups
+                if self.context.full
+                else [(d, es) for d, es in groups if canonical(d) == current_key]
+            )
             self._print_json(
-                [entry_to_json(e) for _, entries in groups for e in entries]
+                [entry_to_json(e) for _, entries in scope for e in entries]
             )
             return
         if not groups:
             self.appenv.say(_("当前域暂无条目"))
             return
-        self.appenv.say(build_list_renderable(groups, current))
+        self.appenv.say(build_list_renderable(groups, current, self.context.full))
 
     def _do_transition(self, store: NoteStore, current: str, retention: int) -> None:
         """done/doing/reset：解析目标条目并转移到对应状态。"""
