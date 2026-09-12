@@ -154,6 +154,7 @@ class CxNoteApp(IApplication):
                     r.Text(_("已存在相同内容的条目"), style="cx.info"),
                     r.Text(f"[{existing.id}]"),
                 )
+                self._echo_list(store, current)
             return
         entry = store.add(current, content)
         if self.context.json_output:
@@ -162,6 +163,7 @@ class CxNoteApp(IApplication):
             self.appenv.say(
                 r.Text(_("已记录"), style="cx.info"), r.Text(f"[{entry.id}]")
             )
+            self._echo_list(store, current)
 
     def _do_list(self, store: NoteStore, current: str) -> None:
         """list：按域分组显示可见域条目。
@@ -191,6 +193,25 @@ class CxNoteApp(IApplication):
             return
         self.appenv.say(build_list_renderable(groups, current, self.context.full))
 
+    def _echo_list(self, store: NoteStore, current: str) -> None:
+        """操作后回显：确认行之下打印当前域直属条目列表。
+
+        人读模式下所有动词操作成功后调用；`--json` 直接返回，输出契约
+        不变。当前域无直属条目时打印空态文案；有条目时复用 list 的单域
+        块渲染（标题行 + 三列小表），只含当前域，不含下级域。
+
+        Args:
+            store: 条目存储。
+            current: 当前域字面。
+        """
+        if self.context.json_output:
+            return
+        entries = store.domain_entries(current)
+        if not entries:
+            self.appenv.say(_("当前域暂无条目"))
+            return
+        self.appenv.say(build_list_renderable([(current, entries)], current, False))
+
     def _do_transition(self, store: NoteStore, current: str, retention: int) -> None:
         """finish/pend/reset：解析目标条目并转移到对应状态。"""
         verb = self.context.verb
@@ -205,6 +226,7 @@ class CxNoteApp(IApplication):
                 r.Text(_TRANSITION_DONE_MESSAGE[verb], style="cx.info"),
                 r.Text(f"[{updated.id}]"),
             )
+            self._echo_list(store, current)
 
     def _do_erase(self, store: NoteStore, current: str, retention: int) -> None:
         """erase：解析目标条目并从存储中删除。"""
@@ -218,6 +240,7 @@ class CxNoteApp(IApplication):
             self.appenv.say(
                 r.Text(_("已删除"), style="cx.info"), r.Text(f"[{removed.id}]")
             )
+            self._echo_list(store, current)
 
     def _do_clear_domain(self, store: NoteStore, current: str, retention: int) -> None:
         """clear：清空当前工作域直属条目（不含子域）。
@@ -248,6 +271,7 @@ class CxNoteApp(IApplication):
         self.appenv.say(
             r.Text(_("已清空 {n} 条条目。").format(n=len(removed)), style="cx.info")
         )
+        self._echo_list(store, current)
 
     # ── 目标解析 ──
 

@@ -82,7 +82,7 @@ cxnote                   # view current domain
 cxnote finish milk       # check it off
 ```
 
-See the [CxNote help document](cx_note/help.md) for details.
+Every verb except `list` echoes the current domain's entry list after it succeeds. See the [CxNote help document](cx_note/help.md) for details.
 
 ## Application Framework
 

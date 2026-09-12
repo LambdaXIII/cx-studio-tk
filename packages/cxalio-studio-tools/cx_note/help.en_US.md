@@ -51,6 +51,8 @@ cxnote erase a1b2                           # delete one entry
 cxnote clear                                # empty the current domain (asks first)
 ```
 
+**Post-operation echo**: after every verb except `list` succeeds in human-readable mode, the current working domain's **direct entry list** is printed below the confirmation line — all statuses, no sub-domains (not even their header lines). Use `list` to see sub-domains; an empty domain echoes "no entries".
+
 ## Status Transitions
 
 Each note has one of three states: `todo` → `pending` → `done`.
@@ -73,7 +75,7 @@ The argument of `finish` / `pend` / `reset` / `erase` may be:
 
 ## JSON Output
 
-With `--json`, stdout carries pure JSON only (title, hints and the confirmation prompt are all skipped) — built for scripts:
+With `--json`, stdout carries pure JSON only (title, hints, the confirmation prompt and the post-operation echo are all skipped) — built for scripts:
 
 ```bash
 cxnote list --json                 # array of current-domain entries
