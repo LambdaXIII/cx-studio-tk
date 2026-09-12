@@ -82,7 +82,7 @@ cxnote                   # 看当前域
 cxnote finish 牛奶       # 做完划掉
 ```
 
-详细信息参见 [CxNote 帮助文档](cx_note/help.md)。
+除 `list` 外的所有动词执行成功后会回显当前域条目列表。详细信息参见 [CxNote 帮助文档](cx_note/help.md)。
 
 ## 应用框架
 
