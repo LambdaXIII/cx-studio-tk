@@ -171,7 +171,8 @@ class NoteStore:
     def transition(self, eid: str, status: EntryStatus) -> Entry | None:
         """把条目转移到目标状态并落盘。
 
-        仅 `DONE` 打 `completed_at`；`TODO`/`PENDING` 一律清空打点。
+        终态打点：目标状态为终态（`DONE`/`DROPPED`）时记录
+        `completed_at`；离开终态（`TODO`/`PENDING`）时清空。
 
         Args:
             eid: 目标条目 ID。
@@ -183,13 +184,14 @@ class NoteStore:
         entry = self.find_by_id(eid)
         if entry is None:
             return None
+        is_terminal = status in {EntryStatus.DONE, EntryStatus.DROPPED}
         updated = Entry(
             id=entry.id,
             domain=entry.domain,
             content=entry.content,
             status=status,
             created_at=entry.created_at,
-            completed_at=datetime.now() if status is EntryStatus.DONE else None,
+            completed_at=datetime.now() if is_terminal else None,
         )
         self._entries[self._entries.index(entry)] = updated
         self._save()
@@ -230,14 +232,15 @@ class NoteStore:
         return doomed
 
     def clean(self, domain: str, retention_days: int) -> list[Entry]:
-        """清理指定域内超龄的已完成条目。
+        """清理指定域内超龄的终态条目。
 
-        `retention_days <= 0` 视为禁用，直接返回空列表；未完成条目
-        永不参与清理。
+        终态 = `DONE`（已完成）或 `DROPPED`（已取消）。超龄判定以
+        `completed_at`（终态打点时间）为准。`retention_days <= 0`
+        视为禁用，直接返回空列表；待办/进行中永不参与清理。
 
         Args:
             domain: 清理作用域（含下级域）。
-            retention_days: 完成后的保留天数。
+            retention_days: 终态后的保留天数。
 
         Returns:
             被清理的条目列表（无清理发生时不落盘、返回空列表）。
@@ -245,10 +248,11 @@ class NoteStore:
         if retention_days <= 0:
             return []
         cutoff = datetime.now() - timedelta(days=retention_days)
+        terminal = {EntryStatus.DONE, EntryStatus.DROPPED}
         doomed = [
             e
             for e in self._entries
-            if e.status is EntryStatus.DONE
+            if e.status in terminal
             and e.completed_at is not None
             and e.completed_at <= cutoff
             and is_within(e.domain, domain)

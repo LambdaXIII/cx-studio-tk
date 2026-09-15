@@ -28,21 +28,23 @@ from .common import (
     resolve_domain,
 )
 
-# 配置文件缺省值：已完成条目保留 30 天
+# 配置文件缺省值：终态条目保留 30 天（终态 = 已完成/已取消）
 DEFAULT_RETENTION_DAYS = 30
 
-# finish/pend/reset 动词 → 目标状态
+# finish/pend/reset/drop 动词 → 目标状态
 _TRANSITION_STATUS = {
     "finish": EntryStatus.DONE,
     "pend": EntryStatus.PENDING,
     "reset": EntryStatus.TODO,
+    "drop": EntryStatus.DROPPED,
 }
 
-# 动词 → 人读确认文案
-_TRANSITION_DONE_MESSAGE = {
-    "finish": _("已完成"),
-    "pend": _("已转入进行中"),
-    "reset": _("已重置"),
+# 动词 → 人读确认文案（完整模板，含 {count} 占位符）
+_TRANSITION_DONE_MESSAGE: dict[str, str] = {
+    "finish": _("已完成 {count} 条："),
+    "pend": _("已转入进行中 {count} 条："),
+    "reset": _("已重置 {count} 条："),
+    "drop": _("已取消 {count} 条："),
 }
 
 
@@ -94,9 +96,10 @@ class CxNoteApp(IApplication):
 
     @override
     def run(self) -> None:
-        """执行应用主逻辑：帮助路由 + 标题行 + 逐动词分派。
+        """执行应用主逻辑：帮助路由 + 空参数拦截 + 标题行 + 逐动词分派。
 
         `-h`/`--tutorial` 在一切副作用之前路由（不触发配置初始化）；
+        空参数（strip 后为空的元素）一律报 SafeError 中止；
         `--json` 时跳过标题行与一切 say 装饰，成功路径零 say，
         stdout 仅有 JSON（内置 print，防 Rich 折行破坏长行）。
         """
@@ -108,6 +111,20 @@ class CxNoteApp(IApplication):
         if ctx.show_full_help:
             CxNoteHelp(self.appenv, ctx).show_full_help()
             return
+        # 空参数检查——任何动词显式收到空参数（strip 后为空）即报错中止；
+        # 未提供参数（默认空列表）不受影响。
+        empty_problems = [
+            (i, raw) for i, raw in enumerate(ctx.arguments, 1) if not raw.strip()
+        ]
+        if empty_problems:
+            lines = [
+                _("参数中包含空内容："),
+                *[
+                    _("第 {n} 个参数（{raw!r}）").format(n=n, raw=raw)
+                    for n, raw in empty_problems
+                ],
+            ]
+            raise SafeError("\n".join(lines))
         if not json_out:
             self.appenv.say(f"[cx.info]cxnote[/] [cx.number]v{__version__}[/]")
         if not self._config_file().exists():
@@ -131,38 +148,54 @@ class CxNoteApp(IApplication):
     # ── 动词实现 ──
 
     def _do_add(self, store: NoteStore, current: str, retention: int) -> None:
-        """add：登记一条内容到当前域。
+        """add：按参数序逐条登记内容到当前域（批量）。
 
-        内容中字面 `\\n` 在此转换为真实换行（store 不处理）；
-        空内容与缺失同义，一并报「缺少条目内容」。当前域（不含子域）
-        已存在内容完全相同的条目时不重复写入，回执既有条目（`--json`
-        幂等返回该条目对象）。
+        每个参数独立做 `\\n` → 换行转换；「已存在」判定基于当前存储
+        加本批已建条目（`add 牛奶 牛奶` → 第 1 个新建、第 2 个命中
+        已存在）。未提供参数报「缺少条目内容」。结果分「新建」「已存在」
+        两组分别打印确认行；JSON 数组按参数序。
         """
-        raw = self.context.argument
-        if not raw or not raw.strip():
+        raws = self.context.arguments
+        if not raws:
             raise SafeError(_("缺少条目内容"))
-        content = raw.replace("\\n", "\n")
-        existing = next(
-            (e for e in store.domain_entries(current) if e.content == content), None
-        )
-        store.clean(current, retention)
-        if existing is not None:
-            if self.context.json_output:
-                self._print_json(entry_to_json(existing))
+        existing_seen: dict[str, Entry] = {
+            e.content: e for e in store.domain_entries(current)
+        }
+        new_entries: list[Entry] = []
+        dup_entries: list[Entry] = []
+        for raw in raws:
+            content = raw.replace("\\n", "\n")
+            hit = existing_seen.get(content)
+            if hit is not None:
+                dup_entries.append(hit)
             else:
-                self.appenv.say(
-                    r.Text(_("已存在相同内容的条目"), style="cx.info"),
-                    r.Text(f"[{existing.id}]"),
-                )
-                self._echo_list(store, current)
-            return
-        entry = store.add(current, content)
+                entry = store.add(current, content)
+                existing_seen[content] = entry
+                new_entries.append(entry)
+        store.clean(current, retention)
+        # 参数序：遍历 raws，每条从 existing_seen 取对应条目
+        all_results = [existing_seen[r.replace("\\n", "\n")] for r in raws]
         if self.context.json_output:
-            self._print_json(entry_to_json(entry))
+            self._print_json([entry_to_json(e) for e in all_results])
         else:
-            self.appenv.say(
-                r.Text(_("已记录"), style="cx.info"), r.Text(f"[{entry.id}]")
-            )
+            if new_entries:
+                ids = " ".join(f"[{e.id}]" for e in new_entries)
+                self.appenv.say(
+                    r.Text(
+                        _("已记录 {count} 条：").format(count=len(new_entries)),
+                        style="cx.info",
+                    ),
+                    r.Text(ids),
+                )
+            if dup_entries:
+                ids = " ".join(f"[{e.id}]" for e in dup_entries)
+                self.appenv.say(
+                    r.Text(
+                        _("已存在 {count} 条：").format(count=len(dup_entries)),
+                        style="cx.info",
+                    ),
+                    r.Text(ids),
+                )
             self._echo_list(store, current)
 
     def _do_list(self, store: NoteStore, current: str) -> None:
@@ -213,33 +246,42 @@ class CxNoteApp(IApplication):
         self.appenv.say(build_list_renderable([(current, entries)], current, False))
 
     def _do_transition(self, store: NoteStore, current: str, retention: int) -> None:
-        """finish/pend/reset：解析目标条目并转移到对应状态。"""
+        """finish/pend/reset/drop：批量解析目标条目并转移到对应状态。
+
+        原子式：全部解析成功后逐个执行转移；JSON 数组按参数序。
+        """
         verb = self.context.verb
-        entry = self._resolve_target(store, current)
-        updated = store.transition(entry.id, _TRANSITION_STATUS[verb])
-        assert updated is not None  # _resolve_target 保证存在
+        targets = self._resolve_targets(store, current)
+        status = _TRANSITION_STATUS[verb]
+        updated_list: list[Entry] = []
+        for target in targets:
+            updated = store.transition(target.id, status)
+            assert updated is not None  # _resolve_targets 保证存在
+            updated_list.append(updated)
         store.clean(current, retention)
         if self.context.json_output:
-            self._print_json(entry_to_json(updated))
+            self._print_json([entry_to_json(u) for u in updated_list])
         else:
-            self.appenv.say(
-                r.Text(_TRANSITION_DONE_MESSAGE[verb], style="cx.info"),
-                r.Text(f"[{updated.id}]"),
-            )
+            msg = _TRANSITION_DONE_MESSAGE[verb]
+            self._print_batch_confirm(msg, targets)
             self._echo_list(store, current)
 
     def _do_erase(self, store: NoteStore, current: str, retention: int) -> None:
-        """erase：解析目标条目并从存储中删除。"""
-        entry = self._resolve_target(store, current)
-        removed = store.erase(entry.id)
-        assert removed is not None  # _resolve_target 保证存在
+        """erase：批量解析目标条目并从存储中删除。
+
+        原子式：全部解析成功后逐个删除；JSON 数组按参数序。
+        """
+        targets = self._resolve_targets(store, current)
+        removed_list: list[Entry] = []
+        for target in targets:
+            removed = store.erase(target.id)
+            assert removed is not None  # _resolve_targets 保证存在
+            removed_list.append(removed)
         store.clean(current, retention)
         if self.context.json_output:
-            self._print_json(entry_to_json(removed))
+            self._print_json([entry_to_json(e) for e in removed_list])
         else:
-            self.appenv.say(
-                r.Text(_("已删除"), style="cx.info"), r.Text(f"[{removed.id}]")
-            )
+            self._print_batch_confirm(_("已删除 {count} 条："), targets)
             self._echo_list(store, current)
 
     def _do_clear_domain(self, store: NoteStore, current: str, retention: int) -> None:
@@ -275,41 +317,84 @@ class CxNoteApp(IApplication):
 
     # ── 目标解析 ──
 
-    def _resolve_target(self, store: NoteStore, current: str) -> Entry:
-        """把动词参数解析为唯一目标条目。
+    def _resolve_targets(self, store: NoteStore, current: str) -> list[Entry]:
+        """批量解析参数列表为目标条目集合（按 id 去重，保留首次出现）。
 
-        匹配范围：ID 精确匹配为**全库**（ID 全局唯一）；文本子串匹配
-        为**可见域**（当前域 + 下级域）。
+        逐个参数解析（ID 全库精确 → 文本限可见域），无命中或多义
+        记入问题清单；全部解析完再判断，有问题则一次 SafeError 汇总
+        列出每一项，确保一条不动。重复目标参数（如 `finish abc abc`）
+        只处理首次出现的那一条，确认行与 JSON 数组均只反映实际处理
+        的条目。
 
         Args:
             store: 条目存储。
             current: 当前域字面。
 
         Returns:
-            唯一命中的条目。
+            按去重后参数序排列的目标条目列表（不重复）。
 
         Raises:
-            SafeError: 参数缺失、无命中或命中多个（候选列表走 stderr）。
+            SafeError: 缺少参数、任一参数无命中或多义。
         """
-        target = self.context.argument
-        if not target or not target.strip():
+        args = self.context.arguments
+        if not args:
             raise SafeError(_("缺少条目 ID 或文本片段"))
-        entry = store.find_by_id(target)
-        if entry is not None:
-            return entry
-        matches = store.find_by_text(current, target)
-        if not matches:
-            raise SafeError(_("未找到匹配的条目: {text}").format(text=target))
-        if len(matches) > 1:
+        results: list[Entry] = []
+        seen_ids: set[str] = set()
+        problems: list[str] = []
+        for i, target in enumerate(args, 1):
+            entry = store.find_by_id(target)
+            if entry is not None:
+                if entry.id not in seen_ids:
+                    seen_ids.add(entry.id)
+                    results.append(entry)
+                continue
+            matches = store.find_by_text(current, target)
+            if not matches:
+                problems.append(
+                    _("第 {n} 个参数（{text}）：未找到匹配的条目").format(
+                        n=i, text=target
+                    )
+                )
+            elif len(matches) > 1:
+                candidates = ", ".join(
+                    f"[{e.id}] {_content_preview(e)}" for e in matches
+                )
+                problems.append(
+                    _("第 {n} 个参数（{text}）：匹配到多个条目——{candidates}").format(
+                        n=i, text=target, candidates=candidates
+                    )
+                )
+            else:
+                matched = matches[0]
+                if matched.id not in seen_ids:
+                    seen_ids.add(matched.id)
+                    results.append(matched)
+        if problems:
             lines = [
-                _("匹配到多个条目，请改用 ID 或更精确的文本："),
-                *[
-                    f"[cx.note.hint]\\[{e.id}\\] {_content_preview(e)}[/]"
-                    for e in matches
-                ],
+                _("以下参数解析失败："),
+                *problems,
             ]
             raise SafeError("\n".join(lines))
-        return matches[0]
+        return results
+
+    def _print_batch_confirm(self, template: str, entries: list[Entry]) -> None:
+        """打印批量操作的单行确认：已完成 N 条：[ids]。
+
+        Args:
+            template: 完整确认文案模板（含 ``{count}`` 占位符）。
+            entries: 本次操作涉及的条目列表。
+        """
+        if not entries:
+            return
+        ids = " ".join(f"[{e.id}]" for e in entries)
+        self.appenv.say(
+            r.Text(
+                template.format(count=len(entries)),
+                style="cx.info",
+            ),
+            r.Text(ids),
+        )
 
     # ── 分组与配置 ──
 
