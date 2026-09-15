@@ -4,12 +4,12 @@
 
 ## 简介
 
-cxnote 是一个极简的终端笔记 / 待办工具。所有条目存在一个 JSON 文件里，按**域**组织；日常操作只有一个动词加一个参数：
+cxnote 是一个极简的终端笔记 / 待办工具。所有条目存在一个 JSON 文件里，按**域**组织；日常操作只有一个动词加一个或多个参数：
 
 ```bash
-cxnote add "买牛奶"      # 记一条
-cxnote                   # 看当前域
-cxnote finish 牛奶       # 做完划掉
+cxnote add "买牛奶" "交水电费"    # 记多条
+cxnote                            # 看当前域
+cxnote finish 牛奶                 # 做完划掉
 ```
 
 ## 域与工作域
@@ -35,40 +35,46 @@ cxnote -g list --full                # 根域全览
 
 | 命令 | 参数 | 说明 |
 |---|---|---|
-| `add` | 文本 | 记录一条内容到当前工作域；内容里的 `\n` 会转换为换行；**同域已有完全相同内容时不重复记录**（回执既有条目） |
+| `add` | 文本（可多个） | 记录一条或多条内容到当前工作域；每个参数独立一条；内容里的 `\n` 会转换为换行；**同域已有完全相同内容时不重复记录**（回执既有条目） |
 | `list` | —（缺省动词） | 按域分组显示条目；`--full` 展开下级域 |
-| `finish` | ID 或文本片段 | 标记为已完成，打完成时间 |
-| `pend` | ID 或文本片段 | 转入进行中 |
-| `reset` | ID 或文本片段 | 重置为待办，清空完成时间 |
-| `erase` | ID 或文本片段 | 删除单条 |
+| `finish` | ID 或文本片段（可多个） | 标记为已完成，打完成时间 |
+| `pend` | ID 或文本片段（可多个） | 转入进行中 |
+| `reset` | ID 或文本片段（可多个） | 重置为待办，清空完成时间 |
+| `drop` | ID 或文本片段（可多个） | 标记为已取消，条目保留在库 |
+| `erase` | ID 或文本片段（可多个） | 删除一条或多条 |
 | `clear` | — | 清空当前工作域的直属条目（不含子域），交互确认一次 |
 
 ```bash
-cxnote add "周末计划\n- 爬山\n- 采购"   # 多行条目
-cxnote pend 爬山                        # 转入进行中
-cxnote finish a1b2                      # 按 ID 完成
-cxnote erase a1b2                       # 删除单条
-cxnote clear                            # 清空当前域（会先问你）
+cxnote add "周末计划\n- 爬山\n- 采购" "买菜"    # 批量记录两条
+cxnote pend 爬山                                 # 转入进行中
+cxnote finish a1b2 b3c4                          # 批量完成两条
+cxnote drop 买菜                                  # 取消一条
+cxnote erase a1b2 b3c4                            # 批量删除两条
+cxnote clear                                     # 清空当前域（会先问你）
 ```
+
+**批量参数规则**：条目级动词（`add`、`finish`、`pend`、`reset`、`drop`、`erase`）均可传多个参数，每参数一条。任一参数解析失败时整体中止，一条不动，错误信息列出全部问题参数。任何动词显式收到的参数经 `strip` 后为空即报错中止（如引号失误导致的空参数），不做静默跳过。
 
 **操作回显**：除 `list` 外的所有动词在人读模式下执行成功后，确认行之下会追加**当前工作域的直属条目列表**——全部状态，不含下级域（连标题行也不显示）。想看下级域用 `list`；当前域没有条目时回显「当前域暂无条目」。
 
 ## 状态流转
 
-每条笔记有三种状态：`todo`（待办）→ `pending`（进行中）→ `done`（已完成）。
+每条笔记有四种状态：`todo`（待办）→ `pending`（进行中）→ `done`（已完成）/ `dropped`（已取消）。
 
-- 只有 `done` 持有完成时间；`reset` / `pend` 会清空它；
-- 列表里的标号：`[ ]` 待办、`[~]` 进行中、`[x]` 已完成。
+- `done`（已完成）与 `dropped`（已取消）均为**终态**；
+- 终态持有完成时间（`completed_at`）——进入终态时打点，离开终态（`reset`/`pend`）时清空；
+- 对已取消条目可直接 `finish` 或 `reset`，不设转移守卫；
+- 列表里的标号：`[ ]` 待办、`[~]` 进行中、`[x]` 已完成、`[-]` 已取消（dim + strike 弱化）。
 
 ## 删除的三种方式
 
-1. **`erase <id|文本>`** —— 删一条；
+1. **`erase <id|文本>`** —— 删一条或多条；
 2. **`clear`** —— 清空当前工作域的直属条目（**不含子域**），人读模式确认一次，`--json` 模式跳过确认；
-3. **自动清理** —— 没有手动清理命令：每次写操作（add / finish / pend / reset / erase / clear）都会顺带删除**超过保留期的已完成条目**。保留期由配置决定（见下文）。
+3. **自动清理** —— 每次写操作（add / finish / pend / reset / erase / clear / drop）都会顺带删除**超过保留期的已完成与已取消条目**（终态条目）。保留期由配置决定（见下文）。
 
 ## 定位规则
 
-`finish` / `pend` / `reset` / `erase` 的参数可以是：
+`finish` / `pend` / `reset` / `drop` / `erase` 的参数可以是：
 
 - **ID**：每条笔记有 4 位 ID（列表行尾徽章），**全库精确定位**；
 - **文本片段**：只在**可见域**（当前域 + 下级域）内做包含匹配，且**必须唯一命中**——多个命中会列出候选并让你改用 ID。
@@ -78,14 +84,17 @@ cxnote clear                            # 清空当前域（会先问你）
 加 `--json` 后 stdout 只有纯净 JSON（标题、提示、确认、操作后回显全部跳过），适合脚本消费：
 
 ```bash
-cxnote list --json                 # 当前域条目数组
-cxnote list --json --full          # 当前域 + 全部下级域
-cxnote add "买票" --json           # 新条目对象（重复时返回既有条目，幂等）
-cxnote finish a1b2 --json          # 更新后的条目对象
-cxnote clear --json                # 被清空的条目数组（不确认）
+cxnote list --json                     # 当前域条目数组
+cxnote list --json --full              # 当前域 + 全部下级域
+cxnote add "买票" --json               # 条目对象数组（单参数也是单元素数组）
+cxnote add "牛奶" "鸡蛋" --json        # 两条新条目的对象数组
+cxnote finish a1b2 --json              # 单元素数组（更新后的条目对象）
+cxnote erase a1b2 b3c4 --json          # 两条被删除条目的对象数组
+cxnote add "牛奶" --json               # 与已有内容重复时返回既有条目对象数组
+cxnote clear --json                    # 被清空的条目数组（不确认）
 ```
 
-条目对象六个键固定在场：`id` / `domain` / `content` / `status` / `created_at` / `completed_at`（未完成时 `completed_at` 为 `null`）。
+条目对象六个键固定在场：`id` / `domain` / `content` / `status` / `created_at` / `completed_at`（未完成时 `completed_at` 为 `null`）。批量操作的 `--json` 输出是条目对象数组（单参数也是单元素数组），顺序同参数序；`add` 的重复命中在数组中输出既有条目对象。失败时 stdout 零输出，错误走 stderr。
 
 ## 配置文件
 
@@ -95,7 +104,7 @@ cxnote clear --json                # 被清空的条目数组（不确认）
 retention_days = 30
 ```
 
-- `retention_days`：已完成条目的保留天数，超龄条目在写操作时被自动清理；
+- `retention_days`：终态条目的保留天数（已完成与已取消的条目共享同一保留期），超龄条目在写操作时被自动清理；
 - `0` 或负数表示禁用自动清理；
 - 想调整保留期直接编辑该文件即可（没有 config 命令）。
 

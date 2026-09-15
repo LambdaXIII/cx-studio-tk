@@ -98,12 +98,13 @@ hostskeeper update      # 确认后执行
 
 ### CxNote | `cxnote`
 
-终端里的快速便签——记的速度要快，看的眼球要少。所有条目存在一个 JSON 文件里，按域组织；日常操作只有一个动词加一个参数：
+终端里的快速便签——记的速度要快，看的眼球要少。所有条目存在一个 JSON 文件里，按域组织；日常操作只有一个动词加一个或多个参数，支持批量操作：
 
 ```shell
-cxnote add "买牛奶"      # 记一条
-cxnote                   # 看当前域
-cxnote finish 牛奶       # 做完划掉
+cxnote add "买牛奶" "交水电费"    # 批量记录两条
+cxnote                            # 看当前域
+cxnote finish 牛奶                 # 做完划掉
+cxnote drop 交水电费               # 标记为已取消（保留在库）
 ```
 
 详情见 [CxNote 帮助文档](packages/cxalio-studio-tools/cx_note/help.md)。
