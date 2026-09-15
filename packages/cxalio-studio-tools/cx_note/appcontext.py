@@ -12,7 +12,7 @@ from cx_note.i18n import _
 from cx_tools.app import IAppContext
 
 # 动词表——argparse choices 与运行时分派共用，防止两处漂移。
-VERBS = ["add", "list", "finish", "pend", "reset", "erase", "clear"]
+VERBS = ["add", "list", "finish", "pend", "reset", "erase", "drop", "clear"]
 
 
 class CxNoteContext(IAppContext):
@@ -20,8 +20,8 @@ class CxNoteContext(IAppContext):
 
     Fields:
         verb: 要执行的动词，缺省为 `list`。
-        argument: 动词参数——add 为条目内容；finish/pend/reset/erase 为
-            ID 或文本片段。
+        arguments: 动词参数列表——add 为多条条目内容（每参数一条）；
+            finish/pend/reset/erase/drop 为多个 ID 或文本片段（每参数一个）。
         domain_param: `-p/--path` 给出的域字面。
         global_flag: 是否指定 `-g/--global`（在根域操作）。
         json_output: 是否指定 `--json`（stdout 纯净 JSON 输出）。
@@ -36,7 +36,7 @@ class CxNoteContext(IAppContext):
         """用 kwargs 白名单初始化上下文字段。"""
         super().__init__()
         self.verb: str = "list"
-        self.argument: str | None = None
+        self.arguments: list[str] = []
         self.domain_param: str | None = None
         self.global_flag: bool = False
         self.json_output: bool = False
@@ -82,10 +82,11 @@ class CxNoteContext(IAppContext):
             help=_("要执行的动作，缺省为 list"),
         )
         parser.add_argument(
-            "argument",
-            nargs="?",
+            "arguments",
+            nargs="*",
             help=_(
-                "动词参数：add 为条目内容；finish/pend/reset/erase 为 ID 或文本片段"
+                "动词参数（可传多个）：add 为多条条目内容，"
+                "finish/pend/reset/erase/drop 为多个 ID 或文本片段"
             ),
         )
         parser.add_argument(

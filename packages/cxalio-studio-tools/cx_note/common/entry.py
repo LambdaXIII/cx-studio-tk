@@ -9,28 +9,31 @@ from enum import Enum
 
 
 class EntryStatus(Enum):
-    """条目三态。
+    """条目四态。
 
-    `value` 是 JSON 里的英文 token（`todo`/`pending`/`done`），供脚本消费，
-    不参与 i18n；人读显示（待办/进行中/已完成）由渲染层映射。
+    `value` 是 JSON 里的英文 token（`todo`/`pending`/`done`/`dropped`），
+    供脚本消费，不参与 i18n；人读显示（待办/进行中/已完成/已取消）由
+    渲染层映射。`done` 与 `dropped` 为终态。
     """
 
     TODO = "todo"
     PENDING = "pending"
     DONE = "done"
+    DROPPED = "dropped"
 
 
 @dataclass(frozen=True)
 class Entry:
-    """一条笔记：内容 + 三态 + 日期，归属一个域。
+    """一条笔记：内容 + 四态 + 日期，归属一个域。
 
     Attributes:
         id: 4 位小写 base36 标识，全库唯一，生成后终身不变。
         domain: 所属域字面（首见字面，由 NoteStore 归一登记）。
         content: 条目内容，可含真实换行（多行按 Markdown 渲染）。
-        status: 三态之一。
+        status: 四态之一。
         created_at: 创建时间（本地朴素时间）。
-        completed_at: 完成打点时间；仅 `DONE` 态持有，复位时清空。
+        completed_at: 终态打点时间——条目进入终态（已完成/已取消）时
+            记录，离开终态时清空。用于超龄清理计时。
     """
 
     id: str

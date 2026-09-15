@@ -2,7 +2,7 @@
 
 结构与其余 5 工具的 `app_help.py` 同构（模板：hosts_keeper）：
 `CxNoteHelp` 多重继承 `IAppComponent`（取 appenv/context）与
-`WealthyHelp`（帮助 DSL），分组覆盖 7 个动词与全局选项。
+`WealthyHelp`（帮助 DSL），分组覆盖 8 个动词与全局选项。
 """
 
 from cx_note.i18n import _
@@ -37,8 +37,9 @@ class CxNoteHelp(IAppComponent, WealthyHelp):
                 name=_("ID 或文本片段"),
                 metavar="ID|TEXT",
                 detail=_(
-                    "目标条目：4 位 ID 全库精确匹配；或文本片段"
-                    "（当前域及下级域内匹配，须唯一命中）。"
+                    "目标条目（可传多个参数，每参数一条）：4 位 ID"
+                    " 全库精确匹配；或文本片段（当前域及下级域内匹配，"
+                    "须唯一命中）。"
                 ),
             )
 
@@ -52,7 +53,9 @@ class CxNoteHelp(IAppComponent, WealthyHelp):
             name=_("条目内容"),
             metavar="TEXT",
             detail=_(
-                '条目文本；字面 [u]\\n[/] 转换为换行，如 [u]add "买菜\\n做饭"[/]。'
+                "条目文本（可传多个参数，每参数一条）；字面"
+                " [u]\\n[/] 转换为换行，如"
+                ' [u]add "买菜\\n做饭" "交水电费"[/]。'
             ),
         )
 
@@ -72,6 +75,8 @@ class CxNoteHelp(IAppComponent, WealthyHelp):
         add_target(pend_cmd)
         reset_cmd = transit.add_command("reset", detail=_("把条目重置为待办。"))
         add_target(reset_cmd)
+        drop_cmd = transit.add_command("drop", detail=_("把条目标记为已取消。"))
+        add_target(drop_cmd)
 
         # 删除
         remove = self.add_group(_("删除"))
@@ -80,6 +85,14 @@ class CxNoteHelp(IAppComponent, WealthyHelp):
         remove.add_command(
             "clear",
             detail=_("清空当前工作域的直属条目（不含子域），交互确认一次。"),
+        )
+        self.add_note(
+            r.Text.from_markup(
+                _(
+                    "终态清理：已完成与已取消条目超龄后在写操作时自动删除，"
+                    "保留天数由配置 [u]retention_days[/] 决定。"
+                )
+            )
         )
 
         # 域选项
@@ -116,13 +129,18 @@ class CxNoteHelp(IAppComponent, WealthyHelp):
                 _(
                     "定位规则：[u]ID[/] 全库精确定位；[u]文本片段[/] 限可见域"
                     "（当前域 + 下级域）且须唯一命中；[u]-p[/] 改变所有动词的工作域。"
+                    "终态 = 已完成（[u]finish[/]）与已取消（[u]drop[/]）。"
                 )
             )
         )
 
-        self.description = tt.auto_unwrap(_("""cxnote —— 终端里的快速便签。
-        以 [u]add[/] 记录、[u]list[/] 查看、[u]finish[/] [u]pend[/] [u]reset[/] 流转状态、
-        [u]erase[/] [u]clear[/] 删除。运行 [u]cxnote --tutorial[/] 学习完整用法。"""))
+        self.description = tt.auto_unwrap(
+            _(
+                """cxnote —— 终端里的快速便签。
+        以 [u]add[/] 记录、[u]list[/] 查看、[u]finish[/] [u]pend[/] [u]reset[/] [u]drop[/] 流转状态、
+        [u]erase[/] [u]clear[/] 删除。各条目级动词支持多个参数。运行 [u]cxnote --tutorial[/] 学习完整用法。"""
+            )
+        )
 
         self.epilog = (
             "[link https://github.com/LambdaXIII/cx-studio-tk]Cxalio Studio Tools[/]"
