@@ -24,6 +24,7 @@ MARKER: dict[EntryStatus, str] = {
     EntryStatus.TODO: "[ ]",
     EntryStatus.PENDING: "[~]",
     EntryStatus.DONE: "[x]",
+    EntryStatus.DROPPED: "[-]",
 }
 
 # 8 色高对比亮色调色板 + orange1（全部为 Rich ANSI 色名）；ID 字符按
@@ -40,16 +41,16 @@ _PALETTE = [
 ]
 
 
-def make_id_badge(eid: str, done: bool = False) -> r.Text:
+def make_id_badge(eid: str, terminal: bool = False) -> r.Text:
     """把 4 位 ID 渲染为逐字符着色的徽章。
 
     必须返回显式 style 的 `Text` 而非 markup 字符串——`say()` 默认开启
     高亮，CxHighlighter 的 number/brackets 正则会重新染色干扰徽章。
-    无背景色；`done` 为真时整体加 `dim`（已完成条目的徽章随行转暗）。
+    无背景色；`terminal` 为真时整体加 `dim`（终态条目的徽章随行转暗）。
 
     Args:
         eid: 条目 ID（小写 base36）。
-        done: 条目是否已完成——真时附加 dim。
+        terminal: 条目是否处于终态（已完成或已取消）——真时附加 dim。
 
     Returns:
         逐 span 着色的 `Text`。
@@ -57,7 +58,7 @@ def make_id_badge(eid: str, done: bool = False) -> r.Text:
     badge = r.Text()
     for ch in eid:
         fg = _PALETTE[ord(ch) % len(_PALETTE)]
-        badge.append_text(r.Text(ch, style=f"{fg} dim" if done else fg))
+        badge.append_text(r.Text(ch, style=f"{fg} dim" if terminal else fg))
     return badge
 
 
@@ -75,14 +76,26 @@ def _domain_table(entries: list[Entry]) -> r.Table:
     table.add_column(ratio=1)
     table.add_column(justify="right", width=4)
     for entry in entries:
-        is_done = entry.status is EntryStatus.DONE
-        marker = r.Text(MARKER[entry.status], style="cx.note.done" if is_done else "")
+        is_terminal = entry.status in {EntryStatus.DONE, EntryStatus.DROPPED}
+        terminal_style = (
+            "cx.note.dropped"
+            if entry.status is EntryStatus.DROPPED
+            else "cx.note.done" if entry.status is EntryStatus.DONE else ""
+        )
+        marker = r.Text(MARKER[entry.status], style=terminal_style)
         if "\n" in entry.content:
-            # 已完成多行仍按 Markdown 渲染（内容不置灰；置灰由标号+徽章传达）
-            content: r.RenderableType = r.Markdown(entry.content)
+            # 多行按 Markdown 渲染：已完成/进行中沿用「内容不置灰」的既有决策
+            # （弱化由标号 + 徽章传达），已取消则整体 dim + strike。
+            # Rich 的 Markdown 只接受样式名，None 会在 Style.parse 抛错，
+            # 故「不附加样式」必须走默认构造而非 style=None。
+            content: r.RenderableType = (
+                r.Markdown(entry.content, style="cx.note.dropped")
+                if entry.status is EntryStatus.DROPPED
+                else r.Markdown(entry.content)
+            )
         else:
-            content = r.Text(entry.content, style="cx.note.done" if is_done else "")
-        table.add_row(marker, content, make_id_badge(entry.id, is_done))
+            content = r.Text(entry.content, style=terminal_style)
+        table.add_row(marker, content, make_id_badge(entry.id, is_terminal))
     return table
 
 
