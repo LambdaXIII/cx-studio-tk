@@ -23,6 +23,6 @@
 
 ## 4. 收口
 
-- [ ] 4.1 两轮引用扫描（design D5 模式：第一轮扫 `docs/adr`、`ADR-\d{4}`、`.scratch`、`triage`、`issue-tracker`、`wayfinder`；第二轮删除后复扫正文残留指称）。验证：第二轮零命中
-- [ ] 4.2 全域结构校验：`openspec validate adopt-openspec --strict`，确认五个能力域 delta 齐备（specs/norms 已在本变更规划期落稿）。验证：命令零错误
-- [ ] 4.3 单次原子提交：specs 新增 + 退旧删除 + AGENTS.md/CONTEXT.md/config.yaml 改写收进同一 commit，commit message 独立完备（改了什么、为什么，不赘述 diff）。验证：`git show --stat` 单 commit 覆盖全部改动
+- [x] 4.1 两轮引用扫描（design D5 模式：第一轮扫 `docs/adr`、`ADR-\d{4}`、`.scratch`、`triage`、`issue-tracker`、`wayfinder`；第二轮删除后复扫正文残留指称）。验证：第二轮零命中
+- [x] 4.2 全域结构校验：`openspec validate adopt-openspec --strict`，确认五个能力域 delta 齐备（specs/norms 已在本变更规划期落稿）。验证：命令零错误
+- [x] 4.3 单次原子提交：specs 新增 + 退旧删除 + AGENTS.md/CONTEXT.md/config.yaml 改写收进同一 commit，commit message 独立完备（改了什么、为什么，不赘述 diff）。验证：`git show --stat` 单 commit 覆盖全部改动
