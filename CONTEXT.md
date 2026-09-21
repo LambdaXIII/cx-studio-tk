@@ -1,6 +1,6 @@
 # CONTEXT —— 仓库统一领域文档
 
-本仓库（cx-studio-tk）为 uv workspace 单仓，含三个 workspace：`cx-studio`（基础设施库）、`cx-wealthy`（Rich UI 组件库）、`cxalio-studio-tools`（CLI 工具集与共享框架）。领域文档统一存放于本文件与 `docs/adr/`（单一编号序列，索引见 `docs/adr/README.md`）——处理 `packages/` 下某 workspace 的内容时，阅读本文件对应 `## Domain:` 分区与 `docs/adr/` 中适用范围覆盖该 workspace 的 ADR；消费规则见 `docs/agents/domain.md`。根 `AGENTS.md` 为全局规范基线（跨领域通用规则），优先于本文档。
+本仓库（cx-studio-tk）为 uv workspace 单仓，含三个 workspace：`cx-studio`（基础设施库）、`cx-wealthy`（Rich UI 组件库）、`cxalio-studio-tools`（CLI 工具集与共享框架）。领域文档统一存放于本文件与 `openspec/specs/`（按能力域组织的行为规格真相源，行为变更走 `openspec/changes/` 变更流程）——处理 `packages/` 下某 workspace 的内容时，阅读本文件对应 `## Domain:` 分区与适用该 workspace 的能力域 spec；消费规则见 `docs/agents/domain.md`。根 `AGENTS.md` 为全局规范基线（跨领域通用规则），优先于本文档。
 
 ## Domain：cx-studio
 > 适用范围：cx-studio
@@ -68,7 +68,7 @@ ffmpeg      → core, filesystem, process, i18n
 ### 术语
 
 **CxTime**：
-core 包的基础时间值对象，毫秒级精度；属多年积累的时间域核心资产，直接兼容工业时间码标准（见 ADR 0001）。
+core 包的基础时间值对象，毫秒级精度；属多年积累的时间域核心资产，直接兼容工业时间码标准。
 _Avoid_: 用 `datetime`/`time` 表达时间码语义
 
 **Timebase**：
@@ -130,7 +130,7 @@ text 包的文本标签替换器，用于模板/占位符替换。
   1. **通用结构化文档系统**——基于复合树的声明式文档构建与主题化渲染。帮助系统只是其特化之一，任何"分组 + 条目 + 注释"的结构化输出都可使用。
   2. **双渲染协议**——`__rich_label__`（紧凑标签）+ `__rich_detail__`（键值面板），通过 mixin 让领域对象自身可被 `console.print()` 直接渲染。
 - **双重定位**：本包首先是 cx 系列自用的 Rich 扩展，同时作为独立库可供任何人使用。沿用 Rich 自身的 mixin 命名风格、提供 `rich_types` 便利出口等设计均在此定位下进行——对内服务于 cx 系列工具，对外不绑定 cx 系列的依赖与惯例。
-- **依赖**：仅 `rich>=14.0.0`。不依赖 `cx-studio`——UI 库应保持单一职责与最小依赖链。所需的基础工具函数（分隔符插入、locale 检测）逻辑很短，在包内内联实现，不为短函数引入整包依赖（决策背景见 `docs/adr/0010`）。
+- **依赖**：仅 `rich>=14.0.0`。不依赖 `cx-studio`——UI 库应保持单一职责与最小依赖链。所需的基础工具函数（分隔符插入、locale 检测）逻辑很短，在包内内联实现，不为短函数引入整包依赖。
 - **依赖关系**：与 `cx-studio` 无依赖关系，两者在依赖层面平级；`cxalio-studio-tools` 同时依赖两者。`cx-wealthy` 仍是 cx- 系列的一员，提供 `cx.*` 命名空间的主题样式预设（纯数据导出，不引入依赖）。
 
 ### 渲染协议定义
@@ -167,7 +167,7 @@ text 包的文本标签替换器，用于模板/占位符替换。
 | value 渲染 | `Pretty`（repr 风格，raw 值） | 递归 sub-panel / IndexedListPanel / RichLabel 协同 |
 | 格式化 | raw 值交给 Pretty | 使用方可预格式化（如 `str(path)`） |
 
-`__rich_detail__` 吸收了 `__rich_repr__` 的去重能力（三元组），但保留展示视角的渲染策略链（否决「复用 `__rich_repr__` 替代 `__rich_detail__`」的理由见 `docs/adr/0003`）。
+`__rich_detail__` 吸收了 `__rich_repr__` 的去重能力（三元组），但保留展示视角的渲染策略链（否决了「复用 `__rich_repr__` 替代 `__rich_detail__`」的方案）。
 
 #### 协议是可选的
 
@@ -183,11 +183,19 @@ text 包的文本标签替换器，用于模板/占位符替换。
 
 #### Rich 类型引用：内部真实路径
 
-根 AGENTS 规定"依赖 cx-wealthy 的包必须通过 rich_types 引用 Rich 类型"。**本包特化此规则**：该约束针对使用方，不针对本包内部。库内部模块用 `from rich.table import Table` 真实路径，`rich_types` 仅作对外便利出口（决策背景见 `docs/adr/0004`）。
+根 AGENTS 规定"依赖 cx-wealthy 的包必须通过 rich_types 引用 Rich 类型"。**本包特化此规则**：该约束针对使用方，不针对本包内部。库内部模块用 `from rich.table import Table` 真实路径，`rich_types` 仅作对外便利出口。
 
 #### 私有命名：无双下划线
 
 内部辅助方法用单下划线前缀（如 `_render_label`、`_check_value`），不用双下划线。双下划线触发 name mangling，子类无法 override。
+
+#### 组件命名：名实相符
+
+组件命名必须反映实际行为——名实不符会误导使用方对 API 契约的预期。评估命名时，以该名称承诺的 API 契约为试金石：名称承诺而实现不做的（如"动态"布局实则固定列数），改名优先于补文档。
+
+#### 扩展节奏：第二个真实场景出现才扩展
+
+组件扩展的触发条件是第二个真实使用场景的出现，不是"技术上能做到更灵活"。只有单一场景时保持简单是正确状态，不是待办；为假想需求预留的参数化与抽象层是负债。
 
 #### 主题透明性
 
@@ -244,11 +252,11 @@ _Avoid_: WealthyDetailPanel（那是 Panel 形态）
 `__rich_detail__` 中 value 为列表时的自动渲染形态——带索引的列表面板。
 
 **MaxColumnsLayout**：
-列布局组件，固定最大列数 + 平均宽度；不暗示也不实现基于内容宽度的动态测量（决策背景见 `docs/adr/0006`）。
+列布局组件，固定最大列数 + 平均宽度；不暗示也不实现基于内容宽度的动态测量。
 _Avoid_: 带"动态/自适应"含义的布局名
 
 **rich_types**：
-对外便利出口模块，收窄到高频 Rich 类型，供使用方以 `r` 别名引用；库内部一律用真实 import 路径（决策背景见 `docs/adr/0004`）。
+对外便利出口模块，收窄到高频 Rich 类型，供使用方以 `r` 别名引用；库内部一律用真实 import 路径。
 _Avoid_: 内部模块直接 import rich_types
 
 **cx.\* 样式名**：
