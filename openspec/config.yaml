@@ -1,0 +1,10 @@
+schema: spec-driven
+
+# Project context
+context: |
+  cx-studio-tk：面向影视后期制作的 Python 工具集，uv workspace monorepo。
+  三包依赖链：cxalio-studio-tools 依赖 cx-studio 与 cx-wealthy；cx-studio 与 cx-wealthy 平级互不依赖（cx-wealthy 仅依赖 rich）。
+  规范布局：根 AGENTS.md 为全局规范基线；根 CONTEXT.md 按 ## Domain: 分区承载定位/架构/约定/术语；openspec/specs/ 按能力域（cx-studio、cx-wealthy、cx-tools、cxnote、norms）承载现行行为契约，是唯一真相源；docs/agents/ 承载工作流文档（领域文档消费规则、i18n 工作流）。
+  行为真相源：任何能力域的现行行为以 openspec/specs/<capability>/spec.md 为准；行为变更必须走 openspec 变更流程（changes/ 下 delta，archive 折回主 specs），不得直接修改主 specs。
+  设计决策多轨归位：行为与协议→openspec 变更流程；术语与领域约定→CONTEXT.md 对应分区；跨领域全局纪律→AGENTS.md。
+  i18n：源语言为简体中文，代码 _() 内为中文 msgid；各工具自持翻译文件，zh_CN 不生成 .po/.mo（gettext 找不到 .mo 时回退返回 msgid）。

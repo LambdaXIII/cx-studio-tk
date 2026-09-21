@@ -184,10 +184,8 @@ py.typed
 .continue/
 .codex/
 .codegraph/
+.omp/
 
 
 # Other files and directories
 *.bak
-
-# Agent 工作项（issue/spec 本地追踪，不入库）
-/.scratch/
