@@ -96,14 +96,14 @@
 
 ### Requirement: 新增格式不动框架与模型
 
-新增一个格式 MUST 仅需：实现适配器契约并声明扩展名与约束、在前台完成注册。框架与模型 MUST NOT 因新增格式而修改。模型与格式框架 MUST 位于可被其它工具 import 的 common 层；框架与适配器 MUST NOT 依赖任何 CLI 组件。
+新增一个格式 MUST 仅需：在 `subtitle.formats` 内实现适配器契约并声明扩展名与约束、在前台完成注册。框架与模型 MUST NOT 因新增格式而修改。字幕模型与 Loader/Saver 契约及 engine MUST 位于可被其它工具 import 的 `subtitle` 包；格式实现与框架 MUST NOT 依赖任何 CLI 组件。
 
 #### Scenario: 扩展格式不改核心
 
 - **WHEN** 新增一个格式适配器实现并在前台注册
 - **THEN** 框架与模型代码零改动，转换流程照常工作
 
-#### Scenario: common 层可被其它工具复用
+#### Scenario: `subtitle` 包可被其它工具复用
 
 - **WHEN** 另一个工具 import 字幕模型与格式框架
 - **THEN** 不引入对任何 CLI 组件（appenv/context/注册接线）的依赖

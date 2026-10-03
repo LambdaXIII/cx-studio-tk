@@ -14,7 +14,7 @@
 
 **Goals:**
 
-- 字幕模型 + 格式框架 + 三格式适配器在 `subtitler.common` 落地，可被其它工具 import
+- 字幕能力（模型 + Loader/Saver 契约与 engine + 三格式实现）在 `subtitle` 独立包落地，可被其它工具 import；`subtitler` 只剩纯 CLI 前台
 - subtitler CLI 完成 SRT/TTML/CSV 互转的端到端闭环
 - 收口 proposal 遗留的开放项：转换公共动作细节、多输出文件命名
 
@@ -22,45 +22,46 @@
 
 - 字幕内容的编辑、修剪、重排、质检——工具只搬运模型
 - 格式发现的高级手段（内容嗅探、`--from/--to` 显式覆盖）——按扩展名查表，等真实场景出现再议
-- 模型/框架迁往 `cx-studio` 独立子包——按「common 层开放」的讨论定案执行
+- 模型/框架迁往 `cx-studio` 独立子包——按「能力包 `subtitle` 就地开放」的讨论定案执行
 - 测试基础设施搭建（仓库无测试基建，不在本变更内引入）
 
 ## Decisions
 
-### D1. 包结构（镜像现有工具骨架）
+### D1. 包结构：能力包 + 纯前台，两级切分
 
 ```
-packages/cxalio-studio-tools/subtitler/
-├── __init__.py            # run()：组装入口
-├── application.py         # SubtitlerApplication(IApplication)
-├── appenv.py              # SubtitlerEnv(IAppEnvironment)
-├── appcontext.py          # SubtitlerContext(IAppContext)
-├── app_help.py            # SubtitlerHelp(IAppComponent, WealthyHelp)
-├── help.md                # WealthyHelp 教程文本（源语言，load_localized_text 加载）
-├── help.en_US.md          # 英文帮助（镜像多数现有工具）
-├── banner.txt             # 启动 banner（镜像 cxnote/hosts_keeper/media_killer）
-├── i18n/                  # 本工具 gettext（domain: subtitler）
-├── common/                # 开放库：模型 + 框架 + 适配器
+packages/cxalio-studio-tools/
+├── subtitle/                  # 字幕能力包：模型 + Loader/Saver 定义 + 格式实现
+│   ├── __init__.py            # 三层汇聚导出（模型/语法/编排）
 │   ├── model/
-│   │   ├── segment.py     # SubtitleSegment = TimeRange + text + speaker + extra
-│   │   ├── collection.py  # 片段集合（按 start 插入维持有序）
-│   │   └── work.py        # 作品 = 集合 ×N
-│   ├── formats/
-│   │   ├── reader.py      # SubtitleReader 抽象基类
-│   │   ├── saver.py       # SubtitleSaver 抽象基类（含约束声明）
-│   │   ├── timecodec.py   # TimeCodec：时间解析/格式化/单调舍入
-│   │   ├── errors.py      # FormatError
-│   │   └── engine.py      # load / save：IO、编码、裂变、舍入、命名
-│   └── adapters/
-│       ├── srt.py         # Format 对象 + SrtReader/SrtSaver
+│   │   ├── segment.py         # SubtitleSegment = TimeRange + text + speaker + extra
+│   │   ├── collection.py      # 片段集合（按 start 插入维持有序）
+│   │   └── work.py            # 作品 = 集合 ×N
+│   ├── reader.py              # SubtitleReader 抽象基类（Loader 契约）
+│   ├── saver.py               # SubtitleSaver 抽象基类（Saver 契约，含约束声明）
+│   ├── timecodec.py           # TimeCodec：时间解析/格式化/单调取整
+│   ├── errors.py              # FormatError
+│   ├── engine.py              # load / save：IO、编码、裂变、取整、命名
+│   └── formats/               # 具体格式实现（SRT / TTML / CSV）
+│       ├── srt.py             # Format 对象 + SrtReader/SrtSaver
 │       ├── ttml.py
 │       └── csv.py
-└── components/
-    ├── wiring.py          # 本工具格式面（显式 dict 登记，扩展名表唯一来源）
-    └── converter.py       # 转换编排（IAppComponent：say/whisper、错误呈现）
+└── subtitler/                 # 纯 CLI 前台：只装配，不承载能力
+    ├── __init__.py            # run()：组装入口
+    ├── application.py         # SubtitlerApplication(IApplication)
+    ├── appenv.py              # SubtitlerEnv(IAppEnvironment)
+    ├── appcontext.py           # SubtitlerContext(IAppContext)
+    ├── app_help.py            # SubtitlerHelp(IAppComponent, WealthyHelp)
+    ├── help.md                # WealthyHelp 教程文本（源语言，load_localized_text 加载）
+    ├── help.en_US.md          # 英文帮助（镜像多数现有工具）
+    ├── banner.txt             # 启动 banner（镜像 cxnote/hosts_keeper/media_killer）
+    ├── i18n/                  # 本工具 gettext（domain: subtitler）
+    └── components/
+        ├── wiring.py          # 本工具格式面（显式 dict 登记，扩展名表唯一来源）
+        └── converter.py       # 转换编排（IAppComponent：say/whisper、错误呈现）
 ```
 
-依据：四文件骨架 + Help 与现有 6 工具同构（`app_help.py` 是每工具标准件）；common/components 判据是「appenv 依赖 + 特化与否」，不是消费者数量——模型与框架不依赖 appenv → common；接线与编排是工具特化 → components。
+依据：按**能力**切包而非按工具内角色切目录——`model/formats/adapters` 是一个能力的三个角色，拆成工具内三目录等于在工具里造小项目（角色目录不构成功能包）；正确边界是「字幕能力」（`subtitle`：集合模型 + Loader/Saver 契约 + engine + 格式实现）与「字幕工具前台」（`subtitler`：装配与交互）。能力包落位 `cxalio-studio-tools` 内的 import 包（随 `cx_tools` 先例：消费方在本 workspace 内，不值当新开 workspace 包；不进 `cx-studio`——字幕领域模型不是通用基础设施）。`subtitler` 无 `common/`：能力全部外置于 `subtitle`，前台只剩 `components/`（appenv 依赖的接线与编排）。
 
 ### D2. 模型实现：组合非继承，集合用 `list` + `bisect`
 
@@ -103,7 +104,7 @@ class Format:
 
 **子类继承契约**（写入基类 docstring）：
 
-1. 不依赖 appenv/context/前台组件——common 层纪律
+1. 不依赖 appenv/context/前台组件——`subtitle` 包不得依赖 `subtitler` 或任何 CLI 组件
 2. `parse`/`serialize` 为纯函数：同输入同输出，不做 IO（开文件、编码探测归 engine）
 3. `parse` 输出按时序排列、忠实保留交叠；语法错误抛 `FormatError`（带位置信息），禁止静默跳过或部分返回
 4. `serialize` 的输入由 engine 保证：已排序、已按精度预舍入、`allows_overlap=False` 时已分组无交叠——saver 不再检查、不排序、不分组
@@ -148,7 +149,7 @@ subtitler INPUT OUTPUT [-d] [-h | --tutorial]
 
 ### D7. 前台接线（无全局注册表）
 
-`components/wiring.py` 显式 dict 登记本工具启用的格式并汇总扩展名表——格式面唯一来源。**不在 common 设全局注册表**：仓库 SPI 先例 `InspectorChain` 是构造时显式注入；讨论定案「注册机制绑定 CLI」。common 只提供 `Format` 对象，不含登记动作；无隐藏状态、可测、换一个前台可接不同格式子集。
+`components/wiring.py` 显式 dict 登记本工具启用的格式并汇总扩展名表——格式面唯一来源。**不在 `subtitle` 包设全局注册表**：仓库 SPI 先例 `InspectorChain` 是构造时显式注入；讨论定案「注册机制绑定 CLI」。`subtitle` 包只提供 `Format` 对象，不含登记动作；无隐藏状态、可测、换一个前台可接不同格式子集。
 
 ### D8. 依赖清单
 
@@ -164,12 +165,12 @@ subtitler INPUT OUTPUT [-d] [-h | --tutorial]
 
 **外部依赖：零新增**。候选逐一评估否决：`lxml`（`xml.etree` 对 TTML 子集足够）、`pysrt`/`srt`（买轮子等于放弃自己的模型，本变更目的就是建模型）、`sortedcontainers`（千行量级 `bisect` 足够）、独立编码探测库（复用 `detect_file_encoding`）。
 
-### D9. common 公开接口与外部使用路径
+### D9. `subtitle` 包公开接口与外部使用路径
 
-`common/__init__.py` 分三层汇聚导出：
+包顶 `__init__.py` 三层汇聚导出：
 
 - **模型层**（程序化构建/遍历）：`SubtitleSegment`、`SubtitleCollection`、`SubtitleWork`
-- **语法层**（格式身份与双向实现）：`Format`、`SubtitleReader`、`SubtitleSaver`、`FormatError`、`SrtFormat`/`TtmlFormat`/`CsvFormat`
+- **语法层**（格式身份与双向实现）：`Format`、`SubtitleReader`、`SubtitleSaver`、`FormatError`、`SrtFormat`/`TtmlFormat`/`CsvFormat`（实现于 `subtitle.formats`）
 - **编排层**：`engine.load`、`engine.save`
 
 预期三种外部用法，各有直通路径：**转换**（`load → save` 两行）、**消费**（`load` 后只读遍历，供将来 QC/统计工具）、**生成**（代码构建集合 → `save`，供将来烧字幕/报表工具）。
