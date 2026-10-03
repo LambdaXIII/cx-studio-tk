@@ -22,16 +22,16 @@ subtitler MUST 遵循 `cx_tools.app` 的三层分层与 CLI 通用生命周期�
 
 ### Requirement: 注册接线绑定 CLI，框架不感知所接格式
 
-本工具支持哪些格式 MUST 由 CLI 前台的注册接线决定；字幕模型、格式框架与格式实现 MUST NOT 感知 subtitler 注册了哪些格式。注册与格式识别（含按文件扩展名确定源/目标格式适配器）MUST 位于前台组件，不入 `subtitle` 包契约。
+本工具支持哪些格式 MUST 由 CLI 前台的注册接线决定；字幕模型、格式框架与格式实现 MUST NOT 感知 subtitler 注册了哪些格式。注册与格式识别（含按文件扩展名确定源/目标格式适配器）MUST 位于前台组件，不入 `subtitler.common` 层契约。
 
 #### Scenario: 前台接线决定格式面
 
 - **WHEN** subtitler 启动装配
-- **THEN** 所支持格式由 CLI 注册表给出；`subtitle` 包的框架与格式实现不含对本工具格式面的引用
+- **THEN** 所支持格式由 CLI 注册表给出；`subtitler.common` 的框架与格式实现不含对本工具格式面的引用
 
 #### Scenario: 换一个前台接不同的格式
 
-- **WHEN** 另一工具复用 `subtitle` 包并注册不同的格式子集或超集
+- **WHEN** 另一工具复用 `subtitler.common` 层并注册不同的格式子集或超集
 - **THEN** 框架与模型无需改动即可服务该工具的格式面
 
 ### Requirement: 转换异常报错中止
