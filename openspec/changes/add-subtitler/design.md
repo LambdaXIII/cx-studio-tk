@@ -4,26 +4,29 @@
 
 动机见 proposal.md（Why）。现状与约束：
 
-- 时间域核心资产 `CxTime`（毫秒级）、`TimeRange`（起止段）已在 `cx_studio.core`，字幕模型建立其上，不新造时间类型
-- 现有工具应用层骨架同构（`application.py` / `appenv.py` / `appcontext.py` / `app_help.py` / `help.md` / `i18n/`），`app_help.py` 为标准件（`<Tool>Help(IAppComponent, WealthyHelp)`，模板来自 hosts_keeper）；带 `common/`+`components/` 分层的先例为 cxnote 与 ffpretty（`CONTEXT.md`：不提供 common 的工具不强制区分 common/components）
+- 时间域核心资产 `CxTime`（毫秒级）、`TimeRange`（起止段）已在 `cx_studio.core`，模型建立其上，不新造时间类型
+- `ITimeRange.is_overlapped_with` 现为闭区间语义（端点相触视为重叠），仓库内无调用者；字幕模型以相邻衔接（首尾相接）为合法常态，本变更将其调整为严格交叠（见 D9）
+- 现有工具应用层骨架同构（`application.py` / `appenv.py` / `appcontext.py` / `app_help.py` / `help.md` / `i18n/`），`app_help.py` 为标准件（`<Tool>Help(IAppComponent, WealthyHelp)`，模板来自 hosts_keeper）；带 `common/`+`components/` 分层的先例为 cxnote 与 ffpretty
 - 工具内部分层惯例：`common/`（不依赖 appenv 的非耦合能力，工具间 import 只允许指向 `package.common`）/ `components/`（appenv 依赖或工具特化）
 - 仓库已有 SPI 先例：media_scout 的 `MediaPathInspector`/`InspectorChain`——探测器在构造时显式注入，无全局注册表
-- `ITimeRange.is_overlapped_with` 现为闭区间语义（端点相触视为重叠），仓库内无调用者；字幕的相邻衔接（首尾相接）是合法常态，本变更将其调整为严格交叠（见 D10）
 - 本变更无新第三方依赖；仓库无测试基础设施，验证以实际运行为准
+
+模型（Project/Sequence/Item）与格式侧（Loader/Saver 自治）为讨论定案，工件全文以此为准：Item 是可独立存在的普通对象，容器持引用；Sequence 是排列容器（尽力时序插入、读取恒时序视图）；Project 是组织者（不交叠路由、自动增列、元数据机制）；格式侧只认识 Item，语法提取与输出组织都归格式本体。
 
 ## Goals / Non-Goals
 
 **Goals:**
 
-- 字幕能力（模型 + Loader/Saver 契约与 engine + 三格式实现）在 `subtitler.common` 层落地，作为工具对外提供面可被其它工具 import；前台（四文件骨架 + `components/`）与能力层严格隔离
+- 字幕模型（Item/Sequence/Project）与格式框架（Loader/Saver 契约 + TimeCodec + Format）在 `subtitler.common` 层落地，可被其它工具 import；前台严格隔离
 - subtitler CLI 完成 SRT/TTML/CSV 互转的端到端闭环
-- 收口 proposal 遗留的开放项：转换公共动作细节、多输出文件命名
+- `ITimeRange.is_overlapped_with` 调整为严格交叠
 
 **Non-Goals:**
 
 - 字幕内容的编辑、修剪、重排、质检——工具只搬运模型
 - 格式发现的高级手段（内容嗅探、`--from/--to` 显式覆盖）——按扩展名查表，等真实场景出现再议
-- 模型/框架迁往 `cx-studio` 独立子包——按「能力在 `subtitler.common` 层就地开放」的讨论定案执行
+- 文件级元数据通道（如 TTML 头信息的读出与回写）——本变更不做，`Project.meta` 机制留待消费者
+- 模型/框架迁往 `cx-studio` 独立子包——能力在 `subtitler.common` 层就地开放
 - 测试基础设施搭建（仓库无测试基建，不在本变更内引入）
 
 ## Decisions
@@ -33,20 +36,19 @@
 ```
 packages/cxalio-studio-tools/
 └── subtitler/                 # 工具包：common 层承载字幕能力，前台只装配
-    ├── __init__.py            # 工具顶：__version__ + run() 组装入口；模块级只留这两项，app 栈 import 下沉 run() 体内
+    ├── __init__.py            # 工具顶：__version__ + run() 组装入口；app 栈 import 下沉 run() 体内
     ├── common/                # 字幕能力层（对外提供面）：不依赖 appenv/前台，可被其它工具 import
-    │   ├── __init__.py        # 三层汇聚导出（模型/语法/编排）
+    │   ├── __init__.py        # 汇聚导出（模型/格式框架）
     │   ├── model/
-    │   │   ├── segment.py     # SubtitleSegment = TimeRange + text + speaker + extra
-    │   │   ├── collection.py  # 片段集合（按 start 插入维持有序）
-    │   │   └── work.py        # 作品 = 集合 ×N
-    │   ├── reader.py          # SubtitleReader 抽象基类（Loader 契约）
-    │   ├── saver.py           # SubtitleSaver 抽象基类（Saver 契约，含约束声明）
-    │   ├── timecodec.py       # TimeCodec：时间解析/格式化/单调取整
+    │   │   ├── item.py        # SubtitleItem = TimeRange + text + speaker + extra
+    │   │   ├── sequence.py    # SubtitleSequence：Item 排列容器
+    │   │   └── project.py     # SubtitleProject：Sequence 容器 + 路由 + 元数据
+    │   ├── loader.py          # SubtitleLoader 抽象基类（来源 → Items）
+    │   ├── saver.py           # SubtitleSaver 抽象基类（Items + 目标 → 输出文件）
+    │   ├── timecodec.py       # TimeCodec：模式驱动时间解析/格式化/单调取整
     │   ├── errors.py          # FormatError
-    │   ├── engine.py          # load / save：IO、编码、裂变、取整、命名
     │   └── formats/           # 具体格式实现（SRT / TTML / CSV）
-    │       ├── srt.py         # Format 对象 + SrtReader/SrtSaver
+    │       ├── srt.py         # SrtFormat（含 SrtLoader/SrtSaver）
     │       ├── ttml.py
     │       └── csv.py
     ├── application.py         # SubtitlerApplication(IApplication)
@@ -59,86 +61,69 @@ packages/cxalio-studio-tools/
     ├── i18n/                  # 本工具 gettext（domain: subtitler，仅前台文本；common 层不设 gettext）
     └── components/
         ├── wiring.py          # 本工具格式面（显式 dict 登记，扩展名表唯一来源）
-        └── converter.py       # 转换编排（IAppComponent：say/whisper、错误呈现）
+        └── converter.py       # 转换编排（Loader → Project → Saver；错误呈现）
 ```
 
-依据：按**能力**切层而非按工具内角色切目录——`model/formats/adapters` 是一个能力的三个角色，拆成工具内三目录等于在工具里造小项目（角色目录不构成功能包）；正确边界是「字幕能力」（`subtitler.common`：集合模型 + Loader/Saver 契约 + engine + 格式实现）与「字幕工具前台」（四文件骨架 + `components/`：装配与交互）。能力层落 `common/` 而非顶层独立包，依据仓库组合面契约（CONTEXT.md：工具间 import 只允许指向 `package.common`，先例 `ffpretty.common.executor`）与 common 判别标准（不依赖 appenv 的对外提供面）——顶层独立包是仓库无先例的新模式，且裸顶层名与 AGENTS 缩写前缀命名惯例冲突。能力与前台的隔离靠两条纪律保证：common 不 import 前台任何模块；入口 `subtitler/__init__.py` 模块级只留 `__version__` 与 `run()`（app 栈 import 下沉 `run()` 体内——`cx_note` 为模块级 import，此处为刻意偏差），复用面验证（tasks 6.4：import common 后 `sys.modules` 无 `cx_tools`/`cx_wealthy`/`argparse`）常驻守卫。落位约束不变：能力仍在 `cxalio-studio-tools` 内（不新开 workspace 包、不进 `cx-studio`）——字幕领域模型不是通用基础设施。
+依据：按**能力**切层而非按工具内角色切目录——正确边界是「字幕能力」（`subtitler.common`：模型 + Loader/Saver 契约 + 格式实现）与「字幕工具前台」（四文件骨架 + `components/`：装配与交互）。能力层落 `common/` 而非顶层独立包，依据仓库组合面契约（CONTEXT.md：工具间 import 只允许指向 `package.common`，先例 `ffpretty.common.executor`）与 common 判别标准（不依赖 appenv 的对外提供面）。隔离靠两条纪律保证：common 不 import 前台任何模块；入口 `subtitler/__init__.py` 模块级只留 `__version__` 与 `run()`（app 栈 import 下沉 `run()` 体内——`cx_note` 为模块级 import，此处为刻意偏差），复用面验证（tasks 6.5：import common 后 `sys.modules` 无 `cx_tools`/`cx_wealthy`/`argparse`）常驻守卫。**无 engine**：Loader/Saver 各自完整自治（含自身 IO），编排只有一条——CLI 的 converter 组件，属前台；common 层不设编排组件。
 
-### D2. 模型实现：组合非继承，集合用 `list` + `bisect`
+### D2. 模型实现：引用语义 + list + bisect
 
-- `SubtitleSegment`：`frozen dataclass`，持有 `TimeRange`、`text: str`、`speaker: str | None`、`extra: dict[str, Any]`。`start`/`duration` 为 `TimeRange` 的派生视图属性，不独立存储。注意 `TimeRange` 本身可变（带 setter）——frozen 只挡字段重绑：**已入集片段的时间范围 MUST NOT 再改写**（集合有序性以插入时刻确立，改写已入集片段的时间属调用方违约、行为未定义）；此约束写入 `SubtitleSegment` 与 `SubtitleCollection` 的 docstring
-- `SubtitleCollection`：内部 `list` + `bisect.insort`（按 `range.start`）。查找 O(log n)、搬移 O(n)——字幕量级千行、插入低频，不引入树结构或第三方依赖
-- 稳定落位：`bisect` 对相等 key 取右侧插入点，新片段落既有相等元素之后，无需自实现 tie-breaker
-- 交叠不做任何检查；「读取恒为时序」由插入方式保证，读取路径上无排序步骤
-- `SubtitleWork`：`list[SubtitleCollection]`，仅提供显式增/取，不提供跨集合合并或推断
+- `SubtitleItem`：`frozen dataclass`，持有 `TimeRange`、`text: str`、`speaker: str | None`、`extra: dict[str, Any]`。`start`/`duration` 为 `TimeRange` 的派生视图属性，不独立存储。注意 `TimeRange` 本身可变（带 setter）——frozen 只挡字段重绑；Item 是普通对象，改写时间合法，Sequence 的读取面负责消化（见下）。`extra` 键带格式前缀（如 `ttml_style`），模型不解释
+- `SubtitleSequence`：内部 `list[SubtitleItem]`；`add(item)`/`add_from(iterable)` 用 `bisect.insort` 按 start 定位（尽力时序；相等 key 取右侧插入点，无需自实现 tie-breaker）；无交叠检查。读取恒时序的活视图：常态由 insort 维持有序，读取路径做一次有序性检查（O(n)），检测到乱序（时间改写所致）则排序后给出。`take(item)` 按 `is` 身份匹配摘除并返回实例，未命中返回 None；`contains(item)` 同为身份匹配。无元数据、无名称、不暴露 index
+- `SubtitleProject`：`sequences: list[SubtitleSequence]`（创建序，新增 append 尾部）+ `meta: dict[str, Any]`。`add(item)` 路由：按创建序遍历 Sequence，各序列内 bisect 找时序位置并检查与相邻 Item 的严格交叠（复用调整后的 `is_overlapped_with`，端点相触不算）——首个可容纳者即插入；全部容不下则新增 Sequence。`add_from` 逐个走 add。全量迭代：扁平归并各序列（量级千行，扁平排序 O(n log n) 足够）；`sequences` 按创建序迭代；`contains`/`take` 按身份定位所属 Sequence 摘除
+- 传输语义：容器只收不放出复制——`take` 返回真实实例，`add`/`add_from` 收引用；无所有权转移、无复制
+- **替代方案**：无序存储 + 读取排序——被否决（常态路径每次读取都付排序成本）；id 句柄/get——被否决（引用即句柄，零机制；「丢引用后凭句柄找回」无消费者且自带失效边角）；remove——被否决（take 已覆盖减员，销毁语义无消费者）
 
-**替代方案**：无序存储 + 读取排序——被否决（顺序是模型本质属性，租来的顺序每次读取都要付成本，且视图与可变容器的一致性无法保证）。
+### D3. Loader/Saver 契约：格式本体完整自治
 
-### D3. Reader/Saver 基类与子类契约
-
-**拆分为两个基类而非单个双向适配器**：讨论定案的方向不对称——导入恒 1:1，导出才有 1..N 裂变。导出侧的约束声明（是否允许交叠、时间精度）只对导出生效，读侧永不裂变、不重编；拆开后声明长在它生效的方向上。附带收益：将来只读/只写格式无需实现用不到的半边。
+**两个基类，各自含 IO**——语法提取与输出组织都归格式本体，框架不持有格式知识的执行权，无约束声明机制（`allows_overlap`/`time_pattern` 之类不进接口；时间模式是各实现内部常量，经 TimeCodec 取用）：
 
 ```python
-class SubtitleReader(ABC):
-    """语法读向：一个序列的文本 → 片段表。"""
+class SubtitleLoader(ABC):
+    """格式读向：来源文件 → Item 列表。"""
     @abstractmethod
-    def parse(self, text: str) -> list[SubtitleSegment]: ...
+    def load(self, path: Path) -> list[SubtitleItem]: ...
 
 class SubtitleSaver(ABC):
-    """语法写向：一个序列的片段表 → 文本。"""
-    allows_overlap: ClassVar[bool]   # 交叠约束声明（执行在 engine）
-    time_pattern: ClassVar[str]      # 时间模式声明（如 "HH:MM:SS,mmm"）
-
+    """格式写向：Item 集合 + 目标路径 → 实际产出的文件路径列表。"""
     @abstractmethod
-    def serialize(self, segments: Sequence[SubtitleSegment]) -> str: ...
+    def save(self, items: Iterable[SubtitleItem], target: Path) -> list[Path]: ...
 
 @dataclass(frozen=True)
 class Format:
     """格式身份：名称 + 所认扩展名 + 双向实现。"""
     name: str
     extensions: tuple[str, ...]
-    reader: SubtitleReader
+    loader: SubtitleLoader
     saver: SubtitleSaver
 ```
 
-**`TimeCodec`（框架提供）**：时间解析、格式化、单调取整的算法统一在框架，模式由适配器声明——落实 spec「换算由框架执行、适配器声明表示方式」。**与 `CxTime` 既有方法的边界**：`CxTime.to_timestamp/from_timestamp` 是宽松的前缀匹配解析（`[:;.,]` 分隔符混用、末段不按三位补零换算），语义与格式契约所需的严格模式解析不同——TimeCodec **不复用也不包装**这两个方法，自建模式驱动的严格实现，`CxTime` 仅作为毫秒值载体。`time_pattern` 是**写出模式串**，精度由末位单位推出（`mmm` → 毫秒）；**读入形式的识别归适配器**——TTML 的 clock 与带单位偏移（`10s`、`1.5s`、`100ms` 等字面量）两种接受形式由 TTML reader 在 `parse` 内归一为 `CxTime`（底层换算调 TimeCodec），写出只用 clock。engine 在调 `serialize` 前按精度对全片段做单调取整（单调函数不产生逆序，保证换算不颠倒时序）。
+**Loader 自治**：自读文件（`cx_studio.filesystem.detect_file_encoding` 判定编码；探测返回 None 或解码失败 → `FormatError`）、自解析；来源入口为单文件路径，一次导入涉及的文件数由格式规范决定——Loader 可为一个入口自行读取关联文件（三格式均为单文件）。忠实提取：不重排、不丢弃、不改写；语法错误抛 `FormatError`（带位置信息）。**对容器无知**：接口只见 Item 与来源。
 
-**子类继承契约**（写入基类 docstring）：
+**Saver 自治**：收 Item 集合（可迭代）+ 目标路径，自主组织输出——单文件或多文件、交叠如何处理是它自己的事（SRT 自己分组拆文件，TTML/CSV 单文件照收）；组织后**写前一次性预检**全部目标路径（任一已存在 → 报错中止、零输出）、逐文件 UTF-8（无 BOM）写出、返回实际产出路径列表。多文件命名：目标 stem + `.part<k>`（从 1 起，按输出顺序），目录与扩展名跟随目标路径。有编号格式的 Saver 按其组织结果逐文件从 1、按 Item 时序写出编号字面。
 
-1. 不依赖 appenv/context/前台组件——`subtitler.common` 层不得 import 前台任何模块（application/appenv/appcontext/components/`i18n` 与入口 `run`），不得引入 `cx_tools`/`cx_wealthy` 任何符号；common 层不设 gettext（`FormatError` 详情按技术细节原样携带，用户面组合消息在前台用 `_()` 完成）
-2. `parse`/`serialize` 为纯函数：同输入同输出，不做 IO（开文件、编码探测归 engine）
-3. `parse` 输出按时序排列、忠实保留交叠；语法错误抛 `FormatError`（带位置信息），禁止静默跳过或部分返回
-4. `serialize` 的输入由 engine 保证：已排序、已按精度预舍入、`allows_overlap=False` 时已分组无交叠——saver 不再检查、不排序、不分组
-5. 序号是序列侧语法，编号语义归框架（每序列独立从 1、按时序、不沿用来源）：框架分组交付后，`serialize` 按交付顺序写出编号字面（SRT 等有编号格式）
-6. 扩展位键必须带格式前缀（如 `ttml_style`），读写对称，避免与未来预置字段撞名
-7. 格式实现以 `Format` 对象打包——identity 集中一处，engine 与前台都以它为参数
+**子类契约**（写入基类 docstring）：
+
+1. 不依赖 appenv/context/前台组件——`subtitler.common` 层不得 import 前台任何模块，不得引入 `cx_tools`/`cx_wealthy` 任何符号；common 层不设 gettext（`FormatError` 详情按技术细节原样携带，用户面组合消息在前台用 `_()` 完成）
+2. Loader 对模型容器一无所知；Saver 的输入是无结构的 Item 流——导出不读 Sequence 结构
+3. Loader 忠实提取（不重排/丢/改）；Saver 自主组织且保证不丢片
+4. 扩展位键必须带格式前缀（如 `ttml_style`），读写对称
+5. 时间模式为各实现内部常量，解析/格式化/取整经 TimeCodec；严格解析，不做宽松兜底
+6. 格式实现以 `Format` 对象打包——identity 集中一处，前台以它为参数
 
 ### D4. 三格式的规范依据与实现范围
 
-|格式|依据|实现范围|约束声明|
+|格式|依据|Loader|Saver|
 |---|---|---|---|
-|SRT|SubRip 事实标准（**无正式规范**；「不许交叠」是本工具采用的约定）：序号行、`HH:MM:SS,mmm --> HH:MM:SS,mmm`、文本行、空行分隔|完整|`allows_overlap=False`|
-|TTML|W3C TTML1 / IMSC 文本子集|`<tt><body><div><p begin end>`；时间读入接受 clock 与带单位偏移字面量（`10s`/`1.5s`/`100ms`…），写出统一 clock（`HH:MM:SS.mmm`）；样式等非预置字段入 extra|`allows_overlap=True`|
-|CSV|RFC 4180 引号规则 + 本工具自定表头契约（`start,end,text,speaker` + 扩展列；字幕 CSV 无标准，以本契约为准）；时间列 `time_pattern="HH:MM:SS.mmm"`（毫秒）|完整|`allows_overlap=True`|
+|SRT|SubRip 事实标准（**无正式规范**；「序列不许交叠」是本工具采用的约定）|块解析（序号行忽略）、`HH:MM:SS,mmm` 严格解析、多行文本|按 start 扫描贪心分组（与当前组最晚 end 严格交叠冲突则另起组，组数不求最优）拆文件；每文件编号从 1；多行文本多行写出|
+|TTML|W3C TTML1 / IMSC 文本子集|`<tt><body><div><p>`；时间接受 clock 与带单位偏移字面量（`10s`/`1.5s`/`100ms`…），底层换算调 TimeCodec；样式等入 extra（`ttml_` 前缀）|单文件（交叠照收）；`<br/>` ↔ 换行互逆；写出统一 clock（`HH:MM:SS.mmm`）；文件头信息无通道、不回写|
+|CSV|RFC 4180 引号规则 + 本工具自定表头契约（字幕 CSV 无标准）|表头 `start,end,text,speaker` + 扩展列与 extra 键**原样互映射**（不加不减前缀；extra 键与保留列同名 → `FormatError`）；空单元格 ↔ `speaker=None` 与 extra 缺键|单文件（交叠照收）；扩展列集合 = 各 Item extra 键并集，缺失记空单元格；引号内换行表达多行|
 
-XML 解析用标准库 `xml.etree.ElementTree`（不引入 `lxml`）。
+时间模式（`HH:MM:SS,mmm` / clock / `HH:MM:SS.mmm`）为各实现内部常量。XML 解析用标准库 `xml.etree.ElementTree`（不引入 `lxml`）。
 
-**CSV 扩展列与 `extra` 的映射**（CSV 往返对称的前提）：保留列固定为 `start,end,text,speaker`；其余列与 `extra` 键**原样互映射**，不加不减格式前缀（TTML 来源的 `ttml_style` 键落为列名 `ttml_style`，读回原键）。扩展列集合为各片段 `extra` 键的并集，片段缺失某键记空单元格；空单元格 ↔ `speaker=None` 与 `extra` 缺键。Saver 遇 `extra` 键与保留列同名 → 抛 `FormatError`（静默丢弃违反读写对称）。
+**多行文本的跨格式表示**（往返对称的前提）：模型 `text` 持真实换行（`\n`）——SRT 直接按多文本行读写；TTML 以 `<br/>` 表达（读写互逆）；CSV 以 RFC 4180 引号内换行表达。三格式两两互转保持换行等价。
 
-**多行文本的跨格式表示**（往返对称的前提）：模型 `text` 持真实换行（`\n`）——SRT 直接按多文本行写出/读入；TTML 以 `<br/>` 表达行分隔（读写互逆）；CSV 以 RFC 4180 引号内换行表达。三格式两两互转保持换行等价。
-
-### D5. engine 语义与 IO
-
-- **导入** `load(path, Format) -> SubtitleCollection`：读字节 → `cx_studio.filesystem.detect_file_encoding`（按路径缓存）→ 解码 → `reader.parse` → 单文件单集合。多文件导入 = 多次 `load` 由调用方组装，框架不合并；编码探测返回 `None`（无法判定，如空文件）或解码失败、语法错误，均显式抛 `FormatError`（不得让 `bytes.decode(None)` 之类裸 `TypeError` 冒泡），不做编码猜测兜底
-- **导出** `save(collection, target, Format) -> list[Path]`——**单集合入参**（多集合由调用方逐集合调用，各自给目标；避免复数入参与单目标命名规则的歧义）：
-  1. 按 `time_pattern` 精度单调取整全部片段
-  2. `allows_overlap=False` 时贪心分组（按 start 扫描，片段与当前组内最晚 end 交叠则另起一组——判定复用 `is_overlapped_with`，D10 调整后端点相触不算交叠）——保证各组不交叠、无丢失；组数不求最优（区间图着色无必要）；`.part<k>` 序号按贪心产生顺序 = 各组首片段 start 升序
-  3. **写前一次性预检**全部目标路径（原名或派生 `.part<k>` 清单）：任一已存在 → 报错中止、零输出（杜绝写完 part1 才发现 part2 被占的半套输出）
-  4. 每组 `serialize` → UTF-8（无 BOM）写出
-- **多输出命名**（导出语义的一部分，放 engine 而非前台——任何调 `save` 的外部工具都面临同一问题）：目标 `out.srt` 无交叠时原名；裂变 N>1 时 `out.part1.srt`、`out.part2.srt`…（stem 后缀 `.part<k>`，从 1 起，不补零）。目录与扩展名跟随目标路径
-- **序号重编**：编号语义（每序列独立从 1、按时序）由框架保证——模型不存序号，框架按分组独立交付；SRT `serialize` 按交付顺序写出编号字面，裂变后各文件各自独立
-
-### D6. CLI 接口
+### D5. CLI 接口
 
 单动作工具，无动词表（cxnote 的 VERBS 是多动作模式，此处不适用）：
 
@@ -148,39 +133,39 @@ subtitler INPUT OUTPUT [-d] [-h | --tutorial]
 
 - `SubtitlerContext` 按 `from_arguments()` 白名单工厂模式构造；字段：`input`、`output`、`debug_mode`、`show_help`、`show_full_help`
 - 格式识别：按输入/输出文件扩展名查 wiring 的表；未识别 → 报错中止（不做内容嗅探：SRT 纯文本无可靠特征头）
-- 转换为瞬时文件操作，不设 progress；输出走 `say()`（stderr）——`save` 返回的产出路径列表 MUST 经 `say()` 呈现（无裂变也报目标路径）；`SafeError` 由 **`SubtitlerApplication.__exit__`**（工具子类覆盖）捕获呈现并连同 `KeyboardInterrupt` 一并处理——`IApplication.__exit__` 基类只做 stop/清理、不捕获，责任在工具子类（镜像 `cx_note/application.py` 的覆盖模式）
+- 转换为瞬时文件操作，不设 progress；输出走 `say()`（stderr）——Saver 返回的产出路径列表 MUST 经 `say()` 呈现（无裂变也报目标路径）；`SafeError` 由 **`SubtitlerApplication.__exit__`**（工具子类覆盖）捕获呈现并连同 `KeyboardInterrupt` 一并处理——`IApplication.__exit__` 基类只做 stop/清理、不捕获，责任在工具子类（镜像 `cx_note/application.py` 的覆盖模式）
 
-### D7. 前台接线（无全局注册表）
+### D6. 转换编排与前台接线（无全局注册表）
 
-`components/wiring.py` 显式 dict 登记本工具启用的格式并汇总扩展名表——格式面唯一来源。**不在 `subtitler.common` 层设全局注册表**：仓库 SPI 先例 `InspectorChain` 是构造时显式注入；讨论定案「注册机制绑定 CLI」。`subtitler.common` 只提供 `Format` 对象，不含登记动作；无隐藏状态、可测、换一个前台可接不同格式子集。
+`components/converter.py`（IAppComponent）：扩展名查表定格式 → `Format.loader.load(input)` 得 Items → 逐个 `project.add(item)`（路由组织）→ `Format.saver.save(project, output)` 得产出路径 → `say()` 呈现。`FormatError`/`OSError` 转 `SafeError` 报错中止。
 
-### D8. 依赖清单
+`components/wiring.py` 显式 dict 登记本工具启用的格式并汇总扩展名表——格式面唯一来源。**不在 `subtitler.common` 层设全局注册表**：仓库 SPI 先例 `InspectorChain` 是构造时显式注入；`subtitler.common` 只提供 `Format` 对象，不含登记动作；无隐藏状态、可测、换一个前台可接不同格式子集。
 
-**仓库内能力复用**：
+### D7. 依赖清单
 
 |来源|能力|
 |---|---|
 |`cx_studio.core`|`CxTime`、`TimeRange`（时间原语）|
-|`cx_studio.filesystem`|`detect_file_encoding`（编码探测）|
+|`cx_studio.filesystem`|`detect_file_encoding`（编码探测，Loader 取用）|
 |`cx_studio.i18n`|`load_localized_text`（帮助文本按 locale 加载）|
 |`cx_tools.app`|`IApplication`/`IAppEnvironment`/`IAppContext`/`IAppComponent`、`SafeError`|
 |`cx_wealthy`|`WealthyHelp`（帮助 DSL）、`rich_types`、theme|
 
 **外部依赖：零新增**。候选逐一评估否决：`lxml`（`xml.etree` 对 TTML 子集足够）、`pysrt`/`srt`（买轮子等于放弃自己的模型，本变更目的就是建模型）、`sortedcontainers`（千行量级 `bisect` 足够）、独立编码探测库（复用 `detect_file_encoding`）。
 
-### D9. `subtitler.common` 公开接口与外部使用路径
+### D8. `subtitler.common` 公开接口与外部使用路径
 
-`subtitler/common/__init__.py` 三层汇聚导出（工具顶 `subtitler/__init__.py` 不转发这些符号——只留 `__version__` 与 `run()`，能力入口唯一指向 `subtitler.common`）：
+`subtitler/common/__init__.py` 汇聚导出（工具顶 `subtitler/__init__.py` 不转发——只留 `__version__` 与 `run()`，能力入口唯一指向 `subtitler.common`）：
 
-- **模型层**（程序化构建/遍历）：`SubtitleSegment`、`SubtitleCollection`、`SubtitleWork`
-- **语法层**（格式身份与双向实现）：`Format`、`SubtitleReader`、`SubtitleSaver`、`FormatError`、`SrtFormat`/`TtmlFormat`/`CsvFormat`（实现于 `subtitler.common.formats`）
-- **编排层**：`engine.load`、`engine.save`
+- **模型层**：`SubtitleItem`、`SubtitleSequence`、`SubtitleProject`
+- **格式层**：`Format`、`SubtitleLoader`、`SubtitleSaver`、`FormatError`、`SrtFormat`/`TtmlFormat`/`CsvFormat`（实现于 `subtitler.common.formats`）
+- **工具**：TimeCodec
 
-预期三种外部用法，各有直通路径：**转换**（`load → save` 两行）、**消费**（`load` 后只读遍历，供将来 QC/统计工具）、**生成**（代码构建集合 → `save`，供将来烧字幕/报表工具）。
+预期三种外部用法，各有直通路径：**转换**（Loader → Project → Saver）、**消费**（Loader 后只读遍历，供将来 QC/统计工具；Project 双层读取面按需取用）、**生成**（代码构建 Item → Project 路由 → Saver 写出）。
 
-### D10. `ITimeRange.is_overlapped_with` 调整为严格交叠
+### D9. `ITimeRange.is_overlapped_with` 调整为严格交叠
 
-engine 裂变分组的交叠判定复用 `ITimeRange.is_overlapped_with`。该方法现行闭区间语义（端点相触视为重叠）会把首尾相接的正常字幕衔接（如 [0,5s] 与 [5,10s]）判为交叠、错误裂开——相邻衔接在字幕领域是常态而非异常。调整为严格交叠（`start < other.end and other.start < end`，端点相触不视为交叠）：
+Project 路由与 SRT Saver 分组的交叠判定复用 `ITimeRange.is_overlapped_with`。该方法现行闭区间语义（端点相触视为重叠）会把首尾相接的正常字幕衔接（如 [0,5s] 与 [5,10s]）判为交叠——相邻衔接在字幕领域是常态而非异常。调整为严格交叠（`start < other.end and other.start < end`，端点相触不视为交叠）：
 
 - `is_contained_by`/`contains_time` 的闭区间语义不变
 - 方法在仓库内无既有调用者，唯一受影响的行为契约是 `openspec/specs/cx-studio/spec.md` 的对应 Requirement——判定场景整体改写（原「共享端点视为重叠」场景预期反转），以 REMOVED + ADDED delta 承载（`specs/cx-studio/`，REMOVED 携 Reason/Migration），archive 时折回
@@ -188,7 +173,8 @@ engine 裂变分组的交叠判定复用 `ITimeRange.is_overlapped_with`。该�
 
 ## Risks / Trade-offs
 
-- **TTML 子集**：TTML 规范庞大（区域、样式、帧率时基），按「能表达时间+文本+说话人的子集」实现；超出子集的结构元素不建模，复杂 TTML 降级保时间文本、样式入 extra——模型扩展位兜底
-- **裂变贪心分组的最优性**：贪心产出的序列数不保证最少，但保证合法（各组不交叠、无丢失）；最少分组是区间图着色，无必要
+- **TTML 子集**：TTML 规范庞大（区域、样式、帧率时基），按「能表达时间+文本+说话人的子集」实现；超出子集的结构元素不建模，复杂 TTML 降级保时间文本、样式入 extra——模型扩展位兜底。文件头信息（如 `xml:lang`）本变更不回写（无通道，Non-Goal）
+- **SRT 贪心分组的最优性**：SRT Saver 的贪心分组不保证文件数最少，但保证合法（各组不交叠、无丢失）；最少分组是区间图着色，无必要
 - **CSV 表头为自定契约**：与他工具互转时以本契约为准
 - **`extra` 键冲突**：适配器键加格式前缀（`ttml_` 等）规避
+- **引用即句柄的边界**：放下 Item 引用即无法定位（无 id/无 index）；当前与可预见消费者都以迭代为主要读取方式，将来若出现「只有句柄没有引用」的场景再补句柄机制，不与现有语义冲突
