@@ -178,9 +178,11 @@ class TimeCodec:
             "ms": magnitude % 1_000,
         }
         rendered = "".join(
-            segment.render(numbers[segment.kind])
-            if isinstance(segment, _Token)
-            else segment
+            (
+                segment.render(numbers[segment.kind])
+                if isinstance(segment, _Token)
+                else segment
+            )
             for segment in self._segments
         )
         return sign + rendered

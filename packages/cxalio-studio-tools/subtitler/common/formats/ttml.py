@@ -138,7 +138,9 @@ class TtmlLoader(SubtitleLoader):
         except ET.ParseError as exc:
             line, column = exc.position
             # expat 给出的列号从 0 起，FormatError 的列号契约从 1 起
-            raise FormatError(f"TTML 解析失败：{exc}", line=line, column=column + 1) from exc
+            raise FormatError(
+                f"TTML 解析失败：{exc}", line=line, column=column + 1
+            ) from exc
 
         root_name = _local_name(root.tag)
         if root_name != "tt":

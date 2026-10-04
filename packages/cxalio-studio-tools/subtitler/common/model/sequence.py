@@ -100,6 +100,8 @@ class SubtitleSequence:
         """有序性检查：发现起点乱序时就地稳定排序。"""
         items = self._items
         for index in range(1, len(items)):
-            if _start_milliseconds(items[index - 1]) > _start_milliseconds(items[index]):
+            if _start_milliseconds(items[index - 1]) > _start_milliseconds(
+                items[index]
+            ):
                 items.sort(key=_start_milliseconds)
                 return
