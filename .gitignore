@@ -185,6 +185,10 @@ py.typed
 .codex/
 .codegraph/
 .omp/
+.zcode/
+.trae/
+.codebuddy/
+.workbuddy/
 
 
 # Other files and directories

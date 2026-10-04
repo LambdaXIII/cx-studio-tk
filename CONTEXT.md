@@ -273,7 +273,7 @@ _Avoid_: __rich_repr__（那是 debug repr 语义，不是展示语义）
 ## Domain：cxalio-studio-tools
 > 适用范围：cxalio-studio-tools
 
-`packages/cxalio-studio-tools/` 是包含 6 个 CLI 工具（media_scout、media_killer、ffpretty、jpegger、hosts_keeper、cxnote）与共享框架 `cx_tools` 的分发包。所有工具均构建在 `cx_tools.app` 应用框架之上，共享统一的应用生命周期管理、Rich 输出与中断处理。
+`packages/cxalio-studio-tools/` 是包含 7 个 CLI 工具（media_scout、media_killer、ffpretty、jpegger、hosts_keeper、cxnote、subtitler）与共享框架 `cx_tools` 的分发包。所有工具均构建在 `cx_tools.app` 应用框架之上，共享统一的应用生命周期管理、Rich 输出与中断处理。
 
 ### 架构
 
@@ -326,12 +326,25 @@ CLI 工具中的所有类按是否依赖运行环境分为两层：
 
 工具包内部按能力归属分两层：
 
-- **`common/`** — 不需要 appenv 的非耦合能力（对外提供面）。如 ffpretty.common（Mission/Executor/MediaDB）、media_killer.common（MissionHQ 调度层）、media_scout.common（inspectors）。
-- **`components/`** — 需要 appenv 或含工具特定转化/包装逻辑的组件。如 ffpretty.components（mission_runner/mission_maker/info_elements）、media_killer.components（preset/expander/script_maker/mission_store）。
+- **`common/`** — 不需要 appenv 的非耦合能力（对外提供面）。如 ffpretty.common（Mission/Executor/MediaDB）、media_killer.common（MissionHQ 调度层）、media_scout.common（inspectors）、subtitler.common（字幕模型 + Loader/Saver 契约 + 时间换算 + 格式实现）。
+- **`components/`** — 需要 appenv 或含工具特定转化/包装逻辑的组件。如 ffpretty.components（mission_runner/mission_maker/info_elements）、media_killer.components（preset/expander/script_maker/mission_store）、subtitler.components（格式接线 / 转换编排）。
 
 判别标准 = **appenv 依赖 + 特化与否**：不依赖 appenv 且非工具特定 → common；否则 → components。公共能力在设计之初规划（非消费者驱动），避免事后从 components 反向抽取。
 
 **组合面契约**：工具间 import 只允许指向 `package.common`（可到 `package.common.subpackage`，如 `ffpretty.common.executor` 的事件常量）；ToolApp/ToolHelp 一级内容可从包根直接导入。不提供 common 的工具（hosts_keeper、jpegger）不强制区分 common/components。
+
+#### subtitler：能力层承载字幕模型 + 纯前台装配
+
+`subtitler` 是「common 承载能力 + 前台只装配」两级切分的范例：字幕格式转换 CLI，围绕字幕模型搬运数据，对内容无编辑语义（不编辑、不修剪、不重排）；格式面为 SRT / TTML / CSV，均可作源与目标，按文件扩展名识别（未识别的扩展名报错中止）。
+
+- **能力层 `subtitler.common`（对外提供面）**——模型 / 契约 / 格式实现三级：
+  - **模型**：`SubtitleItem`（可独立存在的普通对象）、`SubtitleSequence`（Item 排列容器，尽力时序插入、读取恒为时序活视图）、`SubtitleProject`（组织者：不交叠路由 + 自动增列 + `meta` 机制）。**引用即句柄**——容器持引用，无 id / index / remove
+  - **契约**：`SubtitleLoader` / `SubtitleSaver`——语法提取与输出组织都归格式本体，各自完整自治（含自身 IO）；`TimeCodec` 负责时间解析 / 格式化 / 单调取整
+  - **`formats/`**：SRT / TTML / CSV 三实现，均读 + 写
+- **前台（装配层）**——四文件骨架（application / appenv / appcontext / app_help）+ `components/`：wiring 注册接线绑定 CLI 并汇总扩展名表（本工具格式面的唯一来源），converter 负责转换编排。注册与格式识别都在前台，`subtitler.common` 不感知本工具接了哪些格式
+- **纪律**——`subtitler.common` 不依赖 appenv，也不 import 前台任何模块；工具间 import 只允许指向 `subtitler.common`
+- **转换管线**——`Loader 提取 Item → Project.add 路由组织 → Saver 自主组织并写出 1..N 个文件`；多文件命名 `目标名.part<k>`（按输出顺序），写前一次性预检全部目标路径（任一已存在即报错中止、零输出、不覆盖）
+- **交叠是模型的合法状态**——导出不交叠格式（如 SRT）时由 Saver 自主拆分多文件；端点相触的相邻衔接不构成交叠
 
 ### 工具编写模式
 
@@ -363,7 +376,7 @@ Application 通过构造参数接收 `appenv` 和 `context`；progress 是工具
 
 #### 异常体系
 
-`SafeError`（可恢复应用异常，带 style）由 `Application.__exit__` 捕获。
+`SafeError`（可恢复应用异常，带 style）与 `KeyboardInterrupt` 的捕获呈现由各工具子类覆盖 `__exit__` 完成——基类 `IApplication.__exit__` 只做 stop 与 context 清理，不捕获异常。覆盖遵循「先 `super().__exit__()` 再处理」的结构（见下方「__exit__ 覆盖模式」），ffpretty / media_killer / cx_note 为现行范例。
 
 #### 分级输出
 
@@ -456,7 +469,7 @@ def __exit__(self, exc_type, exc_val, exc_tb) -> bool | None:
 
 ##### 策略 A：`__exit__` 中 catch KeyboardInterrupt
 
-适用于不需要多次 Ctrl+C 取消流程的工具。在 `Application.__exit__` 中直接检查 `exc_type is KeyboardInterrupt`，无需注册 signal handler。见上方 `__exit__` 覆盖模式示例。
+适用于不需要多次 Ctrl+C 取消流程的工具。在工具 Application 子类的 `__exit__` 覆盖中直接检查 `exc_type is KeyboardInterrupt`，无需注册 signal handler。见上方 `__exit__` 覆盖模式示例。
 
 ##### 策略 B：DoubleTrigger 信号机制
 
@@ -525,6 +538,7 @@ signal.signal(signal.SIGINT, appenv.handle_interrupt)
 | ffpretty | `from ffpretty.i18n import _, _ng` |
 | jpegger | `from jpegger.i18n import _, _ng` |
 | hosts_keeper | `from hosts_keeper.i18n import _, _ng` |
+| subtitler | `from subtitler.i18n import _, _ng` |
 
 #### 框架导入
 
@@ -552,7 +566,7 @@ _Avoid_: `<Tool>Context`（工具具体子类）
 CLI 特化组件基类接口，`__init__` 仅提供 `(appenv, context)` 签名契约，不存储、不暴露（子类自行赋值）。
 
 **SafeError**：
-可恢复应用异常，带 style，由 `Application.__exit__` 捕获。
+可恢复应用异常，带 style；捕获与呈现由工具子类覆盖 `__exit__` 完成，基类 `IApplication.__exit__` 只做 stop 与 context 清理、不捕获异常。
 
 **WealthyHelp**：
 帮助系统 DSL，通过 `add_group`/`add_action`/`add_note` 声明式构建帮助内容。
@@ -587,6 +601,9 @@ CLI 工具，hosts 文件管理——多来源合并去重、规则筛选、自�
 
 **cxnote**：
 CLI 工具，终端快速笔记（包 `cx_note`）——以域组织的待办便签：快记字符串条目、按域浏览、跟踪条目状态并自动清理超龄终态条目。
+
+**subtitler**：
+CLI 工具，字幕格式转换（SRT / TTML / CSV 互转）——围绕 `subtitler.common` 的字幕模型搬运数据，不做内容编辑；模型、Loader/Saver 契约与格式实现落在 common 层，可被其它工具 import。
 
 **域**：
 cx-note 的字面命名空间——形如 `/a/b` 的路径式字符串，仅用作条目归属的组织单位，与文件系统目录结构无绑定；身份判定大小写不敏感，存储保留首次出现的字面。

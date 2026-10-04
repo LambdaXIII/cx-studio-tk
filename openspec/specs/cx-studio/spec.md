@@ -122,14 +122,19 @@ Timebase MUST 以整数 fps（每秒帧数）和布尔 drop_frame 描述时间�
 - **WHEN** 调用 `Timebase.from_fps(24)`
 - **THEN** `fps` 为 24，`drop_frame` 为 False，`milliseconds_per_frame` 为 42
 
-### Requirement: ITimeRange 定义时间区间的抽象契约
+### Requirement: ITimeRange 定义时间区间的抽象契约与判定语义
 
-ITimeRange MUST 定义 start、end、duration 三个抽象属性（均为 CxTime），并提供三个判定方法：`is_overlapped_with(other)` 判定两区间是否有重叠（闭区间语义：`self.start <= other.end and self.end >= other.start`），`is_contained_by(other)` 判定本区间是否完全包含于另一区间，`contains_time(time)` 判定时刻是否落在区间内（闭区间：`start <= time <= end`）。
+ITimeRange MUST 定义 start、end、duration 三个抽象属性（均为 CxTime），并提供三个判定方法：`is_overlapped_with(other)` 判定两区间是否交叠（严格交叠语义：`self.start < other.end and self.end > other.start`；端点相触——一区间的终点恰为另一区间的起点——不视为交叠），`is_contained_by(other)` 判定本区间是否完全包含于另一区间，`contains_time(time)` 判定时刻是否落在区间内（闭区间：`start <= time <= end`）。
 
-#### Scenario: 区间重叠判定含边界
+#### Scenario: 区间交叠判定不含端点相触
 
 - **WHEN** 区间 A 为 [100, 200]，区间 B 为 [200, 300]
-- **THEN** `A.is_overlapped_with(B)` 返回 True（共享端点视为重叠）
+- **THEN** `A.is_overlapped_with(B)` 返回 False（共享端点不视为交叠）
+
+#### Scenario: 区间真交叠仍判定为交叠
+
+- **WHEN** 区间 A 为 [100, 250]，区间 B 为 [200, 300]
+- **THEN** `A.is_overlapped_with(B)` 返回 True
 
 #### Scenario: 时刻包含含边界
 

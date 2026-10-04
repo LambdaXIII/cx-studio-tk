@@ -41,6 +41,7 @@ uv run ffpretty --help
 uv run jpegger --help
 uv run hostskeeper --help
 uv run cxnote --help
+uv run subtitler --help
 ```
 
 ### 格式化
@@ -65,7 +66,7 @@ uv build                  # 构建所有包
 |Directory|Purpose|
 |---|---|
 |`packages/cx-studio/cx_studio/`|基础设施库——值对象、FFmpeg、文件系统、IO、系统抽象|
-|`packages/cxalio-studio-tools/`|CLI 工具集——应用框架 + 6 个工具（media_scout: Chain of Responsibility / media_killer: Async Mission Pipeline / jpegger: ImageFilterChain / ffpretty: FFmpeg 封装 / hosts_keeper: Plugin-based 管理 / cxnote: 域组织便签）|
+|`packages/cxalio-studio-tools/`|CLI 工具集——应用框架 + 7 个工具（media_scout: Chain of Responsibility / media_killer: Async Mission Pipeline / jpegger: ImageFilterChain / ffpretty: FFmpeg 封装 / hosts_keeper: Plugin-based 管理 / cxnote: 域组织便签 / subtitler: 字幕格式转换）|
 |`packages/cxalio-studio-tools/cx_tools/app/`|应用生命周期框架（IApplication + IAppEnvironment）|
 |`archived/cx-wealth/cx_wealth/`|Rich UI 扩展——标签、详情、帮助系统 DSL（已停止维护，仅存档）|
 |`temp/`|临时/调试文件（gitignored，勿在此编写正式代码）|
@@ -78,7 +79,7 @@ uv build                  # 构建所有包
 - `cxalio-studio-tools` 同时依赖 `cx-studio` 与 `cx-wealthy`
 - `cx-studio` 与 `cx-wealthy` **平级**——互不依赖（cx-wealthy 仅依赖 `rich`）
 
-### CLI 应用通用生命周期（所有 6 个工具一致）
+### CLI 应用通用生命周期（所有 7 个工具一致）
 
 1. `[project.scripts]` 入口 → `module:run()` 函数
 2. `Application.__enter__()` → `IAppEnvironment` 初始化（Rich console、SIGINT、debug 门控）
@@ -228,7 +229,7 @@ uv build                  # 构建所有包
 
 ### cxalio-studio-tools 多包发布单元
 
-- 6 个工具与 cx_tools **没有自己的 pyproject，共享 cxalio-studio-tools 的 pyproject**——它是这些包共同的发布版本。
+- 7 个工具与 cx_tools **没有自己的 pyproject，共享 cxalio-studio-tools 的 pyproject**——它是这些包共同的发布版本。
 - 某包（工具或 cx_tools）内容变更 → 从共享 pyproject 读当前发布版本 → 判断新版本号 → 写入该包 `__version__` → pyproject 同步。
 - **同一迭代批次中多个变更包共享同一个新版本号**：各包从同一旧值判断一次，分别写入各自 `__version__`，pyproject 只同步一次（如 ffpretty 与 media_scout 同批变更都得到 2.0）。
 - **未变更包的 `__version__` 不动**。因此每个包 `__version__` 的数值 = 该包最后一次变更时的发布版本快照：各包之间、以及与最终 pyproject 之间数值都允许不同——这是设计而非失控。
@@ -274,12 +275,13 @@ uv build                  # 构建所有包
 |jpegger|`from jpegger.i18n import _, _ng`|jpegger 工具字符串|
 |hosts_keeper|`from hosts_keeper.i18n import _, _ng`|hosts_keeper 工具字符串|
 |cx_note|`from cx_note.i18n import _, _ng`|cxnote 工具字符串|
+|subtitler|`from subtitler.i18n import _, _ng`|subtitler 工具字符串|
 
 工具模块**必须**从所在工具自己的 `i18n` 模块导入——`media_killer` 中的模块从 `media_killer.i18n` 导入，不交叉导入 `cx_tools.i18n`。`cx_tools` 框架自身的模块仍从 `cx_tools.i18n` 导入。
 
 > `cx-wealthy` 不参与 gettext 翻译——UI 组件输出为框架固定文本，由使用方控制，详见根 [CONTEXT.md](CONTEXT.md) 的 cx-wealthy Domain 分区。
 
-> 每个工具独立 domain 和翻译文件：domain 分别为 `cx-tools`、`media-scout`、`media-killer`、`ffpretty`、`jpegger`、`hosts-keeper`、`cx-note`。各工具自持 `i18n/locales/`，互不交叉。
+> 每个工具独立 domain 和翻译文件：domain 分别为 `cx-tools`、`media-scout`、`media-killer`、`ffpretty`、`jpegger`、`hosts-keeper`、`cx-note`、`subtitler`。各工具自持 `i18n/locales/`，互不交叉。
 
 ### 环境变量与 locale 检测
 
