@@ -12,8 +12,8 @@ from . import __version__
 
 CX_NOTE_STYLES: dict[str, str] = {
     "cx.note.section": "bold yellow",
-    "cx.note.done": "dim",
-    "cx.note.dropped": "red strike",
+    "cx.note.done": "dim green",
+    "cx.note.dropped": "red strike dim",
     "cx.note.hint": "dim",
 }
 
