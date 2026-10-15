@@ -12,7 +12,7 @@ from cx_note.i18n import _
 from cx_tools.app import IAppContext
 
 # 动词表——argparse choices 与运行时分派共用，防止两处漂移。
-VERBS = ["add", "list", "finish", "pend", "reset", "erase", "drop", "clear"]
+VERBS = ["add", "list", "edit", "finish", "pend", "reset", "erase", "drop", "clear"]
 
 
 class CxNoteContext(IAppContext):
@@ -21,6 +21,7 @@ class CxNoteContext(IAppContext):
     Fields:
         verb: 要执行的动词，缺省为 `list`。
         arguments: 动词参数列表——add 为多条条目内容（每参数一条）；
+            edit 为目标条目与新内容（恰好两个参数）；
             finish/pend/reset/erase/drop 为多个 ID 或文本片段（每参数一个）。
         domain_param: `-p/--path` 给出的域字面。
         global_flag: 是否指定 `-g/--global`（在根域操作）。
@@ -86,6 +87,7 @@ class CxNoteContext(IAppContext):
             nargs="*",
             help=_(
                 "动词参数（可传多个）：add 为多条条目内容，"
+                "edit 为目标与新内容（恰好两个），"
                 "finish/pend/reset/erase/drop 为多个 ID 或文本片段"
             ),
         )
