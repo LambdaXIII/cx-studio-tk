@@ -63,44 +63,51 @@ def make_id_badge(eid: str, terminal: bool = False) -> r.Text:
     return badge
 
 
-def make_entry_block(entry: Entry, expiring: bool = False) -> r.Table:
+def make_entry_block(
+    entry: Entry, expiring: bool = False, taken: bool = False
+) -> r.Table:
     """把单个条目渲染为无框三列小表（一条目一表）。
 
     三列顺序：ID 徽章（`width=4` 左对齐贴行首）/ 状态标号（自然宽）/
     内容（`ratio=1`，显式 `overflow="fold"`——长行折行而非 Rich 默认的
-    ellipsis 截断）。终态弱化沿用既有决策：已取消的标号与内容转
-    `cx.note.dropped`（dim + strike，多行内容整体随行转暗），已完成的
-    标号与内容转 `cx.note.done` 且徽章 dim；进行中/待办不弱化。
+    ellipsis 截断）。消亡判定收敛在本函数内：已取消、即将被清理、已被
+    取走（三种消亡语境）三者命中其一，标号与内容（含多行整体）统一转
+    `cx.note.dropped`（red + strike，同一语义样式，不按场景区分）；
+    非消亡的已完成条目标号与内容转 `cx.note.done`（dim）且徽章 dim；
+    进行中/待办不弱化。
 
     Args:
         entry: 待渲染条目（调用方已保证在正确域分组内）。
         expiring: 该条目是否即将被清理——真时标号后附清理提示。
+        taken: 该条目是否已被取走（erase/clear 回显、收尾清理报告）——
+            「已取走」身份只有调用方知道，渲染函数无从计算，仅透传事实；
+            真时与状态无关地按消亡样式渲染。
 
     Returns:
         单条目的三列 `Table`。
     """
     is_terminal = entry.status in {EntryStatus.DONE, EntryStatus.DROPPED}
+    dead = entry.status is EntryStatus.DROPPED or expiring or taken
     terminal_style = (
         "cx.note.dropped"
-        if entry.status is EntryStatus.DROPPED
+        if dead
         else "cx.note.done" if entry.status is EntryStatus.DONE else ""
     )
     marker = r.Text(MARKER[entry.status], style=terminal_style)
     if expiring:
         # 即将被清理的提示并入标号列，不另开列；不清理时该列只剩标号。
-        marker.append_text(r.Text(" " + _("即将被清理"), style="cx.note.expiring"))
+        # 提示词随消亡样式同源（red + strike），不单独着色。
+        marker.append_text(r.Text(" " + _("即将被清理"), style="cx.note.dropped"))
     if "\n" in entry.content:
-        # 多行按 Markdown 渲染：已完成/进行中沿用「内容不置灰」的既有决策
-        # （弱化由标号 + 徽章传达），已取消则整体 dim + strike。
+        # 多行按 Markdown 渲染：非消亡条目「内容不置灰」（弱化由标号 +
+        # 徽章传达），消亡条目整体挂 `cx.note.dropped`。
         # 源行以「两空格 + 换行」拼接——Markdown 把单换行视为软换行会与
         # 下一行合并，行尾双空格才保留真实换行（经实验 3 源行渲 3 行）。
         # Rich 的 Markdown 只接受样式名，None 会在 Style.parse 抛错，
         # 故「不附加样式」必须走默认构造而非 style=None。
         joined = "  \n".join(entry.content.split("\n"))
         content: r.RenderableType = (
-            r.Markdown(joined, style="cx.note.dropped")
-            if entry.status is EntryStatus.DROPPED
-            else r.Markdown(joined)
+            r.Markdown(joined, style="cx.note.dropped") if dead else r.Markdown(joined)
         )
     else:
         content = r.Text(entry.content, style=terminal_style)
@@ -160,6 +167,7 @@ def build_list_renderable(
     full: bool = False,
     expiring_ids: frozenset[str] = frozenset(),
     fill_current_empty: bool = True,
+    taken: bool = False,
 ) -> r.Group:
     """把按域分组的条目组装为每域一小节的平铺列表。
 
@@ -182,6 +190,9 @@ def build_list_renderable(
         fill_current_empty: 当前域在 groups 中缺席时是否仍注入一个仅
             标题的当前域小节（列表用它标示所处位置；回显不想要时置
             False，此时从不注入）。
+        taken: 本批次条目是否全部已被取走（erase/clear 回显、收尾清理
+            报告）——整体透传给每个 `make_entry_block`，命中即按消亡
+            样式渲染；列表场景保持默认 False。
 
     Returns:
         各域小节与空行组成的 `Group`。
@@ -210,5 +221,9 @@ def build_list_renderable(
         lines.append(title)
         if entries and (is_current or full):
             for entry in entries:
-                lines.append(make_entry_block(entry, expiring=entry.id in expiring_ids))
+                lines.append(
+                    make_entry_block(
+                        entry, expiring=entry.id in expiring_ids, taken=taken
+                    )
+                )
     return r.Group(*lines)

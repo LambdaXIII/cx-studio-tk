@@ -344,7 +344,7 @@ class CxNoteApp(IApplication):
             self._print_json([entry_to_json(e) for e in removed_list])
             return
         self._print_batch_confirm(_("已删除 {count} 条："), removed_list)
-        self._echo_changed(removed_list, current, frozenset())
+        self._echo_changed(removed_list, current, frozenset(), taken=True)
 
     def _do_clear(self, store: NoteStore, current: str) -> None:
         """clear：清空当前工作域直属条目（不含子域）。
@@ -374,7 +374,7 @@ class CxNoteApp(IApplication):
         removed = store.take_domain(current)
         template = _("已清空 {n} 条条目。")
         self.appenv.say(r.Text(template.format(n=len(removed)), style="cx.info"))
-        self._echo_changed(removed, current, frozenset())
+        self._echo_changed(removed, current, frozenset(), taken=True)
 
     # ── 收尾 ──
 
@@ -388,7 +388,7 @@ class CxNoteApp(IApplication):
         条目存储文件保持运行前内容。清理按统一判据（`is_expiring`）
         筛选当前工作集并 `take_many` 取走；人读模式在实际清除了条目
         时打印独立于业务输出的报告（确认行 + 被清条目的条目块，按所
-        属域分块）；`--json` 模式不出清理报告。末尾的显式落盘调用
+        属域分块，条目块按消亡样式呈现）；`--json` 模式不出清理报告。末尾的显式落盘调用
         是全工具唯一的写盘点：工作集与读盘结果一致时不写盘。
 
         Args:
@@ -408,14 +408,20 @@ class CxNoteApp(IApplication):
             )
             groups = self._group_changed(taken, current)
             self.appenv.say(
-                build_list_renderable(groups, current, False, fill_current_empty=False)
+                build_list_renderable(
+                    groups, current, False, fill_current_empty=False, taken=True
+                )
             )
         store.flush()
 
     # ── 回显与投影 ──
 
     def _echo_changed(
-        self, changed: list[Entry], current: str, expiring_ids: frozenset[str]
+        self,
+        changed: list[Entry],
+        current: str,
+        expiring_ids: frozenset[str],
+        taken: bool = False,
     ) -> None:
         """确认行之下回显本次变更条目：按所属域分块的条目块。
 
@@ -427,6 +433,8 @@ class CxNoteApp(IApplication):
             changed: 本次变更条目（操作序）。
             current: 当前域字面。
             expiring_ids: 即将被清理的条目 ID 集合（块内标记用）。
+            taken: 变更条目是否已被取走（erase/clear 路径）——透传给
+                渲染层按消亡样式呈现；转移/edit/add 路径保持默认。
         """
         if not changed:
             return
@@ -438,6 +446,7 @@ class CxNoteApp(IApplication):
                 False,
                 expiring_ids=expiring_ids,
                 fill_current_empty=False,
+                taken=taken,
             )
         )
 
