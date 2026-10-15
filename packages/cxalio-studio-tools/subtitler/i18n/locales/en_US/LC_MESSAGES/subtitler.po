@@ -1,0 +1,148 @@
+# English (United States) translations for subtitler.
+# Copyright (C) 2026 Cxalio
+# This file is distributed under the same license as the  project.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version:  cxalio-studio-tools\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2026-10-04 18:46+0800\n"
+"PO-Revision-Date: 2026-10-04 19:10+0800\n"
+"Last-Translator: Cxalio\n"
+"Language: en_US\n"
+"Language-Team: en_US <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#: subtitler/app_help.py:33
+msgid "转换"
+msgstr "Conversion"
+
+#: subtitler/app_help.py:36
+msgid "输入文件"
+msgstr "Input file"
+
+#: subtitler/app_help.py:39
+msgid "待转换的字幕文件；格式按扩展名识别，支持 .srt / .ttml / .xml / .dfxp / .csv。"
+msgstr ""
+"The subtitle file to convert; the format is recognized by file extension:"
+" .srt / .ttml / .xml / .dfxp / .csv."
+
+#: subtitler/app_help.py:45
+msgid "输出文件"
+msgstr "Output file"
+
+#: subtitler/app_help.py:48
+msgid "转换目标文件；格式按扩展名识别，未识别的扩展名报错中止；目标已存在时报错且不覆盖。"
+msgstr ""
+"The conversion target; the format is recognized by file extension. "
+"Unrecognized extensions abort with an error; an existing target is never "
+"overwritten."
+
+#: subtitler/app_help.py:54
+msgid "杂项"
+msgstr "Miscellaneous"
+
+#: subtitler/app_help.py:55
+msgid "开启 debug 模式。"
+msgstr "Enable debug mode."
+
+#: subtitler/app_help.py:56
+msgid "显示此分组帮助。"
+msgstr "Show this grouped help."
+
+#: subtitler/app_help.py:57
+msgid "显示完整教程。"
+msgstr "Show the full tutorial."
+
+#: subtitler/app_help.py:62
+msgid ""
+"支持的格式：SRT（[u].srt[/]）、TTML（[u].ttml[/] / [u].xml[/] / "
+"[u].dfxp[/]）、CSV（[u].csv[/]）。三者都可作源与目标，可任意互转，同格式往返也允许。"
+msgstr ""
+"Supported formats: SRT ([u].srt[/]), TTML ([u].ttml[/] / [u].xml[/] / "
+"[u].dfxp[/]), CSV ([u].csv[/]). All three work as source and target, "
+"convert freely between any pair, and same-format round trips are allowed."
+
+#: subtitler/app_help.py:72
+msgid ""
+"工具只搬运字幕模型，不编辑内容：读出全部条目，按时间组织，再以目标格式写出。目标格式不允许交叠时自动拆分为多个文件，命名为「目标文件名 + "
+"[u].part<k>[/]」（k 从 1 起）；写出前一次性预检全部目标路径，任一已存在即中止、零输出。"
+msgstr ""
+"The tool only moves the subtitle model and never edits content: it reads "
+"every item, organizes them by time, and writes them out in the target "
+"format. When the target format disallows overlapping subtitles, the "
+"output is split automatically into files named after the target plus "
+"[u].part<k>[/] (k starts at 1); every target path is checked once before "
+"writing — any existing file aborts with zero output."
+
+#: subtitler/app_help.py:82
+msgid ""
+"subtitler —— 字幕格式互转工具。\n"
+"        支持 SRT / TTML / CSV 互转：读入 [u]INPUT[/]、写出 [u]OUTPUT[/]，格式按扩展名识别。\n"
+"        只做格式搬运，不改写、不修剪、不重排字幕内容。运行 [u]subtitler --tutorial[/] 学习完整用法。"
+msgstr ""
+"subtitler — subtitle format converter.\n"
+"        Converts between SRT / TTML / CSV: reads [u]INPUT[/], writes "
+"[u]OUTPUT[/]; formats are recognized by file extension.\n"
+"        It only moves the subtitle model — no rewriting, trimming, or "
+"reordering. Run [u]subtitler --tutorial[/] for the full guide."
+
+#: subtitler/app_help.py:103
+msgid "Subtitler 教程"
+msgstr "Subtitler Tutorial"
+
+#: subtitler/appcontext.py:64
+msgid "需要恰好两个位置参数：INPUT 与 OUTPUT。"
+msgstr "Exactly two positional arguments are required: INPUT and OUTPUT."
+
+#: subtitler/appcontext.py:71
+msgid "subtitler —— 字幕格式互转工具。"
+msgstr "subtitler — subtitle format converter."
+
+#: subtitler/appcontext.py:79
+msgid "输入字幕文件，格式按扩展名识别"
+msgstr "Input subtitle file; format is recognized by file extension"
+
+#: subtitler/appcontext.py:86
+msgid "输出字幕文件，格式按扩展名识别"
+msgstr "Output subtitle file; format is recognized by file extension"
+
+#: subtitler/appcontext.py:93
+msgid "开启 debug 模式"
+msgstr "Enable debug mode"
+
+#: subtitler/appcontext.py:101
+msgid "显示分组帮助"
+msgstr "Show grouped help"
+
+#: subtitler/appcontext.py:108
+msgid "显示完整教程"
+msgstr "Show the full tutorial"
+
+#: subtitler/application.py:53
+msgid "用户中断"
+msgstr "Interrupted by user"
+
+#: subtitler/components/converter.py:48 subtitler/components/converter.py:51
+#, python-brace-format
+msgid "无法识别的文件扩展名: {path}"
+msgstr "Unrecognized file extension: {path}"
+
+#: subtitler/components/converter.py:56
+#, python-brace-format
+msgid "读入失败: {error}"
+msgstr "Failed to read input: {error}"
+
+#: subtitler/components/converter.py:65
+#, python-brace-format
+msgid "写出失败: {error}"
+msgstr "Failed to write output: {error}"
+
+#: subtitler/components/converter.py:68
+msgid "已写出"
+msgstr "Written"
+

@@ -1,7 +1,8 @@
 """时间区间抽象契约（ITimeRange）与实现（TimeRange）。
 
-区间由起止时刻与时长（均为 CxTime）描述，提供重叠/包含判定与
-时刻包含判定；TimeRange 以 start + duration 存储，end 为计算属性。
+区间由起止时刻与时长（均为 CxTime）描述，提供交叠判定（严格语义，
+端点相触不算交叠）、包含判定与时刻包含判定；TimeRange 以
+start + duration 存储，end 为计算属性。
 """
 
 from abc import ABC, abstractmethod
@@ -15,8 +16,8 @@ class ITimeRange(ABC):
     子类必须提供 start/end/duration 三个只读属性（均为 CxTime），
     其余方法基于这三个属性与 CxTime 的比较运算实现，无需再覆写：
 
-        - ``is_overlapped_with(other)``：两区间是否相交（含端点相触），
-          即 ``start <= other.end and end >= other.start``；
+        - ``is_overlapped_with(other)``：两区间是否交叠（严格语义，
+          端点相触不算），即 ``start < other.end and other.start < end``；
         - ``is_contained_by(other)``：本区间是否完全落在 other 内
           （含端点重合），即 ``start >= other.start and end <= other.end``；
         - ``contains_time(time)``：某时刻是否落在本区间内（闭区间），
@@ -54,17 +55,18 @@ class ITimeRange(ABC):
         pass
 
     def is_overlapped_with(self, other: "ITimeRange") -> bool:
-        """判断本区间与另一区间是否有重叠。
+        """判断本区间与另一区间是否交叠。
 
-        两端点相触（一个区间的终点恰为另一个区间的起点）也视为重叠。
+        采用严格语义：端点相触（一个区间的终点恰为另一个区间的起点）
+        不视为交叠，首尾相接的相邻区间不算重叠。
 
         Args:
             other: 待比较的另一时间区间。
 
         Returns:
-            bool: 有重叠返回 True，否则 False。
+            bool: 交叠返回 True，否则 False。
         """
-        return self.start <= other.end and self.end >= other.start
+        return self.start < other.end and other.start < self.end
 
     def is_contained_by(self, other: "ITimeRange") -> bool:
         """判断本区间是否完全包含于另一区间。

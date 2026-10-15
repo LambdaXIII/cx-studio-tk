@@ -17,9 +17,9 @@
 
 - 根 `AGENTS.md`（本文件）：全仓库规范入口，全局基线，优先于其他规范文档
 - 根 `CONTEXT.md`：仓库统一领域文档，按 `## Domain:` 分区（定位/架构/约定/术语）——处理 `packages/` 下某 workspace 的内容时 **[MUST]** 阅读对应分区
-- `docs/adr/`：设计决策记录，单一编号序列；**[MUST]** 阅读适用范围覆盖目标 workspace 的 ADR，索引见 `docs/adr/README.md`
-- `docs/agents/`：工作流文档（issue tracker、triage 标签、领域文档消费规则、i18n 工作流）
-- 领域术语或设计决策发生变化时，**[MUST]** 优先更新 `CONTEXT.md` 与 `docs/adr/`，再继续代码工作
+- `openspec/`：规范框架——`openspec/specs/` 按能力域承载现行行为契约（唯一真相源），行为变更走 `openspec/changes/` 变更流程；**[MUST]** 阅读适用范围覆盖目标 workspace 的域 spec
+- `docs/agents/`：工作流文档（领域文档消费规则、i18n 工作流）
+- 领域术语或设计决策发生变化时，**[MUST]** 优先更新 `CONTEXT.md` 与 `openspec/`（行为与协议→变更流程、术语与约定→CONTEXT 分区、全局纪律→本文件），再继续代码工作
 
 ## 命令与环境
 
@@ -41,6 +41,7 @@ uv run ffpretty --help
 uv run jpegger --help
 uv run hostskeeper --help
 uv run cxnote --help
+uv run subtitler --help
 ```
 
 ### 格式化
@@ -65,7 +66,7 @@ uv build                  # 构建所有包
 |Directory|Purpose|
 |---|---|
 |`packages/cx-studio/cx_studio/`|基础设施库——值对象、FFmpeg、文件系统、IO、系统抽象|
-|`packages/cxalio-studio-tools/`|CLI 工具集——应用框架 + 6 个工具（media_scout: Chain of Responsibility / media_killer: Async Mission Pipeline / jpegger: ImageFilterChain / ffpretty: FFmpeg 封装 / hosts_keeper: Plugin-based 管理 / cxnote: 域组织便签）|
+|`packages/cxalio-studio-tools/`|CLI 工具集——应用框架 + 7 个工具（media_scout: Chain of Responsibility / media_killer: Async Mission Pipeline / jpegger: ImageFilterChain / ffpretty: FFmpeg 封装 / hosts_keeper: Plugin-based 管理 / cxnote: 域组织便签 / subtitler: 字幕格式转换）|
 |`packages/cxalio-studio-tools/cx_tools/app/`|应用生命周期框架（IApplication + IAppEnvironment）|
 |`archived/cx-wealth/cx_wealth/`|Rich UI 扩展——标签、详情、帮助系统 DSL（已停止维护，仅存档）|
 |`temp/`|临时/调试文件（gitignored，勿在此编写正式代码）|
@@ -76,9 +77,9 @@ uv build                  # 构建所有包
 ### 依赖链
 
 - `cxalio-studio-tools` 同时依赖 `cx-studio` 与 `cx-wealthy`
-- `cx-studio` 与 `cx-wealthy` **平级**——互不依赖（cx-wealthy 仅依赖 `rich`，见 ADR-0010）
+- `cx-studio` 与 `cx-wealthy` **平级**——互不依赖（cx-wealthy 仅依赖 `rich`）
 
-### CLI 应用通用生命周期（所有 6 个工具一致）
+### CLI 应用通用生命周期（所有 7 个工具一致）
 
 1. `[project.scripts]` 入口 → `module:run()` 函数
 2. `Application.__enter__()` → `IAppEnvironment` 初始化（Rich console、SIGINT、debug 门控）
@@ -90,7 +91,7 @@ uv build                  # 构建所有包
 领域文档为仓库级单套，不按 workspace 分散：
 
 - [CONTEXT.md](CONTEXT.md)——统一领域文档（按 `## Domain:` 分区，处理对应 workspace 时阅读相应分区）
-- [docs/adr/](docs/adr/)——设计决策记录（单一编号序列，每篇标注领域与适用范围；索引见 `docs/adr/README.md`）
+- `openspec/specs/`——各能力域现行行为契约的唯一真相源（按能力域组织）
 
 消费规则见 `docs/agents/domain.md`。
 
@@ -102,7 +103,7 @@ uv build                  # 构建所有包
 
 #### 执行规则
 
-- **[MUST]** 处理 `packages/` 下某个 workspace 的内容时，先阅读根 `CONTEXT.md` 的对应 `## Domain:` 分区与 `docs/adr/` 中适用范围覆盖该 workspace 的 ADR。本文件是全局基线，领域文档承载各 workspace 独有的架构、约定与决策记录（按 Domain 分区与适用范围标注组织）
+- **[MUST]** 处理 `packages/` 下某个 workspace 的内容时，先阅读根 `CONTEXT.md` 的对应 `## Domain:` 分区与 `openspec/specs/` 中适用该 workspace 的域 spec。本文件是全局基线，领域文档承载各 workspace 独有的架构、约定与行为契约（按 Domain 分区与能力域组织）
 - **[MUST]** 修改代码后运行 `uv run black .`
 - **[MUST]** 为新公共函数/类添加 docstring
 
@@ -179,7 +180,7 @@ uv build                  # 构建所有包
 - **docstring 语言**：统一简体中文。docstring 面向 IDE 悬停与代码阅读，属代码注释，不参与 gettext 翻译
 - **docstring 风格**：Google 风格——首段说明用途；参数、返回值、异常分别用 `Args:`、`Returns:`、`Raises:` 段落描述；类型信息写全，与签名一致
 - **覆盖要求**：公开类、函数、方法必须有 docstring。dunder 方法与 `_` 私有成员不逐条撰写；若成员含非显然语义（如与字面量比较的特判、跨类型转换规则），在类级 docstring 中集中说明
-- **独立呈现**：docstring 禁止引用 ADR 编号、`docs/` 路径、issue 编号等仓库外部文档——代码文档自足，IDE 悬停读者不应被要求跳转其他文件才能理解；决策背景确有必要时，用一句话陈述语义本身，不写「见 ADR-00XX」。该约束单向：文档（CONTEXT/ADR）可引用代码符号，代码不反向引用文档
+- **独立呈现**：docstring 禁止引用 `CONTEXT.md`、`openspec/` 规格、issue 编号等仓库外部文档——代码文档自足，IDE 悬停读者不应被要求跳转其他文件才能理解；决策背景确有必要时，用一句话陈述语义本身。该约束单向：文档（CONTEXT/openspec specs）可引用代码符号，代码不反向引用文档
 - 行内注释只解释代码表达不了的决策理由
 - 修改代码后自底向上检查注释是否仍匹配（行内→方法→类→模块）
 
@@ -228,7 +229,7 @@ uv build                  # 构建所有包
 
 ### cxalio-studio-tools 多包发布单元
 
-- 6 个工具与 cx_tools **没有自己的 pyproject，共享 cxalio-studio-tools 的 pyproject**——它是这些包共同的发布版本。
+- 7 个工具与 cx_tools **没有自己的 pyproject，共享 cxalio-studio-tools 的 pyproject**——它是这些包共同的发布版本。
 - 某包（工具或 cx_tools）内容变更 → 从共享 pyproject 读当前发布版本 → 判断新版本号 → 写入该包 `__version__` → pyproject 同步。
 - **同一迭代批次中多个变更包共享同一个新版本号**：各包从同一旧值判断一次，分别写入各自 `__version__`，pyproject 只同步一次（如 ffpretty 与 media_scout 同批变更都得到 2.0）。
 - **未变更包的 `__version__` 不动**。因此每个包 `__version__` 的数值 = 该包最后一次变更时的发布版本快照：各包之间、以及与最终 pyproject 之间数值都允许不同——这是设计而非失控。
@@ -274,12 +275,13 @@ uv build                  # 构建所有包
 |jpegger|`from jpegger.i18n import _, _ng`|jpegger 工具字符串|
 |hosts_keeper|`from hosts_keeper.i18n import _, _ng`|hosts_keeper 工具字符串|
 |cx_note|`from cx_note.i18n import _, _ng`|cxnote 工具字符串|
+|subtitler|`from subtitler.i18n import _, _ng`|subtitler 工具字符串|
 
 工具模块**必须**从所在工具自己的 `i18n` 模块导入——`media_killer` 中的模块从 `media_killer.i18n` 导入，不交叉导入 `cx_tools.i18n`。`cx_tools` 框架自身的模块仍从 `cx_tools.i18n` 导入。
 
 > `cx-wealthy` 不参与 gettext 翻译——UI 组件输出为框架固定文本，由使用方控制，详见根 [CONTEXT.md](CONTEXT.md) 的 cx-wealthy Domain 分区。
 
-> 每个工具独立 domain 和翻译文件：domain 分别为 `cx-tools`、`media-scout`、`media-killer`、`ffpretty`、`jpegger`、`hosts-keeper`、`cx-note`。各工具自持 `i18n/locales/`，互不交叉。
+> 每个工具独立 domain 和翻译文件：domain 分别为 `cx-tools`、`media-scout`、`media-killer`、`ffpretty`、`jpegger`、`hosts-keeper`、`cx-note`、`subtitler`。各工具自持 `i18n/locales/`，互不交叉。
 
 ### 环境变量与 locale 检测
 
@@ -307,14 +309,10 @@ LC_ALL= LANG=en_US.UTF-8 hostskeeper --help
 
 ## Agent skills
 
-### Issue tracker
+### OpenSpec 工作流
 
-issue 与 spec 以本地 markdown 跟踪：`.scratch/<feature-slug>/` 一特性一目录，spec 为 `spec.md`，票为 `issues/NN-<slug>.md`，文件顶部 `Status:` 行记录状态。详见 `docs/agents/issue-tracker.md`。
-
-### Triage labels
-
-状态词汇 = 五个 triage 角色（`needs-triage` / `needs-info` / `ready-for-agent` / `ready-for-human` / `wontfix`）+ 落地标签 `implemented`；实现完成后置 `implemented` 收尾，`wontfix` 自身即终态。详见 `docs/agents/triage-labels.md`。
+工作项（特性、修复、重构、迁移）以 `openspec/changes/` 下的变更承载：`proposal.md` 说明动机，`specs/` 中 delta 描述行为差量，`tasks.md` 跟踪实施；实施完成后 archive，delta 折回 `openspec/specs/` 主规格，历史留存于 `openspec/changes/archive/`。命令入口：`openspec new` / `openspec apply` / `openspec archive` / `openspec validate`。
 
 ### Domain docs
 
-领域文档为仓库级单套：根 `CONTEXT.md`（按 Domain 分区，处理对应 workspace 时阅读相应分区）+ 根 `docs/adr/`（单一编号序列，每篇标注领域与适用范围；索引见 `docs/adr/README.md`）。详见 `docs/agents/domain.md`。
+领域文档为仓库级单套：根 `CONTEXT.md`（按 Domain 分区，处理对应 workspace 时阅读相应分区）+ `openspec/specs/`（按能力域组织的行为规格真相源）。详见 `docs/agents/domain.md`。

@@ -2,21 +2,22 @@
 
 返回 renderable，由 application 用 `appenv.say()` 打印；不依赖 appenv。
 
-容器设计（第 2 轮样式迭代）：域标题行外置为裸路径字面
-（`cx.note.section` 样式），其下接**每域一个**无框三列小 `Table`——
-标号 / 内容 / ID 徽章各占一列：标号列自然宽，内容列 `ratio=1` 撑满，
-徽章列 `width=4` 右对齐贴行尾。三列 cell 均为显式 style 的 `Text`
-（多行内容为 `Markdown`），规避 `say()` 默认高亮下 CxHighlighter 对
-markup 字符串的重新染色。初版「分节行割裂列宽」的根因（长域字面占据
-Table 内行）随标题行外置而消失。
+容器设计：域标题行外置为裸路径字面（`cx.note.section` 样式），其下**每
+条目一个**无框三列小 `Table`（`make_entry_block`）——ID 徽章（`width=4`
+贴行首）/ 状态标号（自然宽，即将清理的条目在其后附提示）/ 内容
+（`ratio=1`，显式 `overflow="fold"` 长行折行不截断）。三列 cell 均为
+显式 style 的 `Text`（多行内容为 `Markdown`），规避 `say()` 默认高亮下
+CxHighlighter 对 markup 字符串的重新染色。逐条目独立成表后，单条长内容
+折行不再与同域其它条目争抢列宽。
 
 展示语义（用户定案）：默认**折叠**——当前域条目全显，下级域只显示
 标题行（相对当前域的字面 + 该域条目数）；`--full` 时下级域标题下接
-各自条目表。当前域标题显示域名字（末段），根域显示 `GLOBAL`——当前
+各自条目块。当前域标题显示域名字（末段），根域显示 `GLOBAL`——当前
 工作域非根时列表内不出现绝对路径。
 """
 
 from cx_note.common import Entry, EntryStatus, ROOT_DOMAIN, canonical
+from cx_note.i18n import _
 from cx_wealthy import rich_types as r
 
 # 状态标号——每条目行首
@@ -62,57 +63,86 @@ def make_id_badge(eid: str, terminal: bool = False) -> r.Text:
     return badge
 
 
-def _domain_table(entries: list[Entry]) -> r.Table:
-    """把一个域的条目渲染为无框三列小表。
+def make_entry_block(
+    entry: Entry, expiring: bool = False, taken: bool = False
+) -> r.Table:
+    """把单个条目渲染为无框三列小表（一条目一表）。
+
+    三列顺序：ID 徽章（`width=4` 左对齐贴行首）/ 状态标号（自然宽）/
+    内容（`ratio=1`，显式 `overflow="fold"`——长行折行而非 Rich 默认的
+    ellipsis 截断）。消亡判定收敛在本函数内：已取消、即将被清理、已被
+    取走（三种消亡语境）三者命中其一，标号与内容（含多行整体）统一转
+    `cx.note.dropped`（red + strike + dim，同一语义样式，不按场景区分）；
+    非消亡的已完成条目标号与内容转 `cx.note.done`（dim + green）且徽章
+    dim；进行中/待办不弱化。
 
     Args:
-        entries: 该域条目（调用方已按创建时间升序）。
+        entry: 待渲染条目（调用方已保证在正确域分组内）。
+        expiring: 该条目是否即将被清理——真时标号后附清理提示。
+        taken: 该条目是否已被取走（erase/clear 回显、收尾清理报告）——
+            「已取走」身份只有调用方知道，渲染函数无从计算，仅透传事实；
+            真时与状态无关地按消亡样式渲染。
 
     Returns:
-        三列 `Table`——标号自然宽、内容 `ratio=1`、徽章 `width=4`。
+        单条目的三列 `Table`。
     """
-    table = r.Table(box=None, show_header=False, padding=(0, 2, 0, 0), expand=True)
-    table.add_column()
-    table.add_column(ratio=1)
-    table.add_column(justify="right", width=4)
-    for entry in entries:
-        is_terminal = entry.status in {EntryStatus.DONE, EntryStatus.DROPPED}
-        terminal_style = (
-            "cx.note.dropped"
-            if entry.status is EntryStatus.DROPPED
-            else "cx.note.done" if entry.status is EntryStatus.DONE else ""
+    is_terminal = entry.status in {EntryStatus.DONE, EntryStatus.DROPPED}
+    dead = entry.status is EntryStatus.DROPPED or expiring or taken
+    terminal_style = (
+        "cx.note.dropped"
+        if dead
+        else "cx.note.done" if entry.status is EntryStatus.DONE else ""
+    )
+    marker = r.Text(MARKER[entry.status], style=terminal_style)
+    if expiring:
+        # 即将被清理的提示并入标号列，不另开列；不清理时该列只剩标号。
+        # 提示词随消亡样式同源（red + strike + dim），不单独着色。
+        marker.append_text(r.Text(" " + _("即将被清理"), style="cx.note.dropped"))
+    if "\n" in entry.content:
+        # 多行按 Markdown 渲染：标号/内容与单行同一弱化语义——消亡挂
+        # `cx.note.dropped`，非消亡已完成挂 `cx.note.done`，待办/进行中
+        # 不附加样式。
+        # 源行以「两空格 + 换行」拼接——Markdown 把单换行视为软换行会与
+        # 下一行合并，行尾双空格才保留真实换行（经实验 3 源行渲 3 行）。
+        # Rich 的 Markdown 只接受样式名，None 会在 Style.parse 抛错，
+        # 故「不附加样式」必须走默认构造而非 style=None。
+        joined = "  \n".join(entry.content.split("\n"))
+        content: r.RenderableType = (
+            r.Markdown(joined, style=terminal_style)
+            if terminal_style
+            else r.Markdown(joined)
         )
-        marker = r.Text(MARKER[entry.status], style=terminal_style)
-        if "\n" in entry.content:
-            # 多行按 Markdown 渲染：已完成/进行中沿用「内容不置灰」的既有决策
-            # （弱化由标号 + 徽章传达），已取消则整体 dim + strike。
-            # Rich 的 Markdown 只接受样式名，None 会在 Style.parse 抛错，
-            # 故「不附加样式」必须走默认构造而非 style=None。
-            content: r.RenderableType = (
-                r.Markdown(entry.content, style="cx.note.dropped")
-                if entry.status is EntryStatus.DROPPED
-                else r.Markdown(entry.content)
-            )
-        else:
-            content = r.Text(entry.content, style=terminal_style)
-        table.add_row(marker, content, make_id_badge(entry.id, is_terminal))
+    else:
+        content = r.Text(entry.content, style=terminal_style)
+    table = r.Table(box=None, show_header=False, padding=(0, 2, 0, 0), expand=True)
+    table.add_column(width=4)
+    table.add_column()
+    table.add_column(ratio=1, overflow="fold")
+    table.add_row(make_id_badge(entry.id, is_terminal), marker, content)
     return table
 
 
 def _rel_label(domain: str, current: str) -> str:
-    """返回下级域相对当前域的显示字面。
+    """返回下级域相对当前域的显示字面；不在子树内则返回绝对字面。
 
-    按身份键（canonical）长度切割：canonical 即 `lower()`，与字面同长，
-    大小写不敏感场景切割仍正确（当前 `/ab`、下级 `/aB/c` → `/c`）。
+    按身份键（canonical）判断子树归属：`domain` 必须以
+    `canonical(current) + "/"` 开头才算 `current` 的下级（带段边界，
+    `/ab` 不算 `/a` 的下级）；不在子树内（跨域条目、非法输入）直接
+    返回 `domain` 绝对字面，避免按长度硬切产出垃圾。canonical 即
+    `lower()`，与字面同长，大小写不敏感场景切割仍正确（当前 `/ab`、
+    下级 `/aB/c` → `/c`）。
 
     Args:
         domain: 下级域字面。
         current: 当前域字面。
 
     Returns:
-        当前域为根域时返回 `domain` 原样；否则截去当前域段并补 `/`。
+        当前域为根域或 `domain` 不在其子树内 → `domain` 原样；否则
+        截去当前域段并补 `/`。
     """
     if canonical(current) == ROOT_DOMAIN:
+        return domain
+    if not canonical(domain).startswith(canonical(current) + "/"):
         return domain
     return "/" + domain[len(canonical(current)) + 1 :]
 
@@ -138,31 +168,43 @@ def build_list_renderable(
     groups: list[tuple[str, list[Entry]]],
     current_domain: str,
     full: bool = False,
+    expiring_ids: frozenset[str] = frozenset(),
+    fill_current_empty: bool = True,
+    taken: bool = False,
 ) -> r.Group:
     """把按域分组的条目组装为每域一小节的平铺列表。
 
-    每节 = 标题行（`cx.note.section` 样式）+ 可选条目小表；节间以空行
-    分隔。显示规则（用户定案）：**当前工作域不是根时，列表内不出现
-    绝对路径**——当前域标题只显示域名字（末段；根域显示固定标签
-    `GLOBAL`），不带数量；下级域标题显示相对当前域的字面并附
-    `(条目数)`——数量只数该域自身。
+    每节 = 标题行（`cx.note.section` 样式）+ 该域逐条目的
+    `make_entry_block`；节间以空行分隔。显示规则（用户定案）：
+    **当前工作域不是根时，列表内不出现绝对路径**——当前域标题只显示
+    域名字（末段；根域显示固定标签 `GLOBAL`），不带数量；下级域标题
+    显示相对当前域的字面并附 `(条目数)`——数量只数该域自身。
 
     Args:
         groups: `(域字面, 条目列表)` 序列，当前域组在前、其余按
             `canonical` 排序；组内按 `created_at` 升序。当前域无自身
-            条目时 groups 可能只含下级域组。
+            条目时 groups 可能只含下级域组。渲染器不排序，按到达顺序
+            原样输出。
         current_domain: 当前域字面（标题名字与相对化基准）。
-        full: 是否展开下级域条目——真时每个下级域标题下接条目表，
+        full: 是否展开下级域条目——真时每个下级域标题下接条目块，
             假时折叠为仅标题行。
+        expiring_ids: 即将被清理的条目 ID 集合——命中的条目块在标号
+            后附清理提示。
+        fill_current_empty: 当前域在 groups 中缺席时是否仍注入一个仅
+            标题的当前域小节（列表用它标示所处位置；回显不想要时置
+            False，此时从不注入）。
+        taken: 本批次条目是否全部已被取走（erase/clear 回显、收尾清理
+            报告）——整体透传给每个 `make_entry_block`，命中即按消亡
+            样式渲染；列表场景保持默认 False。
 
     Returns:
         各域小节与空行组成的 `Group`。
     """
     current_key = canonical(current_domain)
-    # 当前域无自身条目但有下级域时，仍先给出当前域标题行（无表），
-    # 让用户看到所在位置。
+    # 当前域无自身条目但有下级域时，仍先给出当前域标题行（无条目块），
+    # 让用户看到所在位置；`fill_current_empty=False`（回显）则跳过。
     blocks: list[tuple[str, list[Entry], bool]] = []
-    if not groups or canonical(groups[0][0]) != current_key:
+    if fill_current_empty and (not groups or canonical(groups[0][0]) != current_key):
         blocks.append((current_domain, [], True))
     for domain, entries in groups:
         blocks.append((domain, entries, canonical(domain) == current_key))
@@ -181,5 +223,10 @@ def build_list_renderable(
             title.append_text(r.Text(f" ({len(entries)})", style="cx.note.hint"))
         lines.append(title)
         if entries and (is_current or full):
-            lines.append(_domain_table(entries))
+            for entry in entries:
+                lines.append(
+                    make_entry_block(
+                        entry, expiring=entry.id in expiring_ids, taken=taken
+                    )
+                )
     return r.Group(*lines)

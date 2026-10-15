@@ -1,6 +1,6 @@
 # CONTEXT —— 仓库统一领域文档
 
-本仓库（cx-studio-tk）为 uv workspace 单仓，含三个 workspace：`cx-studio`（基础设施库）、`cx-wealthy`（Rich UI 组件库）、`cxalio-studio-tools`（CLI 工具集与共享框架）。领域文档统一存放于本文件与 `docs/adr/`（单一编号序列，索引见 `docs/adr/README.md`）——处理 `packages/` 下某 workspace 的内容时，阅读本文件对应 `## Domain:` 分区与 `docs/adr/` 中适用范围覆盖该 workspace 的 ADR；消费规则见 `docs/agents/domain.md`。根 `AGENTS.md` 为全局规范基线（跨领域通用规则），优先于本文档。
+本仓库（cx-studio-tk）为 uv workspace 单仓，含三个 workspace：`cx-studio`（基础设施库）、`cx-wealthy`（Rich UI 组件库）、`cxalio-studio-tools`（CLI 工具集与共享框架）。领域文档统一存放于本文件与 `openspec/specs/`（按能力域组织的行为规格真相源，行为变更走 `openspec/changes/` 变更流程）——处理 `packages/` 下某 workspace 的内容时，阅读本文件对应 `## Domain:` 分区与适用该 workspace 的能力域 spec；消费规则见 `docs/agents/domain.md`。根 `AGENTS.md` 为全局规范基线（跨领域通用规则），优先于本文档。
 
 ## Domain：cx-studio
 > 适用范围：cx-studio
@@ -68,7 +68,7 @@ ffmpeg      → core, filesystem, process, i18n
 ### 术语
 
 **CxTime**：
-core 包的基础时间值对象，毫秒级精度；属多年积累的时间域核心资产，直接兼容工业时间码标准（见 ADR 0001）。
+core 包的基础时间值对象，毫秒级精度；属多年积累的时间域核心资产，直接兼容工业时间码标准。
 _Avoid_: 用 `datetime`/`time` 表达时间码语义
 
 **Timebase**：
@@ -130,7 +130,7 @@ text 包的文本标签替换器，用于模板/占位符替换。
   1. **通用结构化文档系统**——基于复合树的声明式文档构建与主题化渲染。帮助系统只是其特化之一，任何"分组 + 条目 + 注释"的结构化输出都可使用。
   2. **双渲染协议**——`__rich_label__`（紧凑标签）+ `__rich_detail__`（键值面板），通过 mixin 让领域对象自身可被 `console.print()` 直接渲染。
 - **双重定位**：本包首先是 cx 系列自用的 Rich 扩展，同时作为独立库可供任何人使用。沿用 Rich 自身的 mixin 命名风格、提供 `rich_types` 便利出口等设计均在此定位下进行——对内服务于 cx 系列工具，对外不绑定 cx 系列的依赖与惯例。
-- **依赖**：仅 `rich>=14.0.0`。不依赖 `cx-studio`——UI 库应保持单一职责与最小依赖链。所需的基础工具函数（分隔符插入、locale 检测）逻辑很短，在包内内联实现，不为短函数引入整包依赖（决策背景见 `docs/adr/0010`）。
+- **依赖**：仅 `rich>=14.0.0`。不依赖 `cx-studio`——UI 库应保持单一职责与最小依赖链。所需的基础工具函数（分隔符插入、locale 检测）逻辑很短，在包内内联实现，不为短函数引入整包依赖。
 - **依赖关系**：与 `cx-studio` 无依赖关系，两者在依赖层面平级；`cxalio-studio-tools` 同时依赖两者。`cx-wealthy` 仍是 cx- 系列的一员，提供 `cx.*` 命名空间的主题样式预设（纯数据导出，不引入依赖）。
 
 ### 渲染协议定义
@@ -167,7 +167,7 @@ text 包的文本标签替换器，用于模板/占位符替换。
 | value 渲染 | `Pretty`（repr 风格，raw 值） | 递归 sub-panel / IndexedListPanel / RichLabel 协同 |
 | 格式化 | raw 值交给 Pretty | 使用方可预格式化（如 `str(path)`） |
 
-`__rich_detail__` 吸收了 `__rich_repr__` 的去重能力（三元组），但保留展示视角的渲染策略链（否决「复用 `__rich_repr__` 替代 `__rich_detail__`」的理由见 `docs/adr/0003`）。
+`__rich_detail__` 吸收了 `__rich_repr__` 的去重能力（三元组），但保留展示视角的渲染策略链（否决了「复用 `__rich_repr__` 替代 `__rich_detail__`」的方案）。
 
 #### 协议是可选的
 
@@ -183,11 +183,19 @@ text 包的文本标签替换器，用于模板/占位符替换。
 
 #### Rich 类型引用：内部真实路径
 
-根 AGENTS 规定"依赖 cx-wealthy 的包必须通过 rich_types 引用 Rich 类型"。**本包特化此规则**：该约束针对使用方，不针对本包内部。库内部模块用 `from rich.table import Table` 真实路径，`rich_types` 仅作对外便利出口（决策背景见 `docs/adr/0004`）。
+根 AGENTS 规定"依赖 cx-wealthy 的包必须通过 rich_types 引用 Rich 类型"。**本包特化此规则**：该约束针对使用方，不针对本包内部。库内部模块用 `from rich.table import Table` 真实路径，`rich_types` 仅作对外便利出口。
 
 #### 私有命名：无双下划线
 
 内部辅助方法用单下划线前缀（如 `_render_label`、`_check_value`），不用双下划线。双下划线触发 name mangling，子类无法 override。
+
+#### 组件命名：名实相符
+
+组件命名必须反映实际行为——名实不符会误导使用方对 API 契约的预期。评估命名时，以该名称承诺的 API 契约为试金石：名称承诺而实现不做的（如"动态"布局实则固定列数），改名优先于补文档。
+
+#### 扩展节奏：第二个真实场景出现才扩展
+
+组件扩展的触发条件是第二个真实使用场景的出现，不是"技术上能做到更灵活"。只有单一场景时保持简单是正确状态，不是待办；为假想需求预留的参数化与抽象层是负债。
 
 #### 主题透明性
 
@@ -244,11 +252,11 @@ _Avoid_: WealthyDetailPanel（那是 Panel 形态）
 `__rich_detail__` 中 value 为列表时的自动渲染形态——带索引的列表面板。
 
 **MaxColumnsLayout**：
-列布局组件，固定最大列数 + 平均宽度；不暗示也不实现基于内容宽度的动态测量（决策背景见 `docs/adr/0006`）。
+列布局组件，固定最大列数 + 平均宽度；不暗示也不实现基于内容宽度的动态测量。
 _Avoid_: 带"动态/自适应"含义的布局名
 
 **rich_types**：
-对外便利出口模块，收窄到高频 Rich 类型，供使用方以 `r` 别名引用；库内部一律用真实 import 路径（决策背景见 `docs/adr/0004`）。
+对外便利出口模块，收窄到高频 Rich 类型，供使用方以 `r` 别名引用；库内部一律用真实 import 路径。
 _Avoid_: 内部模块直接 import rich_types
 
 **cx.\* 样式名**：
@@ -265,7 +273,7 @@ _Avoid_: __rich_repr__（那是 debug repr 语义，不是展示语义）
 ## Domain：cxalio-studio-tools
 > 适用范围：cxalio-studio-tools
 
-`packages/cxalio-studio-tools/` 是包含 6 个 CLI 工具（media_scout、media_killer、ffpretty、jpegger、hosts_keeper、cxnote）与共享框架 `cx_tools` 的分发包。所有工具均构建在 `cx_tools.app` 应用框架之上，共享统一的应用生命周期管理、Rich 输出与中断处理。
+`packages/cxalio-studio-tools/` 是包含 7 个 CLI 工具（media_scout、media_killer、ffpretty、jpegger、hosts_keeper、cxnote、subtitler）与共享框架 `cx_tools` 的分发包。所有工具均构建在 `cx_tools.app` 应用框架之上，共享统一的应用生命周期管理、Rich 输出与中断处理。
 
 ### 架构
 
@@ -318,12 +326,25 @@ CLI 工具中的所有类按是否依赖运行环境分为两层：
 
 工具包内部按能力归属分两层：
 
-- **`common/`** — 不需要 appenv 的非耦合能力（对外提供面）。如 ffpretty.common（Mission/Executor/MediaDB）、media_killer.common（MissionHQ 调度层）、media_scout.common（inspectors）。
-- **`components/`** — 需要 appenv 或含工具特定转化/包装逻辑的组件。如 ffpretty.components（mission_runner/mission_maker/info_elements）、media_killer.components（preset/expander/script_maker/mission_store）。
+- **`common/`** — 不需要 appenv 的非耦合能力（对外提供面）。如 ffpretty.common（Mission/Executor/MediaDB）、media_killer.common（MissionHQ 调度层）、media_scout.common（inspectors）、subtitler.common（字幕模型 + Loader/Saver 契约 + 时间换算 + 格式实现）。
+- **`components/`** — 需要 appenv 或含工具特定转化/包装逻辑的组件。如 ffpretty.components（mission_runner/mission_maker/info_elements）、media_killer.components（preset/expander/script_maker/mission_store）、subtitler.components（格式接线 / 转换编排）。
 
 判别标准 = **appenv 依赖 + 特化与否**：不依赖 appenv 且非工具特定 → common；否则 → components。公共能力在设计之初规划（非消费者驱动），避免事后从 components 反向抽取。
 
 **组合面契约**：工具间 import 只允许指向 `package.common`（可到 `package.common.subpackage`，如 `ffpretty.common.executor` 的事件常量）；ToolApp/ToolHelp 一级内容可从包根直接导入。不提供 common 的工具（hosts_keeper、jpegger）不强制区分 common/components。
+
+#### subtitler：能力层承载字幕模型 + 纯前台装配
+
+`subtitler` 是「common 承载能力 + 前台只装配」两级切分的范例：字幕格式转换 CLI，围绕字幕模型搬运数据，对内容无编辑语义（不编辑、不修剪、不重排）；格式面为 SRT / TTML / CSV，均可作源与目标，按文件扩展名识别（未识别的扩展名报错中止）。
+
+- **能力层 `subtitler.common`（对外提供面）**——模型 / 契约 / 格式实现三级：
+  - **模型**：`SubtitleItem`（可独立存在的普通对象）、`SubtitleSequence`（Item 排列容器，尽力时序插入、读取恒为时序活视图）、`SubtitleProject`（组织者：不交叠路由 + 自动增列 + `meta` 机制）。**引用即句柄**——容器持引用，无 id / index / remove
+  - **契约**：`SubtitleLoader` / `SubtitleSaver`——语法提取与输出组织都归格式本体，各自完整自治（含自身 IO）；`TimeCodec` 负责时间解析 / 格式化 / 单调取整
+  - **`formats/`**：SRT / TTML / CSV 三实现，均读 + 写
+- **前台（装配层）**——四文件骨架（application / appenv / appcontext / app_help）+ `components/`：wiring 注册接线绑定 CLI 并汇总扩展名表（本工具格式面的唯一来源），converter 负责转换编排。注册与格式识别都在前台，`subtitler.common` 不感知本工具接了哪些格式
+- **纪律**——`subtitler.common` 不依赖 appenv，也不 import 前台任何模块；工具间 import 只允许指向 `subtitler.common`
+- **转换管线**——`Loader 提取 Item → Project.add 路由组织 → Saver 自主组织并写出 1..N 个文件`；多文件命名 `目标名.part<k>`（按输出顺序），写前一次性预检全部目标路径（任一已存在即报错中止、零输出、不覆盖）
+- **交叠是模型的合法状态**——导出不交叠格式（如 SRT）时由 Saver 自主拆分多文件；端点相触的相邻衔接不构成交叠
 
 ### 工具编写模式
 
@@ -355,7 +376,7 @@ Application 通过构造参数接收 `appenv` 和 `context`；progress 是工具
 
 #### 异常体系
 
-`SafeError`（可恢复应用异常，带 style）由 `Application.__exit__` 捕获。
+`SafeError`（可恢复应用异常，带 style）与 `KeyboardInterrupt` 的捕获呈现由各工具子类覆盖 `__exit__` 完成——基类 `IApplication.__exit__` 只做 stop 与 context 清理，不捕获异常。覆盖遵循「先 `super().__exit__()` 再处理」的结构（见下方「__exit__ 覆盖模式」），ffpretty / media_killer / cx_note 为现行范例。
 
 #### 分级输出
 
@@ -448,7 +469,7 @@ def __exit__(self, exc_type, exc_val, exc_tb) -> bool | None:
 
 ##### 策略 A：`__exit__` 中 catch KeyboardInterrupt
 
-适用于不需要多次 Ctrl+C 取消流程的工具。在 `Application.__exit__` 中直接检查 `exc_type is KeyboardInterrupt`，无需注册 signal handler。见上方 `__exit__` 覆盖模式示例。
+适用于不需要多次 Ctrl+C 取消流程的工具。在工具 Application 子类的 `__exit__` 覆盖中直接检查 `exc_type is KeyboardInterrupt`，无需注册 signal handler。见上方 `__exit__` 覆盖模式示例。
 
 ##### 策略 B：DoubleTrigger 信号机制
 
@@ -517,6 +538,7 @@ signal.signal(signal.SIGINT, appenv.handle_interrupt)
 | ffpretty | `from ffpretty.i18n import _, _ng` |
 | jpegger | `from jpegger.i18n import _, _ng` |
 | hosts_keeper | `from hosts_keeper.i18n import _, _ng` |
+| subtitler | `from subtitler.i18n import _, _ng` |
 
 #### 框架导入
 
@@ -544,7 +566,7 @@ _Avoid_: `<Tool>Context`（工具具体子类）
 CLI 特化组件基类接口，`__init__` 仅提供 `(appenv, context)` 签名契约，不存储、不暴露（子类自行赋值）。
 
 **SafeError**：
-可恢复应用异常，带 style，由 `Application.__exit__` 捕获。
+可恢复应用异常，带 style；捕获与呈现由工具子类覆盖 `__exit__` 完成，基类 `IApplication.__exit__` 只做 stop 与 context 清理、不捕获异常。
 
 **WealthyHelp**：
 帮助系统 DSL，通过 `add_group`/`add_action`/`add_note` 声明式构建帮助内容。
@@ -580,6 +602,9 @@ CLI 工具，hosts 文件管理——多来源合并去重、规则筛选、自�
 **cxnote**：
 CLI 工具，终端快速笔记（包 `cx_note`）——以域组织的待办便签：快记字符串条目、按域浏览、跟踪条目状态并自动清理超龄终态条目。
 
+**subtitler**：
+CLI 工具，字幕格式转换（SRT / TTML / CSV 互转）——围绕 `subtitler.common` 的字幕模型搬运数据，不做内容编辑；模型、Loader/Saver 契约与格式实现落在 common 层，可被其它工具 import。
+
 **域**：
 cx-note 的字面命名空间——形如 `/a/b` 的路径式字符串，仅用作条目归属的组织单位，与文件系统目录结构无绑定；身份判定大小写不敏感，存储保留首次出现的字面。
 _Avoid_: 目录、文件夹（域不映射目录结构）
@@ -590,6 +615,12 @@ _Avoid_: 目录、文件夹（域不映射目录结构）
 **条目**：
 cx-note 记录的最小单元——字符串内容（可含换行）、四态状态、创建/终态日期、所属域与 4 位 ID。
 
+**条目块**：
+条目在终端的呈现单元——首部为 4 位 ID 徽章与状态标号（ID 在前，标号为 `[ ]` / `[~]` / `[x]` / `[-]`），其后为内容；自足呈现、不依赖跨条目对齐，列表、操作后回显、定位候选、清理报告通用同一形态；超长内容在块内折行完整呈现，不截断。
+
+**变更条目**：
+本次运行改动过的条目集合——操作后回显的呈现对象，按条目所属域分块（当前域子树之外的域用绝对字面作标题）；本次运行无变更时不输出回显区块。
+
 **删除**：
 `erase` 命令执行的用户动作——按 ID 或文本片段定位并物理移除单条条目；被删除条目不可恢复。
 _Avoid_: 清除（v1 术语，退役）、归档
@@ -599,7 +630,10 @@ _Avoid_: 清除（v1 术语，退役）、归档
 _Avoid_: 清除
 
 **清理**：
-cx-note 对超龄终态条目（已完成/已取消）的自动维护——保存时顺带执行、仅限当前域、尽力而为不保证完备；待办与进行中条目永不参与清理。与手动动作（删除/清空）的区别：清理是工具自动执行，删除/清空是用户发起。
+cx-note 对超龄终态条目（已完成/已取消）的自动维护——每次运行的**收尾阶段**执行一次（凡到达读盘的运行均在其列，含只读运行），范围为当前域及其下级域，尽力而为不保证完备；待办与进行中条目永不参与清理。与手动动作（删除/清空）的区别：清理是工具自动执行，删除/清空是用户发起。
+
+**即将被清理**：
+本次运行收尾阶段将因超龄被清除的条目的运行时标记——按当前工作集与本次运行的保留天数即时判定，不固化进条目、不写入存储；人读为词形标记「即将被清理」，JSON 为 `expiring` 键；被本次操作取走的条目（erase / clear 的输出）不计。
 
 **取消**：
 条目的第四种状态（显示名「已取消」）——经 `drop` 命令进入，表示条目内容不再适用但保留在库；可被 `reset` 拉回待办。与「删除」的区别：删除物理移除且不可恢复，取消保留条目、可逆。

@@ -1,13 +1,18 @@
 """`NoteStore` —— 单 JSON 文件存储（所有域共用一个 notes.json）。
 
-纯 IO 层：不依赖 appenv，域语义只用到 `is_within` 边界判定；
-清理时机由 application 层显式调用 `clean()` 决定（store 不感知配置）。
+纯 IO 层：不依赖 appenv，域语义只用到 `is_within` 边界判定。
+
+工作集 + 显式落盘模型：构造时一次性把全量条目读进内存（工作集），
+所有变更方法只改工作集、不碰磁盘；持久化由调用方在运行收尾显式
+调用 `flush()`——一次运行至多落盘一次，工作集与读盘结果一致时
+不写盘。保留期与清理作用域的判断属于 application 层（判据见
+`cx_note.common.expiry.is_expiring`），store 不感知配置。
 """
 
 import json
 import os
 import random
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
 from cx_note.common.domain import canonical, is_within
@@ -38,6 +43,8 @@ class NoteStore:
         # canonical → 首见字面（无条目的域不存在，故只从条目域字面构建）
         self._literal_by_key: dict[str, str] = {}
         self._corrupted = False
+        # 脏标记：工作集相对读盘结果有实际变更时为 True，flush 落盘后复位
+        self._dirty = False
         self._load()
 
     def _load(self) -> None:
@@ -97,8 +104,16 @@ class NoteStore:
             if candidate not in existing:
                 return candidate
 
-    def _save(self) -> None:
-        """原子重写存储文件（tmp + `os.replace`）。"""
+    def flush(self) -> bool:
+        """工作集有变更时原子重写存储文件（tmp + `os.replace`），一次运行至多落盘一次。
+
+        工作集与读盘结果一致时不写盘（脏标记为 False 直接返回）。
+
+        Returns:
+            是否实际落盘：写入成功返回 True，未写返回 False。
+        """
+        if not self._dirty:
+            return False
         self._store_path.parent.mkdir(parents=True, exist_ok=True)
         tmp = self._store_path.with_name(self._store_path.name + ".tmp")
         payload = json.dumps(
@@ -106,6 +121,8 @@ class NoteStore:
         )
         tmp.write_text(payload, encoding="utf-8")
         os.replace(tmp, self._store_path)
+        self._dirty = False
+        return True
 
     @property
     def corrupted(self) -> bool:
@@ -117,7 +134,7 @@ class NoteStore:
         return list(self._entries)
 
     def add(self, domain: str, content: str) -> Entry:
-        """新增条目并立即落盘。
+        """新增条目（仅改工作集，落盘由 `flush()` 显式触发）。
 
         content 中字面 `\\n` → 真实换行的转换在 application 层完成，
         store 不处理。域字面经 `_record_literal` 归一到首见字面。
@@ -143,7 +160,7 @@ class NoteStore:
             completed_at=None,
         )
         self._entries.append(entry)
-        self._save()
+        self._dirty = True
         return entry
 
     def find_by_id(self, eid: str) -> Entry | None:
@@ -169,7 +186,7 @@ class NoteStore:
         return [e for e in self._entries if canonical(e.domain) == key]
 
     def transition(self, eid: str, status: EntryStatus) -> Entry | None:
-        """把条目转移到目标状态并落盘。
+        """把条目转移到目标状态（仅改工作集，落盘由 `flush()` 显式触发）。
 
         终态打点：目标状态为终态（`DONE`/`DROPPED`）时记录
         `completed_at`；离开终态（`TODO`/`PENDING`）时清空。
@@ -194,29 +211,72 @@ class NoteStore:
             completed_at=datetime.now() if is_terminal else None,
         )
         self._entries[self._entries.index(entry)] = updated
-        self._save()
+        self._dirty = True
         return updated
 
-    def erase(self, eid: str) -> Entry | None:
-        """删除单条条目并返回被删条目；ID 不存在时返回 None。"""
+    def take(self, eid: str) -> Entry | None:
+        """取出单条条目并从工作集移除；ID 不存在时返回 None。
+
+        仅改工作集，不落盘（落盘由 `flush()` 显式触发）。
+
+        Args:
+            eid: 目标条目 ID。
+
+        Returns:
+            被取出的条目；ID 不存在时返回 None。
+        """
         entry = self.find_by_id(eid)
         if entry is None:
             return None
         self._entries.remove(entry)
-        self._save()
+        self._dirty = True
         return entry
 
-    def clear_domain(self, domain: str) -> list[Entry]:
-        """清空指定域直属的全部条目（不含子域）并落盘。
+    def set_content(self, eid: str, content: str) -> Entry | None:
+        """覆盖条目的内容文本（`edit` 用），其余字段不动。
+
+        仅改工作集，不落盘（落盘由 `flush()` 显式触发）。
+        新内容与原内容相同时仍返回该条目（调用方据此计一次变更），
+        但不置脏——工作集与读盘结果一致时不写盘。
+
+        Args:
+            eid: 目标条目 ID。
+            content: 覆盖后的内容。
+
+        Returns:
+            覆盖后的新条目（内容未变时为原条目）；ID 不存在时返回 None。
+        """
+        entry = self.find_by_id(eid)
+        if entry is None:
+            return None
+        if entry.content == content:
+            return entry
+        updated = Entry(
+            id=entry.id,
+            domain=entry.domain,
+            content=content,
+            status=entry.status,
+            created_at=entry.created_at,
+            completed_at=entry.completed_at,
+        )
+        self._entries[self._entries.index(entry)] = updated
+        self._dirty = True
+        return updated
+
+    def take_domain(self, domain: str) -> list[Entry]:
+        """取出指定域直属的全部条目（不含子域）并从工作集移除。
+
+        仅改工作集，不落盘（落盘由 `flush()` 显式触发）。
+        域被取空时同步注销其域字面登记——无条目的域不留字面登记。
 
         Args:
             domain: 目标域字面。
 
         Returns:
-            被清除的条目列表；域内无条目时不落盘、返回空列表。
+            被取出的条目列表；域内无条目时返回空列表、工作集不变。
 
         Raises:
-            SafeError: 存储处于损坏状态时拒绝写入。
+            SafeError: 存储处于损坏状态时拒绝操作。
         """
         if self._corrupted:
             raise SafeError(_("笔记存储已损坏: {path}").format(path=self._store_path))
@@ -225,41 +285,36 @@ class NoteStore:
             return []
         for entry in doomed:
             self._entries.remove(entry)
-        self._save()
+        self._dirty = True
         key = canonical(domain)
         if not any(canonical(e.domain) == key for e in self._entries):
             self._literal_by_key.pop(key, None)
         return doomed
 
-    def clean(self, domain: str, retention_days: int) -> list[Entry]:
-        """清理指定域内超龄的终态条目。
+    def take_many(self, entries: list[Entry]) -> list[Entry]:
+        """按 ID 批量取出条目并从工作集移除（运行收尾清理用）。
 
-        终态 = `DONE`（已完成）或 `DROPPED`（已取消）。超龄判定以
-        `completed_at`（终态打点时间）为准。`retention_days <= 0`
-        视为禁用，直接返回空列表；待办/进行中永不参与清理。
+        仅改工作集，不落盘（落盘由 `flush()` 显式触发）。
+        域被取空时同步注销其域字面登记——无条目的域不留字面登记。
+        未命中工作集的 ID（重复或不存在）直接忽略。
 
         Args:
-            domain: 清理作用域（含下级域）。
-            retention_days: 终态后的保留天数。
+            entries: 待取出的条目列表，只按其 ID 匹配工作集。
 
         Returns:
-            被清理的条目列表（无清理发生时不落盘、返回空列表）。
+            实际从工作集取出的条目（保持工作集内原有顺序）；
+            全部未命中时返回空列表、工作集不变。
         """
-        if retention_days <= 0:
+        wanted = {e.id for e in entries}
+        if not wanted:
             return []
-        cutoff = datetime.now() - timedelta(days=retention_days)
-        terminal = {EntryStatus.DONE, EntryStatus.DROPPED}
-        doomed = [
-            e
-            for e in self._entries
-            if e.status in terminal
-            and e.completed_at is not None
-            and e.completed_at <= cutoff
-            and is_within(e.domain, domain)
-        ]
+        doomed = [e for e in self._entries if e.id in wanted]
         if not doomed:
             return []
-        for entry in doomed:
-            self._entries.remove(entry)
-        self._save()
+        doomed_ids = {e.id for e in doomed}
+        self._entries = [e for e in self._entries if e.id not in doomed_ids]
+        self._dirty = True
+        for key in {canonical(e.domain) for e in doomed}:
+            if not any(canonical(e.domain) == key for e in self._entries):
+                self._literal_by_key.pop(key, None)
         return doomed

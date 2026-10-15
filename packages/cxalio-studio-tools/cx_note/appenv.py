@@ -11,10 +11,9 @@ from cx_wealthy import rich_types as r
 from . import __version__
 
 CX_NOTE_STYLES: dict[str, str] = {
-    "cx.note.section": "bold",
-    "cx.note.done": "dim",
-    "cx.note.dropped": "dim strike",
-    "cx.note.id": "bold on grey15",
+    "cx.note.section": "bold yellow",
+    "cx.note.done": "dim green",
+    "cx.note.dropped": "red strike dim",
     "cx.note.hint": "dim",
 }
 

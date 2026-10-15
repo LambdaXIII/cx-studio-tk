@@ -4,7 +4,7 @@
 入口点，负责安装 Rich 异常追踪并启动 `CxNoteApp`。
 """
 
-__version__ = "1.2.0"
+__version__ = "1.4.1"
 
 import sys
 
