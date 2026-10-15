@@ -72,9 +72,9 @@ def make_entry_block(
     内容（`ratio=1`，显式 `overflow="fold"`——长行折行而非 Rich 默认的
     ellipsis 截断）。消亡判定收敛在本函数内：已取消、即将被清理、已被
     取走（三种消亡语境）三者命中其一，标号与内容（含多行整体）统一转
-    `cx.note.dropped`（red + strike，同一语义样式，不按场景区分）；
-    非消亡的已完成条目标号与内容转 `cx.note.done`（dim）且徽章 dim；
-    进行中/待办不弱化。
+    `cx.note.dropped`（red + strike + dim，同一语义样式，不按场景区分）；
+    非消亡的已完成条目标号与内容转 `cx.note.done`（dim + green）且徽章
+    dim；进行中/待办不弱化。
 
     Args:
         entry: 待渲染条目（调用方已保证在正确域分组内）。
@@ -96,18 +96,21 @@ def make_entry_block(
     marker = r.Text(MARKER[entry.status], style=terminal_style)
     if expiring:
         # 即将被清理的提示并入标号列，不另开列；不清理时该列只剩标号。
-        # 提示词随消亡样式同源（red + strike），不单独着色。
+        # 提示词随消亡样式同源（red + strike + dim），不单独着色。
         marker.append_text(r.Text(" " + _("即将被清理"), style="cx.note.dropped"))
     if "\n" in entry.content:
-        # 多行按 Markdown 渲染：非消亡条目「内容不置灰」（弱化由标号 +
-        # 徽章传达），消亡条目整体挂 `cx.note.dropped`。
+        # 多行按 Markdown 渲染：标号/内容与单行同一弱化语义——消亡挂
+        # `cx.note.dropped`，非消亡已完成挂 `cx.note.done`，待办/进行中
+        # 不附加样式。
         # 源行以「两空格 + 换行」拼接——Markdown 把单换行视为软换行会与
         # 下一行合并，行尾双空格才保留真实换行（经实验 3 源行渲 3 行）。
         # Rich 的 Markdown 只接受样式名，None 会在 Style.parse 抛错，
         # 故「不附加样式」必须走默认构造而非 style=None。
         joined = "  \n".join(entry.content.split("\n"))
         content: r.RenderableType = (
-            r.Markdown(joined, style="cx.note.dropped") if dead else r.Markdown(joined)
+            r.Markdown(joined, style=terminal_style)
+            if terminal_style
+            else r.Markdown(joined)
         )
     else:
         content = r.Text(entry.content, style=terminal_style)
