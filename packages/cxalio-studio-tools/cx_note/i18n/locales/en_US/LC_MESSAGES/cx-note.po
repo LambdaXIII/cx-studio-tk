@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2026-09-16 04:14+0800\n"
+"POT-Creation-Date: 2026-10-15 12:31+0800\n"
 "PO-Revision-Date: 2026-09-16 04:11+0800\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: en_US\n"
@@ -51,106 +51,136 @@ msgstr ""
 "[u]\\n[/] becomes a line break, e.g. [u]add \"buy groceries\\ncook\" "
 "\"pay utility bill\"[/]."
 
-#: cx_note/app_help.py:63
+#: cx_note/app_help.py:61
+msgid "修改内容"
+msgstr "Edit content"
+
+#: cx_note/app_help.py:64
+msgid "覆盖单条条目的内容；状态、所属域、ID、创建时间与 终态打点均不变，不做重复校验。"
+msgstr ""
+"Overwrite a single entry's content; status, domain, ID, creation time "
+"and terminal-state timestamp stay unchanged; no duplicate check."
+
+#: cx_note/app_help.py:70
+msgid "目标条目"
+msgstr "Target entry"
+
+#: cx_note/app_help.py:72
+msgid "要覆盖内容的条目：4 位 ID 或文本片段（唯一命中）。"
+msgstr ""
+"The entry to overwrite: a 4-character ID or a text fragment (must hit "
+"exactly one entry)."
+
+#: cx_note/app_help.py:76
+msgid "新内容"
+msgstr "New content"
+
+#: cx_note/app_help.py:79
+msgid "覆盖后的新内容；字面 [u]\\n[/] 转换为换行，如 [u]edit a1b2 \"改好的内容\"[/]。"
+msgstr ""
+"The new content to overwrite with; a literal [u]\\n[/] becomes a line "
+"break, e.g. [u]edit a1b2 \"updated content\"[/]."
+
+#: cx_note/app_help.py:85
 msgid "查看列表"
 msgstr "Browse the list"
 
-#: cx_note/app_help.py:64
+#: cx_note/app_help.py:86
 msgid "按域分组显示条目；不带动词运行时默认执行。"
 msgstr "Show entries grouped by domain; the default when no verb is given."
 
-#: cx_note/app_help.py:67
+#: cx_note/app_help.py:89
 msgid "展开下级域的条目；默认下级域只显示标题行。"
 msgstr "Expand subdomain entries; by default subdomains show header lines only."
 
-#: cx_note/app_help.py:71
+#: cx_note/app_help.py:93
 msgid "状态流转"
 msgstr "Status transitions"
 
-#: cx_note/app_help.py:72
+#: cx_note/app_help.py:94
 msgid "把条目标记为已完成。"
 msgstr "Mark an entry as done."
 
-#: cx_note/app_help.py:74
+#: cx_note/app_help.py:96
 msgid "把条目转入进行中。"
 msgstr "Move an entry to in-progress."
 
-#: cx_note/app_help.py:76
+#: cx_note/app_help.py:98
 msgid "把条目重置为待办。"
 msgstr "Reset an entry back to todo."
 
-#: cx_note/app_help.py:78
+#: cx_note/app_help.py:100
 msgid "把条目标记为已取消。"
 msgstr "Mark an entry as cancelled."
 
-#: cx_note/app_help.py:82
+#: cx_note/app_help.py:104
 msgid "删除"
 msgstr "Delete"
 
-#: cx_note/app_help.py:83
+#: cx_note/app_help.py:105
 msgid "删除单条条目。"
 msgstr "Erase a single entry."
 
-#: cx_note/app_help.py:87
+#: cx_note/app_help.py:109
 msgid "清空当前工作域的直属条目（不含子域），交互确认一次。"
 msgstr ""
 "Empty the current working domain's direct entries (subdomains excluded), "
 "with one interactive confirmation."
 
-#: cx_note/app_help.py:92
-msgid "终态清理：已完成与已取消条目超龄后在写操作时自动删除，保留天数由配置 [u]retention_days[/] 决定。"
+#: cx_note/app_help.py:114
+msgid "终态清理：已完成与已取消条目超龄后在每次运行收尾时自动清理，保留天数由配置 [u]retention_days[/] 决定。"
 msgstr ""
 "Terminal-state cleanup: completed and cancelled entries are automatically"
-" removed during write operations once they exceed the retention period, "
+" cleaned up at the end of each run once they exceed the retention period, "
 "which is set by [u]retention_days[/] in the config."
 
-#: cx_note/app_help.py:99
+#: cx_note/app_help.py:121
 msgid "域选项"
 msgstr "Domain options"
 
-#: cx_note/app_help.py:103
+#: cx_note/app_help.py:125
 msgid "域字面"
 msgstr "Domain literal"
 
-#: cx_note/app_help.py:106
+#: cx_note/app_help.py:128
 msgid "指定工作域：以 [u]/[/] 开头为绝对域，否则相对当前域；对所有动词生效。"
 msgstr ""
 "Switch the working domain: a leading [u]/[/] means an absolute domain, "
 "otherwise relative to the current one; applies to every verb."
 
-#: cx_note/app_help.py:110
+#: cx_note/app_help.py:132
 msgid "在根域操作。"
 msgstr "Operate on the root domain."
 
-#: cx_note/app_help.py:113
+#: cx_note/app_help.py:135
 msgid "输出选项"
 msgstr "Output options"
 
-#: cx_note/app_help.py:115
+#: cx_note/app_help.py:137
 msgid "向 stdout 输出纯净 JSON，跳过标题与一切装饰。"
 msgstr "Write pure JSON to stdout, skipping the title and all decoration."
 
-#: cx_note/app_help.py:118
+#: cx_note/app_help.py:140
 msgid "展开下级域；同时扩大 [u]list --json[/] 的输出范围。"
 msgstr "Expand subdomains; also widens the scope of [u]list --json[/] output."
 
-#: cx_note/app_help.py:120
+#: cx_note/app_help.py:142
 msgid "开启 debug 模式。"
 msgstr "Enable debug mode."
 
-#: cx_note/app_help.py:123
+#: cx_note/app_help.py:145
 msgid "杂项"
 msgstr "Misc"
 
-#: cx_note/app_help.py:124
+#: cx_note/app_help.py:146
 msgid "显示此分组帮助。"
 msgstr "Show this grouped help."
 
-#: cx_note/app_help.py:125
+#: cx_note/app_help.py:147
 msgid "显示完整教程。"
 msgstr "Show the full tutorial."
 
-#: cx_note/app_help.py:130
+#: cx_note/app_help.py:152
 msgid ""
 "定位规则：[u]ID[/] 全库精确定位；[u]文本片段[/] 限可见域（当前域 + 下级域）且须唯一命中；[u]-p[/] "
 "改变所有动词的工作域。终态 = 已完成（[u]finish[/]）与已取消（[u]drop[/]）。"
@@ -161,176 +191,203 @@ msgstr ""
 "domain of every verb. Terminal states = done ([u]finish[/]) and cancelled"
 " ([u]drop[/])."
 
-#: cx_note/app_help.py:139
+#: cx_note/app_help.py:161
 msgid ""
 "cxnote —— 终端里的快速便签。\n"
-"        以 [u]add[/] 记录、[u]list[/] 查看、[u]finish[/] [u]pend[/] [u]reset[/] "
-"[u]drop[/] 流转状态、\n"
+"        以 [u]add[/] 记录、[u]list[/] 查看、[u]edit[/] 覆盖内容、[u]finish[/] "
+"[u]pend[/] [u]reset[/] [u]drop[/] 流转状态、\n"
 "        [u]erase[/] [u]clear[/] 删除。各条目级动词支持多个参数。运行 [u]cxnote "
 "--tutorial[/] 学习完整用法。"
 msgstr ""
 "cxnote — a quick sticky note for your terminal.\n"
-"        [u]add[/] to jot, [u]list[/] to browse, [u]finish[/] [u]pend[/] "
-"[u]reset[/] [u]drop[/] to move entries through statuses,\n"
+"        [u]add[/] to jot, [u]list[/] to browse, [u]edit[/] to overwrite "
+"content, [u]finish[/] [u]pend[/] [u]reset[/] [u]drop[/] to move entries "
+"through statuses,\n"
 "        [u]erase[/] [u]clear[/] to delete. All entry-level verbs accept "
 "multiple arguments. Run [u]cxnote --tutorial[/] for the full guide."
 
-#: cx_note/app_help.py:160
+#: cx_note/app_help.py:182
 msgid "CxNote 教程"
 msgstr "CxNote Tutorial"
 
-#: cx_note/appcontext.py:74
+#: cx_note/appcontext.py:75
 msgid "cxnote —— 终端里的快速便签。"
 msgstr "cxnote — a quick sticky note for your terminal."
 
-#: cx_note/appcontext.py:82
+#: cx_note/appcontext.py:83
 msgid "要执行的动作，缺省为 list"
 msgstr "Action to perform (defaults to list)"
 
-#: cx_note/appcontext.py:88
-msgid "动词参数（可传多个）：add 为多条条目内容，finish/pend/reset/erase/drop 为多个 ID 或文本片段"
+#: cx_note/appcontext.py:89
+msgid ""
+"动词参数（可传多个）：add 为多条条目内容，edit 为目标与新内容（恰好两个），finish/pend/reset/erase/drop "
+"为多个 ID 或文本片段"
 msgstr ""
-"Verb arguments (multiple allowed): entry content for add; IDs or text "
-"fragments for finish/pend/reset/erase/drop"
+"Verb arguments (multiple allowed): entry content for add; target and new "
+"content for edit (exactly two); IDs or text fragments for "
+"finish/pend/reset/erase/drop"
 
-#: cx_note/appcontext.py:96
+#: cx_note/appcontext.py:98
 msgid "指定域字面（以 / 开头为绝对域，否则相对当前域）"
 msgstr ""
 "Domain literal (leading / = absolute, otherwise relative to the current "
 "domain)"
 
-#: cx_note/appcontext.py:103
+#: cx_note/appcontext.py:105
 msgid "在根域操作"
 msgstr "Operate on the root domain"
 
-#: cx_note/appcontext.py:109
+#: cx_note/appcontext.py:111
 msgid "向 stdout 输出纯净 JSON"
 msgstr "Write pure JSON to stdout"
 
-#: cx_note/appcontext.py:115
+#: cx_note/appcontext.py:117
 msgid "同时显示下级域的条目"
 msgstr "Also show entries in subdomains"
 
-#: cx_note/appcontext.py:122
+#: cx_note/appcontext.py:124
 msgid "开启 debug 模式"
 msgstr "Enable debug mode"
 
-#: cx_note/appcontext.py:130
+#: cx_note/appcontext.py:132
 msgid "显示分组帮助"
 msgstr "Show grouped help"
 
-#: cx_note/appcontext.py:137
+#: cx_note/appcontext.py:139
 msgid "显示完整教程"
 msgstr "Show the full tutorial"
 
-#: cx_note/application.py:44
+#: cx_note/application.py:52
 #, python-brace-format
 msgid "已完成 {count} 条："
 msgstr "Done {count}: "
 
-#: cx_note/application.py:45
+#: cx_note/application.py:53
 #, python-brace-format
 msgid "已转入进行中 {count} 条："
 msgstr "Moved to in-progress {count}: "
 
-#: cx_note/application.py:46
+#: cx_note/application.py:54
 #, python-brace-format
 msgid "已重置 {count} 条："
 msgstr "Reset {count}: "
 
-#: cx_note/application.py:47
+#: cx_note/application.py:55
 #, python-brace-format
 msgid "已取消 {count} 条："
 msgstr "Cancelled {count}: "
 
-#: cx_note/application.py:91
+#: cx_note/application.py:120
 msgid "用户中断"
 msgstr "Interrupted by user"
 
-#: cx_note/application.py:121
+#: cx_note/application.py:155
 msgid "参数中包含空内容："
 msgstr "Argument contains empty content: "
 
-#: cx_note/application.py:123
+#: cx_note/application.py:157
 #, python-brace-format
 msgid "第 {n} 个参数（{raw!r}）"
 msgstr "argument #{n} ({raw!r})"
 
-#: cx_note/application.py:160
+#: cx_note/application.py:201
 msgid "缺少条目内容"
 msgstr "Missing entry content"
 
-#: cx_note/application.py:185
+#: cx_note/application.py:224
 #, python-brace-format
 msgid "已记录 {count} 条："
 msgstr "Added {count}: "
 
-#: cx_note/application.py:194
+#: cx_note/application.py:231
 #, python-brace-format
 msgid "已存在 {count} 条："
 msgstr "Already exists {count}: "
 
-#: cx_note/application.py:225 cx_note/application.py:244
+#: cx_note/application.py:268
 msgid "当前域暂无条目"
 msgstr "No entries in the current domain"
 
-#: cx_note/application.py:280
+#: cx_note/application.py:319
+msgid "edit 需要恰好两个参数（目标与新内容）"
+msgstr "edit requires exactly two arguments (target and new content)"
+
+#: cx_note/application.py:327
+#, python-brace-format
+msgid "已修改 {count} 条："
+msgstr "Modified {count}: "
+
+#: cx_note/application.py:346
 #, python-brace-format
 msgid "已删除 {count} 条："
 msgstr "Deleted {count}: "
 
-#: cx_note/application.py:296
+#: cx_note/application.py:363
 msgid "当前域没有条目"
 msgstr "No entries in the current domain"
 
-#: cx_note/application.py:299
+#: cx_note/application.py:366
 #, python-brace-format
 msgid "将清空域 {domain} 的 {n} 条条目（不含子域，不可恢复）。"
 msgstr ""
 "This will empty domain {domain}: {n} direct entries (subdomains excluded,"
 " unrecoverable)."
 
-#: cx_note/application.py:303
+#: cx_note/application.py:370
 msgid "确认清空？[y/N] "
 msgstr "Confirm clearing? [y/N] "
 
-#: cx_note/application.py:305
+#: cx_note/application.py:372
 msgid "已取消"
 msgstr "Cancelled"
 
-#: cx_note/application.py:310
+#: cx_note/application.py:375
 #, python-brace-format
 msgid "已清空 {n} 条条目。"
 msgstr "Cleared {n} entries."
 
-#: cx_note/application.py:337
+#: cx_note/application.py:404
+#, python-brace-format
+msgid "已清理 {count} 条："
+msgstr "Cleaned up {count}: "
+
+#: cx_note/application.py:512
 msgid "缺少条目 ID 或文本片段"
 msgstr "Missing entry ID or text fragment"
 
-#: cx_note/application.py:351
+#: cx_note/application.py:528
 #, python-brace-format
 msgid "第 {n} 个参数（{text}）：未找到匹配的条目"
 msgstr "argument #{n} ({text}): no matching entry"
 
-#: cx_note/application.py:360
+#: cx_note/application.py:535
 #, python-brace-format
-msgid "第 {n} 个参数（{text}）：匹配到多个条目——{candidates}"
-msgstr "argument #{n} ({text}): multiple entries matched — {candidates}"
+msgid "第 {n} 个参数（{text}）的候选："
+msgstr "Candidates for argument #{n} ({text}): "
 
-#: cx_note/application.py:371
+#: cx_note/application.py:550
+#, python-brace-format
+msgid "第 {n} 个参数（{text}）：匹配到多个条目"
+msgstr "argument #{n} ({text}): multiple entries matched"
+
+#: cx_note/application.py:561
 msgid "以下参数解析失败："
 msgstr "The following arguments failed to resolve: "
 
-#: cx_note/application.py:445
+#: cx_note/application.py:666
 #, python-brace-format
 msgid "配置文件已损坏: {path}"
 msgstr "Config file is corrupted: {path}"
 
-#: cx_note/common/note_store.py:55 cx_note/common/note_store.py:136
-#: cx_note/common/note_store.py:222
+#: cx_note/common/note_store.py:62 cx_note/common/note_store.py:153
+#: cx_note/common/note_store.py:282
 #, python-brace-format
 msgid "笔记存储已损坏: {path}"
 msgstr "Note store is corrupted: {path}"
+
+#: cx_note/components/list_view.py:92
+msgid "即将被清理"
+msgstr "pending cleanup"
 
 #~ msgid "已开始"
 #~ msgstr "In progress"
@@ -361,4 +418,7 @@ msgstr "Note store is corrupted: {path}"
 
 #~ msgid "匹配到多个条目，请改用 ID 或更精确的文本："
 #~ msgstr "Multiple entries matched; use an ID or a more precise text fragment:"
+
+#~ msgid "第 {n} 个参数（{text}）：匹配到多个条目——{candidates}"
+#~ msgstr "argument #{n} ({text}): multiple entries matched — {candidates}"
 

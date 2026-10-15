@@ -37,6 +37,7 @@ cxnote -g list --full                           # root-domain overview
 |---|---|---|
 | `add` | text (multiple allowed) | Record one or more entries into the working domain; each argument becomes one entry; `\n` in the text becomes a line break; **an exactly identical entry in the same domain is never duplicated** (the existing entry is reported back) |
 | `list` | — (default verb) | Show entries grouped by domain; `--full` expands sub-domains |
+| `edit` | target + content (exactly two arguments) | Overwrite one entry's content; status, domain, ID, creation time and terminal timestamp stay unchanged; `\n` converts to a line break just like `add`; no duplicate check (content matching another entry still succeeds) |
 | `finish` | ID or text fragment (multiple allowed) | Mark as done and stamp the completion time |
 | `pend` | ID or text fragment (multiple allowed) | Move to in-progress |
 | `reset` | ID or text fragment (multiple allowed) | Reset to todo and clear the completion time |
@@ -46,6 +47,7 @@ cxnote -g list --full                           # root-domain overview
 
 ```bash
 cxnote add "weekend\n- hike\n- groceries" "buy groceries"    # batch: record two entries
+cxnote edit a1b2 "rewritten content"                           # overwrite one entry's content
 cxnote pend hike                                               # move to in-progress
 cxnote finish a1b2 b3c4                                        # batch: finish two entries
 cxnote drop buy groceries                                      # cancel one entry
@@ -53,9 +55,9 @@ cxnote erase a1b2 b3c4                                        # batch: delete tw
 cxnote clear                                                   # empty the current domain (asks first)
 ```
 
-**Batch argument rules**: entry-level verbs (`add`, `finish`, `pend`, `reset`, `drop`, `erase`) accept multiple arguments, each becoming one target. If any argument fails to resolve, the entire command is aborted with no partial effect, and the error lists every problematic argument. An explicit argument that is empty after `strip` causes an abort (e.g. a misquoted empty string), never a silent skip.
+**Batch argument rules**: entry-level verbs (`add`, `finish`, `pend`, `reset`, `drop`, `erase`) accept multiple arguments, each becoming one target. `edit` takes exactly two arguments (the target entry and the new content); one or three arguments abort with an error. If any argument fails to resolve, the entire command is aborted with no partial effect, and the error lists every problematic argument. An explicit argument that is empty after `strip` causes an abort (e.g. a misquoted empty string), never a silent skip.
 
-**Post-operation echo**: after every verb except `list` succeeds in human-readable mode, the current working domain's **direct entry list** is printed below the confirmation line — all statuses, no sub-domains (not even their header lines). Use `list` to see sub-domains; an empty domain echoes "no entries".
+**Post-operation echo**: after every verb except `list` succeeds in human-readable mode, the **changed entries** — the entries this run modified — are printed below the confirmation line, grouped into blocks by the entry's own domain (domain headers follow the same rules as `list`; domains outside the current subtree use their absolute path as the header). The confirmation line for entry-level verbs follows the template "<result> N: <ID list>" with bare 4-character IDs separated by spaces, and `clear` uses the fixed line "Cleared N entries.". When the run changed nothing, no echo block is printed; use `list` to see a domain's full inventory.
 
 ## Status Transitions
 
@@ -70,11 +72,11 @@ Each note has one of four states: `todo` → `pending` → `done` / `dropped`.
 
 1. **`erase <id|text>`** — remove one or more entries;
 2. **`clear`** — empty the working domain's direct entries (**sub-domains excluded**); the human-readable mode asks once, `--json` skips the prompt;
-3. **Automatic cleanup** — every write operation (add / finish / pend / reset / erase / clear / drop) also removes **completed and cancelled entries past the retention period** (terminal-state entries). The retention period is set in the config (see below).
+3. **Automatic cleanup** — every run that reaches disk load executes cleanup once in its **finalization stage**: it removes **completed and cancelled entries past the retention period** (terminal-state entries) from the current domain and its sub-domains, read-only `list` runs included; when anything is actually removed, a separate cleanup report is printed after the business output. The retention period is set in the config (see below).
 
 ## Target Resolution
 
-The argument of `finish` / `pend` / `reset` / `drop` / `erase` may be:
+The first argument of `edit`, and the arguments of `finish` / `pend` / `reset` / `drop` / `erase`, may be:
 
 - **ID**: every entry has a 4-character ID (the badge at the end of its list row) — **exact match, library-wide**;
 - **text fragment**: substring matching within the **visible domains** (current + sub-domains) only, and it **must hit exactly one** entry — multiple hits list the candidates and ask you to use the ID instead.
@@ -89,6 +91,7 @@ cxnote list --json --full                   # current domain + all sub-domains
 cxnote add "ticket" --json                  # single-element array (one entry object)
 cxnote add "milk" "eggs" --json             # array of two new entry objects
 cxnote finish a1b2 --json                   # single-element array (the updated entry)
+cxnote edit a1b2 "new content" --json       # single-element array (the updated entry)
 cxnote erase a1b2 b3c4 --json               # array of two deleted entry objects
 cxnote add "milk" --json                    # duplicate: returns array with the existing entry object
 cxnote clear --json                         # array of removed entries (no prompt)
@@ -104,7 +107,7 @@ On first run, `config.toml` is created automatically in the config directory:
 retention_days = 30
 ```
 
-- `retention_days`: how many days terminal-state entries (completed and cancelled) are kept; overdue entries are removed during write operations;
+- `retention_days`: how many days terminal-state entries (completed and cancelled) are kept; overdue entries are removed once per run in the finalization stage (every run that reaches disk load);
 - `0` or negative disables automatic cleanup;
 - To adjust the retention period, edit the file directly (there is no config command).
 

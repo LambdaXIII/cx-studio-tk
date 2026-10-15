@@ -2,7 +2,7 @@
 
 结构与其余 5 工具的 `app_help.py` 同构（模板：hosts_keeper）：
 `CxNoteHelp` 多重继承 `IAppComponent`（取 appenv/context）与
-`WealthyHelp`（帮助 DSL），分组覆盖 8 个动词与全局选项。
+`WealthyHelp`（帮助 DSL），分组覆盖 9 个动词与全局选项。
 """
 
 from cx_note.i18n import _
@@ -58,6 +58,28 @@ class CxNoteHelp(IAppComponent, WealthyHelp):
                 ' [u]add "买菜\\n做饭" "交水电费"[/]。'
             ),
         )
+        edit_cmd = self.add_group(_("修改内容")).add_command(
+            "edit",
+            detail=_(
+                "覆盖单条条目的内容；状态、所属域、ID、创建时间与"
+                " 终态打点均不变，不做重复校验。"
+            ),
+        )
+        edit_cmd.add_action(
+            "TARGET",
+            name=_("目标条目"),
+            metavar="TARGET",
+            detail=_("要覆盖内容的条目：4 位 ID 或文本片段（唯一命中）。"),
+        )
+        edit_cmd.add_action(
+            "TEXT",
+            name=_("新内容"),
+            metavar="TEXT",
+            detail=_(
+                "覆盖后的新内容；字面 [u]\\n[/] 转换为换行，如"
+                ' [u]edit a1b2 "改好的内容"[/]。'
+            ),
+        )
 
         # 查看列表
         list_cmd = self.add_group(_("查看列表")).add_command(
@@ -89,7 +111,7 @@ class CxNoteHelp(IAppComponent, WealthyHelp):
         self.add_note(
             r.Text.from_markup(
                 _(
-                    "终态清理：已完成与已取消条目超龄后在写操作时自动删除，"
+                    "终态清理：已完成与已取消条目超龄后在每次运行收尾时自动清理，"
                     "保留天数由配置 [u]retention_days[/] 决定。"
                 )
             )
@@ -137,7 +159,7 @@ class CxNoteHelp(IAppComponent, WealthyHelp):
         self.description = tt.auto_unwrap(
             _(
                 """cxnote —— 终端里的快速便签。
-        以 [u]add[/] 记录、[u]list[/] 查看、[u]finish[/] [u]pend[/] [u]reset[/] [u]drop[/] 流转状态、
+        以 [u]add[/] 记录、[u]list[/] 查看、[u]edit[/] 覆盖内容、[u]finish[/] [u]pend[/] [u]reset[/] [u]drop[/] 流转状态、
         [u]erase[/] [u]clear[/] 删除。各条目级动词支持多个参数。运行 [u]cxnote --tutorial[/] 学习完整用法。"""
             )
         )
