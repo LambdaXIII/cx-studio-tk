@@ -59,7 +59,7 @@ class MediaKillerHelp(IAppComponent, WealthyHelp):
             detail=tt.auto_unwrap(
                 _(
                     """设置任务的排序模式。
-                    四种模式分别为[u]按源文件路径[/]、[u]按预设[/]、[u]按目标文件路径[/]、[u]按输入顺序（默认）[/]。"""
+                    四种模式分别为[u]按源文件路径[/]、[u]按预设[/]、[u]按目标文件路径[/]、[u]按路径集合顺序[/]。"""
                 )
             ),
         )

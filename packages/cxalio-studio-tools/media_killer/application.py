@@ -1,6 +1,6 @@
 """media_killer CLI Application。
 
-对接 CLI_BEHAVIOR.md 定义的用户侧行为，编排 Preset 加载、源文件展开、
+对接 CLI_BEHAVIOR.md 定义的用户侧行为，编排输入解析、Preset 加载、
 Mission 生成、排序去重、脚本保存与执行调度。
 
 实现范围：help/tutorial/generate/mission 生成/脚本保存/模拟运行/实际转码。
@@ -32,17 +32,62 @@ from cx_wealthy import IndexedListPanel, WealthyDetailPanel, rich_types as r
 from .appcontext import OVERWRITE_DANGER, OVERWRITE_SAFE, MediaKillerContext
 from .app_help import MediaKillerHelp
 from .components import (
+    InputResolver,
     MissionMaker,
     MissionStore,
     Preset,
     PresetLoader,
     ScriptMaker,
-    SourceExpander,
 )
 from ffpretty.common import FileLogType, Mission, MissionResult
 
 from .common import MissionHQ
 from .common.mission_hq import MISSION_FILE_LOGGED, MISSION_RESULT, MISSION_STARTED
+
+
+def _extract_presets_and_sources(
+    paths: list[Path],
+) -> tuple[list[Preset], list[Path]]:
+    """从路径集合中提炼预设与源文件（输入侧第二环节）。
+
+    全部 `.toml` 文件交 PresetLoader 加载为预设（后缀比较大小写不敏感），
+    任一加载失败即报错中止；不存在任何 `.toml` 时报错中止。其余路径按
+    全部预设合并的源后缀集合过滤为源文件，不符合的被静默排除。
+
+    Args:
+        paths: 输入解析环节产出的绝对路径集合。
+
+    Returns:
+        tuple[list[Preset], list[Path]]: 按路径顺序加载的预设列表，以及
+            过滤后的源文件列表。
+
+    Raises:
+        SafeError: 未提供任何预设文件，或任一预设文件加载失败时。
+    """
+    presets: list[Preset] = []
+    for path in paths:
+        if path.suffix.lower() != ".toml":
+            continue
+        try:
+            presets.append(PresetLoader().load(path))
+        except SafeError:
+            raise
+        except Exception as e:
+            raise SafeError(
+                _("加载预设文件 {path} 失败: {err}").format(path=path, err=e)
+            ) from e
+    if not presets:
+        raise SafeError(_("未提供任何预设文件。"))
+
+    merged_suffixes: set[str] = set()
+    for preset in presets:
+        merged_suffixes |= preset.source_suffixes
+    sources = [
+        p
+        for p in paths
+        if p.suffix.lower() != ".toml" and p.suffix.lower() in merged_suffixes
+    ]
+    return presets, sources
 
 
 class MediaKillerApp(IApplication):
@@ -147,24 +192,6 @@ class MediaKillerApp(IApplication):
         return result
 
     # --- 静态工具方法 ---
-
-    @staticmethod
-    def _resolve_preset(path: Path) -> Path | None:
-        """将用户输入解析为预设文件的实际路径。
-
-        若为 .toml 文件直接返回；若无扩展名则尝试补全 .toml 后缀，
-        或使用原路径（当文件以无扩展名形式存在时）。
-        无法解析为实际存在的文件时返回 None。
-        """
-        if path.suffix.lower() == ".toml":
-            return path
-        if path.suffix == "":
-            resolved = path.with_suffix(".toml")
-            if resolved.exists():
-                return resolved
-            if path.exists():
-                return path
-        return None
 
     def _save_missions(self, missions: Iterable[Mission]) -> None:
         """保存 Mission 列表供 -c/--continue 使用。"""
@@ -417,79 +444,31 @@ class MediaKillerApp(IApplication):
         if not ctx.inputs:
             raise SafeError(_("未提供任何输入项，请使用 -h 查看帮助。"))
 
-        # 4. 扫描输入项，区分 preset / source
-        for raw in ctx.inputs:
-            p = Path(raw)
-            preset_path = self._resolve_preset(p)
-            if preset_path is not None:
-                try:
-                    preset = PresetLoader().load(preset_path.resolve())
-                except SafeError:
-                    raise
-                except Exception as e:
-                    raise SafeError(
-                        _("加载预设文件 {path} 失败: {err}").format(path=p, err=e)
-                    )
-                self.presets.append(preset)
-                # 输出 Preset 详情面板（whisper，仅 --debug 可见）
-                self.appenv.whisper(
-                    WealthyDetailPanel(
-                        preset,
-                        title=f"{_('预设')} [cx.info]{preset.name}[/]",
-                    )
-                )
-                self.appenv.whisper(
-                    f"[cx.info]{_('配置文件路径')}[/] [cx.filepath]{p}[/]"
-                )
-            else:
-                self.sources.append(p)
-                self.appenv.whisper(
-                    f"[cx.info]{_('媒体来源路径')}[/] [cx.filepath]{p}[/]"
-                )
+        # 4. 输入解析：原始输入字符串 → 路径集合
+        paths = InputResolver().resolve(*ctx.inputs)
 
-        if self.presets:
-            self.appenv.say(
-                _(
-                    "已添加 {preset_count} 个配置文件和 {source_count} 个来源路径。"
-                ).format(preset_count=len(self.presets), source_count=len(self.sources))
+        # 5. 资源提炼：路径集合 → 预设与源文件
+        toml_paths = [p for p in paths if p.suffix.lower() == ".toml"]
+        self.presets, self.sources = _extract_presets_and_sources(paths)
+        for preset, preset_path in zip(self.presets, toml_paths):
+            # 输出 Preset 详情面板（whisper，仅 --debug 可见）
+            self.appenv.whisper(
+                WealthyDetailPanel(
+                    preset,
+                    title=f"{_('预设')} [cx.info]{preset.name}[/]",
+                )
+            )
+            self.appenv.whisper(
+                f"[cx.info]{_('配置文件路径')}[/] [cx.filepath]{preset_path}[/]"
             )
 
-        if not self.presets:
-            raise SafeError(_("未提供任何预设文件。"))
-
-        # 5. 合并 source_suffixes，构造 SourceExpander
-        merged_suffixes: set[str] = set()
-        for preset in self.presets:
-            merged_suffixes |= preset.source_suffixes
-
-        from media_scout.common.inspectors import (
-            ResolveMetadataInspector,
-            EDLInspector,
-            LegacyXMLInspector,
-            FCPXMLInspector,
-            FCPXMLDInspector,
-            InspectorChain,
+        self.appenv.say(
+            _("已添加 {preset_count} 个配置文件和 {source_count} 个源文件。").format(
+                preset_count=len(self.presets), source_count=len(self.sources)
+            )
         )
-        from media_scout.common.inspectors.filelist_inspector import FileListInspector
 
-        scout_chain = InspectorChain(
-            ResolveMetadataInspector(),
-            EDLInspector(),
-            LegacyXMLInspector(),
-            FCPXMLInspector(),
-            FCPXMLDInspector(),
-            FileListInspector(".txt", ".ps1", ".sh"),
-        )
-        expander = SourceExpander(suffixes=merged_suffixes, scout_chain=scout_chain)
-
-        # 6. 展开源文件
-        expanded_sources = list(expander.expand(*self.sources))
-        for src in self.sources:
-            resolved = Path(src).resolve()
-            if not resolved.exists():
-                raise SafeError(_("源文件不存在: {path}").format(path=src))
-
-        # 7. 生成 Mission
+        # 6. 生成 Mission
         output_dir = None
         if ctx.output_dir:
             output_dir = Path(ctx.output_dir).resolve()
@@ -498,7 +477,7 @@ class MediaKillerApp(IApplication):
         current_missions: list[Mission] = []
         for preset in self.presets:
             maker = MissionMaker(preset)
-            for source in expanded_sources:
+            for source in self.sources:
                 mission = maker.make_mission(
                     source=source,
                     output_dir=output_dir,
@@ -511,7 +490,7 @@ class MediaKillerApp(IApplication):
                 _("生成了 {count} 个任务。").format(count=len(current_missions))
             )
 
-        # 8. continue 叠加
+        # 7. continue 叠加
         all_missions = list(current_missions)
         if ctx.continue_mode:
             last = self._load_missions()
@@ -520,7 +499,7 @@ class MediaKillerApp(IApplication):
             )
             all_missions.extend(last)
 
-        # 9. 排序去重
+        # 8. 排序去重
         self.missions = self._sort_and_dedup_missions(all_missions)
 
         if not self.missions:
@@ -529,7 +508,7 @@ class MediaKillerApp(IApplication):
 
         self.appenv.whisper(IndexedListPanel(self.missions, _("整理完的任务列表")))
 
-        # 10. 脚本保存
+        # 9. 脚本保存
         if ctx.save_script:
             script_path = Path(ctx.save_script)
             if script_path.exists() and ctx.overwrite_mode == OVERWRITE_SAFE:
@@ -541,7 +520,7 @@ class MediaKillerApp(IApplication):
             ScriptMaker(self.missions).save(script_path)
             return
 
-        # 11. 模拟运行
+        # 10. 模拟运行
         if ctx.pretending_mode:
             self.appenv.say(
                 f"[cx.whisper]{_('检测到[cx.info]假装模式[/]，将不会真正执行任何操作。')}[/]"
@@ -549,5 +528,5 @@ class MediaKillerApp(IApplication):
             self._execute_missions(pretend=True)
             return
 
-        # 12. 实际转码
+        # 11. 实际转码
         self._execute_missions(pretend=False)
