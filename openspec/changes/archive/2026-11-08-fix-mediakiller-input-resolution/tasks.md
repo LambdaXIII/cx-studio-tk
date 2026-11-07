@@ -22,4 +22,4 @@
 ## 4. 收口
 
 - [x] 4.1 向用户建议版本号（读 `packages/cxalio-studio-tools/pyproject.toml` 旧值；初步判断 minor 档——新增能力面：目录内 toml 成为预设、项目文件门扩充，AGENTS 幅度策略多档取最高；最终由用户拍板）
-- [ ] 4.2 实施经用户确认后 `openspec archive` 归档本变更（delta 折回 `openspec/specs/media-killer/spec.md`）
+- [x] 4.2 实施经用户确认后 `openspec archive` 归档本变更（delta 折回 `openspec/specs/media-killer/spec.md`）
