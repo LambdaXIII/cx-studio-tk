@@ -1,7 +1,6 @@
 """Mission 转码任务通用契约。
 
 本模块是 media_killer 共享底座的一部分，定义执行一次转码所需的最小自洽值对象。
-Mission 构造完成后不再引用 Preset 或 SourceExpander，可被任何执行单元消费。
 
 内容：
 - InputSpec / OutputSpec：Mission 的输入/输出文件规格，frozen dataclass，

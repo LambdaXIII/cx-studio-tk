@@ -23,6 +23,7 @@ The following rules generally apply (where `source file path` refers to the path
 
 2. If the `source file path` is a *folder*, all files and subdirectories within it will be expanded recursively.
 3. All detected files will be filtered according to the presets in the corresponding `preset file`.
+4. An input without an extension is completed to `.toml` when its path does not exist (e.g. `preset` resolves to `preset.toml`); after a directory input is expanded, any `.toml` files within it are extracted as presets.
 
 > The project file parsing functionality is implemented by another tool in the toolkit — `MediaScout`.
 

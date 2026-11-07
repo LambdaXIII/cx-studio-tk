@@ -313,7 +313,7 @@ CLI 工具中的所有类按是否依赖运行环境分为两层：
 
 **通用功能组件** — 不继承 `IAppComponent`，不依赖 appenv/context/env。包括：
 - 值对象/dataclass（Mission、Preset、HostRecord 等）
-- 纯算法/IO 类（MediaDB、MissionExecutor、SourceExpander、ScriptMaker、PresetLoader 等）
+- 纯算法/IO 类（MediaDB、MissionExecutor、InputResolver、ScriptMaker、PresetLoader 等）
 - 纯过滤器/处理器（jpegger 的 ImageFilterChain 及全部过滤器）
 
 规则：
@@ -327,7 +327,7 @@ CLI 工具中的所有类按是否依赖运行环境分为两层：
 工具包内部按能力归属分两层：
 
 - **`common/`** — 不需要 appenv 的非耦合能力（对外提供面）。如 ffpretty.common（Mission/Executor/MediaDB）、media_killer.common（MissionHQ 调度层）、media_scout.common（inspectors）、subtitler.common（字幕模型 + Loader/Saver 契约 + 时间换算 + 格式实现）。
-- **`components/`** — 需要 appenv 或含工具特定转化/包装逻辑的组件。如 ffpretty.components（mission_runner/mission_maker/info_elements）、media_killer.components（preset/expander/script_maker/mission_store）、subtitler.components（格式接线 / 转换编排）。
+- **`components/`** — 需要 appenv 或含工具特定转化/包装逻辑的组件。如 ffpretty.components（mission_runner/mission_maker/info_elements）、media_killer.components（preset/input_resolver/script_maker/mission_store）、subtitler.components（格式接线 / 转换编排）。
 
 判别标准 = **appenv 依赖 + 特化与否**：不依赖 appenv 且非工具特定 → common；否则 → components。公共能力在设计之初规划（非消费者驱动），避免事后从 components 反向抽取。
 
